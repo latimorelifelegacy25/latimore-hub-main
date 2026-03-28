@@ -1,0 +1,97 @@
+export const dynamic = 'force-dynamic'
+
+import { NextRequest, NextResponse } from 'next/server'
+import { Resend } from 'resend'
+import twilio from 'twilio'
+import { prisma } from '@/lib/prisma'
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
+  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+  : null
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null)
+  if (!body?.contactId || !body?.channel || !body?.message) {
+    return NextResponse.json({ ok: false, error: 'contactId, channel, and message are required' }, { status: 422 })
+  }
+
+  const contact = await prisma.contact.findUnique({ where: { id: body.contactId } })
+  if (!contact) return NextResponse.json({ ok: false, error: 'Contact not found' }, { status: 404 })
+
+  let providerId: string
+  if (body.channel === 'sms') {
+    if (!twilioClient || !contact.phone || !process.env.TWILIO_PHONE_NUMBER) {
+      return NextResponse.json({ ok: false, error: 'Twilio is not configured or contact phone is missing' }, { status: 400 })
+    }
+    const sms = await twilioClient.messages.create({ body: body.message, from: process.env.TWILIO_PHONE_NUMBER, to: contact.phone })
+    providerId = sms.sid
+  } else if (body.channel === 'email') {
+    if (!resend || !contact.email) {
+      return NextResponse.json({ ok: false, error: 'Resend is not configured or contact email is missing' }, { status: 400 })
+    }
+    const result = await resend.emails.send({
+      from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
+      to: contact.email,
+      subject: body.subject || 'Message',
+      text: body.message,
+    })
+    providerId = (result as any)?.data?.id ?? (result as any)?.id ?? null
+  } else {
+    return NextResponse.json({ ok: false, error: 'Unsupported channel' }, { status: 422 })
+  }
+
+  const existingThread = await prisma.conversationThread.findFirst({
+    where: { contactId: body.contactId, channel: body.channel },
+    orderBy: { updatedAt: 'desc' },
+  })
+
+  const thread = existingThread ?? await prisma.conversationThread.create({
+    data: {
+      contactId: body.contactId,
+      inquiryId: body.inquiryId,
+      channel: body.channel,
+      subject: body.subject,
+      lastMessageAt: new Date(),
+      lastOutboundAt: new Date(),
+    },
+  })
+
+  const message = await prisma.conversationMessage.create({
+    data: {
+      threadId: thread.id,
+      contactId: body.contactId,
+      inquiryId: body.inquiryId,
+      channel: body.channel,
+      direction: 'outbound',
+      status: 'sent',
+      subject: body.subject,
+      bodyText: body.message,
+      providerMessageId: providerId,
+      sentAt: new Date(),
+      toAddress: body.channel === 'email' ? contact.email : contact.phone,
+    },
+  })
+
+  await prisma.conversationThread.update({
+    where: { id: thread.id },
+    data: { lastMessageAt: new Date(), lastOutboundAt: new Date(), subject: body.subject ?? thread.subject ?? undefined },
+  })
+
+  await prisma.contact.update({
+    where: { id: body.contactId },
+    data: { lastActivityAt: new Date() },
+  })
+
+  await prisma.systemEvent.create({
+    data: {
+      type: 'message.sent',
+      contactId: body.contactId,
+      inquiryId: body.inquiryId,
+      threadId: thread.id,
+      payload: { channel: body.channel, messageId: message.id, providerMessageId: providerId },
+    },
+  })
+
+  return NextResponse.json({ ok: true, threadId: thread.id, messageId: message.id, providerMessageId: providerId })
+}

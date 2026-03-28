@@ -1,0 +1,63 @@
+{
+  "name": "latimorehub",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "validate": "npm run lint && npm run build",
+    "postinstall": "prisma generate",
+    "db:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "build:fresh-db": "prisma generate && prisma db push && next build",
+    "db:seed": "prisma db seed"
+  },
+  "dependencies": {
+    "@hello-pangea/dnd": "^16.6.0",
+    "@prisma/client": "^5.22.0",
+    "@radix-ui/react-accordion": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.0.5",
+    "@radix-ui/react-select": "^2.0.0",
+    "@upstash/ratelimit": "^1.2.1",
+    "@upstash/redis": "^1.31.3",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "gsap": "^3.12.5",
+    "lucide-react": "^0.378.0",
+    "next": "^16.2.1",
+    "next-auth": "^4.24.7",
+    "pino": "^9.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "recharts": "^2.12.6",
+    "resend": "^3.2.0",
+    "tailwind-merge": "^2.3.0",
+    "twilio": "^5.4.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@next/eslint-plugin-next": "^16.2.1",
+    "@types/node": "^20.12.12",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^9.22.0",
+    "eslint-config-next": "^16.2.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.4.0",
+    "pino-pretty": "^10.3.1",
+    "postcss": "^8.4.38",
+    "prisma": "^5.22.0",
+    "supabase": "^2.83.0",
+    "tailwindcss": "^3.4.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.57.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
+}
