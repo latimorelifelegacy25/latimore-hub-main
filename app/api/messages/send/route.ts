@@ -36,7 +36,17 @@ export async function POST(req: NextRequest) {
       subject: body.subject || 'Message',
       text: body.message,
     })
-    providerId = (result as any)?.data?.id ?? (result as any)?.id ?? null
+    
+    console.log('[resend] send result:', JSON.stringify(result, null, 2))
+    
+    providerId =
+      (result as any)?.data?.id ??
+      (result as any)?.id ??
+      null
+    
+    if (!providerId) {
+      console.warn('[resend] providerMessageId missing from response')
+    }
   } else {
     return NextResponse.json({ ok: false, error: 'Unsupported channel' }, { status: 422 })
   }
