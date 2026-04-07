@@ -31,22 +31,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: 'Resend is not configured or contact email is missing' }, { status: 400 })
     }
     const result = await resend.emails.send({
-      from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
-      to: contact.email,
-      subject: body.subject || 'Message',
-      text: body.message,
-    })
-    
-    console.log('[resend] send result:', JSON.stringify(result, null, 2))
-    
-    providerId =
-      (result as any)?.data?.id ??
-      (result as any)?.id ??
-      null
-    
-    if (!providerId) {
-      console.warn('[resend] providerMessageId missing from response')
-    }
+  from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
+  to: contact.email,
+  subject: body.subject || 'Message',
+  text: body.message,
+})
+
+console.log('[resend] send result:', JSON.stringify(result, null, 2))
+
+providerId =
+  (result as any)?.data?.id ??
+  (result as any)?.id ??
+  null
+
+if (!providerId) {
+  console.warn('[resend] providerMessageId missing from response')
+}
   } else {
     return NextResponse.json({ ok: false, error: 'Unsupported channel' }, { status: 422 })
   }

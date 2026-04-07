@@ -14,6 +14,8 @@ build/
 .env.local
 .env.*.local
 .env.production
+.env.local22
+*.tsbuildinfo
 
 # Prisma
 # Note: Keep migrations in git for production deployment
@@ -34,3 +36,5 @@ npm-debug.log*
 .vercel/
 .vercel
 .env*.local
+
+.vercel
