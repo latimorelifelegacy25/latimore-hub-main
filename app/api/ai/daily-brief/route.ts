@@ -30,8 +30,12 @@ const displayName = (contact: any) => contact.fullName || [contact.firstName, co
 export async function POST(req: NextRequest) {
   const limited = applyAiRateLimit(req)
   if (limited) return limited
-  const auth = await requireAdminSession()
-  if (!auth.ok) return auth.response
+  const cronSecret = process.env.CRON_SECRET
+  const isCron = cronSecret && req.headers.get("x-cron-secret") === cronSecret
+  if (!isCron) {
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
+  }
 
   const body = await req.json().catch(() => ({}))
   const parsed = BodySchema.safeParse(body)
