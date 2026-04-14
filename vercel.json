@@ -1,1 +1,18 @@
-{"framework": "nextjs", "buildCommand": "npm run build"}
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "crons": [
+    {
+      "path": "/api/ai/daily-brief",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/ai/lead-score",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/appointment-reminders",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
