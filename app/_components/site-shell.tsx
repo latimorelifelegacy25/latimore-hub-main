@@ -124,7 +124,7 @@ export function SiteHeader({
               fontSize: '0.85rem',
             }}
           >
-            Get Covered
+            PAHS FOOTBALL 2026
           </a>
           <a
             href={BRAND.bookingUrl}

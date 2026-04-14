@@ -96,7 +96,7 @@ export function MobileNav({
               textAlign: 'center',
             }}
           >
-            Get Covered
+            PAHS FOOTBALL 2026
           </a>
 
           <a
