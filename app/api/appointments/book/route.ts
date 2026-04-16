@@ -12,6 +12,8 @@ import { changeInquiryStage } from '@/lib/hub/change-stage'
 import { sendMail } from '@/lib/mailer'
 import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { rateLimit } from '@/lib/rate-limit'
+import { LeadIntent, LeadSource, LeadStatus } from '@prisma/client'
+import { inferLeadSource } from '@/lib/tracking/infer'
 
 const BodySchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -107,6 +109,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const input = parsed.data
+    const sourceType = inferLeadSource({
+      utmSource: input.source ?? null,
+      utmMedium: input.medium ?? null,
+      referrer: input.referrer ?? null,
+      landingPage: input.pageUrl ?? '/consult',
+    })
     const slotStart = parseISO(input.slotStart)
     const slotEnd = addMinutes(slotStart, BOOKING_CONFIG.durationMinutes)
 
@@ -275,6 +283,25 @@ export async function POST(req: NextRequest) {
       actor: 'native-scheduler',
       notes: input.notes ?? undefined,
       occurredAt: slotStart,
+    })
+     // Typed tracking updates (source/intent/status)
+    await prisma.inquiry.update({
+        where: { id: inquiry.id },
+        data: {
+          sourceType,
+          intent: LeadIntent.CONSULT,
+          status: LeadStatus.BOOKED,
+        },
+    })
+
+    await prisma.contact.update({
+      where: { id: contact.id },
+      data: {
+        primarySourceType: contact.primarySourceType === LeadSource.UNKNOWN ? sourceType : contact.primarySourceType,
+        primaryIntent: contact.primaryIntent === LeadIntent.UNKNOWN ? LeadIntent.CONSULT : contact.primaryIntent,
+        currentIntent: LeadIntent.CONSULT,
+        status: LeadStatus.BOOKED,
+      },
     })
 
     await prisma.task.create({

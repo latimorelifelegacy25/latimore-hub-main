@@ -47,6 +47,10 @@ model Contact {
   primarySource        String?
   primaryMedium        String?
   primaryCampaign      String?
+  primarySourceType    LeadSource               @default(UNKNOWN)
+  primaryIntent        LeadIntent               @default(UNKNOWN)
+  currentIntent        LeadIntent               @default(UNKNOWN)
+  status               LeadStatus               @default(NEW)
   leadScore            Int                   @default(0)
   lastActivityAt       DateTime?
   nextFollowUpAt       DateTime?
@@ -68,6 +72,10 @@ model Contact {
   @@index([phone])
   @@index([leadScore])
   @@index([lastActivityAt])
+  @@index([primarySourceType])
+  @@index([primaryIntent])
+  @@index([currentIntent])
+  @@index([status])
 }
 
 model Inquiry {
@@ -80,7 +88,10 @@ model Inquiry {
   productInterest ProductInterest       @default(General)
   source          String?
   medium          String?
-  campaign        String?
+  campaign        String? 
+  sourceType LeadSource                 @default(UNKNOWN)
+  intent     LeadIntent                 @default(UNKNOWN)
+  status     LeadStatus                 @default(NEW)
   landingPage     String?
   county          String?
   notes           String?
@@ -103,7 +114,10 @@ model Inquiry {
   @@index([source, medium, campaign])
   @@index([county])
   @@index([contactId])
-  @@index([leadScore])
+  @@index([leadScore])  
+  @@index([sourceType])
+  @@index([intent])
+  @@index([status])
 }
 
 model Appointment {
@@ -489,4 +503,52 @@ enum CalendarEventStatus {
   cancelled
   no_show
   rescheduled
+}
+
+enum LeadSource {
+  WEBSITE_DIRECT
+  GOOGLE_ORGANIC
+  GOOGLE_ADS
+  SOCIAL_ORGANIC
+  QR_CAMPAIGN
+  EMAIL_CAMPAIGN
+  REFERRAL
+  PARTNER_ORG
+  PHONE_INBOUND
+  SMS_INBOUND
+  EMAIL_INBOUND
+  EVENT
+  WORKSHOP
+  FILLOUT
+  UNKNOWN
+}
+
+enum LeadIntent {
+  CONSULT
+  JOIN_PARTNERSHIP
+  JOIN_AGENT
+  JOIN_BOTH
+  QUICK_TERM
+  GENERAL_INQUIRY
+  UNKNOWN
+}
+
+enum LeadStatus {
+  NEW
+  ATTEMPTED_CONTACT
+  CONTACTED
+  QUALIFIED
+  BOOKED
+  IN_CONSULT
+  REFERRED_TO_ETHOS
+  ETHOS_APPLIED
+  ETHOS_APPROVED
+  JOIN_EXPLORING
+  JOIN_ONBOARDING
+  JOIN_ACTIVE
+  CLOSED_WON
+  CLOSED_LOST
+  NURTURE
+  ON_HOLD
+  DORMANT
 }

@@ -6,34 +6,30 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { sendMail } from '@/lib/mailer'
 import { logger } from '@/lib/logger'
+import { LeadIntent, LeadSource, LeadStatus } from '@prisma/client'
+import { inferLeadSource } from '@/lib/tracking/infer'
 
 const JoinBodySchema = z.object({
-  // Universal required
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   email: z.string().email(),
   phone: z.string().min(7).max(40),
 
-  // Path selection
   applicationType: z.enum(['partnership', 'agent', 'both']).nullable().optional(),
 
-  // Partnership fields
   organizationName: z.string().max(200).nullable().optional(),
   organizationType: z.string().max(100).nullable().optional(),
   partnershipGoal: z.string().max(2000).nullable().optional(),
 
-  // Agent fields
   currentRole: z.string().max(150).nullable().optional(),
   isLicensed: z.string().max(50).nullable().optional(),
   interestType: z.string().max(50).nullable().optional(),
   agentMotivation: z.string().max(2000).nullable().optional(),
 
-  // Universal optional
   howHeard: z.string().max(100).nullable().optional(),
   referralSource: z.string().max(150).nullable().optional(),
   additionalNotes: z.string().max(2000).nullable().optional(),
 
-  // Hidden/tracking
   leadSessionId: z.string().max(191).nullable().optional(),
   pageUrl: z.string().max(500).nullable().optional(),
   referrer: z.string().max(500).nullable().optional(),
@@ -96,7 +92,6 @@ export async function POST(req: NextRequest) {
 
   const input = parsed.data
 
-  // Normalize empty strings
   const normalized = {
     ...input,
     applicationType: normalizeEmpty(input.applicationType),
@@ -118,22 +113,56 @@ export async function POST(req: NextRequest) {
     campaign: normalizeEmpty(input.campaign),
   }
 
+  const sourceType = inferLeadSource({
+    utmSource: normalized.source,
+    utmMedium: normalized.medium,
+    referrer: normalized.referrer,
+    landingPage: normalized.pageUrl ?? '/join',
+  })
+
+  const intent =
+    normalized.applicationType === 'partnership'
+      ? LeadIntent.JOIN_PARTNERSHIP
+      : normalized.applicationType === 'agent'
+      ? LeadIntent.JOIN_AGENT
+      : normalized.applicationType === 'both'
+      ? LeadIntent.JOIN_BOTH
+      : LeadIntent.UNKNOWN
+
+  const inquiryStatus = LeadStatus.JOIN_EXPLORING
+
   try {
-    // Upsert contact
     const emailLower = normalized.email.toLowerCase()
     let contact = await prisma.contact.findUnique({ where: { email: emailLower } })
 
     if (contact) {
+      const protectedContactStatuses = new Set<LeadStatus>([
+        LeadStatus.BOOKED,
+        LeadStatus.IN_CONSULT,
+        LeadStatus.REFERRED_TO_ETHOS,
+        LeadStatus.ETHOS_APPLIED,
+        LeadStatus.ETHOS_APPROVED,
+        LeadStatus.CLOSED_WON,
+      ])
+
+      const nextContactStatus = protectedContactStatuses.has(contact.status) ? contact.status : inquiryStatus
+
       contact = await prisma.contact.update({
         where: { id: contact.id },
         data: {
           firstName: normalized.firstName,
           lastName: normalized.lastName,
           phone: normalized.phone,
+
           primarySource: contact.primarySource ?? normalized.source ?? 'website',
           primaryMedium: contact.primaryMedium ?? normalized.medium ?? 'join',
           primaryCampaign: contact.primaryCampaign ?? normalized.campaign ?? 'join',
           lastActivityAt: new Date(),
+
+          primarySourceType: contact.primarySourceType === LeadSource.UNKNOWN ? sourceType : contact.primarySourceType,
+          primaryIntent: contact.primaryIntent === LeadIntent.UNKNOWN ? intent : contact.primaryIntent,
+          currentIntent: protectedContactStatuses.has(contact.status) ? contact.currentIntent : intent,
+          status: nextContactStatus,
         },
       })
     } else {
@@ -143,15 +172,20 @@ export async function POST(req: NextRequest) {
           firstName: normalized.firstName,
           lastName: normalized.lastName,
           phone: normalized.phone,
+
           primarySource: normalized.source ?? 'website',
           primaryMedium: normalized.medium ?? 'join',
           primaryCampaign: normalized.campaign ?? 'join',
           lastActivityAt: new Date(),
+
+          primarySourceType: sourceType,
+          primaryIntent: intent,
+          currentIntent: intent,
+          status: inquiryStatus,
         },
       })
     }
 
-    // Build metadata
     const metadata: Record<string, any> = {
       applicationType: normalized.applicationType,
       howHeard: normalized.howHeard,
@@ -171,22 +205,24 @@ export async function POST(req: NextRequest) {
       metadata.agentMotivation = normalized.agentMotivation
     }
 
-    // Create inquiry
     const inquiry = await prisma.inquiry.create({
       data: {
         contactId: contact.id,
         leadSessionId: normalized.leadSessionId ?? undefined,
-        productInterest: 'General', // Using existing enum, will filter by metadata
+        productInterest: 'General',
         stage: 'New',
         source: normalized.source ?? 'website',
         medium: normalized.medium ?? 'join',
         campaign: normalized.campaign ?? 'join',
         landingPage: normalized.pageUrl ?? '/join',
         notes: normalized.additionalNotes ?? undefined,
+
+        sourceType,
+        intent,
+        status: inquiryStatus,
       },
     })
 
-    // Create detailed note
     const noteSummary = buildJoinNoteSummary(normalized)
     await prisma.note.create({
       data: {
@@ -198,7 +234,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Create task
     const displayName = `${normalized.firstName} ${normalized.lastName}`
     const taskTitle =
       normalized.applicationType === 'partnership'
@@ -212,13 +247,12 @@ export async function POST(req: NextRequest) {
         title: taskTitle,
         description: `${normalized.applicationType || 'Join'} application submitted on ${new Date().toLocaleDateString()}`,
         status: 'Open',
-        dueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
+        dueAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
         contactId: contact.id,
         inquiryId: inquiry.id,
       },
     })
 
-    // Record system event
     await prisma.systemEvent.create({
       data: {
         type: 'join.application_submitted',
@@ -237,7 +271,6 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Send confirmation email to applicant
     if (process.env.THANKYOU_FROM && contact.email) {
       try {
         await sendMail({
@@ -266,7 +299,7 @@ export async function POST(req: NextRequest) {
                 </ol>
               </div>
               <p style="color: #667085; font-size: 14px; line-height: 1.6;">
-                In the meantime, feel free to learn more about our mission at 
+                In the meantime, feel free to learn more about our mission at
                 <a href="https://latimorelifelegacy.com/about" style="color: #C9A24D;">latimorelifelegacy.com/about</a>.
               </p>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
@@ -282,7 +315,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Send internal notification to owner
     if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
       try {
         const subject = `New ${
@@ -297,55 +329,19 @@ export async function POST(req: NextRequest) {
             <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
               <h1 style="color: #0E1A2B; margin-bottom: 8px;">New ${normalized.applicationType || 'Join'} Application</h1>
               <p style="color: #C9A24D; font-weight: 600; margin-bottom: 24px;">${displayName}</p>
-              
+
               <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                 <h2 style="color: #0E1A2B; font-size: 16px; margin: 0 0 12px;">Contact Info</h2>
                 <p style="margin: 4px 0; color: #475467;"><strong>Email:</strong> ${contact.email}</p>
                 <p style="margin: 4px 0; color: #475467;"><strong>Phone:</strong> ${normalized.phone}</p>
-                ${normalized.howHeard ? `<p style="margin: 4px 0; color: #475467;"><strong>How heard:</strong> ${normalized.howHeard}</p>` : ''}
-                ${normalized.referralSource ? `<p style="margin: 4px 0; color: #475467;"><strong>Referral:</strong> ${normalized.referralSource}</p>` : ''}
               </div>
-
-              ${
-                normalized.organizationName
-                  ? `
-              <div style="background: #eff7ff; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <h2 style="color: #0E1A2B; font-size: 16px; margin: 0 0 12px;">Partnership Details</h2>
-                <p style="margin: 4px 0; color: #475467;"><strong>Organization:</strong> ${normalized.organizationName}</p>
-                ${normalized.organizationType ? `<p style="margin: 4px 0; color: #475467;"><strong>Type:</strong> ${normalized.organizationType}</p>` : ''}
-                ${normalized.partnershipGoal ? `<p style="margin: 8px 0 0; color: #475467;">${normalized.partnershipGoal}</p>` : ''}
-              </div>
-              `
-                  : ''
-              }
-
-              ${
-                normalized.currentRole
-                  ? `
-              <div style="background: #f0fdf4; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <h2 style="color: #0E1A2B; font-size: 16px; margin: 0 0 12px;">Agent Details</h2>
-                <p style="margin: 4px 0; color: #475467;"><strong>Current Role:</strong> ${normalized.currentRole}</p>
-                ${normalized.isLicensed ? `<p style="margin: 4px 0; color: #475467;"><strong>Licensed:</strong> ${normalized.isLicensed}</p>` : ''}
-                ${normalized.interestType ? `<p style="margin: 4px 0; color: #475467;"><strong>Interest:</strong> ${normalized.interestType}</p>` : ''}
-                ${normalized.agentMotivation ? `<p style="margin: 8px 0 0; color: #475467;">${normalized.agentMotivation}</p>` : ''}
-              </div>
-              `
-                  : ''
-              }
-
-              ${
-                normalized.additionalNotes
-                  ? `
-              <div style="background: #fefce8; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-                <h2 style="color: #0E1A2B; font-size: 16px; margin: 0 0 12px;">Additional Notes</h2>
-                <p style="margin: 0; color: #475467;">${normalized.additionalNotes}</p>
-              </div>
-              `
-                  : ''
-              }
 
               <p style="color: #667085; font-size: 14px; margin-top: 24px;">
-                <strong>Task created:</strong> Follow up within 2 business days<br>
+                <strong>Lead tracking:</strong><br>
+                SourceType: ${sourceType}<br>
+                Intent: ${intent}<br>
+                Status: ${inquiryStatus}<br>
+                <br>
                 <strong>Contact ID:</strong> ${contact.id}<br>
                 <strong>Inquiry ID:</strong> ${inquiry.id}
               </p>
