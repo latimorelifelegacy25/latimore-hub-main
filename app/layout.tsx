@@ -58,7 +58,7 @@ export const viewport: Viewport = {
   themeColor: '#0B0F17',
 }
 
-const GA4_ID = process.env.GA4_ID || ''
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || ''
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
