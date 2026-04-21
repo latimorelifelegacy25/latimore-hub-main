@@ -20,7 +20,15 @@ const nextConfig = {
     ]
   },
   async redirects() {
-    return [{ source: '/home', destination: '/', permanent: true }]
+    return [
+      { source: '/home', destination: '/', permanent: true },
+      {
+        source: '/',
+        destination: '/admin',
+        permanent: false,
+        has: [{ type: 'host', value: 'hub.latimorelifelegacy.com' }],
+      },
+    ]
   },
 }
 
