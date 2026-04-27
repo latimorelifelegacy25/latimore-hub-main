@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from '@vercel/analytics/next'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
 // This value should match the production domain (`latimorelifelegacy.com`) rather than the
