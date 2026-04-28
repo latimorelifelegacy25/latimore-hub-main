@@ -14,6 +14,7 @@ import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { rateLimit } from '@/lib/rate-limit'
 import { LeadIntent, LeadSource, LeadStatus } from '@prisma/client'
 import { inferLeadSource } from '@/lib/tracking/infer'
+import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const BodySchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -243,6 +244,13 @@ export async function POST(req: NextRequest) {
           intakeSummary,
         },
       },
+    })
+
+    // Trigger lead scoring when appointment is booked
+    await triggerLeadScoring({
+      contactId: contact.id,
+      inquiryId: inquiry.id,
+      reason: 'appointment_booked'
     })
 
     await prisma.calendarEvent.create({

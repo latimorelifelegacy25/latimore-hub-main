@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import PageHeader from '../_components/PageHeader'
 import { BRAND_STORY } from '../_lib/templates'
+import DailyBrief from './DailyBrief'
 
 const StatCard = ({ title, value, trend, icon, color }: any) => (
   <div className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20">
@@ -98,12 +99,8 @@ export default async function LegacyPulsePage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="space-y-4">
-          <StatCard title="Total Contacts" value={contactCount} trend={12} icon="fa-users" color="text-blue-400" />
-          <StatCard title="Active Inquiries" value={inquiryCount} trend={8} icon="fa-bell" color="text-amber-400" />
-          <StatCard title="Booked Calls" value={appointmentCount} trend={5} icon="fa-calendar-check" color="text-emerald-400" />
-        </div>
+        {/* Daily Brief */}
+        <DailyBrief />
       </div>
 
       {/* Recent Contacts */}

@@ -16,7 +16,8 @@ export default function ContentCreatorContent() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedPosts, setGeneratedPosts] = useState<GeneratedPost[]>([])
   const [selectedPostIdx, setSelectedPostIdx] = useState<number | null>(null)
-  const [scheduledPosts, setScheduledPosts] = useState<GeneratedPost[]>([])
+  const [schedulingDate, setSchedulingDate] = useState('')
+  const [schedulingTime, setSchedulingTime] = useState('09:00')
 
   const platforms = [
     { value: 'linkedin', label: 'LinkedIn', icon: 'fa-linkedin' },
@@ -55,14 +56,46 @@ export default function ContentCreatorContent() {
     }
   }
 
-  const handleSchedulePost = (post: GeneratedPost) => {
-    setScheduledPosts([...scheduledPosts, post])
-    setGeneratedPosts(generatedPosts.filter((_, i) => i !== selectedPostIdx))
-    setSelectedPostIdx(null)
-  }
+  const handleSchedulePost = async (post: GeneratedPost) => {
+    if (!schedulingDate || !schedulingTime) {
+      alert('Please select a date and time for scheduling')
+      return
+    }
 
-  const handleRemoveScheduled = (idx: number) => {
-    setScheduledPosts(scheduledPosts.filter((_, i) => i !== idx))
+    try {
+      const scheduledFor = new Date(`${schedulingDate}T${schedulingTime}:00`)
+
+      const response = await fetch('/api/admin/social-posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: post.title,
+          bodyText: post.draft,
+          channel: post.platform,
+          type: 'social_post',
+          scheduledFor: scheduledFor.toISOString(),
+          metadata: {
+            hashtags: post.hashtags,
+            platform: post.platform
+          }
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to schedule post')
+
+      // Remove from generated posts
+      setGeneratedPosts(generatedPosts.filter((_, i) => i !== selectedPostIdx))
+      setSelectedPostIdx(null)
+
+      // Reset scheduling form
+      setSchedulingDate('')
+      setSchedulingTime('09:00')
+
+      alert('Post scheduled successfully!')
+    } catch (error) {
+      console.error('Scheduling error:', error)
+      alert('Failed to schedule post')
+    }
   }
 
   return (
@@ -165,7 +198,7 @@ export default function ContentCreatorContent() {
                 </div>
               </div>
 
-              {generatedPosts[selectedPostIdx].hashtags.length > 0 && (
+              {generatedPosts[selectedPostIdx].hashtags && generatedPosts[selectedPostIdx].hashtags.length > 0 && (
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Hashtags</p>
                   <div className="flex flex-wrap gap-2 mt-2">
@@ -177,6 +210,33 @@ export default function ContentCreatorContent() {
                   </div>
                 </div>
               )}
+
+              {/* Scheduling Options */}
+              <div className="space-y-4">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Schedule Post</p>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-400">Date</label>
+                    <input
+                      type="date"
+                      value={schedulingDate}
+                      onChange={(e) => setSchedulingDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#C9A25F]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-400">Time</label>
+                    <input
+                      type="time"
+                      value={schedulingTime}
+                      onChange={(e) => setSchedulingTime(e.target.value)}
+                      className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#C9A25F]"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-3 mt-6">
@@ -199,37 +259,10 @@ export default function ContentCreatorContent() {
           </div>
         )}
 
-        {/* Scheduled Posts */}
-        {scheduledPosts.length > 0 && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-3xl p-8">
-            <h3 className="text-lg font-black text-emerald-300 mb-6">Scheduled Posts ({scheduledPosts.length})</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {scheduledPosts.map((post, idx) => (
-                <div key={idx} className="bg-white/5 border border-emerald-500/20 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-white">{post.title}</p>
-                  <p className="text-xs text-slate-400 mt-2 line-clamp-2">{post.draft}</p>
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs text-emerald-400 font-semibold">
-                      <i className={`fa-brands fa-${post.platform} mr-1`}></i>
-                      {post.platform}
-                    </span>
-                    <button
-                      onClick={() => handleRemoveScheduled(idx)}
-                      className="text-rose-400 hover:text-rose-300 text-xs font-semibold transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Empty State */}
-      {generatedPosts.length === 0 && scheduledPosts.length === 0 && (
+      {generatedPosts.length === 0 && (
         <div className="text-center py-12">
           <i className="fa-solid fa-pen-nib text-5xl text-slate-500 mb-4"></i>
           <p className="text-slate-400 text-lg">Generate your first post to get started</p>

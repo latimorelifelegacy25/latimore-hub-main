@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import twilio from 'twilio'
 import { prisma } from '@/lib/prisma'
+import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
@@ -91,6 +92,13 @@ if (!providerId) {
   await prisma.contact.update({
     where: { id: body.contactId },
     data: { lastActivityAt: new Date() },
+  })
+
+  // Trigger lead scoring when sending outbound messages
+  await triggerLeadScoring({
+    contactId: body.contactId,
+    inquiryId: body.inquiryId,
+    reason: 'outbound_message_sent'
   })
 
   await prisma.systemEvent.create({
