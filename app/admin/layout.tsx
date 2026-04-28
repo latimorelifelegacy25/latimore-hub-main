@@ -1,17 +1,26 @@
 import Link from 'next/link'
-import { ArrowLeft, BarChart3, Bot, CalendarDays, CheckSquare, FileText, LayoutDashboard, MessageSquareText, KanbanSquare, Users, Smartphone } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
+// Navigation items - New unified navigation from partner's Vite project
 const navItems = [
-  { href: '/admin', label: 'Overview', icon: LayoutDashboard },
-  { href: '/admin/contacts', label: 'Contacts', icon: Users },
-  { href: '/admin/pipeline', label: 'Pipeline', icon: KanbanSquare },
-  { href: '/admin/messages', label: 'Messages', icon: MessageSquareText },
-  { href: '/admin/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/admin/ai-advisor', label: 'AI Advisor', icon: Bot },
-  { href: '/admin/content', label: 'Content', icon: FileText },
-  { href: '/admin/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/admin/card-analytics', label: 'Card Analytics', icon: Smartphone },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
+  { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
+  { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },
+  { href: '/admin/inbox', label: 'Inbox (Intake)', icon: 'fa-inbox' },
+  { href: '/admin/crm/hub', label: 'Life Hub CRM', icon: 'fa-users-gear' },
+  { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
+  { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
+  { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
+  { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
+  { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
+  { href: '/admin/content/schedule', label: 'Schedule', icon: 'fa-calendar-check' },
+  { href: '/admin/content/campaigns', label: 'Campaigns', icon: 'fa-calendar-days' },
+  { href: '/admin/connectors', label: 'Integrations', icon: 'fa-plug' },
+  { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
+  // Legacy items for backward compatibility
+  { href: '/admin/messages', label: 'Messages', icon: 'fa-message' },
+  { href: '/admin/tasks', label: 'Tasks', icon: 'fa-check-square' },
+  { href: '/admin/analytics', label: 'Analytics', icon: 'fa-chart-bar' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -22,16 +31,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
           <p className="mt-1 text-xs text-[#A9B1BE]">Hub OS Admin</p>
         </div>
-        <nav className="flex-1 space-y-1 px-3 py-4">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            return (
-              <Link key={item.href} href={item.href} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#A9B1BE] transition hover:bg-white/5 hover:text-white">
-                <Icon size={16} className="text-[#C9A25F]" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
+        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
+          {navItems.map((item) => (
+            <Link 
+              key={item.href} 
+              href={item.href} 
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#A9B1BE] transition hover:bg-white/5 hover:text-white"
+            >
+              <i className={`fa-solid ${item.icon} w-4 text-center text-[#C9A25F]`}></i>
+              <span>{item.label}</span>
+            </Link>
+          ))}
         </nav>
         <div className="border-t border-white/6 p-3">
           <Link href="/" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-[#A9B1BE] transition hover:bg-white/5 hover:text-white">
