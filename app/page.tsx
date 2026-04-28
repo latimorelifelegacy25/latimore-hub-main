@@ -40,7 +40,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA Candidate', '560K+ Residents Served'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents Served'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -142,7 +142,7 @@ export default function HomePage() {
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Carrier Diversity</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                Appointed with North American, F&G, American Equity, Ethos, American General, and Foresters. We shop the market to find the right fit for your situation.
+                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can shop the market to find the right fit for your family's needs and budget.
               </p>
             </div>
 

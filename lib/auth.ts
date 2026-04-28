@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { logger } from '@/lib/logger'
 
 function parseList(v?: string | null): string[] {
   return (v ?? '')
@@ -9,7 +10,6 @@ function parseList(v?: string | null): string[] {
 }
 
 const adminEmails = parseList(process.env.ADMIN_EMAILS)
-
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,9 +22,9 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ profile }) {
       const email = (profile?.email ?? '').toLowerCase()
-      console.log('[auth] signIn email:', email)
-      console.log('[auth] allowed admin emails:', adminEmails)
-      return true
+      const allowed = adminEmails.length === 0 || adminEmails.includes(email)
+      logger.info({ email, allowed }, '[auth] signIn attempt')
+      return allowed
     },
   },
   pages: { signIn: '/login' },

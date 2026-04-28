@@ -2,7 +2,7 @@ export const BRAND = {
   // Public-facing name (use in headings/metadata)
   name: 'Latimore Life & Legacy',
   // Used when "LLC" is appended in legal copy
-  fullName: 'Latimore Life & Legacy',
+  fullName: 'Latimore Life & Legacy LLC',
 
   tagline: 'Protecting Today. Securing Tomorrow.',
   hashtag: '#TheBeatGoesOn',
@@ -11,8 +11,8 @@ export const BRAND = {
   advisor: 'Jackson M. Latimore Sr., Founder & CEO',
   affiliation: 'In Affiliation with Global Financial Impact',
 
-  phone: '((717) 615-2613',
-  phoneRaw: '8568951457',
+  phone: '(717) 615-2613',
+  phoneRaw: '7176152613',
   email: 'jackson1989@latimorelegacy.com',
 
   nipr: '21638507',
