@@ -113,7 +113,7 @@ export function SiteHeader({
             )
           })}
           <a
-            href="https://bfed86db-e55d-4c5a-94bf-9fba1f0f385c.vip.gensparksite.com/pahs/index.html"
+            href="/pahs"
             style={{
               border: `1px solid ${SITE_COLORS.goldLight}`,
               color: SITE_COLORS.goldLight,
