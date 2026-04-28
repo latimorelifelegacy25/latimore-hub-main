@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
+import { Analytics } from '@vercel/analytics/react'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
 // This value should match the production domain (`latimorelifelegacy.com`) rather than the
@@ -112,7 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
       </head>
-      <body><Suspense fallback={null}><PublicTracker /></Suspense>{children}</body>
+      <body><Suspense fallback={null}><PublicTracker /></Suspense>{children}<Analytics /></body>
     </html>
   )
 }
