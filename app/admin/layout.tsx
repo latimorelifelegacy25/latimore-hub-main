@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import AdminMobileNav from './_components/AdminMobileNav'
+import NotificationCenter from './_components/NotificationCenter'
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
@@ -29,8 +30,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Desktop sidebar — visible xl+ */}
       <aside className="hidden w-64 shrink-0 border-r border-white/6 bg-[#0E1420] xl:flex xl:flex-col">
         <div className="border-b border-white/6 px-5 py-5">
-          <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
-          <p className="mt-1 text-xs text-[#A9B1BE]">Hub OS Admin</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
+              <p className="mt-1 text-xs text-[#A9B1BE]">Hub OS Admin</p>
+            </div>
+            <NotificationCenter />
+          </div>
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
           {navItems.map((item) => (
