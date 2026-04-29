@@ -18,12 +18,30 @@ function displayName(contact?: { fullName?: string | null; firstName?: string | 
 }
 
 export default async function AiAdvisorPage() {
-  const [latestDailyBrief, latestContactBriefs, latestDrafts, latestScores] = await Promise.all([
-    prisma.aiRun.findFirst({ where: { type: 'daily_brief', status: 'succeeded' }, orderBy: { createdAt: 'desc' } }),
-    prisma.aiRun.findMany({ where: { type: 'contact_brief', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
-    prisma.aiRun.findMany({ where: { type: 'draft_message', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
-    prisma.aiRun.findMany({ where: { type: 'lead_score', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
-  ])
+  let latestDailyBrief: any = null
+  let latestContactBriefs: any[] = []
+  let latestDrafts: any[] = []
+  let latestScores: any[] = []
+
+  try {
+    const [brief, contactBriefs, drafts, scores] = await Promise.all([
+      prisma.aiRun.findFirst({ where: { type: 'daily_brief', status: 'succeeded' }, orderBy: { createdAt: 'desc' } }),
+      prisma.aiRun.findMany({ where: { type: 'contact_brief', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
+      prisma.aiRun.findMany({ where: { type: 'draft_message', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
+      prisma.aiRun.findMany({ where: { type: 'lead_score', status: 'succeeded' }, orderBy: { createdAt: 'desc' }, take: 6, include: { contact: true } }),
+    ])
+    latestDailyBrief = brief
+    latestContactBriefs = contactBriefs
+    latestDrafts = drafts
+    latestScores = scores
+  } catch (error) {
+    console.warn('AI Advisor database connection failed, using fallback values:', error)
+    // Use fallback values when database is unreachable
+    latestDailyBrief = null
+    latestContactBriefs = []
+    latestDrafts = []
+    latestScores = []
+  }
 
   const brief = latestDailyBrief?.output as any
 

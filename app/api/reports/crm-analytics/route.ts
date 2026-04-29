@@ -188,6 +188,25 @@ export async function GET(req: NextRequest) {
 
   } catch (error) {
     console.error('CRM analytics API error:', error)
-    return NextResponse.json({ error: 'Failed to fetch CRM analytics' }, { status: 500 })
+    // Return fallback empty data if database is unreachable
+    return NextResponse.json({
+      pipeline: [],
+      leadScores: [],
+      tasks: {
+        total: 0,
+        completed: 0,
+        open: 0,
+        overdue: 0
+      },
+      funnel: [],
+      recentActivity: [],
+      aiTasks: {
+        generated: 0,
+        completed: 0,
+        pending: 0,
+        overdue: 0,
+        completionRate: 0
+      }
+    })
   }
 }

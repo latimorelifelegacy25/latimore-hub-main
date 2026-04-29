@@ -127,6 +127,23 @@ Data: ${JSON.stringify(analysisData, null, 2)}`,
     })
   } catch (error) {
     console.error('Predictive insights API error:', error)
-    return NextResponse.json({ error: 'Failed to generate insights' }, { status: 500 })
+    // Return fallback empty insights if database is unreachable
+    return NextResponse.json({
+      metrics: {
+        totalInquiries: 0,
+        totalContacts: 0,
+        totalBookings: 0,
+        conversionRate: 0,
+        inquiryGrowth: 0,
+      },
+      insights: {
+        trendAnalysis: "Database temporarily unavailable. Check back soon.",
+        predictions: [],
+        opportunities: [],
+        risks: [],
+        recommendations: [],
+      },
+      trendData: [],
+    })
   }
 }

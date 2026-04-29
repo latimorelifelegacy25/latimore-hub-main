@@ -22,24 +22,41 @@ const StatCard = ({ title, value, trend, icon, color }: any) => (
 )
 
 export default async function LegacyPulsePage() {
-  const [contactCount, inquiryCount, appointmentCount] = await Promise.all([
-    prisma.contact.count(),
-    prisma.inquiry.count(),
-    prisma.appointment.count(),
-  ])
+  let contactCount = 0
+  let inquiryCount = 0
+  let appointmentCount = 0
+  let recentContacts: any[] = []
 
-  const recentContacts = await prisma.contact.findMany({
-    take: 6,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      leadScore: true,
-      status: true,
-    },
-  })
+  try {
+    const counts = await Promise.all([
+      prisma.contact.count(),
+      prisma.inquiry.count(),
+      prisma.appointment.count(),
+    ])
+    contactCount = counts[0]
+    inquiryCount = counts[1]
+    appointmentCount = counts[2]
+
+    recentContacts = await prisma.contact.findMany({
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        leadScore: true,
+        status: true,
+      },
+    })
+  } catch (error) {
+    console.warn('Database connection failed, using fallback values:', error)
+    // Use fallback values when database is unreachable
+    contactCount = 0
+    inquiryCount = 0
+    appointmentCount = 0
+    recentContacts = []
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-8">

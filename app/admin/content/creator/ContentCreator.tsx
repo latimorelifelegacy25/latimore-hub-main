@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PageHeader from '../../_components/PageHeader'
 
 interface GeneratedPost {
@@ -19,6 +19,46 @@ export default function ContentCreatorContent() {
   const [schedulingDate, setSchedulingDate] = useState('')
   const [schedulingTime, setSchedulingTime] = useState('09:00')
 
+  useEffect(() => {
+    console.log('generatedPosts changed:', generatedPosts)
+  }, [generatedPosts])
+
+  useEffect(() => {
+    console.log('selectedPostIdx changed:', selectedPostIdx)
+  }, [selectedPostIdx])
+
+  // Load mock data for testing preview functionality
+  useEffect(() => {
+    const loadMockData = () => {
+      const mockPosts: GeneratedPost[] = [
+        {
+          title: "Estate Planning for Families",
+          draft: "Planning for the future is one of the kindest things you can do for your family right here in Schuylkill County. It isn't about the end; it's about making sure your children and grandchildren are taken care of, no matter what happens. When my father, Jackson M. Latimore Sr., faced his cardiac arrest, it was our family's preparation that kept his legacy strong. We want to help you create that same peace of mind. Estate planning is simply a map that shows your family how much you care. Protecting Today. Securing Tomorrow.",
+          platform: "facebook",
+          hashtags: ["#TheBeatGoesOn", "#FamilyLegacy", "#CentralPA", "#PeaceOfMind"]
+        },
+        {
+          title: "Building a Strong Foundation",
+          draft: "Living here in Central PA, we know the value of hard work and looking out for our neighbors. Estate planning isn't just about paperwork; it's about making sure your family is taken care of no matter what. At Latimore Life & Legacy, we help you turn your hard work into a lasting legacy for your kids and grandkids. Let's make sure your family's future is solid. Protecting Today. Securing Tomorrow.",
+          platform: "facebook",
+          hashtags: ["#TheBeatGoesOn", "#CentralPA", "#FamilyLegacy", "#EstatePlanning"]
+        },
+        {
+          title: "Simple Steps for Your Family's Future",
+          draft: "Many families in our area think estate planning is too complicated or only for the wealthy. But really, it is just about having a plan so your loved ones don't have to guess. Whether it's choosing who will look after your kids or how to pass down a family business, we are here to guide you every step of the way. Let's work together to make sure your family's story continues just the way you want it to. Protecting Today. Securing Tomorrow.",
+          platform: "facebook",
+          hashtags: ["#TheBeatGoesOn", "#SchuylkillCounty", "#FamilyProtection", "#SecureTheFuture"]
+        }
+      ]
+      setGeneratedPosts(mockPosts)
+      setSelectedPostIdx(0)
+    }
+
+    // Load mock data after a short delay to simulate loading
+    const timer = setTimeout(loadMockData, 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
   const platforms = [
     { value: 'linkedin', label: 'LinkedIn', icon: 'fa-linkedin' },
     { value: 'facebook', label: 'Facebook', icon: 'fa-facebook' },
@@ -27,7 +67,9 @@ export default function ContentCreatorContent() {
   ]
 
   const handleGenerate = async () => {
+    console.log('handleGenerate called, topic:', topic, 'trimmed:', topic.trim())
     if (!topic.trim()) {
+      console.log('Topic is empty, showing alert')
       alert('Please enter a topic')
       return
     }
@@ -47,7 +89,10 @@ export default function ContentCreatorContent() {
       if (!response.ok) throw new Error('Failed to generate content')
 
       const data = await response.json()
+      console.log('API Response:', data)
+      console.log('Posts array:', data.posts)
       setGeneratedPosts(data.posts || [])
+      console.log('Set generatedPosts to:', data.posts || [])
     } catch (error) {
       console.error('Generation error:', error)
       alert('Failed to generate content. Ensure AI provider is configured.')
@@ -120,7 +165,10 @@ export default function ContentCreatorContent() {
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., 'Mortgage protection for new homeowners'"
               className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[#C9A25F]"
-              onKeyPress={(e) => e.key === 'Enter' && handleGenerate()}
+              onKeyPress={(e) => {
+                // Temporarily disabled to prevent accidental generation
+                // e.key === 'Enter' && handleGenerate()
+              }}
             />
           </div>
 
@@ -166,7 +214,10 @@ export default function ContentCreatorContent() {
             {generatedPosts.map((post, idx) => (
               <button
                 key={idx}
-                onClick={() => setSelectedPostIdx(idx)}
+                onClick={() => {
+                  console.log('Setting selectedPostIdx to:', idx)
+                  setSelectedPostIdx(idx)
+                }}
                 className={`w-full text-left p-4 rounded-xl border transition ${
                   selectedPostIdx === idx
                     ? 'border-[#C9A25F] bg-[#C9A25F]/10'

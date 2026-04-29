@@ -1,27 +1,39 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 
+interface DailyBriefReport {
+  summary: string
+  hotLeads: Array<{
+    contactId: string
+    inquiryId: string | null
+    name: string
+    stage: string | null
+    reason: string
+    recommendedAction: string
+  }>
+  atRiskLeads: Array<{
+    contactId: string
+    inquiryId: string | null
+    name: string
+    stage: string | null
+    risk: string
+    recommendedAction: string
+  }>
+  overdueTasks: Array<{
+    taskId: string
+    title: string
+    contactName: string | null
+    dueAt: string | null
+  }>
+  pipelineInsights: string[]
+  recommendedFocus: string[]
+}
+
 interface DailyBriefData {
   ok: boolean
-  briefing?: {
-    date: string
-    metrics: {
-      totalContacts: number
-      activeInquiries: number
-      bookedAppointments: number
-      hotLeads: number
-      overdueTasks: number
-    }
-    insights: string[]
-    priorityActions: Array<{
-      type: string
-      priority: string
-      title: string
-      items: string[]
-    }>
-    recentActivity: number
-  }
+  generatedAt?: string
+  brief?: DailyBriefReport
 }
 
 export default function DailyBrief() {
@@ -31,8 +43,9 @@ export default function DailyBrief() {
   useEffect(() => {
     fetch('/api/ai/daily-brief', {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 10 })
+      body: JSON.stringify({ limit: 10 }),
     })
       .then(res => res.json())
       .then(data => {
@@ -58,7 +71,7 @@ export default function DailyBrief() {
     )
   }
 
-  if (!briefing?.ok || !briefing.briefing) {
+  if (!briefing?.ok || !briefing.brief) {
     return (
       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
         <h3 className="text-xl font-black mb-4">Daily Brief</h3>
@@ -67,61 +80,53 @@ export default function DailyBrief() {
     )
   }
 
-  const { metrics, insights, priorityActions } = briefing.briefing
+  const { brief } = briefing
+  const hotLeadCount = brief.hotLeads?.length ?? 0
+  const overdueTaskCount = brief.overdueTasks?.length ?? 0
 
   return (
     <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
       <div className="flex justify-between items-start mb-6">
         <div>
           <h3 className="text-xl font-black">Daily Brief</h3>
-          <p className="text-slate-400 text-sm">{new Date().toLocaleDateString()}</p>
+          <p className="text-slate-400 text-sm">{briefing.generatedAt ? new Date(briefing.generatedAt).toLocaleDateString() : new Date().toLocaleDateString()}</p>
         </div>
         <div className="text-right text-sm">
-          <div className="text-emerald-400 font-semibold">{metrics.hotLeads} Hot Leads</div>
-          <div className="text-amber-400">{metrics.overdueTasks} Overdue Tasks</div>
+          <div className="text-emerald-400 font-semibold">{hotLeadCount} Hot Leads</div>
+          <div className="text-amber-400">{overdueTaskCount} Overdue Tasks</div>
         </div>
       </div>
 
-      {/* Key Insights */}
-      {insights.length > 0 && (
+      <div className="mb-6">
+        <h4 className="text-sm font-black uppercase tracking-widest text-[#C49A6C] mb-3">Summary</h4>
+        <p className="text-sm leading-6 text-slate-300">{brief.summary}</p>
+      </div>
+
+      {brief.pipelineInsights?.length > 0 && (
         <div className="mb-6">
-          <h4 className="text-sm font-black uppercase tracking-widest text-[#C49A6C] mb-3">Key Insights</h4>
-          <ul className="space-y-2">
-            {insights.slice(0, 3).map((insight, i) => (
-              <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                <i className="fa-solid fa-lightbulb text-[#C49A6C] mt-0.5"></i>
-                {insight}
+          <h4 className="text-sm font-black uppercase tracking-widest text-[#C49A6C] mb-3">Pipeline Insights</h4>
+          <ul className="space-y-2 text-sm text-slate-300">
+            {brief.pipelineInsights.slice(0, 3).map((insight, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="mt-0.5">•</span>
+                <span>{insight}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Priority Actions */}
-      {priorityActions.length > 0 && (
+      {brief.recommendedFocus?.length > 0 && (
         <div>
-          <h4 className="text-sm font-black uppercase tracking-widest text-[#C49A6C] mb-3">Priority Actions</h4>
-          <div className="space-y-3">
-            {priorityActions.slice(0, 2).map((action, i) => (
-              <div key={i} className={`p-3 rounded-xl border ${
-                action.priority === 'high'
-                  ? 'bg-red-500/10 border-red-500/20'
-                  : 'bg-amber-500/10 border-amber-500/20'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  <i className={`fa-solid ${
-                    action.priority === 'high' ? 'fa-exclamation-triangle text-red-400' : 'fa-clock text-amber-400'
-                  }`}></i>
-                  <span className="text-sm font-semibold">{action.title}</span>
-                </div>
-                <ul className="text-xs text-slate-400 space-y-1">
-                  {action.items.slice(0, 2).map((item, j) => (
-                    <li key={j}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
+          <h4 className="text-sm font-black uppercase tracking-widest text-[#C49A6C] mb-3">Recommended Focus</h4>
+          <ul className="space-y-2 text-sm text-slate-300">
+            {brief.recommendedFocus.slice(0, 4).map((item, index) => (
+              <li key={index} className="flex items-start gap-2">
+                <span className="mt-0.5">•</span>
+                <span>{item}</span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
     </div>

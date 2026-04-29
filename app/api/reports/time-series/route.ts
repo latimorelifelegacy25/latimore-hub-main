@@ -125,6 +125,10 @@ export async function GET(req: NextRequest) {
     })
   } catch (error) {
     console.error('Time series API error:', error)
-    return NextResponse.json({ error: 'Failed to fetch time series data' }, { status: 500 })
+    // Return fallback empty data if database is unreachable
+    return NextResponse.json({
+      dailyMetrics: [],
+      funnelData: [],
+    })
   }
 }
