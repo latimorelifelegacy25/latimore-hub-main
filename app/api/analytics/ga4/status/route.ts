@@ -8,8 +8,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     if (!event) return NextResponse.json({ connected: false });
-    const payload = JSON.parse(event.payload as string);
-    return NextResponse.json({ connected: true, lastSync: payload.connected_at });
+    const payload = event.payload as any;
+    return NextResponse.json({ connected: true, lastSync: payload?.connected_at });
   } catch {
     return NextResponse.json({ connected: false });
   }

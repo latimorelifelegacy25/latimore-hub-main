@@ -25,7 +25,8 @@ export async function GET(req: NextRequest) {
   await prisma.systemEvent.create({
     data: {
       type: "GA4_CONNECTED",
-      payload: JSON.stringify({ refresh_token: tokens.refresh_token, connected_at: new Date().toISOString() }),
+      occurredAt: new Date(),
+      payload: { refresh_token: tokens.refresh_token, connected_at: new Date().toISOString() },
     }
   });
 

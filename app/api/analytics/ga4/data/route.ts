@@ -24,8 +24,8 @@ export async function GET() {
     });
     if (!event) return NextResponse.json({ error: "GA4 not connected" }, { status: 401 });
 
-    const { refresh_token } = JSON.parse(event.payload as string);
-    const accessToken = await getAccessToken(refresh_token);
+    const payload = event.payload as any;
+    const accessToken = await getAccessToken(payload.refresh_token);
     const propertyId = process.env.GA4_PROPERTY_ID!;
 
     const gaRes = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
@@ -33,12 +33,7 @@ export async function GET() {
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         dateRanges: [{ startDate: "30daysAgo", endDate: "today" }],
-        metrics: [
-          { name: "sessions" },
-          { name: "activeUsers" },
-          { name: "screenPageViews" },
-          { name: "averageSessionDuration" },
-        ],
+        metrics: [{ name: "sessions" }, { name: "activeUsers" }, { name: "screenPageViews" }],
         dimensions: [{ name: "date" }],
         orderBys: [{ dimension: { dimensionName: "date" } }],
       }),
