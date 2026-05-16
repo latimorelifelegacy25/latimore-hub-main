@@ -169,6 +169,22 @@ export default function PahsPage() {
               height={700}
               style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)' }}
             />
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', alignItems: 'center' }}>
+              <Image
+                src="/pahs-tide-logo.png"
+                alt="Pottsville Area Crimson Tide"
+                width={200}
+                height={200}
+                style={{ width: '46%', height: 'auto', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.28)' }}
+              />
+              <Image
+                src="/pahs-latimore-logo.png"
+                alt="Latimore Life & Legacy LLC"
+                width={200}
+                height={200}
+                style={{ width: '46%', height: 'auto', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.28)' }}
+              />
+            </div>
           </div>
 
           <div style={{ maxWidth: 610, margin: '30px auto 0', color: white }}>
