@@ -114,7 +114,7 @@ export default function PAHSPage() {
             <div className="logo-divider" />
             <div className="latimore-logo-container"><Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={160} height={120} /></div>
           </div>
-          <div className="beat-img-wrap"><Image src="/pahs-latimore-logo.png" alt="#TheBeatGoesOn — Latimore Life & Legacy" width={340} height={200} style={{ width: '100%', height: 'auto' }} /></div>
+          <div className="beat-img-wrap"><Image src="/pahs-protect-go.png" alt="Protect What You Play For — Latimore Life & Legacy" width={340} height={340} style={{ width: '100%', height: 'auto', borderRadius: 8 }} /></div>
           <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://card.latimorelifelegacy.com/pahs" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">card.latimorelifelegacy.com/pahs</span></div>
         </div>
       </section>
