@@ -154,12 +154,19 @@ export default function PahsPage() {
             </div>
           </div>
 
-          <div style={{ maxWidth: 560, margin: '32px auto 0' }}>
+          <div style={{ maxWidth: 560, margin: '32px auto 0', display: 'flex', flexDirection: 'column', gap: 20 }}>
             <Image
               src="/pahs-sponsor-flyer.jpg"
               alt="Latimore Life & Legacy — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
               width={560}
               height={700}
+              style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)' }}
+            />
+            <Image
+              src="/pahs-2005-allarea.png"
+              alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began"
+              width={560}
+              height={560}
               style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)' }}
             />
           </div>
