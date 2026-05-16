@@ -185,6 +185,13 @@ export default function PahsPage() {
                 style={{ width: '46%', height: 'auto', borderRadius: 14, boxShadow: '0 8px 24px rgba(0,0,0,0.28)' }}
               />
             </div>
+            <Image
+              src="/pahs-protect-go.png"
+              alt="Protect What You Play For — Pottsville Area Crimson Tide '26 Official Protection Partner"
+              width={560}
+              height={560}
+              style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)' }}
+            />
           </div>
 
           <div style={{ maxWidth: 610, margin: '30px auto 0', color: white }}>
