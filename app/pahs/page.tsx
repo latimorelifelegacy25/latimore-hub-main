@@ -154,6 +154,16 @@ export default function PahsPage() {
             </div>
           </div>
 
+          <div style={{ maxWidth: 560, margin: '32px auto 0' }}>
+            <Image
+              src="/pahs-sponsor-flyer.jpg"
+              alt="Latimore Life & Legacy — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
+              width={560}
+              height={700}
+              style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)' }}
+            />
+          </div>
+
           <div style={{ maxWidth: 610, margin: '30px auto 0', color: white }}>
             <h2 style={{ fontSize: 'clamp(1.8rem, 5.2vw, 2.4rem)', margin: 0, lineHeight: 1.15 }}>Hi, I&apos;m Jackson Latimore.</h2>
 
@@ -183,6 +193,13 @@ export default function PahsPage() {
           </div>
 
           <div style={{ maxWidth: 500, margin: '30px auto 0' }}>
+            <Image
+              src="/pahs-free-consult.jpg"
+              alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide"
+              width={500}
+              height={300}
+              style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 16px 40px rgba(0,0,0,0.32)', marginBottom: 20 }}
+            />
             <TopActions />
           </div>
 
