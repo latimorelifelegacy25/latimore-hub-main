@@ -155,7 +155,7 @@ export default function PAHSPage() {
           <div className="logos-row">
             <div className="tide-logo-container"><Image src="/pahs-tide-logo.png" alt="Pottsville Crimson Tide" width={110} height={110} /></div>
             <div className="logo-divider" />
-            <div className="latimore-logo-container"><Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={160} height={120} /></div>
+            <div className="latimore-logo-container"><Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={140} height={140} /></div>
           </div>
           <div className="beat-img-wrap"><Image src="/pahs-protect-go.png" alt="Protect What You Play For — Latimore Life & Legacy" width={340} height={340} style={{ width: '100%', height: 'auto', borderRadius: 8 }} /></div>
           <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://www.latimorelifelegacy.com" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">www.latimorelifelegacy.com</span></div>
