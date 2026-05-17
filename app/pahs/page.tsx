@@ -48,9 +48,49 @@ export default function PAHSPage() {
     const onScroll = () => setShowSticky(window.scrollY > window.innerHeight * 0.6);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
+
+    const handleFilloutMessage = async (e: MessageEvent) => {
+      if (
+        e.data?.type === 'fillout:submission' ||
+        e.data?.type === 'submitted' ||
+        e.data?.event === 'submitted' ||
+        e.data?.event === 'fillout:submission'
+      ) {
+        const payload = e.data?.submission ?? e.data ?? {};
+        // Track to Supabase
+        try {
+          await fetch('/api/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+            body: JSON.stringify({
+              eventType: 'form_submit',
+              pageUrl: window.location.href,
+              source: 'pahs',
+              medium: 'qr',
+              campaign: 'football2026',
+              productInterest: 'General',
+              county: 'Schuylkill',
+              metadata: { provider: 'fillout', form: 'pahs', ...payload },
+            }),
+          });
+        } catch { /* swallow */ }
+        // Track to GA4
+        if (typeof window !== 'undefined' && (window as any).gtag) {
+          (window as any).gtag('event', 'form_submit', {
+            event_category: 'PAHS',
+            event_label: 'PAHS Free Consultation Form',
+            source: 'pahs_qr',
+          });
+        }
+      }
+    };
+    window.addEventListener('message', handleFilloutMessage);
+
     return () => {
       revealObserver.disconnect();
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('message', handleFilloutMessage);
     };
   }, []);
 
@@ -104,11 +144,14 @@ export default function PAHSPage() {
         </div>
 
         <div className="hero-content">
-          <div className="sponsor-badge">Proud Sponsor Of</div>
-          <div className="hero-school-name">POTTSVILLE AREA<br />HIGH SCHOOL</div>
+          <div className="sponsor-badge" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.4rem)', fontWeight: 900, letterSpacing: '0.08em', padding: '12px 32px' }}>PROUD SPONSOR OF</div>
+          <div className="hero-school-name">POTTSVILLE AREA HIGH SCHOOL</div>
           <div className="hero-year">FOOTBALL '26</div>
           <div className="pulse-badge"><div className="pulse-dot" />CRIMSON TIDE — GAME DAY</div>
           <div className="football-icon">🏈</div>
+          <div style={{ padding: '0 1rem 1rem' }}>
+            <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={400} height={400} priority style={{ width: '100%', height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
+          </div>
           <div className="logos-row">
             <div className="tide-logo-container"><Image src="/pahs-tide-logo.png" alt="Pottsville Crimson Tide" width={110} height={110} /></div>
             <div className="logo-divider" />
@@ -134,9 +177,6 @@ export default function PAHSPage() {
       </section>
 
       <section className="story-section"><div className="story-inner reveal"><div className="section-label">Our Story</div><h2>A Saved Life Became<br />A <em>Mission</em></h2><div className="date-callout"><div className="date">December 7, 2010</div><p>Jackson M. Latimore Sr. collapsed from sudden cardiac arrest at ESU's Koehler Fieldhouse — and was saved by an AED placed by the Gregory W. Moyer Defibrillator Fund, honoring a 15-year-old boy who died from the same cause.</p></div><p className="story-text">That moment — watching a prepared community save a life — is the heartbeat behind everything we do at <strong>Latimore Life & Legacy LLC.</strong></p><p className="story-text">We don't sell fear. We help <strong>families in Schuylkill, Luzerne, and Northumberland counties</strong> prepare for life's uncertainties with clarity and confidence — because legacy isn't just what you leave behind. It's how you show up today.</p><p className="story-text">Supporting PAHS football is just one way we put our mission into action — <strong>right here, in our community.</strong></p>
-        <div style={{ marginTop: 24 }}>
-          <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={480} height={480} style={{ width: '100%', height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.4)' }} />
-        </div>
         <span className="hashtag">#TheBeatGoesOn &nbsp;🏈&nbsp; #LatimoreLifeAndLegacy</span></div></section>
 
       <section className="services-section"><div className="services-inner reveal"><div className="section-label">What We Do</div><h2>Your Complete<br />Financial Protection Team</h2><p className="services-subtitle">From your first policy to your retirement paycheck — we've got Central Pennsylvania covered.</p><div className="services-grid">{[['fa-shield-heart','Life Insurance & Living Benefits'],['fa-piggy-bank','Retirement Income & Annuities'],['fa-chart-line','Indexed Growth & IRA Strategies'],['fa-scroll','Estate & Legacy Planning'],['fa-building','Business Owner & Key Person'],['fa-house','Mortgage Protection Term']].map(([icon,title]) => <div className="service-card" key={title}><div className="service-icon"><i className={`fas ${icon}`} /></div><h3>{title}</h3></div>)}</div></div></section>
