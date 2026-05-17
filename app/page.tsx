@@ -213,6 +213,20 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* Community Sponsorship */}
+      <section style={{ padding: '3rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
+          <Image
+            src="/pahs-sponsor-flyer.jpg"
+            alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
+            width={560}
+            height={700}
+            style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 12px 36px rgba(0,0,0,0.12)' }}
+          />
+        </div>
+      </section>
+
       <SiteFooter />
 
       <style>{`
