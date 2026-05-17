@@ -496,6 +496,30 @@ enum CalendarProvider {
   manual
 }
 
+enum SocialProvider {
+  linkedin
+  facebook
+  instagram
+  twitter
+}
+
+model SocialConnection {
+  id             String           @id @default(uuid())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  provider       SocialProvider
+  accountName    String?
+  externalId     String?
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  metadata       Json?
+  status         String?
+
+  @@index([provider])
+  @@index([externalId])
+}
+
 enum CalendarEventStatus {
   scheduled
   confirmed

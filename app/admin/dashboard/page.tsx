@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import PageHeader from '../_components/PageHeader'
 import { BRAND_STORY } from '../_lib/templates'
+import DailyBrief from './DailyBrief'
 
 const StatCard = ({ title, value, trend, icon, color }: any) => (
   <div className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20">
@@ -21,24 +22,41 @@ const StatCard = ({ title, value, trend, icon, color }: any) => (
 )
 
 export default async function LegacyPulsePage() {
-  const [contactCount, inquiryCount, appointmentCount] = await Promise.all([
-    prisma.contact.count(),
-    prisma.inquiry.count(),
-    prisma.appointment.count(),
-  ])
+  let contactCount = 0
+  let inquiryCount = 0
+  let appointmentCount = 0
+  let recentContacts: any[] = []
 
-  const recentContacts = await prisma.contact.findMany({
-    take: 6,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      leadScore: true,
-      status: true,
-    },
-  })
+  try {
+    const counts = await Promise.all([
+      prisma.contact.count(),
+      prisma.inquiry.count(),
+      prisma.appointment.count(),
+    ])
+    contactCount = counts[0]
+    inquiryCount = counts[1]
+    appointmentCount = counts[2]
+
+    recentContacts = await prisma.contact.findMany({
+      take: 6,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        leadScore: true,
+        status: true,
+      },
+    })
+  } catch (error) {
+    console.warn('Database connection failed, using fallback values:', error)
+    // Use fallback values when database is unreachable
+    contactCount = 0
+    inquiryCount = 0
+    appointmentCount = 0
+    recentContacts = []
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-8">
@@ -98,12 +116,8 @@ export default async function LegacyPulsePage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="space-y-4">
-          <StatCard title="Total Contacts" value={contactCount} trend={12} icon="fa-users" color="text-blue-400" />
-          <StatCard title="Active Inquiries" value={inquiryCount} trend={8} icon="fa-bell" color="text-amber-400" />
-          <StatCard title="Booked Calls" value={appointmentCount} trend={5} icon="fa-calendar-check" color="text-emerald-400" />
-        </div>
+        {/* Daily Brief */}
+        <DailyBrief />
       </div>
 
       {/* Recent Contacts */}

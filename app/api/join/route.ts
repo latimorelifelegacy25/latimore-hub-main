@@ -8,6 +8,7 @@ import { sendMail } from '@/lib/mailer'
 import { logger } from '@/lib/logger'
 import { LeadIntent, LeadSource, LeadStatus } from '@prisma/client'
 import { inferLeadSource } from '@/lib/tracking/infer'
+import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const JoinBodySchema = z.object({
   firstName: z.string().min(1).max(100),
@@ -221,6 +222,13 @@ export async function POST(req: NextRequest) {
         intent,
         status: inquiryStatus,
       },
+    })
+
+    // Trigger automatic lead scoring for new inquiry
+    await triggerLeadScoring({
+      contactId: contact.id,
+      inquiryId: inquiry.id,
+      reason: 'new_join_inquiry'
     })
 
     const noteSummary = buildJoinNoteSummary(normalized)

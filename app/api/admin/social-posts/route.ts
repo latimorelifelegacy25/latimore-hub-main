@@ -1,7 +1,6 @@
-/**
- * GET/POST /api/admin/social-posts
- * Manage scheduled social media posts
- */
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 interface SocialPost {
   id: string
@@ -18,80 +17,97 @@ interface SocialPost {
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
+
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status') as 'draft' | 'scheduled' | 'published' | null
-    const platform = searchParams.get('platform') as string | null
+    const channel = searchParams.get('channel') as string | null
 
-    // For now, return mock data structure
-    // In the future, query from a SocialPost table once it's in Prisma schema
-    const posts: SocialPost[] = []
-
-    // Filter if params provided
-    if (status || platform) {
-      // Add filtering logic when table exists
+    const where: any = {
+      type: 'social_post'
     }
 
-    return Response.json({
+    if (status) {
+      where.status = status
+    }
+
+    if (channel) {
+      where.channel = channel
+    }
+
+    const posts = await prisma.contentAsset.findMany({
+      where,
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return NextResponse.json({
       success: true,
       posts,
       total: posts.length,
     })
   } catch (error) {
     console.error('Social posts fetch error:', error)
-    return Response.json(
+    return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to fetch posts' },
       { status: 500 }
     )
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
+
     const body = await req.json()
-    const { content, platform, scheduledDate, action } = body
+    const { title, bodyText, channel, type, scheduledFor, metadata } = body
 
-    if (!content || !platform) {
-      return Response.json(
-        { error: 'content and platform are required' },
+    if (!bodyText || !channel) {
+      return NextResponse.json(
+        { error: 'bodyText and channel are required' },
         { status: 400 }
       )
     }
 
-    // Validate platform
-    if (!['facebook', 'linkedin', 'instagram', 'twitter'].includes(platform)) {
-      return Response.json(
-        { error: 'Invalid platform' },
-        { status: 400 }
-      )
-    }
+    // Create content asset
+    const asset = await prisma.contentAsset.create({
+      data: {
+        title: title || 'Social Media Post',
+        type: type || 'social_post',
+        status: scheduledFor ? 'scheduled' : 'draft',
+        channel,
+        bodyText,
+        bodyHtml: bodyText, // For now, same as text
+        metadata,
+        scheduledFor: scheduledFor ? new Date(scheduledFor) : null,
+        createdBy: 'admin' // TODO: Get from session
+      }
+    })
 
-    if (action === 'schedule' && !scheduledDate) {
-      return Response.json(
-        { error: 'scheduledDate required for scheduled posts' },
-        { status: 400 }
-      )
-    }
+    // Create system event
+    await prisma.systemEvent.create({
+      data: {
+        type: 'content.scheduled',
+        payload: {
+          assetId: asset.id,
+          channel,
+          scheduledFor,
+          type: 'social_post'
+        }
+      }
+    })
 
-    // Create post record (insert into SocialPost table once schema updated)
-    const newPost: SocialPost = {
-      id: Date.now().toString(),
-      content,
-      platform,
-      status: action === 'draft' ? 'draft' : 'scheduled',
-      scheduledDate: action === 'schedule' ? scheduledDate : undefined,
-      engagement: { likes: 0, shares: 0, comments: 0, clicks: 0 },
-    }
-
-    return Response.json({
+    return NextResponse.json({
       success: true,
-      post: newPost,
-      message: `Post ${action === 'draft' ? 'saved as draft' : 'scheduled'} successfully`,
+      asset,
+      message: scheduledFor ? 'Post scheduled successfully' : 'Post saved as draft'
     })
   } catch (error) {
     console.error('Social post creation error:', error)
-    return Response.json(
+    return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to create post' },
       { status: 500 }
     )

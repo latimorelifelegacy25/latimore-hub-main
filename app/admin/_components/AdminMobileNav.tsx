@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Menu, X, ArrowLeft } from 'lucide-react'
+import NotificationCenter from './NotificationCenter'
 
 interface NavItem {
   href: string
@@ -21,14 +22,17 @@ export default function AdminMobileNav({ navItems }: { navItems: NavItem[] }) {
           <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
           <p className="text-[10px] text-[#A9B1BE]">Hub OS Admin</p>
         </div>
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="rounded-lg p-2 text-[#A9B1BE] transition hover:bg-white/10 hover:text-white"
-          aria-label={open ? 'Close menu' : 'Open menu'}
-          aria-expanded={open}
-        >
-          {open ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <NotificationCenter />
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="rounded-lg p-2 text-[#A9B1BE] transition hover:bg-white/10 hover:text-white"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            aria-expanded={open}
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
 
       {/* Slide-down drawer */}

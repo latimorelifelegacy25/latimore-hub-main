@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Contact } from '@prisma/client'
@@ -23,18 +23,31 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
   const [selectedContact, setSelectedContact] = useState<ClientWithDetails | null>(null)
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set())
+  const [showBulkActions, setShowBulkActions] = useState(false)
+  const [filters, setFilters] = useState({
+    status: '',
+    leadScoreMin: '',
+    leadScoreMax: '',
+    dateFrom: '',
+    dateTo: '',
+    county: '',
+  })
+  const [showFilters, setShowFilters] = useState(false)
+  const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
+  const [generatedTasks, setGeneratedTasks] = useState<any[]>([])
 
   const pipelineStages = [
-    'New Lead',
-    'Contacted',
-    'Booked Call',
-    'Discovery Complete',
-    'Options Presented',
-    'App Submitted',
-    'Underwriting',
-    'Issued / Delivered',
-    'In Force + Review',
-    'Lost / Not Proceeding',
+    'NEW',
+    'ATTEMPTED_CONTACT',
+    'CONTACTED',
+    'QUALIFIED',
+    'BOOKED',
+    'IN_CONSULT',
+    'CLOSED_WON',
+    'CLOSED_LOST',
+    'NURTURE',
+    'ON_HOLD',
   ]
 
   const handleGenerateSnapshot = async (contact: ClientWithDetails) => {
@@ -63,16 +76,157 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
     }
   }
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    contact.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredContacts = contacts.filter(contact => {
+    // Search term filter
+    const matchesSearch = !searchTerm ||
+      contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contact.phone?.includes(searchTerm)
+
+    // Advanced filters
+    const matchesStatus = !filters.status || contact.status === filters.status
+    const matchesLeadScore = (!filters.leadScoreMin || (contact.leadScore || 0) >= parseInt(filters.leadScoreMin)) &&
+                            (!filters.leadScoreMax || (contact.leadScore || 0) <= parseInt(filters.leadScoreMax))
+    const matchesCounty = !filters.county || contact.county === filters.county
+    const matchesDateRange = (!filters.dateFrom || new Date(contact.createdAt) >= new Date(filters.dateFrom)) &&
+                            (!filters.dateTo || new Date(contact.createdAt) <= new Date(filters.dateTo))
+
+    return matchesSearch && matchesStatus && matchesLeadScore && matchesCounty && matchesDateRange
+  })
 
   const contactsByStage = pipelineStages.map(stage => ({
     stage,
     contacts: filteredContacts.filter(c => c.status === stage)
   }))
+
+  const handleSelectContact = (contactId: string, selected: boolean) => {
+    const newSelected = new Set(selectedContacts)
+    if (selected) {
+      newSelected.add(contactId)
+    } else {
+      newSelected.delete(contactId)
+    }
+    setSelectedContacts(newSelected)
+    setShowBulkActions(newSelected.size > 0)
+  }
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedContacts(new Set(filteredContacts.map(c => c.id)))
+    } else {
+      setSelectedContacts(new Set())
+    }
+    setShowBulkActions(selected)
+  }
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedContacts.size === 0) return
+
+    try {
+      const promises = Array.from(selectedContacts).map(contactId =>
+        fetch(`/api/contacts/${contactId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        })
+      )
+
+      await Promise.all(promises)
+
+      // Update local state
+      setContacts(contacts.map(contact =>
+        selectedContacts.has(contact.id)
+          ? { ...contact, status: newStatus as any }
+          : contact
+      ))
+
+      setSelectedContacts(new Set())
+      setShowBulkActions(false)
+      alert(`Updated ${selectedContacts.size} contacts to ${newStatus}`)
+    } catch (error) {
+      console.error('Bulk update error:', error)
+      alert('Failed to update contacts')
+    }
+  }
+
+  const handleGenerateTasks = async () => {
+    if (selectedContacts.size === 0) return
+
+    setIsGeneratingTasks(true)
+    try {
+      const tasksPromises = Array.from(selectedContacts).map(contactId =>
+        fetch('/api/ai/generate-tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contactId })
+        })
+      )
+
+      const results = await Promise.all(tasksPromises)
+      const allTasks = []
+
+      for (const result of results) {
+        if (result.ok) {
+          const data = await result.json()
+          allTasks.push(...data.tasks)
+        }
+      }
+
+      setGeneratedTasks(allTasks)
+      alert(`Generated ${allTasks.length} AI-powered tasks for ${selectedContacts.size} contacts`)
+    } catch (error) {
+      console.error('Task generation error:', error)
+      alert('Failed to generate tasks')
+    } finally {
+      setIsGeneratingTasks(false)
+    }
+  }
+
+  const handleGenerateTasksForContact = async (contactId: string) => {
+    setIsGeneratingTasks(true)
+    try {
+      const response = await fetch('/api/ai/generate-tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contactId })
+      })
+
+      if (!response.ok) throw new Error('Failed to generate tasks')
+
+      const data = await response.json()
+      alert(`Generated ${data.tasks.length} AI-powered tasks for this contact`)
+    } catch (error) {
+      console.error('Task generation error:', error)
+      alert('Failed to generate tasks')
+    } finally {
+      setIsGeneratingTasks(false)
+    }
+  }
+
+  const handleExportContacts = () => {
+    const selectedContactsData = filteredContacts.filter(c => selectedContacts.has(c.id))
+    const csvContent = [
+      ['Name', 'Email', 'Phone', 'County', 'Status', 'Lead Score', 'Created At'],
+      ...selectedContactsData.map(c => [
+        `${c.firstName} ${c.lastName}`,
+        c.email || '',
+        c.phone || '',
+        c.county || '',
+        c.status,
+        c.leadScore?.toString() || '0',
+        new Date(c.createdAt).toLocaleDateString()
+      ])
+    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `contacts-export-${new Date().toISOString().split('T')[0]}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div className="space-y-8 pb-12">
@@ -83,37 +237,191 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
       />
 
       {/* Controls */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex gap-3">
-          <button
-            onClick={() => setViewMode('pipeline')}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              viewMode === 'pipeline'
-                ? 'bg-[#C9A25F] text-slate-900'
-                : 'bg-white/5 text-white hover:bg-white/10'
-            }`}
-          >
-            Pipeline View
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`px-4 py-2 rounded-lg font-semibold transition ${
-              viewMode === 'list'
-                ? 'bg-[#C9A25F] text-slate-900'
-                : 'bg-white/5 text-white hover:bg-white/10'
-            }`}
-          >
-            List View
-          </button>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setViewMode('pipeline')}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                viewMode === 'pipeline'
+                  ? 'bg-[#C9A25F] text-slate-900'
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
+            >
+              Pipeline View
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                viewMode === 'list'
+                  ? 'bg-[#C9A25F] text-slate-900'
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
+            >
+              List View
+            </button>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`px-4 py-2 rounded-lg font-semibold transition ${
+                showFilters
+                  ? 'bg-[#C9A25F] text-slate-900'
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
+            >
+              <i className="fa-solid fa-filter mr-2"></i>
+              Filters
+            </button>
+          </div>
+
+          <div className="flex gap-3">
+            <input
+              type="text"
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A25F]"
+            />
+            {selectedContacts.size > 0 && (
+              <button
+                onClick={handleExportContacts}
+                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 font-semibold rounded-lg transition"
+              >
+                <i className="fa-solid fa-download mr-2"></i>
+                Export ({selectedContacts.size})
+              </button>
+            )}
+          </div>
         </div>
 
-        <input
-          type="text"
-          placeholder="Search contacts..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A25F]"
-        />
+        {/* Advanced Filters */}
+        {showFilters && (
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+            <h3 className="text-lg font-black text-white mb-4">Advanced Filters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Status</label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
+                >
+                  <option value="">All Statuses</option>
+                  {pipelineStages.map(stage => (
+                    <option key={stage} value={stage}>{stage.replace(/_/g, ' ')}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Min Lead Score</label>
+                <input
+                  type="number"
+                  value={filters.leadScoreMin}
+                  onChange={(e) => setFilters({ ...filters, leadScoreMin: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Max Lead Score</label>
+                <input
+                  type="number"
+                  value={filters.leadScoreMax}
+                  onChange={(e) => setFilters({ ...filters, leadScoreMax: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
+                  placeholder="100"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">County</label>
+                <input
+                  type="text"
+                  value={filters.county}
+                  onChange={(e) => setFilters({ ...filters, county: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A25F]"
+                  placeholder="Enter county"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">From Date</label>
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">To Date</label>
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => setFilters({
+                  status: '',
+                  leadScoreMin: '',
+                  leadScoreMax: '',
+                  dateFrom: '',
+                  dateTo: '',
+                  county: '',
+                })}
+                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded-lg transition"
+              >
+                Clear Filters
+              </button>
+              <div className="text-sm text-slate-400">
+                Showing {filteredContacts.length} of {contacts.length} contacts
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Actions */}
+        {showBulkActions && (
+          <div className="bg-[#C9A25F]/10 border border-[#C9A25F]/30 rounded-3xl p-6">
+            <h3 className="text-lg font-black text-[#C9A25F] mb-4">
+              Bulk Actions ({selectedContacts.size} selected)
+            </h3>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={handleGenerateTasks}
+                disabled={isGeneratingTasks}
+                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                {isGeneratingTasks ? 'Generating Tasks...' : '🤖 Generate AI Tasks'}
+              </button>
+              <button
+                onClick={() => handleBulkStatusUpdate('CONTACTED')}
+                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-semibold rounded-lg transition"
+              >
+                Mark as Contacted
+              </button>
+              <button
+                onClick={() => handleBulkStatusUpdate('BOOKED')}
+                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 font-semibold rounded-lg transition"
+              >
+                Mark as Booked
+              </button>
+              <button
+                onClick={() => handleBulkStatusUpdate('CLOSED_LOST')}
+                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded-lg transition"
+              >
+                Mark as Lost
+              </button>
+              <button
+                onClick={() => setSelectedContacts(new Set())}
+                className="px-4 py-2 bg-slate-500/20 hover:bg-slate-500/30 text-slate-300 font-semibold rounded-lg transition"
+              >
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {viewMode === 'pipeline' ? (
@@ -126,20 +434,33 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                 {stageContacts.map((contact) => (
                   <div
                     key={contact.id}
-                    onClick={() => setSelectedContact(contact)}
                     className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:border-[#C9A25F] transition"
                   >
-                    <p className="text-sm font-semibold text-white">
-                      {contact.firstName} {contact.lastName}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">{contact.email}</p>
-                    {contact.leadScore && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <div className="text-xs text-[#C9A25F] font-semibold">
-                          Score: {contact.leadScore}
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedContacts.has(contact.id)}
+                        onChange={(e) => handleSelectContact(contact.id, e.target.checked)}
+                        className="mt-1 text-[#C9A25F] focus:ring-[#C9A25F]"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div
+                        className="flex-1"
+                        onClick={() => setSelectedContact(contact)}
+                      >
+                        <p className="text-sm font-semibold text-white">
+                          {contact.firstName} {contact.lastName}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-1">{contact.email}</p>
+                        {contact.leadScore && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="text-xs text-[#C9A25F] font-semibold">
+                              Score: {contact.leadScore}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))}
                 {stageContacts.length === 0 && (
@@ -156,6 +477,14 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
             <table className="w-full">
               <thead className="bg-white/10">
                 <tr>
+                  <th className="px-6 py-4 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedContacts.size === filteredContacts.length && filteredContacts.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="text-[#C9A25F] focus:ring-[#C9A25F]"
+                    />
+                  </th>
                   <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Name</th>
                   <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Email</th>
                   <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Status</th>
@@ -166,6 +495,14 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
               <tbody>
                 {filteredContacts.map((contact) => (
                   <tr key={contact.id} className="border-t border-white/10 hover:bg-white/5">
+                    <td className="px-6 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedContacts.has(contact.id)}
+                        onChange={(e) => handleSelectContact(contact.id, e.target.checked)}
+                        className="text-[#C9A25F] focus:ring-[#C9A25F]"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <p className="text-sm font-semibold text-white">
                         {contact.firstName} {contact.lastName}
@@ -243,13 +580,22 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-black text-white">AI Client Snapshot</h3>
-                      <button
-                        onClick={() => handleGenerateSnapshot(selectedContact)}
-                        disabled={isGeneratingSnapshot}
-                        className="bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-black px-4 py-2 rounded-lg transition"
-                      >
-                        {isGeneratingSnapshot ? 'Generating...' : 'Generate'}
-                      </button>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => handleGenerateTasksForContact(selectedContact.id)}
+                          disabled={isGeneratingTasks}
+                          className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
+                        >
+                          {isGeneratingTasks ? 'Generating...' : '🤖 Generate Tasks'}
+                        </button>
+                        <button
+                          onClick={() => handleGenerateSnapshot(selectedContact)}
+                          disabled={isGeneratingSnapshot}
+                          className="bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-black px-4 py-2 rounded-lg transition"
+                        >
+                          {isGeneratingSnapshot ? 'Generating...' : 'Generate Snapshot'}
+                        </button>
+                      </div>
                     </div>
 
                     {selectedContact.snapshot ? (
@@ -264,7 +610,7 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                           <ul className="text-white mt-2 text-sm space-y-1">
                             {selectedContact.snapshot.familyContext.map((item, i) => (
                               <li key={i} className="flex items-start gap-2">
-                                <span className="text-[#C9A25F] mt-1">•</span>
+                                <span className="text-[#C9A25F] mt-1">â€¢</span>
                                 {item}
                               </li>
                             ))}
@@ -276,7 +622,7 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                           <ul className="text-white mt-2 text-sm space-y-1">
                             {selectedContact.snapshot.financialPicture.map((item, i) => (
                               <li key={i} className="flex items-start gap-2">
-                                <span className="text-[#C9A25F] mt-1">•</span>
+                                <span className="text-[#C9A25F] mt-1">â€¢</span>
                                 {item}
                               </li>
                             ))}
@@ -289,26 +635,7 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                         </div>
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-400">
-                        Click "Generate" to create AI snapshot
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Inquiries */}
-                <div>
-                  <h3 className="text-lg font-black text-white mb-4">Recent Inquiries</h3>
-                  <div className="space-y-3">
-                    {selectedContact.inquiries?.slice(0, 5).map((inquiry: any) => (
-                      <div key={inquiry.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                        <p className="text-sm font-semibold text-white">{inquiry.productInterest}</p>
-                        <p className="text-xs text-slate-400 mt-1">
-                          {new Date(inquiry.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    )) || (
-                      <p className="text-sm text-slate-400">No inquiries found</p>
+                      <p className="text-slate-400">No AI snapshot available. Click Generate to create one.</p>
                     )}
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npx prisma migrate deploy && npm run build",
+  "buildCommand": "npm run build",
   "crons": [
     {
       "path": "/api/ai/daily-brief",
@@ -13,6 +13,10 @@
     {
       "path": "/api/cron/appointment-reminders",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/notification-checks",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
