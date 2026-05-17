@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, RefreshCw, TrendingUp, Users, Calendar, Target } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { BarChart3, RefreshCw } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import PageHeader from '../_components/PageHeader'
 import AdminCard from '../_components/AdminCard'
 import EmptyState from '../_components/EmptyState'
@@ -99,12 +99,16 @@ export default function AnalyticsPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/reports/overview-analytics')
-      if (!response.ok) throw new Error('Failed to fetch analytics')
+      if (!response.ok) {
+        setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
+        return
+      }
       const analyticsData = await response.json()
       setData(analyticsData)
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
+      setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
     } finally {
       setLoading(false)
     }
@@ -179,14 +183,6 @@ export default function AnalyticsPage() {
     )
   }
 
-  if (!data) {
-    return (
-      <div className="p-6 md:p-8">
-        <PageHeader eyebrow="Analytics" title="Attribution & activity" description="Operational visibility into lead sources, county concentration, product demand, and recent system events." />
-        <EmptyState title="Failed to load analytics" description="Please try refreshing the page." />
-      </div>
-    )
-  }
 
   return (
     <div className="p-6 md:p-8">
