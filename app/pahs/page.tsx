@@ -133,10 +133,6 @@ export default function PAHSPage() {
 
   return (
     <main>
-      <section style={{ padding: '1.5rem 1rem 0', background: '#0b1017', textAlign: 'center' }}>
-        <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={480} height={480} priority style={{ width: '100%', maxWidth: 480, height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.5)', margin: '0 auto', display: 'block' }} />
-      </section>
-
       <section className="hero">
         <div className="hero-bg" />
         <div className="stadium-lights">{Array.from({ length: 6 }).map((_, i) => <div className="light-beam" key={i} />)}</div>
@@ -148,8 +144,8 @@ export default function PAHSPage() {
         </div>
 
         <div className="hero-content">
-          <div className="sponsor-badge" style={{ fontSize: 'clamp(1.2rem, 5vw, 1.8rem)', fontWeight: 900, letterSpacing: '0.08em', padding: '10px 28px' }}>PROUD SPONSOR OF</div>
-          <div className="hero-school-name">POTTSVILLE AREA<br />HIGH SCHOOL</div>
+          <div className="sponsor-badge" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.4rem)', fontWeight: 900, letterSpacing: '0.08em', padding: '12px 32px' }}>PROUD SPONSOR OF</div>
+          <div className="hero-school-name">POTTSVILLE AREA HIGH SCHOOL</div>
           <div className="hero-year">FOOTBALL '26</div>
           <div className="pulse-badge"><div className="pulse-dot" />CRIMSON TIDE — GAME DAY</div>
           <div className="football-icon">🏈</div>
@@ -159,6 +155,9 @@ export default function PAHSPage() {
             <div className="latimore-logo-container"><Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={160} height={120} /></div>
           </div>
           <div className="beat-img-wrap"><Image src="/pahs-protect-go.png" alt="Protect What You Play For — Latimore Life & Legacy" width={340} height={340} style={{ width: '100%', height: 'auto', borderRadius: 8 }} /></div>
+          <div style={{ padding: '0 1rem 1rem' }}>
+            <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={400} height={400} priority style={{ width: '100%', height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
+          </div>
           <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://www.latimorelifelegacy.com" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">www.latimorelifelegacy.com</span></div>
         </div>
       </section>
