@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type DocCategory = 'All' | 'Brochure' | 'Product Guide' | 'Presentation' | 'Script' | 'Compliance' | 'Other'
 
@@ -48,14 +48,26 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Presentation': '📊', 'Script': '📝', 'Compliance': '⚖️', 'Other': '📎'
 }
 
+const LS_KEY = 'latimore_docs_v2'
+
+function loadDocs(): DocItem[] {
+  if (typeof window === 'undefined') return DEFAULT_DOCS
+  try {
+    const saved = localStorage.getItem(LS_KEY)
+    return saved ? JSON.parse(saved) : DEFAULT_DOCS
+  } catch { return DEFAULT_DOCS }
+}
+
 export default function DocsPage() {
-  const [docs, setDocs] = useState<DocItem[]>(DEFAULT_DOCS)
+  const [docs, setDocs] = useState<DocItem[]>(() => loadDocs())
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<DocCategory>('All')
   const [showModal, setShowModal] = useState(false)
   const [editingDoc, setEditingDoc] = useState<DocItem | null>(null)
   const [newDoc, setNewDoc] = useState<Partial<DocItem>>({ category: 'Other', tags: [] })
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(docs)) } catch {} }, [docs])
 
   const filtered = docs.filter(d => {
     const matchCat = activeCategory === 'All' || d.category === activeCategory
@@ -202,9 +214,10 @@ export default function DocsPage() {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#C49A6C] transition-all"
+                      className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#C49A6C] transition-all flex items-center gap-1.5"
                     >
-                      Open →
+                      <i className={`fa-solid ${doc.url.startsWith('blob:') ? 'fa-file-pdf' : 'fa-external-link'} text-[9px]`}></i>
+                      {doc.url.startsWith('blob:') ? 'View File' : 'Open Site →'}
                     </a>
                   )}
                   <button
@@ -247,7 +260,20 @@ export default function DocsPage() {
                 {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
               </select>
               <input placeholder="Carrier (optional)" value={newDoc.carrier || ''} onChange={e => setNewDoc(p => ({ ...p, carrier: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
-              <input placeholder="URL (optional)" value={newDoc.url || ''} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Upload File or Enter URL</p>
+                <label className="flex items-center gap-3 cursor-pointer border border-dashed border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-500 hover:border-[#C49A6C] hover:text-[#C49A6C] transition-all mb-2">
+                  <i className="fa-solid fa-file-arrow-up text-[#C49A6C]"></i>
+                  <span>{newDoc.url?.startsWith('blob:') || newDoc.url?.startsWith('data:') ? '✓ File attached' : 'Choose PDF or image...'}</span>
+                  <input type="file" accept=".pdf,image/*" className="hidden" onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const url = URL.createObjectURL(file)
+                    setNewDoc(p => ({ ...p, url, title: p.title || file.name }))
+                  }} />
+                </label>
+                <input placeholder="— or paste a URL —" value={(newDoc.url?.startsWith('blob:') || newDoc.url?.startsWith('data:')) ? '' : (newDoc.url || '')} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
+              </div>
               <input placeholder="Tags (comma separated)" value={Array.isArray(newDoc.tags) ? newDoc.tags.join(', ') : (newDoc.tags || '')} onChange={e => setNewDoc(p => ({ ...p, tags: e.target.value as any }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
               <textarea placeholder="Notes (optional)" value={newDoc.notes || ''} onChange={e => setNewDoc(p => ({ ...p, notes: e.target.value }))} rows={3} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C] resize-none" />
             </div>

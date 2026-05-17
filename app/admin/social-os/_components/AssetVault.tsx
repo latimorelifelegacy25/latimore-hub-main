@@ -26,7 +26,7 @@ const MOCK_ASSETS: CarrierAsset[] = [
 ];
 
 interface AssetVaultProps {
-  onIdeasGenerated?: (ideas: ContentIdea[]) => void;
+  onIdeasGenerated?: (ideas: ContentIdea[], fileName: string) => void;
 }
 
 const AssetVault: React.FC<AssetVaultProps> = ({ onIdeasGenerated }) => {
@@ -68,7 +68,7 @@ const AssetVault: React.FC<AssetVaultProps> = ({ onIdeasGenerated }) => {
     setIsAnalyzing(asset.id); setError(null);
     try {
       const ideas = await fetchAssetAnalysis(asset.fileData, asset.mimeType, platform, asset.name);
-      if (ideas.length > 0 && onIdeasGenerated) onIdeasGenerated(ideas);
+      if (ideas.length > 0 && onIdeasGenerated) onIdeasGenerated(ideas, asset.name);
       else setError('No content ideas generated. Try a different document or platform.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');

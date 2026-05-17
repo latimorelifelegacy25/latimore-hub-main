@@ -25,6 +25,8 @@ export default function SocialOSClient() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [scheduledPosts, setScheduledPosts] = useState<SocialPost[]>([])
   const [preFillTopic, setPreFillTopic] = useState<string | null>(null)
+  const [assetIdeas, setAssetIdeas] = useState<ContentIdea[]>([])
+  const [assetSource, setAssetSource] = useState<string>('')
 
   useEffect(() => {
     const handleTabChange = (e: Event) => setActiveTab((e as CustomEvent<string>).detail)
@@ -37,8 +39,8 @@ export default function SocialOSClient() {
       case 'dashboard': return <Dashboard scheduledPosts={scheduledPosts} />
       case 'crm': return <CRM />
       case 'library': return <TemplateLibrary onUseTemplate={(s) => { setPreFillTopic(s); setActiveTab('creator') }} />
-      case 'vault': return <AssetVault onIdeasGenerated={(_ideas: ContentIdea[]) => setActiveTab('creator')} />
-      case 'creator': return <ContentCreator onPostScheduled={(p) => setScheduledPosts(prev => [...prev, p])} preFillTopic={preFillTopic} onClearPreFill={() => setPreFillTopic(null)} scheduledPosts={scheduledPosts} />
+      case 'vault': return <AssetVault onIdeasGenerated={(ideas, fileName) => { setAssetIdeas(ideas); setAssetSource(fileName); setActiveTab('creator') }} />
+      case 'creator': return <ContentCreator onPostScheduled={(p) => setScheduledPosts(prev => [...prev, p])} preFillTopic={preFillTopic} onClearPreFill={() => setPreFillTopic(null)} scheduledPosts={scheduledPosts} preBuiltIdeas={assetIdeas} preBuiltSource={assetSource} onClearPreBuiltIdeas={() => { setAssetIdeas([]); setAssetSource('') }} />
       case 'tools': return <MarketingTools onBulkSchedule={(posts) => setScheduledPosts(prev => [...prev, ...posts])} />
       case 'funnels': return <LegacyFunnels />
       case 'calendar': return <CampaignCalendar posts={scheduledPosts} onRemovePost={(id) => setScheduledPosts(prev => prev.filter(p => p.id !== id))} onAddPost={(p) => setScheduledPosts(prev => [...prev, p])} />
