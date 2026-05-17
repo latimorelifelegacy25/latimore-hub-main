@@ -149,15 +149,15 @@ export default function PAHSPage() {
           <div className="hero-year">FOOTBALL '26</div>
           <div className="pulse-badge"><div className="pulse-dot" />CRIMSON TIDE — GAME DAY</div>
           <div className="football-icon">🏈</div>
+          <div style={{ padding: '0 1rem 1rem' }}>
+            <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={400} height={400} priority style={{ width: '100%', height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
+          </div>
           <div className="logos-row">
             <div className="tide-logo-container"><Image src="/pahs-tide-logo.png" alt="Pottsville Crimson Tide" width={110} height={110} /></div>
             <div className="logo-divider" />
             <div className="latimore-logo-container"><Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={160} height={120} /></div>
           </div>
           <div className="beat-img-wrap"><Image src="/pahs-protect-go.png" alt="Protect What You Play For — Latimore Life & Legacy" width={340} height={340} style={{ width: '100%', height: 'auto', borderRadius: 8 }} /></div>
-          <div style={{ padding: '0 1rem 1rem' }}>
-            <Image src="/pahs-2005-allarea.png" alt="2005: Cardinal Brennan All-Area Football — Where the Journey Began" width={400} height={400} priority style={{ width: '100%', height: 'auto', borderRadius: 14, boxShadow: '0 12px 32px rgba(0,0,0,0.5)' }} />
-          </div>
           <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://www.latimorelifelegacy.com" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">www.latimorelifelegacy.com</span></div>
         </div>
       </section>
