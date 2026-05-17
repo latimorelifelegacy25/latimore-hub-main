@@ -18,9 +18,8 @@ export const BRAND = {
   nipr: '21638507',
   paLicense: '1268820',
 
-  // Primary CTAs
-  // Route booking CTAs to the branded /book page (which embeds the live Fillout form)
-  bookingUrl: '/book',
+  // Primary CTAs — all booking buttons route directly to the Fillout consultation form
+  bookingUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
   filloutUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
