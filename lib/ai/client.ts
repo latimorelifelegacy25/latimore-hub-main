@@ -14,6 +14,78 @@ function getAiProvider() {
   return (process.env.AI_PROVIDER ?? 'openai').toLowerCase()
 }
 
+// ─── Plain-text completion (no JSON schema required) ──────────────────────────
+export async function createTextCompletion({
+  system,
+  user,
+  temperature = 0.7,
+}: {
+  system: string
+  user: string
+  temperature?: number
+}): Promise<string> {
+  const provider = getAiProvider()
+  if (provider === 'gemini') return createGeminiTextCompletion({ system, user, temperature })
+  return createOpenAiTextCompletion({ system, user, temperature })
+}
+
+async function createOpenAiTextCompletion({
+  system,
+  user,
+  temperature,
+}: {
+  system: string
+  user: string
+  temperature: number
+}): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('Missing OPENAI_API_KEY')
+  const model = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
+  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+    body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+    cache: 'no-store',
+  })
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(json?.error?.message ?? 'OpenAI request failed')
+  const text = json?.choices?.[0]?.message?.content
+  if (!text) throw new Error('OpenAI returned empty output')
+  return text as string
+}
+
+async function createGeminiTextCompletion({
+  system,
+  user,
+  temperature,
+}: {
+  system: string
+  user: string
+  temperature: number
+}): Promise<string> {
+  if (!process.env.GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY')
+  const model = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash'
+  const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: user }] }],
+        generationConfig: { temperature },
+      }),
+      cache: 'no-store',
+    }
+  )
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(`Gemini request failed (${res.status}): ${JSON.stringify(json)}`)
+  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Gemini returned empty output')
+  return text as string
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function createOpenAIJsonCompletion<T>({
   model,
   system,
