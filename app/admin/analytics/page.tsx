@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, RefreshCw, TrendingUp, Users, Calendar, Target } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { BarChart3, RefreshCw } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import PageHeader from '../_components/PageHeader'
 import AdminCard from '../_components/AdminCard'
 import EmptyState from '../_components/EmptyState'
@@ -99,12 +99,12 @@ export default function AnalyticsPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/reports/overview-analytics')
-      if (!response.ok) throw new Error('Failed to fetch analytics')
-      const analyticsData = await response.json()
-      setData(analyticsData)
+      const analyticsData = response.ok ? await response.json() : null
+      setData(analyticsData ?? { sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
+      setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
     } finally {
       setLoading(false)
     }
@@ -114,9 +114,10 @@ export default function AnalyticsPage() {
     try {
       setInsightsLoading(true)
       const response = await fetch('/api/reports/predictive-insights')
-      if (!response.ok) throw new Error('Failed to fetch insights')
-      const insightsData = await response.json()
-      setInsights(insightsData)
+      if (response.ok) {
+        const insightsData = await response.json()
+        setInsights(insightsData)
+      }
     } catch (error) {
       console.error('Failed to fetch insights:', error)
     } finally {
@@ -128,9 +129,10 @@ export default function AnalyticsPage() {
     try {
       setTimeSeriesLoading(true)
       const response = await fetch('/api/reports/time-series?days=30')
-      if (!response.ok) throw new Error('Failed to fetch time series')
-      const timeSeriesData = await response.json()
-      setTimeSeries(timeSeriesData)
+      if (response.ok) {
+        const timeSeriesData = await response.json()
+        setTimeSeries(timeSeriesData)
+      }
     } catch (error) {
       console.error('Failed to fetch time series:', error)
     } finally {
@@ -142,9 +144,10 @@ export default function AnalyticsPage() {
     try {
       setCrmAnalyticsLoading(true)
       const response = await fetch('/api/reports/crm-analytics')
-      if (!response.ok) throw new Error('Failed to fetch CRM analytics')
-      const crmData = await response.json()
-      setCrmAnalytics(crmData)
+      if (response.ok) {
+        const crmData = await response.json()
+        setCrmAnalytics(crmData)
+      }
     } catch (error) {
       console.error('Failed to fetch CRM analytics:', error)
     } finally {
@@ -167,7 +170,7 @@ export default function AnalyticsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (loading && !data) {
+  if (!data) {
     return (
       <div className="p-6 md:p-8">
         <PageHeader eyebrow="Analytics" title="Attribution & activity" description="Operational visibility into lead sources, county concentration, product demand, and recent system events." />
@@ -175,15 +178,6 @@ export default function AnalyticsPage() {
           <RefreshCw className="w-8 h-8 animate-spin text-[#C9A25F]" />
           <span className="ml-3 text-slate-400">Loading analytics...</span>
         </div>
-      </div>
-    )
-  }
-
-  if (!data) {
-    return (
-      <div className="p-6 md:p-8">
-        <PageHeader eyebrow="Analytics" title="Attribution & activity" description="Operational visibility into lead sources, county concentration, product demand, and recent system events." />
-        <EmptyState title="Failed to load analytics" description="Please try refreshing the page." />
       </div>
     )
   }
