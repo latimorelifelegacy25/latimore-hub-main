@@ -17,6 +17,7 @@ export const DEFAULT_NAV_LINKS = [
   ['/products', 'Products'],
   ['/services', 'Services'],
   ['/education', 'Education'],
+  ['/blog', 'Blog'],
   ['/join', 'Join Our Team'],
   ['/contact', 'Contact'],
 ] as const satisfies readonly NavLink[]
