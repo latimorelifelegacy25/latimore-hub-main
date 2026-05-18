@@ -183,6 +183,7 @@ export default function AnalyticsPage() {
     )
   }
 
+  if (!data) return null
 
   return (
     <div className="p-6 md:p-8">
