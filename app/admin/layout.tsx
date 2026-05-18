@@ -5,6 +5,7 @@ import NotificationCenter from './_components/NotificationCenter'
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
+  { href: '/admin/hub-os', label: 'Hub OS', icon: 'fa-desktop' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
   { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },
