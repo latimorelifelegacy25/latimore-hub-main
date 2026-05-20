@@ -435,6 +435,10 @@ enum EventType {
   county_selected
   product_selected
   lead_magnet_download
+  post_viewed
+  post_created
+  post_published
+  reaction_added
 }
 
 enum ThreadChannel {
@@ -575,4 +579,59 @@ enum LeadStatus {
   NURTURE
   ON_HOLD
   DORMANT
+}
+
+// ─── Blog / Content Posts ─────────────────────────────────────────────────────
+
+enum PostStatus {
+  draft
+  flagged
+  approved
+  published
+  archived
+}
+
+model Post {
+  id          String        @id @default(uuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  slug        String        @unique
+  title       String
+  body        String
+  tags        String[]
+  status      PostStatus    @default(draft)
+  viewCount   Int           @default(0)
+  createdBy   String?
+  comments    PostComment[]
+  reactions   PostReaction[]
+
+  @@index([status, publishedAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+}
+
+model PostReaction {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  userId    String
+  emoji     String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  authorId  String?
+  body      String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
 }

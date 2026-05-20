@@ -42,6 +42,7 @@
     "react-dom": "^18.3.0",
     "recharts": "^2.15.4",
     "resend": "^3.2.0",
+    "slugify": "^1.6.9",
     "tailwind-merge": "^2.3.0",
     "twilio": "^5.4.0",
     "zod": "^3.23.8"
