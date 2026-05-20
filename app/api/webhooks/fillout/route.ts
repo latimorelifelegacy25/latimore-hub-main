@@ -40,7 +40,15 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
       ? req.headers.get('authorization')!.slice('Bearer '.length)
       : null)
 
-  if (token && token === secret) return true
+  if (token) {
+    try {
+      const tokenBuf = Buffer.from(token)
+      const secretBuf = Buffer.from(secret)
+      if (tokenBuf.length === secretBuf.length && crypto.timingSafeEqual(tokenBuf, secretBuf)) return true
+    } catch {
+      // fall through to signature check
+    }
+  }
 
   const sig =
     req.headers.get('x-webhook-signature') ??
