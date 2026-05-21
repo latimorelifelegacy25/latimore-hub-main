@@ -15,7 +15,7 @@ export async function GET() {
     })
 
     return NextResponse.json({ data: metrics })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to generate funnel insights' }, { status: 500 })
   }
 }

@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic'
-export { handleOptions as OPTIONS }
+export { handleOptions as OPTIONS } from '@/lib/hub/cors'
 import { NextRequest, NextResponse } from 'next/server'
 import { EventType, ProductInterest } from '@prisma/client'
-import { withCors, handleOptions } from '@/lib/hub/cors'
+import { withCors } from '@/lib/hub/cors'
 import { extractAttribution } from '@/lib/hub/extract-attribution'
 import { ingestEvent } from '@/lib/hub/ingest-event'
 import { rateLimit } from '@/lib/rate-limit'

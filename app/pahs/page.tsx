@@ -1,7 +1,6 @@
 'use client';
 
 import './pahs.css';
-import { useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 import Image from 'next/image';
 

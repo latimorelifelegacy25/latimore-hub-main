@@ -35,7 +35,6 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
   })
   const [showFilters, setShowFilters] = useState(false)
   const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
-  const [generatedTasks, setGeneratedTasks] = useState<any[]>([])
 
   const pipelineStages = [
     'NEW',
@@ -173,7 +172,6 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
         }
       }
 
-      setGeneratedTasks(allTasks)
       alert(`Generated ${allTasks.length} AI-powered tasks for ${selectedContacts.size} contacts`)
     } catch (error) {
       console.error('Task generation error:', error)

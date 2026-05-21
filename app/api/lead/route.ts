@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
-export { handleOptions as OPTIONS }
+export { handleOptions as OPTIONS } from '@/lib/hub/cors'
 import { NextRequest, NextResponse } from 'next/server'
-import { withCors, handleOptions } from '@/lib/hub/cors'
+import { withCors } from '@/lib/hub/cors'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { rateLimit } from '@/lib/rate-limit'
 import { LeadIngestSchema } from '@/lib/schemas'

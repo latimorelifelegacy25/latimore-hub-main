@@ -43,14 +43,10 @@ const ContentCreator: React.FC<ContentCreatorProps> = ({ onPostScheduled, preFil
   const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
   const [pendingIdx, setPendingIdx] = useState<number | null>(null);
   const [newTemplateName, setNewTemplateName] = useState('');
-  const [isPublishing, setIsPublishing] = useState<number | null>(null);
-  const [authStatus, setAuthStatus] = useState({ facebook: false, twitter: false });
-
   useEffect(() => {
-    fetch('/api/auth/status').then(r => r.ok ? r.json() : null).then(d => d && setAuthStatus(d)).catch(() => {});
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('latimore_user_templates');
-      if (saved) { try { setTemplates([...INITIAL_TEMPLATES, ...JSON.parse(saved)]); } catch (e) {} }
+      if (saved) { try { setTemplates([...INITIAL_TEMPLATES, ...JSON.parse(saved)]); } catch { } }
     }
   }, []);
 
