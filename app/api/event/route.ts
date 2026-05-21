@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const event = await ingestEvent(parse.data)
-    return NextResponse.json({ ok: true, eventId: event.id })
+    return NextResponse.json({ ok: true, eventId: event.id, sessionId: event.leadSessionId ?? null })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Event ingest error')
     return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
