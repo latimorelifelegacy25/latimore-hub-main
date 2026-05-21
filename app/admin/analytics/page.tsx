@@ -7,6 +7,7 @@ import PageHeader from '../_components/PageHeader'
 import AdminCard from '../_components/AdminCard'
 import EmptyState from '../_components/EmptyState'
 import RevenueAnalytics from '../_components/RevenueAnalytics'
+import { trackDashboardEvent } from '@/lib/tracking/track-dashboard-event'
 
 type ConversionTotals = {
   totals: { leads: number; clicks: number; booked: number; sold: number }
@@ -102,7 +103,7 @@ export default function AnalyticsPage() {
   const [crmAnalyticsLoading, setCrmAnalyticsLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (isManualRefresh = false) => {
     try {
       setLoading(true)
       const response = await fetch('/api/reports/overview-analytics')
@@ -113,6 +114,9 @@ export default function AnalyticsPage() {
       const analyticsData = await response.json()
       setData(analyticsData)
       setLastUpdated(new Date())
+      if (isManualRefresh) {
+        void trackDashboardEvent('analytics_refreshed', { totalWidgets: 5 })
+      }
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
       setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
@@ -173,6 +177,7 @@ export default function AnalyticsPage() {
   }
 
   useEffect(() => {
+    void trackDashboardEvent('dashboard_viewed', { totalWidgets: 5 })
     fetchAnalytics()
     fetchInsights()
     fetchTimeSeries()
@@ -213,7 +218,7 @@ export default function AnalyticsPage() {
             </span>
           )}
           <button
-            onClick={fetchAnalytics}
+            onClick={() => fetchAnalytics(true)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-semibold rounded-lg transition"
           >
