@@ -60,18 +60,21 @@ export const viewport: Viewport = {
   themeColor: '#0B0F17',
 }
 
-const GA4_ID = process.env.NEXT_PUBLIC_GA4_ID || 'G-S0Q3E4DEBJ'
+const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || ''
+const GA4_CAMPAIGN = process.env.NEXT_PUBLIC_CAMPAIGN_GA4_ID || ''
+const GA4_APP = process.env.NEXT_PUBLIC_APP_GA4_ID || ''
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const gaIds = [GA4_MAIN, GA4_CAMPAIGN, GA4_APP].filter(Boolean)
   return (
     <html lang="en">
       <head>
-        {GA4_ID && (
+        {gaIds.length > 0 && (
           <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`} />
+            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaIds[0]}`} />
             <script
               dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GA4_ID}',{page_path:window.location.pathname});`,
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());${gaIds.map(id => `gtag('config','${id}',{page_path:window.location.pathname});`).join('')}`,
               }}
             />
           </>
