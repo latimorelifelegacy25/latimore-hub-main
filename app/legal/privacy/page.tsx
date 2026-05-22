@@ -10,19 +10,22 @@ export default function PrivacyPage() {
         <p className="text-[#A9B1BE] text-sm mb-8">Last updated: {new Date().toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
 
         <div className="prose prose-invert text-[#A9B1BE] space-y-6 text-sm leading-relaxed">
-          <p><strong className="text-[#F7F7F5]">{BRAND.fullName} LLC</strong> ("we," "us," or "our") is committed to protecting your privacy. This policy describes how we collect, use, and protect your information.</p>
+          <p><strong className="text-[#F7F7F5]">{BRAND.fullName} LLC</strong> ("we," "us," or "our") is committed to protecting your privacy. This policy describes what we collect, how we use it, and your choices.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Information We Collect</h2>
-          <p>When you submit a consultation request or contact us, we may collect your name, email address, phone number, county, and information about your insurance interests. We also collect analytics data (page views, form interactions) via Google Analytics 4.</p>
+          <p>When you contact us, submit a consultation request, or engage with our website, we may collect your name, email address, phone number, county, service interests, appointment preferences, and message details. We also collect technical and usage data such as page views, clicks, referrer data, and session identifiers used for analytics and lead attribution.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">How We Use Your Information</h2>
-          <p>We use your information to respond to your requests, schedule consultations, send follow-up communications, and improve our services. We do not sell your personal information to third parties.</p>
+          <p>We use your information to respond to requests, schedule consultations, send follow-up communications, provide requested services, and improve user experience and performance of our website and campaigns. We do not sell your personal information.</p>
+
+          <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Data Processors and Integrations</h2>
+          <p>We use third-party service providers to help operate our business, such as website hosting, analytics providers, form processors/webhooks, database and CRM tools, and email delivery services. These providers process information under contractual and technical controls appropriate to their services.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Data Retention</h2>
-          <p>We retain your contact information for as long as necessary to provide services and comply with legal obligations. You may request deletion of your data at any time.</p>
+          <p>We retain information for as long as needed to provide services, maintain business records, prevent abuse, and comply with legal obligations. Retention periods vary by record type and legal requirements.</p>
 
-          <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Your Rights</h2>
-          <p>You have the right to access, correct, or delete your personal information. To exercise these rights, contact us at <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a>.</p>
+          <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Your Rights and Choices</h2>
+          <p>You may request access, correction, deletion, or limitation of your personal information by contacting us at <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a>. You may also disable cookies in your browser, though some site features may be affected.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Contact</h2>
           <p>{BRAND.fullName} LLC · PA License #{BRAND.paLicense} · <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a></p>
