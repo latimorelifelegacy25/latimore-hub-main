@@ -1,34 +1,17 @@
-declare global {
-  interface Window {
-    gtag?: (...args: unknown[]) => void
-    dataLayer?: unknown[]
-  }
+export function trackDashboardEvent(name: string, params: Record<string, unknown> = {}) {
+  if (typeof window === 'undefined') return
+  const gtag = (window as any).gtag
+  if (!gtag) return
+  gtag('event', name, { dashboard: 'engagement_intelligence', ...params })
 }
 
-function track(event: string, params?: Record<string, unknown>) {
-  if (typeof window === 'undefined' || !window.gtag) return
-  window.gtag('event', event, params)
-}
-
-export const ga4 = {
-  dashboardView: (dashboard: string) =>
-    track('dashboard_view', { dashboard }),
-
-  ctaClick: (label: string) =>
-    track('cta_click', { event_category: 'lead_generation', event_label: label }),
-
-  formSubmit: (source: string) =>
-    track('form_submit', { event_category: 'lead_capture', source }),
-
-  socialPostClick: (platform: string, campaign?: string) =>
-    track('social_post_click', { platform, campaign }),
-
-  insightViewed: (type: string, severity: string) =>
-    track('insight_viewed', { insight_type: type, severity }),
-
-  reportGenerated: (reportType: string) =>
-    track('report_generated', { report_type: reportType }),
-
-  sentimentAnalyzed: (platform: string, sentiment: string) =>
-    track('sentiment_analyzed', { platform, sentiment }),
+export const GA4_EVENTS = {
+  DASHBOARD_VIEW: 'dashboard_view',
+  CTA_CLICK: 'cta_click',
+  FORM_SUBMIT: 'form_submit',
+  SOCIAL_POST_CLICK: 'social_post_click',
+  REPORT_EXPORT: 'report_export',
+  WIDGET_CUSTOMIZED: 'widget_customized',
+  INSIGHT_VIEWED: 'insight_viewed',
+  SENTIMENT_ANALYZED: 'sentiment_analyzed',
 }

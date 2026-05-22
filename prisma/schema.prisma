@@ -531,6 +531,15 @@ enum CalendarEventStatus {
 
 // ─── Social Engagement Dashboard ─────────────────────────────────────────────
 
+enum SocialPostStatus {
+  draft
+  scheduled
+  approved
+  published
+  failed
+  archived
+}
+
 model SocialAccount {
   id             String   @id @default(cuid())
   platform       String
@@ -547,48 +556,54 @@ model SocialAccount {
 }
 
 model SocialPost {
-  id               String    @id @default(cuid())
+  id               String           @id @default(cuid())
   platform         String
-  accountId        String
+  accountId        String?
   externalPostId   String?
-  status           String    @default("draft")
+  status           SocialPostStatus @default(draft)
   caption          String
   mediaUrls        Json?
   scheduledAt      DateTime?
   publishedAt      DateTime?
   approvedBy       String?
+  campaign         String?
   rawPublishResult Json?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  account  SocialAccount   @relation(fields: [accountId], references: [id])
+  account  SocialAccount?  @relation(fields: [accountId], references: [id])
   metrics  SocialMetric[]
   comments SocialComment[]
+  insights Insight[]
 
+  @@unique([platform, externalPostId])
   @@index([platform])
   @@index([status])
-  @@index([accountId])
+  @@index([campaign])
 }
 
 model SocialMetric {
-  id          String   @id @default(cuid())
-  postId      String
-  platform    String
-  metricDate  DateTime
-  impressions Int      @default(0)
-  reach       Int      @default(0)
-  clicks      Int      @default(0)
-  reactions   Int      @default(0)
-  comments    Int      @default(0)
-  shares      Int      @default(0)
-  saves       Int      @default(0)
-  leads       Int      @default(0)
-  raw         Json?
-  createdAt   DateTime @default(now())
+  id           String   @id @default(cuid())
+  postId       String
+  platform     String
+  metricDate   DateTime
+  impressions  Int      @default(0)
+  reach        Int      @default(0)
+  clicks       Int      @default(0)
+  reactions    Int      @default(0)
+  comments     Int      @default(0)
+  shares       Int      @default(0)
+  saves        Int      @default(0)
+  leads        Int      @default(0)
+  conversions  Int      @default(0)
+  revenueCents Int      @default(0)
+  raw          Json?
+  createdAt    DateTime @default(now())
 
   post SocialPost @relation(fields: [postId], references: [id])
 
-  @@index([postId])
+  @@unique([postId, metricDate])
   @@index([platform, metricDate])
 }
 
@@ -612,6 +627,7 @@ model AIAnalysis {
   id              String   @id @default(cuid())
   targetType      String
   targetId        String
+  commentId       String?
   provider        String
   model           String
   sentiment       String
@@ -619,17 +635,21 @@ model AIAnalysis {
   intent          String?
   urgency         String?
   topics          Json
+  trendingTerms   Json?
+  leadPotential   String?
   complianceRisk  String?
   suggestedAction String?
   tokenEstimate   Int?
   costEstimate    Decimal? @db.Decimal(10, 6)
+  latencyMs       Int?
   raw             Json?
   createdAt       DateTime @default(now())
 
-  comment SocialComment? @relation(fields: [targetId], references: [id], map: "ai_analysis_comment_fk")
+  comment SocialComment? @relation(fields: [commentId], references: [id])
 
   @@index([targetType, targetId])
-  @@index([sentiment])
+  @@index([sentiment, createdAt])
+  @@index([provider, model])
 }
 
 model Insight {
@@ -641,10 +661,13 @@ model Insight {
   action    String?
   source    Json?
   status    String   @default("open")
+  postId    String?
   createdAt DateTime @default(now())
 
-  @@index([type, status])
-  @@index([severity])
+  post SocialPost? @relation(fields: [postId], references: [id])
+
+  @@index([type, createdAt])
+  @@index([severity, status])
 }
 
 model AutomationRule {
@@ -659,15 +682,17 @@ model AutomationRule {
 }
 
 model WeeklyReport {
-  id            String   @id @default(cuid())
-  weekStart     DateTime
-  weekEnd       DateTime
-  kpis          Json
-  insights      Json
-  opportunities Json
-  pdfUrl        String?
-  createdAt     DateTime @default(now())
+  id              String   @id @default(cuid())
+  weekStart       DateTime
+  weekEnd         DateTime
+  kpis            Json
+  insights        Json
+  opportunities   Json
+  recommendations Json?
+  pdfUrl          String?
+  createdAt       DateTime @default(now())
 
+  @@unique([weekStart, weekEnd])
   @@index([weekStart])
 }
 
@@ -675,10 +700,14 @@ model UploadedWorkDocument {
   id            String   @id @default(cuid())
   fileName      String
   mimeType      String
-  storageUrl    String
+  storageUrl    String?
   extractedText String?
   metadata      Json?
+  status        String   @default("processed")
   createdAt     DateTime @default(now())
+
+  @@index([mimeType])
+  @@index([createdAt])
 }
 
 model SocialTemplate {
