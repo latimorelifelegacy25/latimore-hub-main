@@ -47,10 +47,10 @@ model Contact {
   primarySource        String?
   primaryMedium        String?
   primaryCampaign      String?
-  primarySourceType    LeadSource               @default(UNKNOWN)
-  primaryIntent        LeadIntent               @default(UNKNOWN)
-  currentIntent        LeadIntent               @default(UNKNOWN)
-  status               LeadStatus               @default(NEW)
+  primarySourceType    LeadSource            @default(UNKNOWN)
+  primaryIntent        LeadIntent            @default(UNKNOWN)
+  currentIntent        LeadIntent            @default(UNKNOWN)
+  status               LeadStatus            @default(NEW)
   leadScore            Int                   @default(0)
   lastActivityAt       DateTime?
   nextFollowUpAt       DateTime?
@@ -88,10 +88,10 @@ model Inquiry {
   productInterest ProductInterest       @default(General)
   source          String?
   medium          String?
-  campaign        String? 
-  sourceType LeadSource                 @default(UNKNOWN)
-  intent     LeadIntent                 @default(UNKNOWN)
-  status     LeadStatus                 @default(NEW)
+  campaign        String?
+  sourceType      LeadSource            @default(UNKNOWN)
+  intent          LeadIntent            @default(UNKNOWN)
+  status          LeadStatus            @default(NEW)
   landingPage     String?
   county          String?
   notes           String?
@@ -114,7 +114,7 @@ model Inquiry {
   @@index([source, medium, campaign])
   @@index([county])
   @@index([contactId])
-  @@index([leadScore])  
+  @@index([leadScore])
   @@index([sourceType])
   @@index([intent])
   @@index([status])
@@ -508,9 +508,9 @@ enum SocialProvider {
 }
 
 model SocialConnection {
-  id             String           @id @default(uuid())
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id             String         @id @default(uuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   provider       SocialProvider
   accountName    String?
   externalId     String?
@@ -736,16 +736,102 @@ model SocialTemplate {
 }
 
 model SocialTemplateUsage {
-  id         String   @id @default(cuid())
-  templateId String
-  postId     String?
-  usedAt     DateTime @default(now())
+  id          String   @id @default(cuid())
+  templateId  String
+  postId      String?
+  usedAt      DateTime @default(now())
   performance Json?
-  notes      String?
+  notes       String?
 
   template SocialTemplate @relation(fields: [templateId], references: [id])
 
   @@index([templateId])
+}
+
+enum AnalyticsJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  skipped
+}
+
+model AnalyticsDailyMetric {
+  id         String   @id @default(cuid())
+  metricDate DateTime
+  metricKey  String
+  value      Decimal  @db.Decimal(18, 4)
+  unit       String   @default("count")
+  source     String   @default("aggregation_job")
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([metricDate, metricKey])
+  @@index([metricKey, metricDate])
+}
+
+model AnalyticsBreakdownDaily {
+  id             String   @id @default(cuid())
+  metricDate     DateTime
+  metricKey      String
+  dimension      String
+  dimensionValue String
+  value          Decimal  @db.Decimal(18, 4)
+  unit           String   @default("count")
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([metricDate, metricKey, dimension, dimensionValue])
+  @@index([dimension, dimensionValue, metricDate])
+  @@index([metricKey, metricDate])
+}
+
+model AnalyticsFunnelDaily {
+  id             String   @id @default(cuid())
+  metricDate     DateTime
+  funnelKey      String   @default("lead_funnel")
+  stageKey       String
+  stageOrder     Int
+  count          Int
+  conversionRate Decimal? @db.Decimal(8, 4)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([metricDate, funnelKey, stageKey])
+  @@index([funnelKey, metricDate])
+}
+
+model AnalyticsJobRun {
+  id            String             @id @default(cuid())
+  jobKey        String
+  status        AnalyticsJobStatus @default(queued)
+  startedAt     DateTime           @default(now())
+  finishedAt    DateTime?
+  targetStart   DateTime?
+  targetEnd     DateTime?
+  rowsProcessed Int                @default(0)
+  error         String?
+  metadata      Json?
+
+  @@index([jobKey, startedAt])
+  @@index([status, startedAt])
+}
+
+model AnalyticsTarget {
+  id          String   @id @default(cuid())
+  metricKey   String
+  period      String   @default("weekly")
+  targetValue Decimal  @db.Decimal(18, 4)
+  active      Boolean  @default(true)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([metricKey, period])
+  @@index([active])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -809,17 +895,17 @@ enum PostStatus {
 }
 
 model Post {
-  id          String        @id @default(uuid())
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id          String         @id @default(uuid())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   publishedAt DateTime?
   deletedAt   DateTime?
-  slug        String        @unique
+  slug        String         @unique
   title       String
   body        String
   tags        String[]
-  status      PostStatus    @default(draft)
-  viewCount   Int           @default(0)
+  status      PostStatus     @default(draft)
+  viewCount   Int            @default(0)
   createdBy   String?
   comments    PostComment[]
   reactions   PostReaction[]
