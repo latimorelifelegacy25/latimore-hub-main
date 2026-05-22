@@ -7,6 +7,7 @@ const navItems = [
   { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
   { href: '/admin/engagement-dashboard', label: 'Engagement Intel', icon: 'fa-chart-mixed' },
+  { href: '/admin/hub-os', label: 'Hub OS', icon: 'fa-desktop' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
   { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },

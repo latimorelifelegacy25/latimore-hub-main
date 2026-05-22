@@ -99,8 +99,12 @@ export default function AnalyticsPage() {
     try {
       setLoading(true)
       const response = await fetch('/api/reports/overview-analytics')
-      const analyticsData = response.ok ? await response.json() : null
-      setData(analyticsData ?? { sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
+      if (!response.ok) {
+        setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
+        return
+      }
+      const analyticsData = await response.json()
+      setData(analyticsData)
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
@@ -114,10 +118,9 @@ export default function AnalyticsPage() {
     try {
       setInsightsLoading(true)
       const response = await fetch('/api/reports/predictive-insights')
-      if (response.ok) {
-        const insightsData = await response.json()
-        setInsights(insightsData)
-      }
+      if (!response.ok) throw new Error('Failed to fetch insights')
+      const insightsData = await response.json()
+      setInsights(insightsData)
     } catch (error) {
       console.error('Failed to fetch insights:', error)
     } finally {
@@ -129,10 +132,9 @@ export default function AnalyticsPage() {
     try {
       setTimeSeriesLoading(true)
       const response = await fetch('/api/reports/time-series?days=30')
-      if (response.ok) {
-        const timeSeriesData = await response.json()
-        setTimeSeries(timeSeriesData)
-      }
+      if (!response.ok) throw new Error('Failed to fetch time series')
+      const timeSeriesData = await response.json()
+      setTimeSeries(timeSeriesData)
     } catch (error) {
       console.error('Failed to fetch time series:', error)
     } finally {
@@ -144,10 +146,9 @@ export default function AnalyticsPage() {
     try {
       setCrmAnalyticsLoading(true)
       const response = await fetch('/api/reports/crm-analytics')
-      if (response.ok) {
-        const crmData = await response.json()
-        setCrmAnalytics(crmData)
-      }
+      if (!response.ok) throw new Error('Failed to fetch CRM analytics')
+      const crmData = await response.json()
+      setCrmAnalytics(crmData)
     } catch (error) {
       console.error('Failed to fetch CRM analytics:', error)
     } finally {
@@ -170,7 +171,7 @@ export default function AnalyticsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (!data) {
+  if (loading && !data) {
     return (
       <div className="p-6 md:p-8">
         <PageHeader eyebrow="Analytics" title="Attribution & activity" description="Operational visibility into lead sources, county concentration, product demand, and recent system events." />
@@ -181,6 +182,8 @@ export default function AnalyticsPage() {
       </div>
     )
   }
+
+  if (!data) return null
 
   return (
     <div className="p-6 md:p-8">

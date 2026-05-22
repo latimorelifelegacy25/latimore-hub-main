@@ -13,9 +13,10 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
 
   const items = await prisma.task.findMany({
-    orderBy: { dueAt: 'asc' },
+    orderBy: [{ status: 'asc' }, { dueAt: 'asc' }, { createdAt: 'desc' }],
     include: { contact: true, inquiry: true },
   })
+
   return NextResponse.json({ items })
 }
 
@@ -27,23 +28,28 @@ export async function POST(req: NextRequest) {
   if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
 
   try {
-    const { title, description, dueAt, contactId, inquiryId } = await req.json()
-    if (!title?.trim()) return NextResponse.json({ error: 'title is required' }, { status: 400 })
+    const body = await req.json()
+    const title = typeof body.title === 'string' ? body.title.trim() : ''
+
+    if (!title) {
+      return NextResponse.json({ ok: false, error: 'title is required' }, { status: 400 })
+    }
 
     const task = await prisma.task.create({
       data: {
-        title: title.trim(),
-        description: description?.trim() || null,
-        dueAt: dueAt ? new Date(dueAt) : null,
-        contactId: contactId || null,
-        inquiryId: inquiryId || null,
+        title,
+        description: typeof body.description === 'string' ? body.description.trim() || null : null,
+        dueAt: body.dueAt ? new Date(body.dueAt) : null,
+        contactId: typeof body.contactId === 'string' ? body.contactId : null,
+        inquiryId: typeof body.inquiryId === 'string' ? body.inquiryId : null,
       },
-      include: { contact: true },
+      include: { contact: true, inquiry: true },
     })
-    return NextResponse.json({ task }, { status: 201 })
-  } catch (err) {
-    console.error('Task POST error:', err)
-    return NextResponse.json({ error: 'Failed to create task' }, { status: 500 })
+
+    return NextResponse.json({ ok: true, task }, { status: 201 })
+  } catch (error) {
+    console.error('Task create error:', error)
+    return NextResponse.json({ ok: false, error: 'failed to create task' }, { status: 500 })
   }
 }
 
@@ -55,23 +61,34 @@ export async function PATCH(req: NextRequest) {
   if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
 
   try {
-    const { id, status, title, description, dueAt } = await req.json()
-    if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+    const body = await req.json()
+    const id = typeof body.id === 'string' ? body.id : ''
 
-    const data: Record<string, unknown> = {}
-    if (status !== undefined) data.status = status
-    if (title !== undefined) data.title = title.trim()
-    if (description !== undefined) data.description = description?.trim() || null
-    if (dueAt !== undefined) data.dueAt = dueAt ? new Date(dueAt) : null
+    if (!id) {
+      return NextResponse.json({ ok: false, error: 'id is required' }, { status: 400 })
+    }
+
+    const updates: {
+      status?: string
+      title?: string
+      description?: string | null
+      dueAt?: Date | null
+    } = {}
+
+    if (typeof body.status === 'string') updates.status = body.status
+    if (typeof body.title === 'string' && body.title.trim()) updates.title = body.title.trim()
+    if (typeof body.description === 'string') updates.description = body.description.trim() || null
+    if (body.dueAt !== undefined) updates.dueAt = body.dueAt ? new Date(body.dueAt) : null
 
     const task = await prisma.task.update({
       where: { id },
-      data,
-      include: { contact: true },
+      data: updates,
+      include: { contact: true, inquiry: true },
     })
-    return NextResponse.json({ task })
-  } catch (err) {
-    console.error('Task PATCH error:', err)
-    return NextResponse.json({ error: 'Failed to update task' }, { status: 500 })
+
+    return NextResponse.json({ ok: true, task })
+  } catch (error) {
+    console.error('Task update error:', error)
+    return NextResponse.json({ ok: false, error: 'failed to update task' }, { status: 500 })
   }
 }
