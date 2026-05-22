@@ -35,7 +35,7 @@ const LegacyFunnels: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('latimore_legacy_funnels');
-      if (saved) { try { setFunnels(JSON.parse(saved)); } catch (e) {} }
+      if (saved) { try { setFunnels(JSON.parse(saved)); } catch { } }
     }
   }, []);
 

@@ -1,11 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BarChart3, RefreshCw } from 'lucide-react'
+import { BarChart3, RefreshCw, TrendingUp, Users, Calendar, MousePointerClick } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import PageHeader from '../_components/PageHeader'
 import AdminCard from '../_components/AdminCard'
 import EmptyState from '../_components/EmptyState'
+import RevenueAnalytics from '../_components/RevenueAnalytics'
+import { trackDashboardEvent } from '@/lib/tracking/track-dashboard-event'
+
+type ConversionTotals = {
+  totals: { leads: number; clicks: number; booked: number; sold: number }
+  rates: { clicksToLeads: number; leadsToBooked: number; leadsToSold: number }
+}
 
 type AnalyticsData = {
   sourceCounts: Array<{ source: string | null; _count: { _all: number } }>
@@ -89,13 +96,14 @@ export default function AnalyticsPage() {
   const [insights, setInsights] = useState<PredictiveInsights | null>(null)
   const [timeSeries, setTimeSeries] = useState<TimeSeriesData | null>(null)
   const [crmAnalytics, setCrmAnalytics] = useState<CRMAnalyticsData | null>(null)
+  const [conversions, setConversions] = useState<ConversionTotals | null>(null)
   const [loading, setLoading] = useState(true)
   const [insightsLoading, setInsightsLoading] = useState(false)
   const [timeSeriesLoading, setTimeSeriesLoading] = useState(false)
   const [crmAnalyticsLoading, setCrmAnalyticsLoading] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = async (isManualRefresh = false) => {
     try {
       setLoading(true)
       const response = await fetch('/api/reports/overview-analytics')
@@ -106,6 +114,9 @@ export default function AnalyticsPage() {
       const analyticsData = await response.json()
       setData(analyticsData)
       setLastUpdated(new Date())
+      if (isManualRefresh) {
+        void trackDashboardEvent('analytics_refreshed', { totalWidgets: 5 })
+      }
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
       setData({ sourceCounts: [], countyCounts: [], recentEvents: [], productCounts: [] })
@@ -156,17 +167,28 @@ export default function AnalyticsPage() {
     }
   }
 
+  const fetchConversions = async () => {
+    try {
+      const res = await fetch('/api/reports/conversions')
+      if (res.ok) setConversions(await res.json())
+    } catch {
+      // non-critical — page works without it
+    }
+  }
+
   useEffect(() => {
+    void trackDashboardEvent('dashboard_viewed', { totalWidgets: 5 })
     fetchAnalytics()
     fetchInsights()
     fetchTimeSeries()
     fetchCrmAnalytics()
-    // Set up real-time updates every 30 seconds
+    fetchConversions()
     const interval = setInterval(() => {
       fetchAnalytics()
       fetchInsights()
       fetchTimeSeries()
       fetchCrmAnalytics()
+      fetchConversions()
     }, 30000)
     return () => clearInterval(interval)
   }, [])
@@ -196,7 +218,7 @@ export default function AnalyticsPage() {
             </span>
           )}
           <button
-            onClick={fetchAnalytics}
+            onClick={() => fetchAnalytics(true)}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-semibold rounded-lg transition"
           >
@@ -204,6 +226,46 @@ export default function AnalyticsPage() {
             Refresh
           </button>
         </div>
+      </div>
+
+      {/* ── Funnel Performance ─────────────────────────────────────── */}
+      {conversions && (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: 'Total Leads', value: conversions.totals.leads, icon: Users, color: 'text-[#C9A25F]' },
+            { label: 'CTA Clicks', value: conversions.totals.clicks, icon: MousePointerClick, color: 'text-blue-400' },
+            { label: 'Booked', value: conversions.totals.booked, icon: Calendar, color: 'text-green-400' },
+            { label: 'Closed', value: conversions.totals.sold, icon: TrendingUp, color: 'text-purple-400' },
+          ].map(({ label, value, icon: Icon, color }) => (
+            <div key={label} className="rounded-xl border border-white/8 bg-white/[0.03] p-4 flex items-center gap-3">
+              <Icon className={`w-8 h-8 shrink-0 ${color}`} />
+              <div>
+                <p className={`text-2xl font-bold ${color}`}>{value.toLocaleString()}</p>
+                <p className="text-xs text-slate-400 uppercase tracking-wider">{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {conversions && (
+        <div className="mb-6 grid grid-cols-3 gap-3">
+          {[
+            { label: 'Clicks → Leads', value: `${(conversions.rates.clicksToLeads * 100).toFixed(1)}%` },
+            { label: 'Leads → Booked', value: `${(conversions.rates.leadsToBooked * 100).toFixed(1)}%` },
+            { label: 'Leads → Closed', value: `${(conversions.rates.leadsToSold * 100).toFixed(1)}%` },
+          ].map(({ label, value }) => (
+            <div key={label} className="rounded-xl border border-white/8 bg-white/[0.03] p-4 text-center">
+              <p className="text-xl font-bold text-[#C9A25F]">{value}</p>
+              <p className="text-xs text-slate-400 uppercase tracking-wider mt-1">{label}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Product stream bar chart */}
+      <div className="mb-6">
+        <RevenueAnalytics />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

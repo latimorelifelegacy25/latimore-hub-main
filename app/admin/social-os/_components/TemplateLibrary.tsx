@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react';
 import { LIBRARY_TEMPLATES } from '../constants';
-import { LibraryTemplate } from '../types';
 
 interface TemplateLibraryProps {
   onUseTemplate: (structure: string) => void;

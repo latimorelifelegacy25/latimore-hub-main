@@ -1,7 +1,6 @@
 'use client';
 
 import './pahs.css';
-import { FormEvent, useEffect, useState } from 'react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 type LeadForm = {

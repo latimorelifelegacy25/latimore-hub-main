@@ -26,6 +26,10 @@ type EventType =
   | 'county_selected'
   | 'product_selected'
   | 'lead_magnet_download'
+  | 'post_viewed'
+  | 'post_created'
+  | 'post_published'
+  | 'reaction_added'
 
 const STAGE_MAP: Record<string, PipelineStage> = {
   new: 'New',
@@ -89,6 +93,10 @@ const EVENT_MAP: Record<string, EventType> = {
   product_selected: 'product_selected',
   lead_magnet_download: 'lead_magnet_download',
   download: 'lead_magnet_download',
+  post_viewed: 'post_viewed',
+  post_created: 'post_created',
+  post_published: 'post_published',
+  reaction_added: 'reaction_added',
 }
 
 function normalizeKey(value?: string | null): string {

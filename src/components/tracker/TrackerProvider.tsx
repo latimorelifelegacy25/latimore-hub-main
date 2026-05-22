@@ -16,12 +16,14 @@ type TrackEventInput = {
 };
 
 type TrackerContextValue = {
-  trackEvent: (event: TrackEventInput) => void;
+  trackEvent: (event: TrackEventInput) => Promise<void>;
   getSessionId: () => string | null;
 };
 
 const SESSION_KEY = 'llh_sid';
-const HUB_API = process.env.NEXT_PUBLIC_HUB_API_URL ?? 'https://lifeandlegacy.vercel.app';
+const HUB_API =
+  process.env.NEXT_PUBLIC_HUB_API_URL ??
+  (typeof window !== 'undefined' ? window.location.origin : 'https://lifeandlegacy.vercel.app');
 const TrackerContext = createContext<TrackerContextValue | null>(null);
 
 export function useTracker() {
@@ -44,6 +46,7 @@ function saveSessionId(id: string) {
 }
 
 function getUtmParams() {
+  if (typeof window === 'undefined') return {}
   const p = new URLSearchParams(window.location.search);
   return {
     source: p.get('utm_source'),
@@ -83,8 +86,8 @@ export function TrackerProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const trackEvent = (event: TrackEventInput) => {
-    void postEvent({
+  const trackEvent = async (event: TrackEventInput): Promise<void> => {
+    await postEvent({
       eventType: event.eventType,
       pageUrl: event.pageUrl ?? window.location.pathname,
       referrer: document.referrer || null,

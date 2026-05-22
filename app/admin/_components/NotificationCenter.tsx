@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Bell, X, Check, Settings, AlertTriangle, CheckCircle, Clock, TrendingUp, Users } from 'lucide-react'
+import { Bell, X, Check, AlertTriangle, CheckCircle, Clock, TrendingUp, Users } from 'lucide-react'
 import { Notification, getNotifications, markAsRead, markAllAsRead, getNotificationStats } from '@/lib/notifications'
 
 interface NotificationCenterProps {
@@ -14,13 +14,6 @@ export default function NotificationCenter({ className = '' }: NotificationCente
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent'>('all')
   const [stats, setStats] = useState({ total: 0, unread: 0, byType: {}, byPriority: {} })
 
-  useEffect(() => {
-    // Load notifications on mount and set up polling
-    loadNotifications()
-    const interval = setInterval(loadNotifications, 30000) // Refresh every 30 seconds
-    return () => clearInterval(interval)
-  }, [filter])
-
   const loadNotifications = () => {
     const notifs = getNotifications({
       unreadOnly: filter === 'unread',
@@ -30,6 +23,12 @@ export default function NotificationCenter({ className = '' }: NotificationCente
     setNotifications(notifs)
     setStats(getNotificationStats())
   }
+
+  useEffect(() => {
+    loadNotifications()
+    const interval = setInterval(loadNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [filter]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleMarkAsRead = (id: string) => {
     markAsRead(id)

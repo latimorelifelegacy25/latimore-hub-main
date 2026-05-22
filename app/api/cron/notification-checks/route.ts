@@ -4,7 +4,7 @@
  * Runs every 15 minutes via Vercel cron
  */
 
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { runAutomatedNotificationChecks } from '@/lib/notifications'
 import { logger } from '@/lib/logger'
 
@@ -33,6 +33,6 @@ export async function GET() {
 }
 
 // Also support POST for manual triggering
-export async function POST(req: NextRequest) {
+export async function POST() {
   return GET()
 }

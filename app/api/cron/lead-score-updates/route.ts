@@ -1,11 +1,10 @@
 export const dynamic = 'force-dynamic'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     // Get contacts that need lead score updates
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
     // Find contacts with recent activity that might need score adjustments
@@ -44,7 +43,7 @@ export async function GET(req: NextRequest) {
     for (const contact of contactsToUpdate) {
       try {
         let scoreAdjustment = 0
-        let reasons = []
+        const reasons: string[] = []
 
         // Base score from status
         const statusScores = {
