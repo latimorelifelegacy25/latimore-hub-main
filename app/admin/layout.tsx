@@ -4,6 +4,7 @@ import AdminMobileNav from './_components/AdminMobileNav'
 import NotificationCenter from './_components/NotificationCenter'
 
 const navItems = [
+  { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
   { href: '/admin/nexus-agent', label: 'Nexus Agent', icon: 'fa-robot' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
   { href: '/admin/content/schedule', label: 'Schedule', icon: 'fa-calendar-check' },
   { href: '/admin/content/campaigns', label: 'Campaigns', icon: 'fa-calendar-days' },
+  { href: '/admin/pahs-campaign', label: 'PAHS Campaign', icon: 'fa-football' },
   { href: '/admin/connectors', label: 'Integrations', icon: 'fa-plug' },
   { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
   { href: '/admin/messages', label: 'Messages', icon: 'fa-message' },

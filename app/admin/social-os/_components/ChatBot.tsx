@@ -141,7 +141,7 @@ const ChatBot: React.FC = () => {
           </div>
         )
       }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { role: 'bot', text: "Jackson, I couldn't pull trend data right now. Let's focus on our core legacy fundamentals." }]);
     } finally {
       setIsLoading(false);

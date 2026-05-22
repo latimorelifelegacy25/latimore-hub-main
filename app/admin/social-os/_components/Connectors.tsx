@@ -1,7 +1,7 @@
 'use client'
 
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Connector } from '../types';
 
 const INITIAL_CONNECTORS: Connector[] = [

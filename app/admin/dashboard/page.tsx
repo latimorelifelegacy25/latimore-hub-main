@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import PageHeader from '../_components/PageHeader'
 import { BRAND_STORY } from '../_lib/templates'
 import DailyBrief from './DailyBrief'
+import { logger } from '@/lib/logger'
 
 const StatCard = ({ title, value, trend, icon, color }: any) => (
   <div className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20">
@@ -26,6 +27,7 @@ export default async function LegacyPulsePage() {
   let inquiryCount = 0
   let appointmentCount = 0
   let recentContacts: any[] = []
+  let isDbConnected = true
 
   try {
     const counts = await Promise.all([
@@ -49,13 +51,9 @@ export default async function LegacyPulsePage() {
         status: true,
       },
     })
-  } catch (error) {
-    console.warn('Database connection failed, using fallback values:', error)
-    // Use fallback values when database is unreachable
-    contactCount = 0
-    inquiryCount = 0
-    appointmentCount = 0
-    recentContacts = []
+  } catch (error: any) {
+    isDbConnected = false
+    logger.error({ err: error?.message }, 'Dashboard DB fetch failed')
   }
 
   return (
@@ -75,6 +73,22 @@ export default async function LegacyPulsePage() {
           </>
         }
       />
+
+      {!isDbConnected && (
+        <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl text-rose-400 text-sm flex items-center gap-3">
+          <i className="fa-solid fa-triangle-exclamation text-lg" />
+          <div>
+            <p className="font-bold">Database connection unreachable</p>
+            <p className="text-rose-400/70 text-xs">Displaying placeholder values. Check your DATABASE_URL configuration.</p>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <StatCard title="Total Contacts" value={contactCount} trend={12} icon="fa-address-book" color="text-blue-400 bg-blue-500" />
+        <StatCard title="Active Inquiries" value={inquiryCount} trend={5} icon="fa-comment-dots" color="text-[#C9A25F] bg-[#C9A25F]" />
+        <StatCard title="Appointments" value={appointmentCount} trend={-2} icon="fa-calendar-check" color="text-purple-400 bg-purple-500" />
+      </div>
 
       {/* Quick Actions Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -126,7 +140,10 @@ export default async function LegacyPulsePage() {
           <h3 className="text-xl font-black text-white">Recent Contacts</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          {recentContacts.length === 0 ? (
+            <p className="p-8 text-center text-slate-400 text-sm">No contacts in the system yet.</p>
+          ) : null}
+          <table className={`w-full text-sm${recentContacts.length === 0 ? ' hidden' : ''}`}>
             <thead>
               <tr className="border-b border-white/10">
                 <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Name</th>

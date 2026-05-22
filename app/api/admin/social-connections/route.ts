@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 

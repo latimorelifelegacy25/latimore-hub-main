@@ -1,11 +1,13 @@
 export const dynamic = 'force-dynamic'
+export { handleOptions as OPTIONS } from '@/lib/hub/cors'
 import { NextRequest, NextResponse } from 'next/server'
+import { withCors } from '@/lib/hub/cors'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { rateLimit } from '@/lib/rate-limit'
 import { LeadIngestSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: NextRequest) {
+export const POST = withCors(async (req: NextRequest) => {
   const limited = rateLimit(req, 'lead')
   if (limited) return limited
 
@@ -20,4 +22,4 @@ export async function POST(req: NextRequest) {
     logger.error({ err: err.message }, 'Lead ingest error')
     return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
   }
-}
+})
