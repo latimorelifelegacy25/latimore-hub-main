@@ -30,9 +30,12 @@ interface ContentCreatorProps {
   preFillTopic?: string | null;
   onClearPreFill?: () => void;
   scheduledPosts?: SocialPost[];
+  preBuiltIdeas?: ContentIdea[];
+  preBuiltSource?: string;
+  onClearPreBuiltIdeas?: () => void;
 }
 
-const ContentCreator: React.FC<ContentCreatorProps> = ({ onPostScheduled, preFillTopic, onClearPreFill, scheduledPosts = [] }) => {
+const ContentCreator: React.FC<ContentCreatorProps> = ({ onPostScheduled, preFillTopic, onClearPreFill, scheduledPosts = [], preBuiltIdeas = [], preBuiltSource = '', onClearPreBuiltIdeas }) => {
   const [topic, setTopic] = useState('');
   const [platform, setPlatform] = useState('LinkedIn');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -118,6 +121,37 @@ const ContentCreator: React.FC<ContentCreatorProps> = ({ onPostScheduled, preFil
           ))}
         </div>
       </div>
+
+      {preBuiltIdeas.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+              <i className="fa-solid fa-file-arrow-up text-[#C49A6C] mr-2"></i>
+              {preBuiltIdeas.length} Posts Generated from {preBuiltSource || 'Asset'}
+            </p>
+            <button onClick={onClearPreBuiltIdeas} className="text-[10px] text-slate-400 hover:text-slate-600 uppercase tracking-widest font-black">✕ Clear</button>
+          </div>
+          {preBuiltIdeas.map((idea, idx) => (
+            <div key={`asset-${idx}`} className="bg-white rounded-[2rem] p-6 border-2 border-[#C49A6C]/30 shadow-sm">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#C49A6C]">{idea.platform}</span>
+                  <h3 className="font-black text-slate-900 text-sm mt-0.5">{idea.title}</h3>
+                </div>
+              </div>
+              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">{idea.draft}</p>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => { setSuggestions(preBuiltIdeas); setPendingIdx(idx); setShowConfirmModal(true) }} className="flex items-center gap-2 rounded-xl bg-[#2C3E50] px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-[#C49A6C]">
+                  <i className="fa-solid fa-calendar-plus"></i>Schedule
+                </button>
+                <button onClick={() => navigator.clipboard?.writeText(idea.draft)} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-600 transition hover:border-[#C49A6C] hover:text-[#C49A6C]">
+                  <i className="fa-solid fa-copy"></i>Copy
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {suggestions.length > 0 && (
         <div className="space-y-4">
