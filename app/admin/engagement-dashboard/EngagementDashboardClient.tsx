@@ -518,10 +518,8 @@ export default function EngagementDashboardClient() {
 
           <h1 className="text-2xl font-semibold tracking-tight">Engagement Intelligence</h1>
 
-       &nbs
-
-
-p;{insightCount > 0 && (
+          <h1 className="text-2xl font-semibold tracking-tight">Engagement Intelligence</h1>
+          {insightCount > 0 && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
               {insightCount} insight{insightCount !== 1 ? 's' : ''}
             </span>
