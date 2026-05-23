@@ -521,3 +521,18 @@ export default function EngagementDashboardClient() {
        &nbs
 
 
+p;{insightCount > 0 && (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              {insightCount} insight{insightCount !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        <span>hub.latimorelifelegacy.com</span>
+      </div>
+    </div>
+    <WidgetShell data={data} />
+  </div>
+  );
+}
