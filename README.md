@@ -360,3 +360,4 @@ Private - Proprietary software for Latimore Life & Legacy LLC
 **#TheBeatGoesOn** 🚀
 
 *Built with purpose. Deployed with confidence. Protecting families across Central Pennsylvania.*
+
