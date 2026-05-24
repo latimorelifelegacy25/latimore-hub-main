@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const BRAND = `Latimore Life & Legacy LLC. Founder: Jackson M. Latimore Sr. Region: Schuylkill, Luzerne, and Northumberland Counties in Pennsylvania. Tagline: Protecting Today. Securing Tomorrow. Hashtag: #TheBeatGoesOn. Voice: education-first, practical, community-rooted, legacy-focused, urgent but never fear-based.`
 
@@ -33,6 +34,9 @@ function promptFor(action: string, input: any) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const action = String(body?.action || '')

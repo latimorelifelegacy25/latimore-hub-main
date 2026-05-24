@@ -72,7 +72,7 @@ function normalizeSignature(sig: string): string {
 
 function verifySignature(rawBody: string, sig: string | null): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
   if (!sig) return false
   try {
     const normalized = normalizeSignature(sig)
@@ -86,7 +86,7 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 function verifyWebhook(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
 
   const token =
     req.headers.get('x-webhook-token') ??

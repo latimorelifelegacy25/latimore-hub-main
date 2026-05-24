@@ -4,6 +4,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,
@@ -46,6 +47,9 @@ Non-Negotiables:
 - Warm and community-focused`
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     console.log('Environment check:')
     console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY)
