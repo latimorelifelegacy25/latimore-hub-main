@@ -1,8 +1,12 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireCronAuth } from '@/lib/ai/shared'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req)
+  if (authError) return authError
+
   try {
     // Get contacts that need lead score updates
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)

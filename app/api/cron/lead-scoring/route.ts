@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
+import { requireCronAuth } from '@/lib/ai/shared'
 
-export async function GET() {
-  // Only allow cron requests
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || process.env.CRON_SECRET !== cronSecret) {
-    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
-  }
+export const dynamic = 'force-dynamic'
+
+export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   try {
     // Get all contacts that need scoring (active in last 30 days or have open inquiries)

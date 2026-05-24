@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const store = new Map<string, { count: number; reset: number }>()
 
+// Periodically purge expired entries to prevent unbounded memory growth
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, rec] of store) {
+    if (now > rec.reset) store.delete(key)
+  }
+}, 60_000)
+
 const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   cardEvents: { limit: 200, windowMs: 60_000 },
   fillout:   { limit: 20,  windowMs: 60_000 },

@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Set DISABLE_ADMIN_AUTH=true in .env.local for local/debug access without Google OAuth.
 // Never set this true in production.
+if (process.env.NODE_ENV === 'production' && process.env.DISABLE_ADMIN_AUTH === 'true') {
+  throw new Error('DISABLE_ADMIN_AUTH must not be enabled in production')
+}
 const DISABLE_AUTH = process.env.DISABLE_ADMIN_AUTH === 'true'
 
 export default DISABLE_AUTH
