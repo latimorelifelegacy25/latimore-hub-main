@@ -1,3 +1,4 @@
+import nodeCrypto from 'crypto'
 import { NormalizedSocialLead, splitName } from './types'
 
 export function verifyLinkedInBridgeToken(authHeader: string | null): boolean {
@@ -6,7 +7,7 @@ export function verifyLinkedInBridgeToken(authHeader: string | null): boolean {
   if (!authHeader) return false
   const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
   try {
-    return crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(token))
+    return nodeCrypto.timingSafeEqual(Buffer.from(provided), Buffer.from(token))
   } catch {
     return provided === token
   }
