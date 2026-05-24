@@ -1,8 +1,14 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const cronSecret = process.env.CRON_SECRET
+  const headerSecret =
+    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!cronSecret || headerSecret !== cronSecret) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  }
   try {
     // Get contacts that need lead score updates
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
