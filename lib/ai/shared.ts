@@ -27,7 +27,7 @@ export function requireCronAuth(req: NextRequest): NextResponse | null {
   const secret = process.env.CRON_SECRET
   const header =
     req.headers.get('x-cron-secret') ??
-    req.headers.get('authorization')?.replace('Bearer ', '')
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!secret || header !== secret) {
     return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
   }
