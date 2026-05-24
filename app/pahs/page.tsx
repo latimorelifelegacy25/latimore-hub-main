@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
+
 import './pahs.css';
 import { QRCodeCanvas } from 'qrcode.react';
 
