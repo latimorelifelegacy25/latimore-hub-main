@@ -68,16 +68,16 @@ async function runAction(action: AutomationRuleDefinition['actions'][0], ctx: Ev
 
     case 'send_notification':
       // Extend with Twilio / Resend when ready
-      logger.info('automation_rules: send_notification', { payload: action.payload, ctx })
+      logger.info({ payload: action.payload, ctx }, 'automation_rules: send_notification')
       break
 
     case 'tag_contact':
       // Extend when Contact gains a tags field
-      logger.info('automation_rules: tag_contact', { payload: action.payload, ctx })
+      logger.info({ payload: action.payload, ctx }, 'automation_rules: tag_contact')
       break
 
     default:
-      logger.warn('automation_rules: unknown action type', { action })
+      logger.warn({ action }, 'automation_rules: unknown action type')
   }
 }
 
@@ -89,12 +89,12 @@ export async function evaluateRules(trigger: RuleTrigger, ctx: EvalContext) {
     if (def.trigger?.type !== trigger) continue
     if (!matchesCondition(def.condition, ctx)) continue
 
-    logger.info('automation_rules: rule matched', { ruleId: rule.id, ruleName: rule.name, trigger, ctx })
+    logger.info({ ruleId: rule.id, ruleName: rule.name, trigger, ctx }, 'automation_rules: rule matched')
     for (const action of def.actions ?? []) {
       try {
         await runAction(action, ctx)
       } catch (err) {
-        logger.error('automation_rules: action failed', { ruleId: rule.id, action, err })
+        logger.error({ ruleId: rule.id, action, err }, 'automation_rules: action failed')
       }
     }
   }

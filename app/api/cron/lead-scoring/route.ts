@@ -1,11 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
 
-export async function GET() {
-  // Only allow cron requests
+export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || process.env.CRON_SECRET !== cronSecret) {
+  const headerSecret =
+    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
+  if (!cronSecret || headerSecret !== cronSecret) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
   }
 
