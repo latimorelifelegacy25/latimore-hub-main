@@ -13,7 +13,7 @@ function verifyWebhookSecret(req: NextRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'booking')
+  const limited = await rateLimit(req, 'booking')
   if (limited) return limited
 
   if (!verifyWebhookSecret(req)) {

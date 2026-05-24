@@ -7,7 +7,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { normalizeStage } from '@/lib/hub/normalizers'
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
