@@ -530,7 +530,5 @@ export default function EngagementDashboardClient() {
         <span>hub.latimorelifelegacy.com</span>
       </div>
     </div>
-    <WidgetShell data={data} />
-  </div>
   );
 }
