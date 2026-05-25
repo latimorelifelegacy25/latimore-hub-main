@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const BRAND_VOICE = `You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
 
@@ -37,6 +38,8 @@ const POSTS_SCHEMA = {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   try {
     const body = await req.json()
     const { topic, platform = 'LinkedIn', count = 3 } = body
