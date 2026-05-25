@@ -8,6 +8,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const POSTS_SCHEMA = {
   type: 'array' as const,
@@ -31,6 +32,8 @@ const POSTS_SCHEMA = {
 const MAX_B64_BYTES = 7_000_000
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   try {
     const body = await req.json()
     const { base64Data, mimeType, platform = 'LinkedIn', assetName = 'carrier document' } = body
