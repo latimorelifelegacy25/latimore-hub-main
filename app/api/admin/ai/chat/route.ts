@@ -6,6 +6,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const SYSTEM_PROMPT = `You are the Latimore Legacy Business Co-Pilot — a specialized AI assistant for Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC, an independent insurance brokerage based in Schuylkill County, Pennsylvania.
 
@@ -98,6 +99,8 @@ const TRENDS_SCHEMA = {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   try {
     const body = await req.json()
     const { message, mode = 'chat', history = [] } = body

@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const FUNNEL_SCHEMA = {
   type: 'array' as const,
@@ -30,6 +31,8 @@ const FUNNEL_SCHEMA = {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   try {
     const body = await req.json()
     const { goal, persona } = body
