@@ -1,6 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+
+async function postJson<T>(url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: 'Request failed' }))
+    throw new Error(err?.error ?? `HTTP ${res.status}`)
+  }
+  return res.json()
+}
 
 
 import './pahs.css';
@@ -65,7 +78,7 @@ export default function PAHSPage() {
       await postJson<{ ok: boolean }>('/api/pahs-lead', {
         ...lead,
         source: 'PAHS Sponsorship Page',
-        page: 'card.latimorelifelegacy.com/pahs',
+        page: 'pahs.latimorelifelegacy.com',
       });
       setLeadStatus('success');
     } catch (err) {
@@ -130,12 +143,16 @@ export default function PAHSPage() {
           <div className="pulse-badge"><div className="pulse-dot" />CRIMSON TIDE — GAME DAY</div>
           <div className="football-icon">🏈</div>
           <div className="logos-row">
-            <div className="tide-logo-container"><svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M 100,25 A 50,50 0 1,0 100,95 L 85,80 A 30,30 0 1,1 85,40 Z" fill="#b0162a" stroke="#000" strokeWidth="4"/><text x="60" y="72" fontFamily="Oswald, sans-serif" fontSize="36" fontWeight="900" fill="#b0162a" stroke="#000" strokeWidth="3" textAnchor="middle" letterSpacing="1">TIDE</text><text x="60" y="72" fontFamily="Oswald, sans-serif" fontSize="36" fontWeight="900" fill="#b0162a" textAnchor="middle" letterSpacing="1">TIDE</text></svg></div>
+            <div className="tide-logo-container logo-card">
+              <img src="/pahs-tide-logo.png" alt="Pottsville Area High School Crimson Tide logo" className="team-logo-image" />
+            </div>
             <div className="logo-divider" />
-            <div className="latimore-logo-container"><svg viewBox="0 0 160 120" xmlns="http://www.w3.org/2000/svg"><path d="M20 40 L80 15 L140 40 L140 48 L80 23 L20 48 Z" fill="#C49A6C"/><text x="80" y="65" fontFamily="Oswald, sans-serif" fontSize="24" fontWeight="bold" fill="#2C3E50" textAnchor="middle">LATIMORE</text><text x="80" y="80" fontFamily="Inter, sans-serif" fontSize="9" fontWeight="700" fill="#C49A6C" textAnchor="middle" letterSpacing="1">LIFE & LEGACY LLC</text><path d="M60 85 L80 105 L100 85" fill="none" stroke="#2C3E50" strokeWidth="6"/><path d="M15 95 L35 95 L45 75 L55 115 L65 95 L125 95 L145 75" fill="none" stroke="#C49A6C" strokeWidth="2"/><polygon points="145,75 140,82 135,70" fill="#C49A6C"/></svg></div>
+            <div className="latimore-logo-container logo-card">
+              <img src="/logo.jpg" alt="Latimore Life & Legacy logo" className="business-logo-image" />
+            </div>
           </div>
           <div className="beat-img-wrap"><div className="beat-banner">#TheBeatGoesOn</div></div>
-          <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://card.latimorelifelegacy.com/pahs" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">card.latimorelifelegacy.com/pahs</span></div>
+          <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://pahs.latimorelifelegacy.com" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">pahs.latimorelifelegacy.com</span></div>
         </div>
       </section>
 

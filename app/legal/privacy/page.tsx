@@ -21,6 +21,11 @@ export default function PrivacyPage() {
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Data Processors and Integrations</h2>
           <p>We use third-party service providers to help operate our business, such as website hosting, analytics providers, form processors/webhooks, database and CRM tools, and email delivery services. These providers process information under contractual and technical controls appropriate to their services.</p>
 
+
+          <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Meta Platforms (Facebook/Instagram) Compliance</h2>
+          <p>If you submit your information through ads or landing pages connected to Meta platforms, we process that information only to respond to your request and provide services. We do not use sensitive categories for ad targeting, and we do not sell or share your personal information for unrelated third-party marketing.</p>
+          <p>Where used, Meta tools (such as the Meta Pixel or Conversions API) may collect event data (for example page views, form submissions, and campaign attribution) to measure ad performance and improve campaigns. Data handling on Meta platforms is subject to Meta&apos;s own terms and privacy controls. You can manage ad preferences and tracking settings directly in your Meta account.</p>
+
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Data Retention</h2>
           <p>We retain information for as long as needed to provide services, maintain business records, prevent abuse, and comply with legal obligations. Retention periods vary by record type and legal requirements.</p>
 

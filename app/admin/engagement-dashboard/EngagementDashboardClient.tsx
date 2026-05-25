@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ga4 } from "@/lib/analytics/ga4";
+import { trackDashboardEvent } from "@/lib/analytics/ga4";
 
 type Totals = {
   impressions: number;
@@ -249,7 +249,7 @@ export default function EngagementDashboardClient() {
 
   useEffect(() => {
     load();
-    ga4.dashboardView("engagement_intelligence");
+    trackDashboardEvent("dashboard_view", { dashboard: "engagement_intelligence" });
   }, [load]);
 
   async function runSentiment() {
@@ -284,7 +284,7 @@ export default function EngagementDashboardClient() {
       const json = await res.json();
       const analysis = isRecord(json?.analysis) ? (json.analysis as Record<string, unknown>) : null;
       setWeeklyReport(analysis ?? { error: "No report returned" });
-      ga4.reportGenerated("weekly");
+      trackDashboardEvent("report_generated", { type: "weekly" });
     } catch {
       setWeeklyReport({ error: "Report failed" });
     } finally {

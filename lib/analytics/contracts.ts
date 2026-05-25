@@ -39,54 +39,62 @@ export type AnalyticsDimension = (typeof analyticsDimensions)[number]
 
 export const analyticsRangeEnum = z.enum(['7d', '30d', '90d', 'custom'])
 
-export const analyticsRangeSchema = z
+const analyticsRangeFields = {
+  range: analyticsRangeEnum.optional(),
+  from: z.string().date().optional(),
+  to: z.string().date().optional(),
+}
+
+function applyRangeRefinement<T extends { range?: string; from?: string; to?: string }>(
+  value: T,
+  ctx: z.RefinementCtx,
+) {
+  const range = value.range ?? '30d'
+  const hasFrom = Boolean(value.from)
+  const hasTo = Boolean(value.to)
+
+  if (range === 'custom' && (!hasFrom || !hasTo)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Custom range requires both from and to dates.',
+      path: ['range'],
+    })
+  }
+
+  if (hasFrom !== hasTo) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'from and to must be provided together.',
+      path: hasFrom ? ['to'] : ['from'],
+    })
+  }
+
+  if (hasFrom && hasTo && value.from! > value.to!) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'from must be before or equal to to.',
+      path: ['from'],
+    })
+  }
+}
+
+export const analyticsRangeSchema = z.object(analyticsRangeFields).superRefine(applyRangeRefinement)
+
+export const analyticsFilterSchema = z
   .object({
-    range: analyticsRangeEnum.optional(),
-    from: z.string().date().optional(),
-    to: z.string().date().optional(),
+    ...analyticsRangeFields,
+    source: z.string().optional(),
+    medium: z.string().optional(),
+    campaign: z.string().optional(),
+    county: z.string().optional(),
+    productInterest: z.string().optional(),
+    stage: z.string().optional(),
+    status: z.string().optional(),
+    landingPage: z.string().optional(),
+    dimension: z.enum(analyticsDimensions).optional(),
+    metrics: z.string().optional(),
   })
-  .superRefine((value, ctx) => {
-    const range = value.range ?? '30d'
-    const hasFrom = Boolean(value.from)
-    const hasTo = Boolean(value.to)
-
-    if (range === 'custom' && (!hasFrom || !hasTo)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Custom range requires both from and to dates.',
-        path: ['range'],
-      })
-    }
-
-    if (hasFrom !== hasTo) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'from and to must be provided together.',
-        path: hasFrom ? ['to'] : ['from'],
-      })
-    }
-
-    if (hasFrom && hasTo && value.from! > value.to!) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'from must be before or equal to to.',
-        path: ['from'],
-      })
-    }
-  })
-
-export const analyticsFilterSchema = analyticsRangeSchema.extend({
-  source: z.string().optional(),
-  medium: z.string().optional(),
-  campaign: z.string().optional(),
-  county: z.string().optional(),
-  productInterest: z.string().optional(),
-  stage: z.string().optional(),
-  status: z.string().optional(),
-  landingPage: z.string().optional(),
-  dimension: z.enum(analyticsDimensions).optional(),
-  metrics: z.string().optional(),
-})
+  .superRefine(applyRangeRefinement)
 
 export type AnalyticsFiltersInput = z.infer<typeof analyticsFilterSchema>
 
