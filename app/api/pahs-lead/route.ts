@@ -97,7 +97,7 @@ export async function POST(req: Request) {
       promo: clean(body.promo, 100),
       interest: clean(body.interest, 150),
       source: clean(body.source || 'PAHS Sponsorship Page', 100),
-      page: clean(body.page || 'card.latimorelifelegacy.com/pahs', 200),
+      page: clean(body.page || 'pahs.latimorelifelegacy.com', 200),
     };
 
     if (!lead.name || !lead.phone || !lead.interest) {
