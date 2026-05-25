@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  await requireAdminSession()
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   let formData: FormData
   try {
