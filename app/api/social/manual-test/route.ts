@@ -7,7 +7,8 @@ export const runtime = 'nodejs'
 
 // Dev/admin endpoint for manually injecting test social data
 export async function POST(req: NextRequest) {
-  await requireAdminSession()
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   let body: Record<string, unknown>
   try {

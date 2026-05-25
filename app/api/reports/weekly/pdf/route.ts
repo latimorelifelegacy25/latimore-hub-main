@@ -7,7 +7,8 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function GET() {
-  await requireAdminSession()
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const { analysis, totals, weekStart, weekEnd } = await buildWeeklyReport()
   const pdf = weeklyReportToPdfBuffer(analysis, { weekStart, weekEnd, totals })

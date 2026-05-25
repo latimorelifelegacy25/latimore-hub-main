@@ -123,7 +123,6 @@ async function analyzeConversationPatterns(contact: any) {
 
   try {
     const response = await createOpenAIJsonCompletion<any>({
-      model: 'gemini-1.5-flash',
       system: `Analyze this conversation history and provide insights about the lead's engagement level and intent. Focus on:
       - Urgency signals
       - Specific needs or pain points
@@ -168,7 +167,6 @@ async function generateProductRecommendations(contact: any, inquiry: any) {
 
   try {
     const response = await createOpenAIJsonCompletion<any>({
-      model: 'gemini-1.5-flash',
       system: `Based on the lead's inquiry and conversation history, recommend specific insurance products that would fit their needs.
       Consider: life insurance, critical illness, disability, long-term care, annuities.
       Return JSON array of recommendations: [{ product: string, reason: string, confidence: number (0-1) }]`,
@@ -220,7 +218,6 @@ async function analyzeOptimalTiming(contact: any) {
 
   try {
     const response = await createOpenAIJsonCompletion<any>({
-      model: 'gemini-1.5-flash',
       system: `Based on lead activity patterns, suggest optimal follow-up timing.
       Return JSON: { optimalTime: string, reasoning: string }`,
       user: `Days since last activity: ${daysSinceActivity}

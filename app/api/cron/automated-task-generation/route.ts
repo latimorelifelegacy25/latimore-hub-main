@@ -121,6 +121,7 @@ Provide a single task in this JSON format:
           schemaName: 'automatedTask',
           schema: {
             type: 'object',
+            additionalProperties: false,
             properties: {
               title: { type: 'string' },
               description: { type: 'string' },
