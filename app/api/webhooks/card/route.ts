@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -7,6 +8,13 @@ import { rateLimit } from '@/lib/rate-limit'
 import { CardEventSchema } from '@/lib/schemas'
 import { ingestEvent } from '@/lib/hub/ingest-event'
 import { cleanString } from '@/lib/hub/normalizers'
+
+function getSupabaseClient() {
+  const url = process.env.SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key, { auth: { persistSession: false } })
+}
 
 function mapCardEvent(event: string, label?: string | null) {
   const normalizedEvent = event.trim().toLowerCase()
@@ -30,23 +38,40 @@ export async function POST(req: NextRequest) {
 
   try {
     const eventType = mapCardEvent(parse.data.event, parse.data.label)
-    const event = await ingestEvent({
-      eventType,
-      occurredAt: parse.data.timestamp ?? null,
-      leadSessionId: parse.data.leadSessionId ?? null,
-      pageUrl: parse.data.pageUrl ?? '/digital-card',
-      referrer: parse.data.referrer ?? null,
-      source: 'digital_card',
-      medium: 'owned',
-      county: parse.data.county ?? null,
-      productInterest: parse.data.productInterest ?? null,
-      metadata: {
-        channel: 'digital_card',
-        label: cleanString(parse.data.label, 200),
-        userAgent: cleanString(parse.data.userAgent, 300),
-        ...(parse.data.metadata ?? {}),
-      },
-    })
+    const [event] = await Promise.all([
+      ingestEvent({
+        eventType,
+        occurredAt: parse.data.timestamp ?? null,
+        leadSessionId: parse.data.leadSessionId ?? null,
+        pageUrl: parse.data.pageUrl ?? '/digital-card',
+        referrer: parse.data.referrer ?? null,
+        source: 'digital_card',
+        medium: 'owned',
+        county: parse.data.county ?? null,
+        productInterest: parse.data.productInterest ?? null,
+        metadata: {
+          channel: 'digital_card',
+          label: cleanString(parse.data.label, 200),
+          userAgent: cleanString(parse.data.userAgent, 300),
+          ...(parse.data.metadata ?? {}),
+        },
+      }),
+      (async () => {
+        const supabase = getSupabaseClient()
+        if (!supabase) return
+        const { error } = await supabase.from('tracking_events').insert({
+          event_type: eventType,
+          utm_source: 'digital_card',
+          utm_medium: 'owned',
+          utm_campaign: parse.data.metadata?.campaign ?? null,
+          destination_url: parse.data.pageUrl ?? '/digital-card',
+          lead_session_id: parse.data.leadSessionId ?? null,
+          county: parse.data.county ?? null,
+          product_interest: parse.data.productInterest ?? null,
+        })
+        if (error) console.error('[card-events tracking_events]', error.message)
+      })(),
+    ])
 
     return NextResponse.json({ ok: true, eventId: event.id })
   } catch (err) {
