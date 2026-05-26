@@ -72,7 +72,7 @@ export default function QuoteCalculator() {
     })
   }
 
-  useEffect(() => { activeTab === 'life' ? calculateLife() : calculateAnnuity() }, [lifeQuote, annuityQuote, activeTab])
+  useEffect(() => { if (activeTab === 'life') { calculateLife() } else { calculateAnnuity() } }, [lifeQuote, annuityQuote, activeTab])
 
   const card = { background: SURFACE2, borderRadius: 16, padding: '2rem', border: `1px solid #2a3548` }
   const btn = (active: boolean, accent = GOLD) => ({
