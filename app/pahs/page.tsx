@@ -35,7 +35,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
   return res.json();
 }
 
-const PAGE_URL = 'https://www.latimorelifelegacy.com/pahs';
+const PAGE_URL = 'https://latimorelifelegacy.fillout.com/pahs';
 
 const SERVICES = [
   ['🛡️', 'Life Insurance & Living Benefits'],

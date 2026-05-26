@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { upsertLead } from '@/lib/hub/upsert-lead';
 
 export const runtime = 'nodejs';
 
@@ -60,6 +61,19 @@ export async function POST(req: Request) {
       });
       if (error) console.error('Supabase insert error:', error.message);
     }
+
+    await upsertLead({
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      email: email || null,
+      phone: phone || null,
+      county: county || null,
+      productInterest: interest || null,
+      source: 'PAHS Fillout Form',
+      landingPage: 'latimorelifelegacy.fillout.com/pahs',
+      notes,
+      metadata: { form: 'fillout-pahs', submissionId: body.submissionId ?? null },
+    });
 
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
