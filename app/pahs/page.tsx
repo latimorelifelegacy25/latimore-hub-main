@@ -258,13 +258,8 @@ export default function PAHSPage() {
 
           <div className="football-icon">🏈</div>
 
-          <div className="hero-clipping-wrap">
-            <img
-              src="/pahs-2005-allarea.png"
-              alt="Jackson Latimore — 2005 Republican & Herald All-Area Football"
-              className="hero-clipping"
-            />
-            <p className="hero-clipping-caption">2005 R&amp;H All-Area Football · Jackson Latimore, Cardinal Brennan</p>
+          <div className="hero-profile">
+            <img src="/jackson-headshot.jpg" alt="Jackson M. Latimore Sr." className="hero-profile-img" />
           </div>
 
           <div className="logos-row">
