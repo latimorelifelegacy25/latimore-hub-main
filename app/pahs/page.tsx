@@ -261,7 +261,7 @@ export default function PAHSPage() {
           <div className="logos-row">
             <div className="tide-logo-container logo-card">
               <img
-                src="/pahs/tide-logo.png"
+                src="/pahs-tide-logo.png"
                 alt="Pottsville Area High School Crimson Tide logo"
                 className="team-logo-image"
               />
@@ -271,7 +271,7 @@ export default function PAHSPage() {
 
             <div className="latimore-logo-container logo-card">
               <img
-                src="/pahs/latimore-logo.jpg"
+                src="/pahs-latimore-logo.png"
                 alt="Latimore Life & Legacy logo"
                 className="business-logo-image"
               />
@@ -471,7 +471,7 @@ export default function PAHSPage() {
 
           <div className="story-image-wrap">
             <img
-              src="/pahs/news-clipping-2005.jpg"
+              src="/pahs-2005-allarea.png"
               alt="Local football newspaper clipping"
               className="story-image"
             />
@@ -522,9 +522,9 @@ export default function PAHSPage() {
           <h2>Official PAHS Sponsorship Campaign</h2>
 
           <div className="gallery-grid">
-            <img src="/pahs/official-sponsorship.png" alt="Official sponsorship graphic" />
-            <img src="/pahs/protect-and-go.png" alt="Protect and Go campaign graphic" />
-            <img src="/pahs/pahs-sponsor-qr-poster.jpg" alt="PAHS QR campaign poster" />
+            <img src="/pahs-sponsor-flyer.jpg" alt="Official sponsorship graphic" />
+            <img src="/pahs-protect-go.png" alt="Protect and Go campaign graphic" />
+            <img src="/pahs-free-consult.jpg" alt="PAHS QR campaign poster" />
           </div>
         </div>
       </section>
