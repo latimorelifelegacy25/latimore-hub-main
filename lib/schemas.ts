@@ -29,6 +29,10 @@ const eventEnum = z.enum([
   'county_selected',
   'product_selected',
   'lead_magnet_download',
+  'post_viewed',
+  'post_created',
+  'post_published',
+  'reaction_added',
 ])
 
 export const FilloutSchema = z.object({
