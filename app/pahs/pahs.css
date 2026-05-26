@@ -50,6 +50,9 @@ body {
 .hero-profile { margin-bottom: 24px; animation: fadeInDown 0.85s ease 0.35s both; }
 .hero-profile-img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; object-position: top; border: 3px solid var(--gold); box-shadow: 0 0 0 4px rgba(196,154,108,0.25), 0 8px 28px rgba(0,0,0,0.5); }
 @keyframes bounce { 0%, 100% { transform: translateY(0) rotate(-15deg); } 50% { transform: translateY(-12px) rotate(5deg); } }
+.hero-clipping-wrap { margin-bottom: 28px; animation: fadeInDown 0.9s ease 0.35s both; text-align: center; }
+.hero-clipping { width: min(320px, 90vw); border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 0 0 3px rgba(196,154,108,0.4); display: block; margin: 0 auto; }
+.hero-clipping-caption { margin-top: 8px; font-size: 0.7rem; color: rgba(196,154,108,0.8); letter-spacing: 1px; text-transform: uppercase; }
 .logos-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 28px; animation: fadeIn 0.9s ease 0.4s both; }
 .tide-logo-container, .latimore-logo-container { display: flex; align-items: center; justify-content: center; }
 .logo-card { background: rgba(255,255,255,0.96); border-radius: 12px; padding: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.65); }
