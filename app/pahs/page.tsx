@@ -258,6 +258,10 @@ export default function PAHSPage() {
 
           <div className="football-icon">🏈</div>
 
+          <div className="hero-profile">
+            <img src="/jackson-headshot.jpg" alt="Jackson M. Latimore Sr." className="hero-profile-img" />
+          </div>
+
           <div className="logos-row">
             <div className="tide-logo-container logo-card">
               <img
