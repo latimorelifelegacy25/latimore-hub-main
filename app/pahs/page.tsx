@@ -423,7 +423,7 @@ export default function PAHSPage() {
             )}
 
             <a
-              href="https://latimorelifelegacy.fillout.com/latimorelifelegacy"
+              href="https://latimorelifelegacy.fillout.com/pahs"
               className="intake-external-link"
               target="_blank"
               rel="noopener noreferrer"
