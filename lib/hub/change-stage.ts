@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeStage } from './normalizers'
+import { syncContactToNotion } from '@/lib/notion/sync-contact'
 
 export async function changeInquiryStage(input: {
   inquiryId: string
@@ -59,6 +60,9 @@ export async function changeInquiryStage(input: {
       note,
     },
   })
+
+  // Fire-and-forget — Notion sync must not block or break stage changes
+  syncContactToNotion(inquiry.contact, updated).catch(() => {})
 
   return updated
 }

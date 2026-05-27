@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeProductInterest } from './normalizers'
+import { syncContactToNotion } from '@/lib/notion/sync-contact'
 
 export type LeadUpsertInput = {
   firstName?: string | null
@@ -150,6 +151,9 @@ export async function upsertLead(input: LeadUpsertInput) {
       ...(input.metadata ?? {}),
     },
   })
+
+  // Fire-and-forget — Notion sync must not block or break lead capture
+  syncContactToNotion(contact, inquiry).catch(() => {})
 
   return { contact, inquiry }
 }
