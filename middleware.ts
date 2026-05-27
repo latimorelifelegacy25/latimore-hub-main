@@ -7,14 +7,14 @@ import { NextResponse, type NextRequest } from 'next/server'
 const DISABLE_AUTH = process.env.DISABLE_ADMIN_AUTH === 'true'
 
 export default DISABLE_AUTH
-  ? function bypass(req: NextRequest) {
+  ? function bypass(_req: NextRequest) { // eslint-disable-line @typescript-eslint/no-unused-vars
       if (process.env.NODE_ENV === 'production') {
         return NextResponse.json(
           { error: 'DISABLE_ADMIN_AUTH must not be enabled in production' },
           { status: 500 },
         )
       }
-      return NextResponse.next() // eslint-disable-line @typescript-eslint/no-unused-vars
+      return NextResponse.next()
     }
   : withAuth(
       function middleware(req) {
