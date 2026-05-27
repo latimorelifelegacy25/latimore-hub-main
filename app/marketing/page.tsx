@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useRef, type JSX } from 'react'
 
 // ─── Brand tokens ────────────────────────────────────────────────────────────
 const G = '#C9A25F'
@@ -869,7 +869,7 @@ export default function MarketingCommandCenter() {
               <div style={{ color: G, fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Generated Campaign</div>
 
               {/* Email */}
-              {campaignResult.email && (() => {
+              {campaignResult.email ? (() => {
                 const e = campaignResult.email as { subjectLines: string[]; preheader: string; bodyHtml: string; cta: string }
                 return (
                   <CampaignBlock title="Email" icon="✉️">
@@ -887,10 +887,10 @@ export default function MarketingCommandCenter() {
                     {e.cta && <CopyField label="CTA" value={e.cta} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* SMS */}
-              {campaignResult.sms && (() => {
+              {campaignResult.sms ? (() => {
                 const s = campaignResult.sms as { message: string; followUp: string }
                 return (
                   <CampaignBlock title="SMS" icon="📱">
@@ -898,10 +898,10 @@ export default function MarketingCommandCenter() {
                     {s.followUp && <CopyField label="24h Follow-Up" value={s.followUp} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* Facebook */}
-              {campaignResult.facebook && (() => {
+              {campaignResult.facebook ? (() => {
                 const f = campaignResult.facebook as { caption: string; hashtags: string[]; postType: string }
                 return (
                   <CampaignBlock title="Facebook" icon="📘">
@@ -909,10 +909,10 @@ export default function MarketingCommandCenter() {
                     {f.hashtags?.length > 0 && <CopyField label="Hashtags" value={f.hashtags.map((h: string) => `#${h.replace(/^#/, '')}`).join(' ')} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* Instagram */}
-              {campaignResult.instagram && (() => {
+              {campaignResult.instagram ? (() => {
                 const ig = campaignResult.instagram as { caption: string; hashtags: string[]; postType: string }
                 return (
                   <CampaignBlock title="Instagram" icon="📸">
@@ -920,10 +920,10 @@ export default function MarketingCommandCenter() {
                     {ig.hashtags?.length > 0 && <CopyField label="Hashtags" value={ig.hashtags.map((h: string) => `#${h.replace(/^#/, '')}`).join(' ')} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* LinkedIn */}
-              {campaignResult.linkedin && (() => {
+              {campaignResult.linkedin ? (() => {
                 const li = campaignResult.linkedin as { post: string; articleHook: string }
                 return (
                   <CampaignBlock title="LinkedIn" icon="💼">
@@ -931,10 +931,10 @@ export default function MarketingCommandCenter() {
                     {li.articleHook && <CopyField label="Article Hook" value={li.articleHook} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* Visual Brief */}
-              {campaignResult.visualBrief && (() => {
+              {campaignResult.visualBrief ? (() => {
                 const vb = campaignResult.visualBrief as { canvaSpec: string; colorNotes: string; imagePrompt: string }
                 return (
                   <CampaignBlock title="Visual Brief (Canva)" icon="🎨">
@@ -943,10 +943,10 @@ export default function MarketingCommandCenter() {
                     {vb.imagePrompt && <CopyField label="AI Image Prompt" value={vb.imagePrompt} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
 
               {/* Schedule */}
-              {campaignResult.scheduleSuggestion && (() => {
+              {campaignResult.scheduleSuggestion ? (() => {
                 const sc = campaignResult.scheduleSuggestion as { email: string; sms: string; social: string; reasoning: string }
                 return (
                   <CampaignBlock title="Optimal Schedule" icon="📅">
@@ -961,7 +961,7 @@ export default function MarketingCommandCenter() {
                     {sc.reasoning && <CopyField label="Reasoning" value={sc.reasoning} />}
                   </CampaignBlock>
                 )
-              })()}
+              })() : null}
             </div>
           )}
         </div>
