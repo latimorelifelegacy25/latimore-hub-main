@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { AnalyticsJobStatus, EventType, PipelineStage, LeadStatus } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 import { calculateDailyMetrics, type DateWindow } from './metrics'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -335,12 +336,12 @@ async function upsertMetrics(
         metricKey,
         value,
         unit: unit ?? 'count',
-        metadata: metadata ?? undefined,
+        ...(metadata != null ? { metadata: metadata as Prisma.InputJsonValue } : {}),
       },
       update: {
         value,
         unit: unit ?? 'count',
-        metadata: metadata ?? undefined,
+        ...(metadata != null ? { metadata: metadata as Prisma.InputJsonValue } : {}),
       },
     })
     count++
