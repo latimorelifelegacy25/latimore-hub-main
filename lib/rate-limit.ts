@@ -16,6 +16,8 @@ const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   inquiries: { limit: 60,  windowMs: 60_000 },
   booking:   { limit: 10,  windowMs: 60_000 },
   reports:   { limit: 30,  windowMs: 60_000 },
+  event:     { limit: 120, windowMs: 60_000 }, // public analytics endpoint
+  lead:      { limit: 30,  windowMs: 60_000 }, // public lead capture endpoint
   default:   { limit: 100, windowMs: 60_000 },
 }
 
