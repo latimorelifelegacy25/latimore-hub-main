@@ -4,11 +4,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const body = await req.json().catch(() => null)
   if (!body?.contactId || !body?.channel || !body?.message) {
     return NextResponse.json({ ok: false, error: 'contactId, channel, and message are required' }, { status: 422 })
