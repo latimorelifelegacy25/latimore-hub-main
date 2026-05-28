@@ -5,7 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: workflowId } = await params
   // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id: params.id },
+      where: { id: workflowId },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     // Record the execution
     await prisma.workflowTemplate.update({
-      where: { id: params.id },
+      where: { id: workflowId },
       data: {
         runCount: { increment: 1 },
         lastRunAt: new Date(),
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    return NextResponse.json({ ok: true, workflowId: params.id, results })
+    return NextResponse.json({ ok: true, workflowId: workflowId, results })
   } catch (err) {
     logger.error({ err }, '[workflow] execution failed')
     return NextResponse.json({ ok: false, error: 'Execution failed' }, { status: 500 })
