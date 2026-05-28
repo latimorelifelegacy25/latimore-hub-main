@@ -39,7 +39,7 @@ export default [
       ...reactHooks.configs.recommended.rules,
 
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-require-imports': 'warn',
       'no-empty': 'warn',
       'prefer-const': 'warn',
