@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { buildWeeklyReport } from '@/lib/reports/weekly-report'
 import { prisma } from '@/lib/prisma'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-/**
- * GET /api/cron/weekly-report
- * Scheduled every Monday at 07:00 ET via vercel.json cron.
- * Also accepts x-cron-secret header for manual triggers.
- */
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  const header = req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
-
-  if (!secret || header !== secret) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  }
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   try {
     const { report, analysis } = await buildWeeklyReport()
