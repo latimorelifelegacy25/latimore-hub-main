@@ -2,15 +2,14 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireCronAuth } from '@/lib/ai/shared'
+import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
-    // For manual triggers from the UI, allow without cron secret
-    // In production, add session check here if needed
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
   }
 
   try {

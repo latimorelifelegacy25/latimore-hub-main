@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const StepSchema = z.object({
   order: z.number().int().min(0),
@@ -24,6 +25,9 @@ const PatchSchema = z.object({
 })
 
 export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id: params.id },
@@ -37,6 +41,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const limited = rateLimit(req, 'inquiries')
   if (limited) return limited
 
@@ -75,6 +82,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     await prisma.workflowTemplate.delete({ where: { id: params.id } })
     return NextResponse.json({ ok: true })
