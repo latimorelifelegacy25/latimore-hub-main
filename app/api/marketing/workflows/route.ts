@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as Record<string, unknown>,
+            config: s.config as never,
           })),
         },
       },

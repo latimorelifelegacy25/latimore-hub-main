@@ -24,13 +24,14 @@ const PatchSchema = z.object({
   steps: z.array(StepSchema).max(20).optional(),
 })
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
+  const { id } = await params
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
     if (!workflow) return NextResponse.json({ ok: false, error: 'Not found' }, { status: 404 })
@@ -40,13 +41,14 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
   const limited = rateLimit(req, 'inquiries')
   if (limited) return limited
 
+  const { id } = await params
   const body = await req.json().catch(() => null)
   const parsed = PatchSchema.safeParse(body)
   if (!parsed.success) {
@@ -58,19 +60,19 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   try {
     const workflow = await prisma.$transaction(async tx => {
       if (steps !== undefined) {
-        await tx.workflowStep.deleteMany({ where: { workflowId: params.id } })
+        await tx.workflowStep.deleteMany({ where: { workflowId: id } })
         await tx.workflowStep.createMany({
           data: steps.map(s => ({
-            workflowId: params.id,
+            workflowId: id,
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as Record<string, unknown>,
+            config: s.config as never,
           })),
         })
       }
       return tx.workflowTemplate.update({
-        where: { id: params.id },
+        where: { id },
         data,
         include: { steps: { orderBy: { order: 'asc' } } },
       })
@@ -81,12 +83,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
+  const { id } = await params
   try {
-    await prisma.workflowTemplate.delete({ where: { id: params.id } })
+    await prisma.workflowTemplate.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch {
     return NextResponse.json({ ok: false, error: 'Failed to delete workflow' }, { status: 500 })
