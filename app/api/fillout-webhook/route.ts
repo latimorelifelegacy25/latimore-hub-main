@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
         utm_content: utmContent || null,
         notes,
       });
-      if (error) console.error('Supabase insert error:', error.message);
+      if (error) logger.error({ error: error.message }, 'Supabase insert error');
     }
 
     await upsertLead({
@@ -112,7 +113,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Fillout webhook error:', error);
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    logger.error({ error }, 'Fillout webhook error');
+    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
   }
 }
