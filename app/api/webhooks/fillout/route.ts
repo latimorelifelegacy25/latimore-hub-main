@@ -124,11 +124,11 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-   try {
+  try {
     body = raw ? JSON.parse(raw) : null
-   } catch {
-   return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
-   }
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
+  }
 
   const normalized = normalizeFilloutPayload(body)
   const parse = FilloutSchema.safeParse(normalized)
