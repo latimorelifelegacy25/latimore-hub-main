@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/client-snapshot
  * Generate an AI-powered snapshot/brief of a client based on their notes and context
@@ -45,6 +46,7 @@ const SNAPSHOT_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { contactId, notes, household } = body

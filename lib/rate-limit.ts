@@ -1,8 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const LIMITS: Record<string, { limit: number; windowMs: number }> = {
+  cardEvents: { limit: 200, windowMs: 60_000 },
+  event:      { limit: 300, windowMs: 60_000 },
+  lead:       { limit: 20,  windowMs: 60_000 },
+  join:       { limit: 10,  windowMs: 60_000 },
+  fillout:    { limit: 20,  windowMs: 60_000 },
+  inquiries:  { limit: 60,  windowMs: 60_000 },
+  booking:    { limit: 10,  windowMs: 60_000 },
+  reports:    { limit: 30,  windowMs: 60_000 },
+  default:    { limit: 100, windowMs: 60_000 },
+}
+
 const store = new Map<string, { count: number; reset: number }>()
 
-// Periodically purge expired entries to prevent unbounded memory growth
 setInterval(() => {
   const now = Date.now()
   for (const [key, rec] of store) {
@@ -10,21 +21,10 @@ setInterval(() => {
   }
 }, 60_000)
 
-const LIMITS: Record<string, { limit: number; windowMs: number }> = {
-  cardEvents: { limit: 200, windowMs: 60_000 },
-  event:     { limit: 300, windowMs: 60_000 },
-  lead:      { limit: 20,  windowMs: 60_000 },
-  fillout:   { limit: 20,  windowMs: 60_000 },
-  inquiries: { limit: 60,  windowMs: 60_000 },
-  booking:   { limit: 10,  windowMs: 60_000 },
-  reports:   { limit: 30,  windowMs: 60_000 },
-  default:   { limit: 100, windowMs: 60_000 },
-}
-
 export function rateLimit(req: NextRequest, type = 'default'): NextResponse | null {
   const { limit, windowMs } = LIMITS[type] ?? LIMITS.default
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const key = `${type}:${ip}`
+  const key = `rl:${type}:${ip}`
   const now = Date.now()
   const rec = store.get(key)
 

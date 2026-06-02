@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { requireAdminSession } from '@/lib/ai/shared'
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as Record<string, unknown>,
+            config: s.config as Prisma.InputJsonValue,
           })),
         },
       },

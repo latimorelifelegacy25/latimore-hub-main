@@ -1,45 +1,62 @@
 export const dynamic = 'force-dynamic'
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
-import { logger } from '@/lib/logger'
+import { rateLimit } from '@/lib/rate-limit'
 
-function verifyTwilioSignature(
-  authToken: string,
-  signature: string,
-  url: string,
-  params: Record<string, string>,
-): boolean {
-  // Twilio signs: URL + sorted key-value pairs concatenated
-  const sortedKeys = Object.keys(params).sort()
-  const payload = url + sortedKeys.map(k => k + params[k]).join('')
-  const expected = createHmac('sha1', authToken).update(payload).digest('base64')
+/**
+ * Verify Twilio webhook signature.
+ * Uses HMAC-SHA1 of (url + sorted POST params) signed with TWILIO_AUTH_TOKEN.
+ * Falls through (returns true) if TWILIO_AUTH_TOKEN is not configured so the
+ * endpoint still works during local development / before credentials are set.
+ */
+function verifyTwilioSignature(req: NextRequest, rawBody: string): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN
+  if (!authToken) return true // allow through if not configured
+
+  const twilioSig = req.headers.get('x-twilio-signature')
+  if (!twilioSig) return false
+
+  // Reconstruct the URL Twilio signed
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+  const url = `${baseUrl}/api/webhooks/twilio`
+
+  // Parse POST body (application/x-www-form-urlencoded)
+  const params = new URLSearchParams(rawBody)
+  const sortedKeys = Array.from(params.keys()).sort()
+  const paramString = sortedKeys.map(k => `${k}${params.get(k)}`).join('')
+
+  const expectedSig = crypto
+    .createHmac('sha1', authToken)
+    .update(url + paramString)
+    .digest('base64')
+
   try {
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+    const a = Buffer.from(expectedSig)
+    const b = Buffer.from(twilioSig)
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
   } catch {
     return false
   }
 }
 
 export async function POST(req: NextRequest) {
-  const authToken = process.env.TWILIO_AUTH_TOKEN
-  const signature = req.headers.get('x-twilio-signature') ?? ''
-  const formData = await req.formData()
+  const limited = rateLimit(req, 'default')
+  if (limited) return limited
 
-  if (authToken) {
-    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/twilio`
-    const params: Record<string, string> = {}
-    formData.forEach((value, key) => { params[key] = value as string })
-    if (!verifyTwilioSignature(authToken, signature, url, params)) {
-      return new NextResponse('Invalid signature', { status: 403 })
-    }
+  const rawBody = await req.text()
+  if (!verifyTwilioSignature(req, rawBody)) {
+    return new NextResponse('Forbidden', { status: 403 })
   }
 
-  const from = formData.get('From') as string
-  const to = formData.get('To') as string
-  const body = formData.get('Body') as string
-  const messageSid = formData.get('MessageSid') as string
+  const params = new URLSearchParams(rawBody)
+  const from = params.get('From') as string
+  const to = params.get('To') as string
+  const body = params.get('Body') as string
+  const messageSid = params.get('MessageSid') as string
 
   if (!from || !body) {
     return new NextResponse('Missing required fields', { status: 400 })
