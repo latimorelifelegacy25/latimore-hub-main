@@ -5,7 +5,6 @@
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { requireAdminSession } from '@/lib/ai/shared'
-import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,
@@ -50,6 +49,7 @@ Non-Negotiables:
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { topic, platform = 'linkedin', count = 1 } = body

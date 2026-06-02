@@ -34,6 +34,7 @@ const MAX_B64_BYTES = 7_000_000
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { base64Data, mimeType, platform = 'LinkedIn', assetName = 'carrier document' } = body
