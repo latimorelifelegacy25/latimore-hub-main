@@ -15,6 +15,7 @@ const navItems = [
   { href: '/admin/inbox', label: 'Inbox (Intake)', icon: 'fa-inbox' },
   { href: '/admin/crm/hub', label: 'Life Hub CRM', icon: 'fa-users-gear' },
   { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
+  { href: '/admin/annuity-platform', label: 'Annuity Platform', icon: 'fa-shield-halved' },
   { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
   { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
   { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
