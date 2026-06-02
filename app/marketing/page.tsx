@@ -869,7 +869,7 @@ export default function MarketingCommandCenter() {
               <div style={{ color: G, fontWeight: 800, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Generated Campaign</div>
 
               {/* Email */}
-              {!!campaignResult.email && (() => {
+              {Boolean(campaignResult.email) && (() => {
                 const e = campaignResult.email as { subjectLines: string[]; preheader: string; bodyHtml: string; cta: string }
                 return (
                   <CampaignBlock title="Email" icon="✉️">
@@ -890,7 +890,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* SMS */}
-              {!!campaignResult.sms && (() => {
+              {Boolean(campaignResult.sms) && (() => {
                 const s = campaignResult.sms as { message: string; followUp: string }
                 return (
                   <CampaignBlock title="SMS" icon="📱">
@@ -901,7 +901,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* Facebook */}
-              {!!campaignResult.facebook && (() => {
+              {Boolean(campaignResult.facebook) && (() => {
                 const f = campaignResult.facebook as { caption: string; hashtags: string[]; postType: string }
                 return (
                   <CampaignBlock title="Facebook" icon="📘">
@@ -912,7 +912,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* Instagram */}
-              {!!campaignResult.instagram && (() => {
+              {Boolean(campaignResult.instagram) && (() => {
                 const ig = campaignResult.instagram as { caption: string; hashtags: string[]; postType: string }
                 return (
                   <CampaignBlock title="Instagram" icon="📸">
@@ -923,7 +923,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* LinkedIn */}
-              {!!campaignResult.linkedin && (() => {
+              {Boolean(campaignResult.linkedin) && (() => {
                 const li = campaignResult.linkedin as { post: string; articleHook: string }
                 return (
                   <CampaignBlock title="LinkedIn" icon="💼">
@@ -934,7 +934,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* Visual Brief */}
-              {!!campaignResult.visualBrief && (() => {
+              {Boolean(campaignResult.visualBrief) && (() => {
                 const vb = campaignResult.visualBrief as { canvaSpec: string; colorNotes: string; imagePrompt: string }
                 return (
                   <CampaignBlock title="Visual Brief (Canva)" icon="🎨">
@@ -946,7 +946,7 @@ export default function MarketingCommandCenter() {
               })()}
 
               {/* Schedule */}
-              {!!campaignResult.scheduleSuggestion && (() => {
+              {Boolean(campaignResult.scheduleSuggestion) && (() => {
                 const sc = campaignResult.scheduleSuggestion as { email: string; sms: string; social: string; reasoning: string }
                 return (
                   <CampaignBlock title="Optimal Schedule" icon="📅">

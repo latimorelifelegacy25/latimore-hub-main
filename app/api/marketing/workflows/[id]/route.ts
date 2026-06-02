@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { requireAdminSession } from '@/lib/ai/shared'
@@ -30,7 +30,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!auth.ok) return auth.response
 
   const { id } = await params
-
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id },
@@ -91,7 +90,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!auth.ok) return auth.response
 
   const { id } = await params
-
   try {
     await prisma.workflowTemplate.delete({ where: { id } })
     return NextResponse.json({ ok: true })
