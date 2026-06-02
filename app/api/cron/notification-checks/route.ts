@@ -1,21 +1,19 @@
-export const dynamic = 'force-dynamic'
+/**
+ * GET /api/cron/notification-checks
+ * Automated notification system checks
+ * Runs every 15 minutes via Vercel cron
+ */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { runAutomatedNotificationChecks } from '@/lib/notifications'
 import { logger } from '@/lib/logger'
+import { requireCronAuth } from '@/lib/ai/shared'
 
-function authorized(req: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) return false
-  const header =
-    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
-  return header === cronSecret
-}
+export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  if (!authorized(req)) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   try {
     logger.info('Running automated notification checks')
@@ -36,6 +34,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// Also support POST for manual triggering
 export async function POST(req: NextRequest) {
   return GET(req)
 }

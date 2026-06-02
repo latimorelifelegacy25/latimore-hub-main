@@ -116,7 +116,7 @@ export function normalizeProductInterest(value?: string | null): ProductInterest
 }
 
 export function normalizeEventType(value?: string | null): EventType {
-  return EVENT_MAP[normalizeKey(value)] ?? 'cta_click'
+  return EVENT_MAP[normalizeKey(value)] ?? 'page_view'
 }
 
 export function cleanString(value?: string | null, max = 255): string | null {
