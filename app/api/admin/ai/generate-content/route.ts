@@ -5,6 +5,7 @@
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,
@@ -70,11 +71,11 @@ export async function POST(req: Request) {
         schema: CONTENT_SCHEMA,
         temperature: 0.8,
       })
-      console.log('AI result for post', i, ':', result)
+      logger.debug({ index: i, result }, 'AI result for post')
       results.push(result.output)
     }
 
-    console.log('Final results:', results)
+    logger.debug({ count: results.length }, 'Final content generation results')
 
     return Response.json({
       success: true,
