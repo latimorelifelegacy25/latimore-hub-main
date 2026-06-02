@@ -98,7 +98,7 @@ function buildIntakeSummary(input: z.infer<typeof BodySchema>) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'booking')
+  const limited = await rateLimit(req, 'booking')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
