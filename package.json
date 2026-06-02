@@ -52,7 +52,8 @@
     "slugify": "^1.6.9",
     "tailwind-merge": "^2.3.0",
     "twilio": "^5.4.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "gray-matter": "^4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
