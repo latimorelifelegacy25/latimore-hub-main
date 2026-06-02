@@ -26,11 +26,7 @@ const PatchSchema = z.object({
 })
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdminSession()
-  if (!auth.ok) return auth.response
-
   const { id } = await params
-
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id },
@@ -44,9 +40,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdminSession()
-  if (!auth.ok) return auth.response
-
+  const { id } = await params
   const limited = rateLimit(req, 'inquiries')
   if (limited) return limited
 
@@ -71,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as Prisma.InputJsonValue,
+            config: s.config as unknown as import('@prisma/client').Prisma.InputJsonValue,
           })),
         })
       }
@@ -88,11 +82,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdminSession()
-  if (!auth.ok) return auth.response
-
   const { id } = await params
-
   try {
     await prisma.workflowTemplate.delete({ where: { id } })
     return NextResponse.json({ ok: true })
