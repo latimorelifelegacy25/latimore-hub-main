@@ -34,7 +34,7 @@ export default async function PAHSCampaignPage() {
 
       prisma.appointment.count({
         where: {
-          inquiry: { some: PAHS_WHERE },
+          inquiry: { is: PAHS_WHERE },
         },
       }),
 
