@@ -1,5 +1,5 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
@@ -24,7 +24,10 @@ function param(urlParams: FilloutUrlParam[], id: string): string {
   return p?.value != null ? String(p.value).trim().slice(0, 150) : '';
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'fillout')
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as FilloutPayload;
     const questions: FilloutQuestion[] = body.questions ?? [];

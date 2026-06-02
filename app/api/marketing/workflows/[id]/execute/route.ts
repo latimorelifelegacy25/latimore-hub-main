@@ -5,16 +5,18 @@ import { prisma } from '@/lib/prisma'
 import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const isCron = !requireCronAuth(req)
   if (!isCron) {
     const auth = await requireAdminSession()
     if (!auth.ok) return auth.response
   }
 
+  const { id } = await params
+
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
 
@@ -31,9 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
-    // Record the execution
     await prisma.workflowTemplate.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         runCount: { increment: 1 },
         lastRunAt: new Date(),
@@ -44,7 +45,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     for (const step of workflow.steps) {
       try {
-        // Execution stubs — wire to real services as features are built
         switch (step.type) {
           case 'email':
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    return NextResponse.json({ ok: true, workflowId: params.id, results })
+    return NextResponse.json({ ok: true, workflowId: id, results })
   } catch (err) {
     logger.error({ err }, '[workflow] execution failed')
     return NextResponse.json({ ok: false, error: 'Execution failed' }, { status: 500 })

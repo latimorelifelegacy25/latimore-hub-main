@@ -38,12 +38,12 @@ async function postJson<T>(url: string, body: unknown): Promise<T> {
 const PAGE_URL = 'https://latimorelifelegacy.fillout.com/pahs';
 
 const SERVICES = [
-  ['🛡️', 'Life Insurance & Living Benefits'],
-  ['🏦', 'Retirement Income & Annuities'],
-  ['📈', 'Indexed Growth & IRA Strategies'],
-  ['📜', 'Estate & Legacy Planning'],
-  ['🏢', 'Business Owner & Key Person'],
-  ['🏠', 'Mortgage Protection Term'],
+  ['01', 'Life Insurance', 'Term and permanent coverage through Ethos Life, Foresters Financial, North American Company, and more. Affordable protection built for real budgets.'],
+  ['02', 'Living Benefits', "Policies that pay while you're still living — critical illness, chronic illness, and terminal illness riders that deliver cash when you need it most."],
+  ['03', 'Indexed Universal Life (IUL)', 'Tax-advantaged growth linked to market indices with downside protection. Powerful for income planning, legacy building, and supplemental retirement.'],
+  ['04', 'Fixed Index Annuities (FIA)', "Guaranteed income through F&G, American Equity, and Corebridge Financial. Sleep well knowing you won't outlive your money."],
+  ['05', 'Estate & Legacy Planning', 'Structure your assets so your family receives more of what you built — with clarity, dignity, and minimal friction.'],
+  ['06', 'Mortgage Protection Term', 'Keep your family in the home no matter what happens. Affordable term coverage tied to your mortgage payoff schedule.'],
 ];
 
 const CONTACT_CARDS: ContactCard[] = [
@@ -60,10 +60,10 @@ const CONTACT_CARDS: ContactCard[] = [
     value: '(717) 615-2613',
   },
   {
-    href: 'mailto:jackson1989@latimorelegacy.com',
+    href: 'mailto:leads@latimorelegacy.com',
     icon: '✉️',
     label: 'Email Jackson',
-    value: 'jackson1989@latimorelegacy.com',
+    value: 'leads@latimorelegacy.com',
   },
   {
     href: 'https://agents.ethoslife.com/invite/29ad1',
@@ -241,7 +241,7 @@ export default function PAHSPage() {
         </div>
 
         <div className="hero-content">
-          <div className="sponsor-badge">Proud Sponsor Of</div>
+          <div className="sponsor-badge">Proud All-Star Sponsor</div>
 
           <div className="hero-school-name">
             POTTSVILLE AREA
@@ -440,25 +440,34 @@ export default function PAHSPage() {
 
       <section className="story-section">
         <div className="story-inner reveal">
-          <div className="section-label">Our Story</div>
+          <div className="section-label">The Full Circle Legacy</div>
 
           <h2>
-            A Saved Life Became
-            <br />A <em>Mission</em>
+            From the Field
+            <br />to the <em>Family</em>
           </h2>
+
+          <div className="story-year-badge">2005 &rarr; 2026</div>
+
+          <p className="story-text">
+            Jackson M. Latimore Sr. wore <strong>#20 for Cardinal Brennan</strong>, earning
+            Republican &amp; Herald All-Area Offensive Player of the Year honors in 2005. He knows
+            what it means to compete in the Coal Region — the early mornings, the community that
+            shows up, the weight of a jersey.
+          </p>
 
           <div className="date-callout">
             <div className="date">December 7, 2010</div>
             <p>
-              Jackson M. Latimore Sr. collapsed from sudden cardiac arrest at ESU&apos;s Koehler
-              Fieldhouse — and was saved by an AED placed by the Gregory W. Moyer Defibrillator
-              Fund, honoring a 15-year-old boy who died from the same cause.
+              &ldquo;A cardiac arrest at ESU&apos;s Koehler Fieldhouse nearly ended my story. An
+              AED funded by the Gregory W. Moyer Defibrillator Fund saved my life.{' '}
+              <strong>#TheBeatGoesOn.</strong>&rdquo;
             </p>
           </div>
 
           <p className="story-text">
             That moment — watching a prepared community save a life — is the heartbeat behind
-            everything we do at <strong>Latimore Life & Legacy LLC.</strong>
+            everything we do at <strong>Latimore Life &amp; Legacy LLC.</strong>
           </p>
 
           <p className="story-text">
@@ -476,12 +485,47 @@ export default function PAHSPage() {
           <div className="story-image-wrap">
             <img
               src="/pahs-2005-allarea.png"
-              alt="Local football newspaper clipping"
+              alt="Local football newspaper clipping — 2005 Republican & Herald All-Area Football Team"
               className="story-image"
             />
+            <p className="story-image-caption">
+              Headlining the 2005 Republican &amp; Herald All-Area Football Team — Jackson Latimore
+              (#20, Cardinal Brennan) named Offensive Player of the Year alongside Pottsville&apos;s
+              finest. Photo: Jacqueline Dormer / Staff Photo.
+            </p>
           </div>
 
           <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
+        </div>
+      </section>
+
+      <section className="why-section">
+        <div className="why-inner reveal">
+          <div className="section-label gold-label">Why Latimore Life &amp; Legacy</div>
+          <h2>Built for <em>Coal Region</em> Families</h2>
+          <div className="why-grid">
+            <div className="why-card">
+              <div className="why-title">Protecting Today</div>
+              <p className="why-body">
+                Life insurance and living-benefit solutions that safeguard your family&apos;s
+                financial foundation — starting now, not someday.
+              </p>
+            </div>
+            <div className="why-card">
+              <div className="why-title">Securing Tomorrow</div>
+              <p className="why-body">
+                Index-linked annuities and IUL strategies designed to grow your wealth — with
+                downside protection built in.
+              </p>
+            </div>
+            <div className="why-card">
+              <div className="why-title">Invested in Community</div>
+              <p className="why-body">
+                Proud All-Star sponsor of PAHS Crimson Tide football. Rooted in Schuylkill,
+                Luzerne, and Northumberland Counties.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -501,10 +545,13 @@ export default function PAHSPage() {
           </p>
 
           <div className="services-grid">
-            {SERVICES.map(([icon, title]) => (
+            {SERVICES.map(([num, title, desc]) => (
               <div className="service-card" key={title}>
-                <div className="service-icon">{icon}</div>
-                <h3>{title}</h3>
+                <div className="service-num">{num}</div>
+                <div>
+                  <h3>{title}</h3>
+                  <p className="service-desc">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -720,7 +767,10 @@ export default function PAHSPage() {
         </div>
 
         <div className="footer-disclaimer">
-          Jackson M. Latimore Sr. · Latimore Life & Legacy LLC · Independent Insurance Consultant
+          Jackson M. Latimore Sr., MBA · Founder &amp; CEO · Latimore Life &amp; Legacy LLC · GFI
+          Affiliate
+          <br />
+          1544 Route 61 Hwy S, Suite 6104, Pottsville, PA 17901
           <br />
           Licensed in Pennsylvania · NIPR #21638507 · PA D.O.I. License #1268820
           <br />
@@ -730,13 +780,12 @@ export default function PAHSPage() {
           </a>
           <br />
           <br />
-          Life insurance and annuity products are subject to underwriting approval. Rates and
-          availability vary by individual factors. Insurance products are not deposits, not FDIC
-          insured, not guaranteed by any bank, and may be subject to limitations, exclusions,
-          underwriting, carrier approval, surrender charges, and market-value adjustments where
-          applicable. This page is intended for informational purposes and does not constitute
-          financial, legal, or tax advice. Proud sponsor of Pottsville Area High School Football
-          2026.
+          Latimore Life &amp; Legacy LLC is an independent insurance brokerage licensed in the
+          Commonwealth of Pennsylvania. Products offered through licensed carrier appointments. Not
+          all products available in all areas. Affiliated with Global Financial Impact (GFI).
+          Insurance products are not FDIC insured, not bank guaranteed, and may lose value. This
+          page is intended for informational purposes and does not constitute financial, legal, or
+          tax advice. Proud All-Star sponsor of Pottsville Area High School Football 2026.
         </div>
       </footer>
 
