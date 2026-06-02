@@ -1,6 +1,10 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { LeadStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
+
+const VALID_STATUSES = new Set(Object.values(LeadStatus))
 
 export async function PATCH(
   req: NextRequest,
@@ -21,26 +25,40 @@ export async function PATCH(
       )
     }
 
-    const updateData: any = {}
+    if (status && !VALID_STATUSES.has(status)) {
+      return NextResponse.json(
+        { error: `Invalid status: "${status}"` },
+        { status: 422 }
+      )
+    }
+
+    const existing = status
+      ? await prisma.contact.findUnique({ where: { id }, select: { status: true } })
+      : await prisma.contact.findUnique({ where: { id }, select: { id: true } })
+
+    if (!existing) {
+      return NextResponse.json({ error: 'Contact not found' }, { status: 404 })
+    }
+
+    const updateData: Record<string, unknown> = {}
     if (status) updateData.status = status
     if (notes) updateData.notesSummary = notes
 
     const contact = await prisma.contact.update({
       where: { id },
-      data: updateData
+      data: updateData,
     })
 
-    // Create system event for status change
-    if (status) {
+    if (status && 'status' in existing) {
       await prisma.systemEvent.create({
         data: {
           type: 'contact.status_changed',
           contactId: contact.id,
           payload: {
-            oldStatus: contact.status,
-            newStatus: status
-          }
-        }
+            oldStatus: existing.status,
+            newStatus: status,
+          },
+        },
       })
     }
 

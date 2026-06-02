@@ -11,7 +11,7 @@ import LegacyFunnels from './_components/LegacyFunnels'
 import Connectors from './_components/Connectors'
 import AssetVault from './_components/AssetVault'
 import ChatBot from './_components/ChatBot'
-import { SocialPost } from './types'
+import { ContentIdea, SocialPost } from './types'
 
 const tabs = [
   ['dashboard','Legacy Pulse','fa-chart-line'],['crm','CRM','fa-users'],['creator','Creator','fa-pen-nib'],['calendar','Calendar','fa-calendar-days'],['library','Templates','fa-book'],['vault','Vault','fa-vault'],['tools','Tools','fa-toolbox'],['funnels','Funnels','fa-filter-circle-dollar'],['connectors','Connectors','fa-plug'],['settings','Settings','fa-gear']
@@ -39,8 +39,6 @@ export default function SocialOSClient() {
       case 'dashboard': return <Dashboard scheduledPosts={scheduledPosts} />
       case 'crm': return <CRM />
       case 'library': return <TemplateLibrary onUseTemplate={(s) => { setPreFillTopic(s); setActiveTab('creator') }} />
-      case 'vault': return <AssetVault onIdeasGenerated={() => setActiveTab('creator')} />
-      case 'creator': return <ContentCreator onPostScheduled={(p) => setScheduledPosts(prev => [...prev, p])} preFillTopic={preFillTopic} onClearPreFill={() => setPreFillTopic(null)} scheduledPosts={scheduledPosts} />
       case 'vault': return <AssetVault onIdeasGenerated={(ideas, fileName) => { setAssetIdeas(ideas); setAssetSource(fileName); setActiveTab('creator') }} />
       case 'creator': return <ContentCreator onPostScheduled={(p) => setScheduledPosts(prev => [...prev, p])} preFillTopic={preFillTopic} onClearPreFill={() => setPreFillTopic(null)} scheduledPosts={scheduledPosts} preBuiltIdeas={assetIdeas} preBuiltSource={assetSource} onClearPreBuiltIdeas={() => { setAssetIdeas([]); setAssetSource('') }} />
       case 'tools': return <MarketingTools onBulkSchedule={(posts) => setScheduledPosts(prev => [...prev, ...posts])} />

@@ -938,3 +938,39 @@ model PostComment {
 
   @@index([postId, createdAt])
 }
+
+model WorkflowTemplate {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  triggerType  String         // manual | webhook | cron | crm_stage
+  triggerValue String?        // cron expr, stage name, webhook key
+  category     String?
+  tags         String[]       @default([])
+  isPreset     Boolean        @default(false)
+  isActive     Boolean        @default(false)
+  runCount     Int            @default(0)
+  lastRunAt    DateTime?
+  steps        WorkflowStep[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([isPreset])
+}
+
+model WorkflowStep {
+  id         String           @id @default(cuid())
+  workflowId String
+  order      Int
+  type       String           // email | sms | social_post | ai_generate | delay | condition
+  label      String
+  config     Json
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  workflow   WorkflowTemplate @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, order])
+}
