@@ -3,7 +3,7 @@ import './globals.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
-import { Analytics } from '@vercel/analytics/react'
+import { Analytics } from '@vercel/analytics/next'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
 // This value should match the production domain (`latimorelifelegacy.com`) rather than the
@@ -60,9 +60,10 @@ export const viewport: Viewport = {
   themeColor: '#0B0F17',
 }
 
-const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || ''
+const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || ''
 const GA4_CAMPAIGN = process.env.NEXT_PUBLIC_CAMPAIGN_GA4_ID || ''
 const GA4_APP = process.env.NEXT_PUBLIC_APP_GA4_ID || ''
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || ''
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const gaIds = [GA4_MAIN, GA4_CAMPAIGN, GA4_APP].filter(Boolean)
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body><Suspense fallback={null}><PublicTracker /></Suspense>{children}<Analytics /></body>
+      {GTM_ID ? <GoogleTagManager gtmId={GTM_ID} /> : null}
     </html>
   )
 }

@@ -1,14 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { MobileNav } from './mobile-nav'
 
 export type NavLink = readonly [href: string, label: string]
 
+/**
+ * SITE_COLORS — convenience re-export of canonical brand tokens for
+ * components that use inline styles. Add new values from COLORS as needed.
+ * For CSS classes, use var(--color-*) tokens directly.
+ */
 export const SITE_COLORS = {
-  navy: '#0E1A2B',
-  gold: '#C9A24D',
-  goldLight: '#E5C882',
+  navy:      COLORS.navy,
+  gold:      COLORS.gold,
+  goldLight: COLORS.goldLight,
 } as const
 
 export const DEFAULT_NAV_LINKS = [

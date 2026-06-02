@@ -50,7 +50,7 @@ function normalizeFilloutPayload(raw: unknown): Record<string, unknown> {
     county: field('county', 'region'),
     product_interest: field('product', 'interest', 'insurance'),
     notes: field('message', 'notes', 'comments'),
-    page_url: field('page url', 'landing page') ?? (body.submissionId ? null : null),
+    page_url: field('page url', 'landing page') ?? null,
     utm_source: param('utmsource'),
     utm_medium: param('utmmedium'),
     utm_campaign: param('utmcampaign'),
@@ -72,7 +72,7 @@ function normalizeSignature(sig: string): string {
 
 function verifySignature(rawBody: string, sig: string | null): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
   if (!sig) return false
   try {
     const normalized = normalizeSignature(sig)
@@ -86,7 +86,7 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 function verifyWebhook(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
 
   const token =
     req.headers.get('x-webhook-token') ??
@@ -114,7 +114,7 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const raw = await req.text()
@@ -124,11 +124,11 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-   try {
+  try {
     body = raw ? JSON.parse(raw) : null
-   } catch {
-   return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
-   }
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
+  }
 
   const normalized = normalizeFilloutPayload(body)
   const parse = FilloutSchema.safeParse(normalized)

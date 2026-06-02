@@ -2,11 +2,11 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
-  const headerSecret =
-    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
+  const headerSecret = req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
   if (!cronSecret || headerSecret !== cronSecret) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 })
   }

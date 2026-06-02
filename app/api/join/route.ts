@@ -81,7 +81,7 @@ function buildJoinNoteSummary(input: z.infer<typeof JoinBodySchema>) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'join')
+  const limited = await rateLimit(req, 'join')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
