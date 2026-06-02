@@ -50,7 +50,7 @@ function normalizeFilloutPayload(raw: unknown): Record<string, unknown> {
     county: field('county', 'region'),
     product_interest: field('product', 'interest', 'insurance'),
     notes: field('message', 'notes', 'comments'),
-    page_url: field('page url', 'landing page') ?? (body.submissionId ? null : null),
+    page_url: field('page url', 'landing page') ?? null,
     utm_source: param('utmsource'),
     utm_medium: param('utmmedium'),
     utm_campaign: param('utmcampaign'),
@@ -124,11 +124,11 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-   try {
+  try {
     body = raw ? JSON.parse(raw) : null
-   } catch {
-   return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
-   }
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
+  }
 
   const normalized = normalizeFilloutPayload(body)
   const parse = FilloutSchema.safeParse(normalized)
