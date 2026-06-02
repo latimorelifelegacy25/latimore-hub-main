@@ -10,6 +10,7 @@ import ShareButtons from '@/components/blog/ShareButtons'
 import BlogCTA from '@/components/blog/BlogCTA'
 import TableOfContents from '@/components/blog/TableOfContents'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
+import ArticleAnalytics from '@/components/blog/ArticleAnalytics'
 import type { Metadata } from 'next'
 import '@/styles/blog.css'
 
@@ -127,6 +128,7 @@ export default async function BlogPostPage({
 
   return (
     <>
+      <ArticleAnalytics slug={post.slug} title={post.title} category={post.category} />
       <SiteHeader currentPath="/education/blog" navLinks={DEFAULT_NAV_LINKS} />
       <script
         type="application/ld+json"
