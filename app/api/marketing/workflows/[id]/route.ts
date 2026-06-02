@@ -30,7 +30,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!auth.ok) return auth.response
 
   const { id } = await params
-
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id },
@@ -58,6 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 422 })
   }
 
+  const { id } = await params
   const { steps, ...data } = parsed.data
 
   try {
@@ -91,7 +91,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!auth.ok) return auth.response
 
   const { id } = await params
-
   try {
     await prisma.workflowTemplate.delete({ where: { id } })
     return NextResponse.json({ ok: true })
