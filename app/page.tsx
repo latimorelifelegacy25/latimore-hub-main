@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { SiteHeader, SiteFooter, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
 import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 
-
-const navy = '#0E1A2B'
-const gold = '#C9A24D'
-const goldLight = '#E5C882'
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold     = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
 
 

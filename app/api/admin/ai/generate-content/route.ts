@@ -49,6 +49,7 @@ Non-Negotiables:
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { topic, platform = 'linkedin', count = 1 } = body
@@ -70,11 +71,11 @@ export async function POST(req: Request) {
         schema: CONTENT_SCHEMA,
         temperature: 0.8,
       })
-      console.log('AI result for post', i, ':', result)
+      logger.debug({ index: i, result }, 'AI result for post')
       results.push(result.output)
     }
 
-    console.log('Final results:', results)
+    logger.debug({ count: results.length }, 'Final content generation results')
 
     return Response.json({
       success: true,

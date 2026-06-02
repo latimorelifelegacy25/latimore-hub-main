@@ -35,6 +35,7 @@ const SCRIPT_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { clientData } = body
