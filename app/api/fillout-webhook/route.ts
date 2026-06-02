@@ -1,8 +1,10 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
+import { rateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
@@ -23,7 +25,10 @@ function param(urlParams: FilloutUrlParam[], id: string): string {
   return p?.value != null ? String(p.value).trim().slice(0, 150) : '';
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'fillout')
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as FilloutPayload;
     const questions: FilloutQuestion[] = body.questions ?? [];
@@ -112,7 +117,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Fillout webhook error:', error);
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'fillout-webhook error');
+    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
   }
 }

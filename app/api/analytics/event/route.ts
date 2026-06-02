@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,7 +62,10 @@ async function sendToGa4(payload: Required<Pick<AnalyticsPayload, "event_name">>
   );
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'event')
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as AnalyticsPayload;
 
