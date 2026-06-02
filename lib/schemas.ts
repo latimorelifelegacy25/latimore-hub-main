@@ -29,6 +29,10 @@ const eventEnum = z.enum([
   'county_selected',
   'product_selected',
   'lead_magnet_download',
+  'post_viewed',
+  'post_created',
+  'post_published',
+  'reaction_added',
 ])
 
 export const FilloutSchema = z.object({
@@ -39,8 +43,8 @@ export const FilloutSchema = z.object({
   lastName: z.string().max(100).optional().nullable(),
   phone: z.string().max(40).optional().nullable(),
   county: z.string().max(100).optional().nullable(),
-  product_interest: productEnum.optional().nullable(),
-  productInterest: productEnum.optional().nullable(),
+  product_interest: z.string().max(100).optional().nullable(),
+  productInterest: z.string().max(100).optional().nullable(),
   interest_type: z.string().max(100).optional().nullable(),
   interestType: z.string().max(100).optional().nullable(),
   lead_session_id: z.string().max(191).optional().nullable(),

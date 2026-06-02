@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)

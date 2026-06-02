@@ -2,14 +2,12 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireCronAuth } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
-  const headerSecret =
-    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!cronSecret || headerSecret !== cronSecret) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   try {
     // Get contacts that need automated task generation
@@ -57,7 +55,7 @@ export async function GET(req: NextRequest) {
       take: 10 // Process up to 10 contacts per run
     })
 
-    console.log(`Found ${contactsNeedingTasks.length} contacts needing automated tasks`)
+    logger.info({ count: contactsNeedingTasks.length }, 'Found contacts needing automated tasks')
 
     let totalTasksCreated = 0
 
@@ -149,10 +147,10 @@ Provide a single task in this JSON format:
           })
 
           totalTasksCreated++
-          console.log(`Created automated task for ${contact.firstName} ${contact.lastName}`)
+          logger.info({ contactId: contact.id }, 'Created automated task')
         }
       } catch (error) {
-        console.error(`Failed to generate task for contact ${contact.id}:`, error)
+        logger.error({ contactId: contact.id, error }, 'Failed to generate task for contact')
       }
     }
 
@@ -164,7 +162,7 @@ Provide a single task in this JSON format:
     })
 
   } catch (error) {
-    console.error('Automated task generation error:', error)
+    logger.error({ error }, 'Automated task generation error')
     return NextResponse.json({ error: 'Failed to generate automated tasks' }, { status: 500 })
   }
 }
