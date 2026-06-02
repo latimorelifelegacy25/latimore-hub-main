@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { evaluate } from '@mdx-js/mdx'
 import * as runtime from 'react/jsx-runtime'
 import { getAllSlugs, getPostBySlug, getPostsByCategory } from '@/lib/blog'
@@ -139,12 +140,12 @@ export default async function BlogPostPage({
       <div className="blog-hero" style={{ paddingBottom: '2rem' }}>
         <div className="blog-hero__inner">
           <p className="blog-hero__breadcrumb">
-            <a href="/">Home</a> &rsaquo;{' '}
-            <a href="/education">Education</a> &rsaquo;{' '}
-            <a href="/education/blog">Blog</a> &rsaquo;{' '}
-            <a href={`/education/blog?category=${encodeURIComponent(post.category)}`}>
+            <Link href="/">Home</Link> &rsaquo;{' '}
+            <Link href="/education">Education</Link> &rsaquo;{' '}
+            <Link href="/education/blog">Blog</Link> &rsaquo;{' '}
+            <Link href={`/education/blog?category=${encodeURIComponent(post.category)}`}>
               {post.category}
-            </a>
+            </Link>
           </p>
           <h1 className="blog-hero__title" style={{ fontSize: 'clamp(1.6rem,4vw,2.4rem)' }}>
             {post.title}
