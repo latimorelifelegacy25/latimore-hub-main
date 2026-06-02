@@ -1,23 +1,9 @@
-/**
- * /api/cron/weekly — Master weekly cron router
- *
- * Triggered every Monday at 9 AM ET (2 PM UTC) by cron-job.org.
- * Not in vercel.json — Hobby plan only supports one cron entry.
- *
- * Tasks executed in sequence:
- *  1. Weekly report (full pipeline report + systemEvent log)
- *  2. Content publishing (scheduled content assets)
- *  3. Lead scoring (full re-score pass for all contacts)
- *  4. Automated task generation (AI-generated follow-up tasks)
- */
-
 import { NextRequest, NextResponse } from 'next/server'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-// Allow up to 5 minutes for all tasks to complete
 export const maxDuration = 300
 
 type TaskResult = {
@@ -35,19 +21,12 @@ async function runTask(name: string, url: string, req: NextRequest): Promise<Tas
     const res = await fetch(url, {
       method: 'GET',
       headers: {
-        // Forward the same cron auth secret
         'x-cron-secret': process.env.CRON_SECRET ?? '',
         'x-forwarded-for': req.headers.get('x-forwarded-for') ?? '',
       },
     })
     const data = await res.json().catch(() => null)
-    return {
-      task: name,
-      ok: res.ok,
-      status: res.status,
-      data,
-      durationMs: Date.now() - start,
-    }
+    return { task: name, ok: res.ok, status: res.status, data, durationMs: Date.now() - start }
   } catch (err) {
     return {
       task: name,
@@ -62,29 +41,23 @@ export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)
   if (authError) return authError
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000'
+  const baseUrl = process.env.NEXTAUTH_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
 
   logger.info('[cron/weekly] Starting weekly master cron')
   const cronStart = Date.now()
 
-  // Run all weekly tasks sequentially so DB load is predictable
-  const results: TaskResult[] = []
+q  const results: TaskResult[] = []
+  results.push(await runTask('weekly-report',            `${baseUrl}/api/cron/weekly-report`,            req))
+  results.push(await runTask('content-publishing',       `${baseUrl}/api/cron/content-publishing`,       req))
+  results.push(await runTask('lead-scoring',             `${baseUrl}/api/cron/lead-scoring`,             req))
+  results.push(await runTask('automated-task-generation',`${baseUrl}/api/cron/automated-task-generation`,req))
 
-  results.push(await runTask('weekly-report',             `${baseUrl}/api/cron/weekly-report`,             req))
-  results.push(await runTask('content-publishing',        `${baseUrl}/api/cron/content-publishing`,        req))
-  results.push(await runTask('lead-scoring',              `${baseUrl}/api/cron/lead-scoring`,              req))
-  results.push(await runTask('automated-task-generation', `${baseUrl}/api/cron/automated-task-generation`, req))
+  const totalMs   = Date.now() - cronStart
+  const succeeded = results.filter(r => r.ok).length
+  const failed    = results.filter(r => !r.ok)
 
-  const totalMs    = Date.now() - cronStart
-  const succeeded  = results.filter(r => r.ok).length
-  const failed     = results.filter(r => !r.ok)
-
-  if (failed.length > 0) {
-    logger.warn({ failed }, '[cron/weekly] Some tasks failed')
-  }
-
+  if (failed.length > 0) logger.warn({ failed }, '[cron/weekly] Some tasks failed')
   logger.info({ succeeded, total: results.length, totalMs }, '[cron/weekly] Complete')
 
   return NextResponse.json({
