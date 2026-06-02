@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
   logger.info('[cron/weekly] Starting weekly master cron')
   const cronStart = Date.now()
 
-q  const results: TaskResult[] = []
+  const results: TaskResult[] = []
   results.push(await runTask('weekly-report',            `${baseUrl}/api/cron/weekly-report`,            req))
   results.push(await runTask('content-publishing',       `${baseUrl}/api/cron/content-publishing`,       req))
   results.push(await runTask('lead-scoring',             `${baseUrl}/api/cron/lead-scoring`,             req))
