@@ -20,6 +20,7 @@ const navItems = [
   { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
   { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
   { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
+  { href: '/admin/content/calendar', label: 'Content Calendar', icon: 'fa-calendar-week' },
   { href: '/admin/content/schedule', label: 'Schedule', icon: 'fa-calendar-check' },
   { href: '/admin/content/campaigns', label: 'Campaigns', icon: 'fa-calendar-days' },
   { href: '/admin/pahs-campaign', label: 'PAHS Campaign', icon: 'fa-football' },
