@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 interface ConnectionDraft {
   accountName: string
@@ -49,6 +49,39 @@ export default function SocialConnectionsClient({ initialConnections }: { initia
   const [connections, setConnections] = useState<SocialConnection[]>(initialConnections)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [tokenStatus, setTokenStatus] = useState<Record<string, { valid: boolean; daysLeft: number | null } | null>>({})
+
+  useEffect(() => {
+    // Show flash message from OAuth redirect
+    const params = new URLSearchParams(window.location.search)
+    const fbSuccess = params.get('fb_success')
+    const fbError = params.get('fb_error')
+    if (fbSuccess) {
+      setMessage(`Facebook connected: ${fbSuccess}`)
+      window.history.replaceState({}, '', window.location.pathname)
+    } else if (fbError) {
+      setMessage(`Facebook connection failed: ${fbError}`)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [])
+
+  useEffect(() => {
+    // Check token validity for each facebook connection
+    const fbConnections = connections.filter((c) => c.provider === 'facebook' && c.externalId)
+    fbConnections.forEach((conn) => {
+      fetch(`/api/social/facebook/validate?pageId=${conn.externalId}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.ok !== false) {
+            setTokenStatus((prev) => ({
+              ...prev,
+              [conn.id]: { valid: data.valid, daysLeft: data.daysUntilExpiry },
+            }))
+          }
+        })
+        .catch(() => {})
+    })
+  }, [connections])
 
   const drafts = useMemo(() => {
     return (Object.keys(providerConfig) as ProviderKey[]).reduce((acc, provider) => {
@@ -213,12 +246,23 @@ export default function SocialConnectionsClient({ initialConnections }: { initia
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
+              {provider === 'facebook' && (
+                <a
+                  href="/api/social/facebook/connect"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1877F2] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
+                >
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97H15.83c-1.49 0-1.955.93-1.955 1.883v2.255h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" />
+                  </svg>
+                  Connect with Facebook
+                </a>
+              )}
               <button
                 onClick={() => saveConnection(provider)}
                 disabled={saving}
                 className="rounded-xl bg-[#C9A25F] px-5 py-3 text-sm font-semibold text-black transition hover:opacity-90 disabled:opacity-50"
               >
-                Save {providerConfig[provider].label} Connection
+                Save {providerConfig[provider].label} Manually
               </button>
               <div className="text-xs text-slate-400">
                 {provider === 'instagram'
@@ -226,10 +270,25 @@ export default function SocialConnectionsClient({ initialConnections }: { initia
                   : provider === 'linkedin'
                   ? 'LinkedIn access tokens can be generated via the LinkedIn app OAuth flow.'
                   : provider === 'facebook'
-                  ? 'Facebook page posts require a page access token and page ID.'
+                  ? 'Use "Connect with Facebook" for automatic OAuth, or paste credentials manually.'
                   : 'Twitter requires a bearer token or OAuth2 user token.'}
               </div>
             </div>
+            {provider === 'facebook' && existing && tokenStatus[existing.id] && (
+              <div className={`mt-3 text-xs px-3 py-2 rounded-lg ${
+                tokenStatus[existing.id]?.valid
+                  ? tokenStatus[existing.id]!.daysLeft !== null && tokenStatus[existing.id]!.daysLeft! < 7
+                    ? 'bg-amber-500/10 text-amber-300'
+                    : 'bg-emerald-500/10 text-emerald-300'
+                  : 'bg-red-500/10 text-red-300'
+              }`}>
+                {tokenStatus[existing.id]?.valid
+                  ? tokenStatus[existing.id]!.daysLeft !== null
+                    ? `Token valid — expires in ${tokenStatus[existing.id]!.daysLeft} day(s)`
+                    : 'Token valid'
+                  : 'Token is invalid or expired — please reconnect'}
+              </div>
+            )}
           </div>
         )
       })}

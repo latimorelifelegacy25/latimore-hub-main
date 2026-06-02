@@ -360,7 +360,7 @@ export async function runAutomatedNotificationChecks() {
  */
 async function triggerRealTimeUpdate(notification: Notification) {
   // In production, this would emit to WebSocket clients or send SSE
-  console.log('Real-time notification:', notification.title)
+  logger.debug({ title: notification.title }, 'Real-time notification')
 }
 
 /**
