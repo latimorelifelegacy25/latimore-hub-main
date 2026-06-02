@@ -12,6 +12,8 @@ setInterval(() => {
 
 const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   cardEvents: { limit: 200, windowMs: 60_000 },
+  event:     { limit: 300, windowMs: 60_000 },
+  lead:      { limit: 20,  windowMs: 60_000 },
   fillout:   { limit: 20,  windowMs: 60_000 },
   inquiries: { limit: 60,  windowMs: 60_000 },
   booking:   { limit: 10,  windowMs: 60_000 },
