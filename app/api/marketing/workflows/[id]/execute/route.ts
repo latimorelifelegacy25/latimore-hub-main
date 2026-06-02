@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireCronAuth } from '@/lib/ai/shared'
+import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -10,9 +10,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
-    // For manual triggers from the UI, allow without cron secret
-    // In production, add session check here if needed
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
   }
+
+  const { id } = await params
 
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
@@ -33,7 +35,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
-    // Record the execution
     await prisma.workflowTemplate.update({
       where: { id: workflowId },
       data: {
@@ -46,7 +47,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     for (const step of workflow.steps) {
       try {
-        // Execution stubs — wire to real services as features are built
         switch (step.type) {
           case 'email':
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })

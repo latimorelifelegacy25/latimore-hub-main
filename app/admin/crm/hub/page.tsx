@@ -12,6 +12,7 @@ export default async function LifeHubPage() {
       },
     },
     orderBy: { leadScore: 'desc' },
+    take: 500,
   })
 
   return <LifeHubCRMContent initialContacts={contacts} />

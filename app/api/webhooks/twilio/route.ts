@@ -1,10 +1,41 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
+import { logger } from '@/lib/logger'
+
+function verifyTwilioSignature(
+  authToken: string,
+  signature: string,
+  url: string,
+  params: Record<string, string>,
+): boolean {
+  // Twilio signs: URL + sorted key-value pairs concatenated
+  const sortedKeys = Object.keys(params).sort()
+  const payload = url + sortedKeys.map(k => k + params[k]).join('')
+  const expected = createHmac('sha1', authToken).update(payload).digest('base64')
+  try {
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 export async function POST(req: NextRequest) {
+  const authToken = process.env.TWILIO_AUTH_TOKEN
+  const signature = req.headers.get('x-twilio-signature') ?? ''
   const formData = await req.formData()
+
+  if (authToken) {
+    const url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/webhooks/twilio`
+    const params: Record<string, string> = {}
+    formData.forEach((value, key) => { params[key] = value as string })
+    if (!verifyTwilioSignature(authToken, signature, url, params)) {
+      return new NextResponse('Invalid signature', { status: 403 })
+    }
+  }
+
   const from = formData.get('From') as string
   const to = formData.get('To') as string
   const body = formData.get('Body') as string
@@ -22,7 +53,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!contact) {
-      console.log(`Inbound SMS from unknown number: ${from}`)
+      logger.info({ from }, 'Inbound SMS from unknown number')
       return new NextResponse('', { status: 200 }) // Acknowledge but don't process
     }
 
@@ -94,7 +125,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse('', { status: 200 })
 
   } catch (error) {
-    console.error('Twilio webhook error:', error)
+    logger.error({ error }, 'Twilio webhook error')
     return new NextResponse('Internal server error', { status: 500 })
   }
 }
