@@ -1,4 +1,5 @@
 import { MetadataRoute } from 'next'
+import { getBlogSitemapEntries } from './sitemap-blog'
 
 // Resolve the canonical base domain used for generating absolute URLs in the sitemap.
 // By default this falls back to the production domain latimorelifelegacy.com rather than the old
@@ -18,10 +19,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/book-now`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.9 },
 
     { url: `${BASE}/about`,               lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.5 },
-    { url: `${BASE}/blog`,                lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
+    { url: `${BASE}/education/blog`,       lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.9 },
     { url: `${BASE}/faq`,                 lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE}/legal/privacy`,       lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.2 },
     { url: `${BASE}/legal/terms`,         lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.2 },
     { url: `${BASE}/legal/disclosures`,   lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.3 },
+    ...getBlogSitemapEntries(),
   ]
 }
