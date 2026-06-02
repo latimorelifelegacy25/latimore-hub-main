@@ -2,20 +2,23 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireCronAuth } from '@/lib/ai/shared'
+import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: workflowId } = await params
   // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
-    // For manual triggers from the UI, allow without cron secret
-    // In production, add session check here if needed
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
   }
+
+  const { id } = await params
 
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id: params.id },
+      where: { id: workflowId },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
 
@@ -32,9 +35,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
-    // Record the execution
     await prisma.workflowTemplate.update({
-      where: { id: params.id },
+      where: { id: workflowId },
       data: {
         runCount: { increment: 1 },
         lastRunAt: new Date(),
@@ -45,7 +47,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     for (const step of workflow.steps) {
       try {
-        // Execution stubs — wire to real services as features are built
         switch (step.type) {
           case 'email':
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    return NextResponse.json({ ok: true, workflowId: params.id, results })
+    return NextResponse.json({ ok: true, workflowId: workflowId, results })
   } catch (err) {
     logger.error({ err }, '[workflow] execution failed')
     return NextResponse.json({ ok: false, error: 'Execution failed' }, { status: 500 })

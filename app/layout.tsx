@@ -61,7 +61,7 @@ export const viewport: Viewport = {
   themeColor: '#0B0F17',
 }
 
-const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || ''
+const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || ''
 const GA4_CAMPAIGN = process.env.NEXT_PUBLIC_CAMPAIGN_GA4_ID || ''
 const GA4_APP = process.env.NEXT_PUBLIC_APP_GA4_ID || ''
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID || ''
