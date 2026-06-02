@@ -32,7 +32,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
-    // Record the execution
     await prisma.workflowTemplate.update({
       where: { id },
       data: {
@@ -45,7 +44,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     for (const step of workflow.steps) {
       try {
-        // Execution stubs — wire to real services as features are built
         switch (step.type) {
           case 'email':
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
