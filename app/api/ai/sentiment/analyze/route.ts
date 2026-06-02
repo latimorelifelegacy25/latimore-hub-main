@@ -11,7 +11,8 @@ export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
-  await requireAdminSession()
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   let body: { text?: string; commentId?: string; escalate?: boolean }
   try {

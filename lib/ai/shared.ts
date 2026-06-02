@@ -1,5 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'node:crypto'
 import { AiRunStatus, AiRunType } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -21,6 +22,24 @@ export async function requireAdminSession() {
 
 export function applyAiRateLimit(req: NextRequest) {
   return rateLimit(req, 'reports')
+}
+
+export function requireCronAuth(req: NextRequest): NextResponse | null {
+  const secret = process.env.CRON_SECRET
+  const header =
+    req.headers.get('x-cron-secret') ??
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  if (!secret || !header) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  }
+  const secretBuf = Buffer.from(secret)
+  const headerBuf = Buffer.from(header)
+  const valid =
+    secretBuf.length === headerBuf.length && timingSafeEqual(secretBuf, headerBuf)
+  if (!valid) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  }
+  return null
 }
 
 export async function createAiRun(input: {

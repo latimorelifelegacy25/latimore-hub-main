@@ -45,3 +45,50 @@ a:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Blog / Article editorial utilities ──────────────────────────────────── */
+
+/* Card fade-up entrance animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.blog-card {
+  animation: fadeUp 0.4s ease forwards;
+  opacity: 0;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.blog-card:hover {
+  box-shadow: 0 4px 20px rgba(44, 62, 80, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Article prose — scoped under .article-prose to avoid global bleed */
+.article-prose h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2C3E50;
+  margin: 2.25rem 0 1rem;
+  border-left: 3px solid #C49A6C;
+  padding-left: 1rem;
+  line-height: 1.3;
+}
+.article-prose h2:first-child { margin-top: 0; }
+.article-prose p  { margin-bottom: 1.35rem; font-size: 17px; line-height: 1.85; color: #1a1a1a; }
+.article-prose ul { margin: 0.5rem 0 1.35rem 1.5rem; list-style: disc; }
+.article-prose ol { margin: 0.5rem 0 1.35rem 1.5rem; list-style: decimal; }
+.article-prose li { margin-bottom: 0.6rem; font-size: 16px; line-height: 1.75; color: #1a1a1a; }
+.article-prose strong { color: #2C3E50; font-weight: 600; }
+.article-prose a    { color: #2d5f8a; text-decoration: underline; }
+.article-prose a:hover { opacity: 0.8; }
+.article-prose blockquote {
+  border-left: 3px solid #C49A6C;
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  background: #fdf6ee;
+  font-style: italic;
+  color: #6b6460;
+}

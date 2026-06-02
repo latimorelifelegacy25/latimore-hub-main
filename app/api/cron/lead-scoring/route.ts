@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET

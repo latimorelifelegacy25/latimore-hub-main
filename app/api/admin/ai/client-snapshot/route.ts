@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/client-snapshot
  * Generate an AI-powered snapshot/brief of a client based on their notes and context

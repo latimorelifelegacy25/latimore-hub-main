@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { BookingNotifySchema } from '@/lib/schemas'
@@ -9,7 +10,14 @@ function verifyWebhookSecret(req: NextRequest): boolean {
   const secret = process.env.BOOKING_WEBHOOK_SECRET
   if (!secret) return true
   const provided = req.headers.get('x-webhook-secret') ?? ''
-  return provided === secret
+  try {
+    const a = Buffer.from(provided)
+    const b = Buffer.from(secret)
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 export async function POST(req: NextRequest) {

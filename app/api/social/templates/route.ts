@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -86,12 +87,17 @@ export async function PATCH(req: NextRequest) {
 
     const cloned = await prisma.socialTemplate.create({
       data: {
-        ...source,
-        id:              undefined,
         title:           `${source.title} (copy)`,
+        category:        source.category,
+        platform:        source.platform,
+        audienceTrack:   source.audienceTrack,
+        body:            source.body,
+        cta:             source.cta,
+        hashtags:        source.hashtags === null ? Prisma.JsonNull : source.hashtags,
+        suggestedDay:    source.suggestedDay,
+        suggestedTime:   source.suggestedTime,
+        campaign:        source.campaign,
         complianceStatus: 'draft',
-        createdAt:       undefined,
-        updatedAt:       undefined,
       },
     })
     return NextResponse.json({ ok: true, template: cloned }, { status: 201 })
