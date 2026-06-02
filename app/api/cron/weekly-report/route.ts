@@ -6,11 +6,6 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-/**
- * GET /api/cron/weekly-report
- * Scheduled every Monday at 07:00 ET via vercel.json cron.
- * Also accepts x-cron-secret header for manual triggers.
- */
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)
   if (authError) return authError
