@@ -47,6 +47,10 @@ model Contact {
   primarySource        String?
   primaryMedium        String?
   primaryCampaign      String?
+  primarySourceType    LeadSource            @default(UNKNOWN)
+  primaryIntent        LeadIntent            @default(UNKNOWN)
+  currentIntent        LeadIntent            @default(UNKNOWN)
+  status               LeadStatus            @default(NEW)
   leadScore            Int                   @default(0)
   lastActivityAt       DateTime?
   nextFollowUpAt       DateTime?
@@ -68,6 +72,10 @@ model Contact {
   @@index([phone])
   @@index([leadScore])
   @@index([lastActivityAt])
+  @@index([primarySourceType])
+  @@index([primaryIntent])
+  @@index([currentIntent])
+  @@index([status])
 }
 
 model Inquiry {
@@ -81,6 +89,9 @@ model Inquiry {
   source          String?
   medium          String?
   campaign        String?
+  sourceType      LeadSource            @default(UNKNOWN)
+  intent          LeadIntent            @default(UNKNOWN)
+  status          LeadStatus            @default(NEW)
   landingPage     String?
   county          String?
   notes           String?
@@ -104,6 +115,9 @@ model Inquiry {
   @@index([county])
   @@index([contactId])
   @@index([leadScore])
+  @@index([sourceType])
+  @@index([intent])
+  @@index([status])
 }
 
 model Appointment {
@@ -421,6 +435,10 @@ enum EventType {
   county_selected
   product_selected
   lead_magnet_download
+  post_viewed
+  post_created
+  post_published
+  reaction_added
 }
 
 enum ThreadChannel {
@@ -482,6 +500,30 @@ enum CalendarProvider {
   manual
 }
 
+enum SocialProvider {
+  linkedin
+  facebook
+  instagram
+  twitter
+}
+
+model SocialConnection {
+  id             String         @id @default(uuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  provider       SocialProvider
+  accountName    String?
+  externalId     String?
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  metadata       Json?
+  status         String?
+
+  @@index([provider])
+  @@index([externalId])
+}
+
 enum CalendarEventStatus {
   scheduled
   confirmed
@@ -489,4 +531,446 @@ enum CalendarEventStatus {
   cancelled
   no_show
   rescheduled
+}
+
+// ─── Social Engagement Dashboard ─────────────────────────────────────────────
+
+enum SocialPostStatus {
+  draft
+  scheduled
+  approved
+  published
+  failed
+  archived
+}
+
+model SocialAccount {
+  id             String   @id @default(cuid())
+  platform       String
+  accountName    String
+  externalId     String
+  accessTokenRef String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  posts SocialPost[]
+
+  @@index([platform])
+}
+
+model SocialPost {
+  id               String           @id @default(cuid())
+  platform         String
+  accountId        String?
+  externalPostId   String?
+  status           SocialPostStatus @default(draft)
+  caption          String
+  mediaUrls        Json?
+  scheduledAt      DateTime?
+  publishedAt      DateTime?
+  approvedBy       String?
+  campaign         String?
+  rawPublishResult Json?
+  metadata         Json?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  account  SocialAccount?  @relation(fields: [accountId], references: [id])
+  metrics  SocialMetric[]
+  comments SocialComment[]
+  insights Insight[]
+
+  @@unique([platform, externalPostId])
+  @@index([platform])
+  @@index([status])
+  @@index([campaign])
+}
+
+model SocialMetric {
+  id           String   @id @default(cuid())
+  postId       String
+  platform     String
+  metricDate   DateTime
+  impressions  Int      @default(0)
+  reach        Int      @default(0)
+  clicks       Int      @default(0)
+  reactions    Int      @default(0)
+  comments     Int      @default(0)
+  shares       Int      @default(0)
+  saves        Int      @default(0)
+  leads        Int      @default(0)
+  conversions  Int      @default(0)
+  revenueCents Int      @default(0)
+  raw          Json?
+  createdAt    DateTime @default(now())
+
+  post SocialPost @relation(fields: [postId], references: [id])
+
+  @@unique([postId, metricDate])
+  @@index([platform, metricDate])
+}
+
+model SocialComment {
+  id                String   @id @default(cuid())
+  postId            String
+  platform          String
+  externalCommentId String?
+  authorHandle      String?
+  body              String
+  raw               Json?
+  createdAt         DateTime @default(now())
+
+  post     SocialPost   @relation(fields: [postId], references: [id])
+  analyses AIAnalysis[]
+
+  @@index([postId])
+}
+
+model AIAnalysis {
+  id              String   @id @default(cuid())
+  targetType      String
+  targetId        String
+  commentId       String?
+  provider        String
+  model           String
+  sentiment       String
+  confidence      Float
+  intent          String?
+  urgency         String?
+  topics          Json
+  trendingTerms   Json?
+  leadPotential   String?
+  complianceRisk  String?
+  suggestedAction String?
+  tokenEstimate   Int?
+  costEstimate    Decimal? @db.Decimal(10, 6)
+  latencyMs       Int?
+  raw             Json?
+  createdAt       DateTime @default(now())
+
+  comment SocialComment? @relation(fields: [commentId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([sentiment, createdAt])
+  @@index([provider, model])
+}
+
+model Insight {
+  id        String   @id @default(cuid())
+  type      String
+  severity  String
+  title     String
+  summary   String
+  action    String?
+  source    Json?
+  status    String   @default("open")
+  postId    String?
+  createdAt DateTime @default(now())
+
+  post SocialPost? @relation(fields: [postId], references: [id])
+
+  @@index([type, createdAt])
+  @@index([severity, status])
+}
+
+model AutomationRule {
+  id        String   @id @default(cuid())
+  name      String
+  trigger   Json
+  condition Json
+  actions   Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WeeklyReport {
+  id              String   @id @default(cuid())
+  weekStart       DateTime
+  weekEnd         DateTime
+  kpis            Json
+  insights        Json
+  opportunities   Json
+  recommendations Json?
+  pdfUrl          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([weekStart, weekEnd])
+  @@index([weekStart])
+}
+
+model UploadedWorkDocument {
+  id            String   @id @default(cuid())
+  fileName      String
+  mimeType      String
+  storageUrl    String?
+  extractedText String?
+  metadata      Json?
+  status        String   @default("processed")
+  createdAt     DateTime @default(now())
+
+  @@index([mimeType])
+  @@index([createdAt])
+}
+
+model SocialTemplate {
+  id               String   @id @default(cuid())
+  title            String
+  category         String
+  platform         String?
+  audienceTrack    String?
+  body             String
+  cta              String?
+  hashtags         Json?
+  suggestedDay     String?
+  suggestedTime    String?
+  campaign         String?
+  complianceStatus String   @default("draft")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  usages SocialTemplateUsage[]
+
+  @@index([platform, category])
+}
+
+model SocialTemplateUsage {
+  id          String   @id @default(cuid())
+  templateId  String
+  postId      String?
+  usedAt      DateTime @default(now())
+  performance Json?
+  notes       String?
+
+  template SocialTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([templateId])
+}
+
+enum AnalyticsJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  skipped
+}
+
+model AnalyticsDailyMetric {
+  id         String   @id @default(cuid())
+  metricDate DateTime
+  metricKey  String
+  value      Decimal  @db.Decimal(18, 4)
+  unit       String   @default("count")
+  source     String   @default("aggregation_job")
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([metricDate, metricKey])
+  @@index([metricKey, metricDate])
+}
+
+model AnalyticsBreakdownDaily {
+  id             String   @id @default(cuid())
+  metricDate     DateTime
+  metricKey      String
+  dimension      String
+  dimensionValue String
+  value          Decimal  @db.Decimal(18, 4)
+  unit           String   @default("count")
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([metricDate, metricKey, dimension, dimensionValue])
+  @@index([dimension, dimensionValue, metricDate])
+  @@index([metricKey, metricDate])
+}
+
+model AnalyticsFunnelDaily {
+  id             String   @id @default(cuid())
+  metricDate     DateTime
+  funnelKey      String   @default("lead_funnel")
+  stageKey       String
+  stageOrder     Int
+  count          Int
+  conversionRate Decimal? @db.Decimal(8, 4)
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([metricDate, funnelKey, stageKey])
+  @@index([funnelKey, metricDate])
+}
+
+model AnalyticsJobRun {
+  id            String             @id @default(cuid())
+  jobKey        String
+  status        AnalyticsJobStatus @default(queued)
+  startedAt     DateTime           @default(now())
+  finishedAt    DateTime?
+  targetStart   DateTime?
+  targetEnd     DateTime?
+  rowsProcessed Int                @default(0)
+  error         String?
+  metadata      Json?
+
+  @@index([jobKey, startedAt])
+  @@index([status, startedAt])
+}
+
+model AnalyticsTarget {
+  id          String   @id @default(cuid())
+  metricKey   String
+  period      String   @default("weekly")
+  targetValue Decimal  @db.Decimal(18, 4)
+  active      Boolean  @default(true)
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([metricKey, period])
+  @@index([active])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum LeadSource {
+  WEBSITE_DIRECT
+  GOOGLE_ORGANIC
+  GOOGLE_ADS
+  SOCIAL_ORGANIC
+  QR_CAMPAIGN
+  EMAIL_CAMPAIGN
+  REFERRAL
+  PARTNER_ORG
+  PHONE_INBOUND
+  SMS_INBOUND
+  EMAIL_INBOUND
+  EVENT
+  WORKSHOP
+  FILLOUT
+  UNKNOWN
+}
+
+enum LeadIntent {
+  CONSULT
+  JOIN_PARTNERSHIP
+  JOIN_AGENT
+  JOIN_BOTH
+  QUICK_TERM
+  GENERAL_INQUIRY
+  UNKNOWN
+}
+
+enum LeadStatus {
+  NEW
+  ATTEMPTED_CONTACT
+  CONTACTED
+  QUALIFIED
+  BOOKED
+  IN_CONSULT
+  REFERRED_TO_ETHOS
+  ETHOS_APPLIED
+  ETHOS_APPROVED
+  JOIN_EXPLORING
+  JOIN_ONBOARDING
+  JOIN_ACTIVE
+  CLOSED_WON
+  CLOSED_LOST
+  NURTURE
+  ON_HOLD
+  DORMANT
+}
+
+// ─── Blog / Content Posts ─────────────────────────────────────────────────────
+
+enum PostStatus {
+  draft
+  flagged
+  approved
+  published
+  archived
+}
+
+model Post {
+  id          String         @id @default(uuid())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  slug        String         @unique
+  title       String
+  body        String
+  tags        String[]
+  status      PostStatus     @default(draft)
+  viewCount   Int            @default(0)
+  createdBy   String?
+  comments    PostComment[]
+  reactions   PostReaction[]
+
+  @@index([status, publishedAt])
+  @@index([deletedAt])
+  @@index([createdBy])
+}
+
+model PostReaction {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  postId    String
+  userId    String
+  emoji     String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId, emoji])
+  @@index([postId])
+}
+
+model PostComment {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  authorId  String?
+  body      String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model WorkflowTemplate {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  triggerType  String         // manual | webhook | cron | crm_stage
+  triggerValue String?        // cron expr, stage name, webhook key
+  category     String?
+  tags         String[]       @default([])
+  isPreset     Boolean        @default(false)
+  isActive     Boolean        @default(false)
+  runCount     Int            @default(0)
+  lastRunAt    DateTime?
+  steps        WorkflowStep[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([isPreset])
+}
+
+model WorkflowStep {
+  id         String           @id @default(cuid())
+  workflowId String
+  order      Int
+  type       String           // email | sms | social_post | ai_generate | delay | condition
+  label      String
+  config     Json
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  workflow   WorkflowTemplate @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, order])
 }

@@ -33,6 +33,21 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
   })
   if (!contact) return notFound()
 
+  // Extract join application details from contact notes
+  const joinNote = contact.notes?.find((note) => note.title?.toLowerCase().includes('join application'))
+  let joinDetails: { key: string; value: string }[] = []
+  if (joinNote?.body) {
+    joinDetails = joinNote.body
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.includes(':'))
+      .map((line) => {
+        const [key, ...rest] = line.split(':')
+        return { key: key.trim(), value: rest.join(':').trim() }
+      })
+      .filter((item) => item.value)
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-4">
       <PageHeader eyebrow="CRM Contact" title={displayName(contact)} description="Complete contact profile, pipeline status, communications, and AI insights." />
@@ -53,6 +68,20 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           {contact.inquiries.length === 0 ? <EmptyState title="No pipeline entries" /> : <div className="space-y-3">{contact.inquiries.map((inq) => <div key={inq.id} className="border border-white/8 rounded-xl p-4"><div className="flex justify-between gap-3"><div><p className="font-semibold text-white">{inq.productInterest}</p><p className="text-xs text-[#A9B1BE]">Source: {inq.source ?? 'Unknown'}</p></div><div className="flex gap-2"><StatPill label="Stage" value={inq.stage} /><StatPill label="Score" value={inq.leadScore} /></div></div><p className="mt-2 text-sm text-[#D7DCE5]">{inq.notes ?? 'No notes'}</p></div>)}</div>}
         </AdminCard>
       </div>
+
+      {/* Show join application details if available */}
+      {joinDetails.length > 0 && (
+        <AdminCard title="Application Info">
+          <div className="grid gap-3 md:grid-cols-2 text-sm text-[#D7DCE5]">
+            {joinDetails.map(({ key, value }, idx) => (
+              <div key={idx} className="flex flex-col gap-1">
+                <span className="font-medium text-white">{key}</span>
+                <span className="text-[#D7DCE5]">{value}</span>
+              </div>
+            ))}
+          </div>
+        </AdminCard>
+      )}
 
       <div className="grid gap-4 xl:grid-cols-2">
         <AdminCard title="Tasks">

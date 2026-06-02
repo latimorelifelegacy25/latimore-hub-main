@@ -2,15 +2,17 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import twilio from 'twilio'
+import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
+import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const body = await req.json().catch(() => null)
   if (!body?.contactId || !body?.channel || !body?.message) {
     return NextResponse.json({ ok: false, error: 'contactId, channel, and message are required' }, { status: 422 })
@@ -19,34 +21,28 @@ export async function POST(req: NextRequest) {
   const contact = await prisma.contact.findUnique({ where: { id: body.contactId } })
   if (!contact) return NextResponse.json({ ok: false, error: 'Contact not found' }, { status: 404 })
 
-  let providerId: string
+  let providerId: string | null = null
+
   if (body.channel === 'sms') {
-    if (!twilioClient || !contact.phone || !process.env.TWILIO_PHONE_NUMBER) {
-      return NextResponse.json({ ok: false, error: 'Twilio is not configured or contact phone is missing' }, { status: 400 })
-    }
-    const sms = await twilioClient.messages.create({ body: body.message, from: process.env.TWILIO_PHONE_NUMBER, to: contact.phone })
-    providerId = sms.sid
+    return NextResponse.json({ ok: false, error: 'SMS not configured' }, { status: 400 })
   } else if (body.channel === 'email') {
     if (!resend || !contact.email) {
       return NextResponse.json({ ok: false, error: 'Resend is not configured or contact email is missing' }, { status: 400 })
     }
     const result = await resend.emails.send({
-  from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
-  to: contact.email,
-  subject: body.subject || 'Message',
-  text: body.message,
-})
+      from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
+      to: contact.email,
+      subject: body.subject || 'Message',
+      text: body.message,
+    })
 
-console.log('[resend] send result:', JSON.stringify(result, null, 2))
+    logger.info({ result }, '[resend] send result')
 
-providerId =
-  (result as any)?.data?.id ??
-  (result as any)?.id ??
-  null
+    providerId = (result as any)?.data?.id ?? (result as any)?.id ?? null as string | null
 
-if (!providerId) {
-  console.warn('[resend] providerMessageId missing from response')
-}
+    if (!providerId) {
+      console.warn('[resend] providerMessageId missing from response')
+    }
   } else {
     return NextResponse.json({ ok: false, error: 'Unsupported channel' }, { status: 422 })
   }
@@ -91,6 +87,13 @@ if (!providerId) {
   await prisma.contact.update({
     where: { id: body.contactId },
     data: { lastActivityAt: new Date() },
+  })
+
+  // Trigger lead scoring when sending outbound messages
+  await triggerLeadScoring({
+    contactId: body.contactId,
+    inquiryId: body.inquiryId,
+    reason: 'outbound_message_sent'
   })
 
   await prisma.systemEvent.create({

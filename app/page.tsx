@@ -1,12 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { SiteHeader, SiteFooter, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
+import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 
-
-const navy = '#0E1A2B'
-const gold = '#C9A24D'
-const goldLight = '#E5C882'
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold     = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
 
 
@@ -35,11 +36,11 @@ export default function HomePage() {
 
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                 <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', transition: 'transform .18s ease' }} className="btn-hover">Book Free Consultation</a>
-                <a href={BRAND.ethosUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', background: goldLight, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</a>
+                <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA Candidate', '560K+ Residents Served'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents Served'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -141,7 +142,7 @@ export default function HomePage() {
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Carrier Diversity</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                Appointed with North American, F&G, American Equity, Ethos, American General, and Foresters. We shop the market to find the right fit for your situation.
+                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can shop the market to find the right fit for your family's needs and budget.
               </p>
             </div>
 
@@ -189,7 +190,7 @@ export default function HomePage() {
           
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem' }} className="btn-hover">Book Free Consultation</a>
-            <a href={BRAND.ethosUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</a>
+            <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
           </div>
 
           <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.08)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)' }}>
@@ -210,6 +211,20 @@ export default function HomePage() {
         <p style={{ color: navy, fontWeight: 700, marginTop: '0.5rem', fontSize: '1.1rem' }}>
           Building Wealth. Preserving Futures. Creating Legacies.
         </p>
+      </section>
+
+      {/* Community Sponsorship */}
+      <section style={{ padding: '3rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+        <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
+          <Image
+            src="/pahs-sponsor-flyer.jpg"
+            alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
+            width={560}
+            height={700}
+            style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 12px 36px rgba(0,0,0,0.12)' }}
+          />
+        </div>
       </section>
 
       <SiteFooter />

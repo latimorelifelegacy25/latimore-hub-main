@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { buildFilloutParams } from '@/lib/lead'
+import Link from 'next/link'
 
 type JoinPath = 'partnership' | 'agent' | 'both' | null
 
@@ -138,9 +139,9 @@ export default function JoinFormSection() {
               </ol>
             </div>
 
-            <a href="/" style={{ display: 'inline-block', background: gold, color: navy, padding: '12px 24px', borderRadius: 999, fontWeight: 700, textDecoration: 'none' }}>
+            <Link href="/" style={{ display: 'inline-block', background: gold, color: navy, padding: '12px 24px', borderRadius: 999, fontWeight: 700, textDecoration: 'none' }}>
               Back to Home
-            </a>
+            </Link>
           </div>
         </div>
       </section>

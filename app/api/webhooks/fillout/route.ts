@@ -9,6 +9,60 @@ import { logger } from '@/lib/logger'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { ingestEvent } from '@/lib/hub/ingest-event'
 
+// Fillout can post either a flat key-value payload or its native
+// { questions: [{name, value}], urlParameters: [{id, value}] } format.
+// This normalizer collapses both into the flat shape FilloutSchema expects.
+function normalizeFilloutPayload(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== 'object') return {}
+  const body = raw as Record<string, unknown>
+
+  // Already flat — nothing to do
+  if (!Array.isArray(body.questions)) return body
+
+  const questions = body.questions as { name?: string; value?: unknown }[]
+  const urlParams = Array.isArray(body.urlParameters)
+    ? (body.urlParameters as { id?: string; value?: unknown }[])
+    : []
+
+  function field(...keys: string[]): string | null {
+    for (const key of keys) {
+      const q = questions.find(q => (q.name ?? '').toLowerCase().includes(key.toLowerCase()))
+      if (q?.value != null) return Array.isArray(q.value) ? q.value.join(', ') : String(q.value)
+    }
+    return null
+  }
+
+  function param(id: string): string | null {
+    const p = urlParams.find(p => (p.id ?? '').toLowerCase() === id.toLowerCase())
+    return p?.value != null ? String(p.value) : null
+  }
+
+  const fullName = field('full name', 'name') ?? ''
+  const nameParts = fullName.trim().split(/\s+/)
+  const firstName = field('first name') ?? nameParts[0] ?? null
+  const lastName = field('last name') ?? (nameParts.length > 1 ? nameParts.slice(1).join(' ') : null)
+
+  return {
+    first_name: firstName,
+    last_name: lastName,
+    email: field('email'),
+    phone: field('phone', 'mobile'),
+    county: field('county', 'region'),
+    product_interest: field('product', 'interest', 'insurance'),
+    notes: field('message', 'notes', 'comments'),
+    page_url: field('page url', 'landing page') ?? null,
+    utm_source: param('utmsource'),
+    utm_medium: param('utmmedium'),
+    utm_campaign: param('utmcampaign'),
+    utm_content: param('utmcontent'),
+    utm_term: param('utmterm'),
+    // click IDs — passed through to event metadata via .passthrough()
+    fbclid: param('fbclid'),
+    ttclid: param('ttclid'),
+    gclid: param('gclid'),
+  }
+}
+
 function normalizeSignature(sig: string): string {
   const value = sig.trim()
   const idx = value.indexOf('=')
@@ -18,7 +72,7 @@ function normalizeSignature(sig: string): string {
 
 function verifySignature(rawBody: string, sig: string | null): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
   if (!sig) return false
   try {
     const normalized = normalizeSignature(sig)
@@ -32,7 +86,7 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 function verifyWebhook(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
 
   const token =
     req.headers.get('x-webhook-token') ??
@@ -40,7 +94,15 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
       ? req.headers.get('authorization')!.slice('Bearer '.length)
       : null)
 
-  if (token && token === secret) return true
+  if (token) {
+    try {
+      const tokenBuf = Buffer.from(token)
+      const secretBuf = Buffer.from(secret)
+      if (tokenBuf.length === secretBuf.length && crypto.timingSafeEqual(tokenBuf, secretBuf)) return true
+    } catch {
+      // fall through to signature check
+    }
+  }
 
   const sig =
     req.headers.get('x-webhook-signature') ??
@@ -52,7 +114,7 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const raw = await req.text()
@@ -62,13 +124,14 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-   try {
+  try {
     body = raw ? JSON.parse(raw) : null
-   } catch {
-   return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
-   }
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
+  }
 
-  const parse = FilloutSchema.safeParse(body)
+  const normalized = normalizeFilloutPayload(body)
+  const parse = FilloutSchema.safeParse(normalized)
   if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
 
   const payload = parse.data
@@ -114,6 +177,9 @@ export async function POST(req: NextRequest) {
       productInterest,
       metadata: {
         provider: 'fillout',
+        ...(payload.fbclid ? { fbclid: payload.fbclid } : {}),
+        ...(payload.ttclid ? { ttclid: payload.ttclid } : {}),
+        ...(payload.gclid ? { gclid: payload.gclid } : {}),
       },
     })
 
