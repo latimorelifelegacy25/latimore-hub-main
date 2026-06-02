@@ -40,6 +40,7 @@ const POSTS_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { topic, platform = 'LinkedIn', count = 3 } = body

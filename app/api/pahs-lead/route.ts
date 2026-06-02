@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, target, save: saveResult, email: emailResult });
   } catch (error) {
-    console.error('[pahs-lead]', error);
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, '[pahs-lead] submission error');
     return NextResponse.json(
       { ok: false, error: error instanceof Error ? error.message : 'Lead submission failed.' },
       { status: 500 }

@@ -6,6 +6,7 @@ import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
