@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 import { rateLimit } from '@/lib/rate-limit'
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!contact) {
-      console.log(`Inbound SMS from unknown number: ${from}`)
+      logger.info({ from }, 'Inbound SMS from unknown number')
       return new NextResponse('', { status: 200 }) // Acknowledge but don't process
     }
 
@@ -141,7 +142,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse('', { status: 200 })
 
   } catch (error) {
-    console.error('Twilio webhook error:', error)
+    logger.error({ error }, 'Twilio webhook error')
     return new NextResponse('Internal server error', { status: 500 })
   }
 }

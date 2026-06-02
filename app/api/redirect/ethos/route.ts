@@ -33,7 +33,7 @@ function pick<T>(value: T | null | undefined): T | undefined {
 }
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'ethos_redirect')
+  const limited = await rateLimit(req, 'ethos_redirect')
   if (limited) return limited
 
   const url = new URL(req.url)

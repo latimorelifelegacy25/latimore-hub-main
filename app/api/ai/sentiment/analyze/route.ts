@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   const auth = await requireAdminSession()

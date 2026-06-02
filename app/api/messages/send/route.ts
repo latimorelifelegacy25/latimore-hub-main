@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 import { requireAdminSession } from '@/lib/ai/shared'
 
