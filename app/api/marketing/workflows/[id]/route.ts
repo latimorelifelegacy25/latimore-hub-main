@@ -69,7 +69,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as Prisma.InputJsonValue,
+            config: s.config as never,
           })),
         })
       }

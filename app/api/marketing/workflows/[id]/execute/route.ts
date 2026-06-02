@@ -13,6 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   const { id } = await params
+
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id },
