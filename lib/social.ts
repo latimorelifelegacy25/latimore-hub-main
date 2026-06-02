@@ -105,30 +105,69 @@ async function publishLinkedIn(asset: ContentAsset, connection: ProviderConnecti
 }
 
 async function publishFacebookPage(asset: ContentAsset, connection: ProviderConnection) {
-  const token = connection.accessToken
   const pageId = connection.externalId
+  if (!pageId) throw new Error('Facebook page ID / externalId is required to publish.')
 
-  if (!pageId) {
-    throw new Error('Facebook page ID / externalId is required to publish.')
+  // Warn if token is expiring within 7 days but still proceed
+  if (connection.tokenExpiresAt) {
+    const daysLeft = (connection.tokenExpiresAt.getTime() - Date.now()) / 86_400_000
+    if (daysLeft < 0) throw new Error('Facebook page access token has expired. Re-connect in Integrations.')
   }
 
-  const response = await fetch(`https://graph.facebook.com/v17.0/${pageId}/feed`, {
+  const token = connection.accessToken as string
+  const meta = connection.metadata as Record<string, unknown> | null
+
+  // Photo post: asset carries an imageUrl in metadata
+  const imageUrl = (meta?.imageUrl as string | undefined) ?? (asset as any).imageUrl
+  if (imageUrl) {
+    const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/photos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        url: imageUrl,
+        caption: asset.bodyText ?? asset.title,
+        access_token: token,
+      }),
+    })
+    if (!res.ok) {
+      const body = await res.text()
+      throw new Error(`Facebook photo publish failed: ${res.status} ${body}`)
+    }
+    const result = await res.json()
+    return { success: true, providerId: result.post_id ?? result.id ?? null }
+  }
+
+  // Link post: asset carries a linkUrl
+  const linkUrl = (asset as any).linkUrl as string | undefined
+
+  const payload: Record<string, string> = {
+    message: asset.bodyText ?? asset.title ?? '',
+    access_token: token,
+  }
+  if (linkUrl) payload.link = linkUrl
+
+  // Scheduled publishing: asset.scheduledAt must be at least 10 min in the future
+  const scheduledAt = (asset as any).scheduledAt as Date | string | undefined
+  if (scheduledAt) {
+    const ts = Math.floor(new Date(scheduledAt).getTime() / 1000)
+    if (ts > Math.floor(Date.now() / 1000) + 600) {
+      payload.scheduled_publish_time = String(ts)
+      payload.published = 'false'
+    }
+  }
+
+  const res = await fetch(`https://graph.facebook.com/v19.0/${pageId}/feed`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message: asset.bodyText ?? asset.title,
-      access_token: token,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
   })
 
-  if (!response.ok) {
-    const errorBody = await response.text()
-    throw new Error(`Facebook publish failed: ${response.status} ${errorBody}`)
+  if (!res.ok) {
+    const body = await res.text()
+    throw new Error(`Facebook publish failed: ${res.status} ${body}`)
   }
 
-  const result = await response.json()
+  const result = await res.json()
   return { success: true, providerId: result.id ?? null }
 }
 
@@ -145,7 +184,7 @@ async function publishInstagram(asset: ContentAsset, connection: ProviderConnect
     throw new Error('Instagram publishing requires an image URL. Add metadata.imageUrl when connecting Instagram.')
   }
 
-  const createResponse = await fetch(`https://graph.facebook.com/v17.0/${instagramId}/media`, {
+  const createResponse = await fetch(`https://graph.facebook.com/v19.0/${instagramId}/media`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -166,7 +205,7 @@ async function publishInstagram(asset: ContentAsset, connection: ProviderConnect
     throw new Error('Instagram media creation returned no creation id.')
   }
 
-  const publishResponse = await fetch(`https://graph.facebook.com/v17.0/${instagramId}/media_publish`, {
+  const publishResponse = await fetch(`https://graph.facebook.com/v19.0/${instagramId}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

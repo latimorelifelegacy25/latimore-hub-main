@@ -72,7 +72,7 @@ function normalizeSignature(sig: string): string {
 
 function verifySignature(rawBody: string, sig: string | null): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
   if (!sig) return false
   try {
     const normalized = normalizeSignature(sig)
@@ -86,7 +86,7 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 function verifyWebhook(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
 
   const token =
     req.headers.get('x-webhook-token') ??
@@ -114,7 +114,7 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const raw = await req.text()

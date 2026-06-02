@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)

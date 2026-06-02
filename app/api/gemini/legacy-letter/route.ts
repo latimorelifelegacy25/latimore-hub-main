@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   try {
