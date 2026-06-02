@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import type { ContentAsset, SocialProvider } from '@prisma/client'
+import { decryptToken } from '@/lib/crypto'
 
 type ProviderConnection = {
   id: string
@@ -31,9 +32,16 @@ export async function publishSocialPost(asset: ContentAsset) {
   }
 
   const provider = asset.channel as SocialProvider
-  const connection = await getSocialConnection(provider)
-  if (!connection || !connection.accessToken) {
+  const raw = await getSocialConnection(provider)
+  if (!raw || !raw.accessToken) {
     throw new Error(`No connected ${provider} account found. Please connect a ${provider} account in Integrations.`)
+  }
+
+  // Decrypt stored tokens before use
+  const connection: ProviderConnection = {
+    ...raw,
+    accessToken: decryptToken(raw.accessToken),
+    refreshToken: decryptToken(raw.refreshToken),
   }
 
   switch (provider) {
