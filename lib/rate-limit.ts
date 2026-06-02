@@ -33,6 +33,9 @@ function getUpstash(): import('@upstash/ratelimit').Ratelimit | null {
 
 const LIMITS: Record<string, { limit: number; windowMs: number }> = {
   cardEvents: { limit: 200, windowMs: 60_000 },
+  event:     { limit: 120, windowMs: 60_000 },
+  lead:      { limit: 20,  windowMs: 60_000 },
+  join:      { limit: 10,  windowMs: 60_000 },
   fillout:   { limit: 20,  windowMs: 60_000 },
   lead:      { limit: 20,  windowMs: 60_000 },
   event:     { limit: 200, windowMs: 60_000 },
