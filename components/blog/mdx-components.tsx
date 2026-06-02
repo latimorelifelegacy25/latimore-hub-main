@@ -139,7 +139,8 @@ function MdxBlockquote({ children }: { children: React.ReactNode }) {
 
 /* ── Export ─────────────────────────────────────────────── */
 
-export function getMDXComponents(): MDXComponents {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getMDXComponents(): Record<string, any> {
   return {
     // Custom components
     Callout,
@@ -151,6 +152,6 @@ export function getMDXComponents(): MDXComponents {
     // Element overrides
     img: MdxImage as MDXComponents['img'],
     a: MdxAnchor,
-    blockquote: MdxBlockquote,
+    blockquote: MdxBlockquote as MDXComponents['blockquote'],
   }
 }
