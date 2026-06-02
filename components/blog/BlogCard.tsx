@@ -1,4 +1,71 @@
 import Link from 'next/link'
+import Image from 'next/image'
+import type { BlogPost } from '@/lib/blog'
+
+/* ── New BlogCard for /education/blog ──────────────────── */
+
+function categoryChipClass(category: string): string {
+  const map: Record<string, string> = {
+    'Life Insurance': 'chip--life-insurance',
+    'Annuities & Retirement': 'chip--annuities',
+    'Estate & Legacy Planning': 'chip--estate',
+    'Business Protection': 'chip--business',
+    'College Funding': 'chip--college',
+    'Debt & Mortgage': 'chip--debt',
+    'Financial Literacy': 'chip--financial',
+    'Community & Advocacy': 'chip--community',
+  }
+  return map[category] ?? 'chip--financial'
+}
+
+function formatDate(dateStr: string): string {
+  try {
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  } catch {
+    return dateStr
+  }
+}
+
+export function NewBlogCard({ post }: { post: BlogPost }) {
+  const excerpt =
+    post.description.length > 120
+      ? post.description.slice(0, 120).trim() + '…'
+      : post.description
+
+  return (
+    <Link href={`/education/blog/${post.slug}`} className="blog-card">
+      {post.image ? (
+        <Image
+          src={post.image}
+          alt={post.imageAlt ?? post.title}
+          width={640}
+          height={360}
+          className="blog-card__image"
+        />
+      ) : (
+        <div className="blog-card__image-placeholder" aria-hidden />
+      )}
+      <div className="blog-card__body">
+        <span className={`blog-card__category ${categoryChipClass(post.category)}`}>
+          {post.category}
+        </span>
+        <h2 className="blog-card__title">{post.title}</h2>
+        <p className="blog-card__excerpt">{excerpt}</p>
+        <div className="blog-card__meta">
+          <span>{post.readingTime} min read</span>
+          <span>·</span>
+          <span>{formatDate(post.date)}</span>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+/* ── Legacy BlogCard (kept for /blog pages) ─────────────── */
 import type { ArticleMeta, Track } from '@/lib/mdx'
 
 // ── Brand tokens ──────────────────────────────────────────────────────────────
