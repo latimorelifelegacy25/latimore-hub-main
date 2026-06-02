@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { buildWeeklyReport } from '@/lib/reports/weekly-report'
 import { prisma } from '@/lib/prisma'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

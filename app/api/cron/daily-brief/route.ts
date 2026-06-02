@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest } from 'next/server'
-import { requireCronAuth } from '@/lib/ai/shared'
 import { POST as runDailyBrief } from '@/app/api/ai/daily-brief/route'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)
