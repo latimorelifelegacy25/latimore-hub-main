@@ -1,22 +1,6 @@
 export const dynamic = 'force-dynamic'
-
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/ai/shared'
-
-type GoogleRefreshTokenResponse = {
-  access_token?: string
-  error?: string
-  error_description?: string
-}
-
-type GaRunReportResponse = {
-  rows?: Array<{
-    dimensionValues?: Array<{ value: string }>
-    metricValues?: Array<{ value: string }>
-  }>
-  error?: unknown
-}
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 async function getAccessToken(refreshToken: string) {
   const clientId = process.env.GOOGLE_CLIENT_ID
