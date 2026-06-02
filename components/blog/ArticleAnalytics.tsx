@@ -1,54 +1,48 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { sendGTMEvent } from '@next/third-parties/google'
+import { getEventContext } from '@/lib/lead'
 
 interface ArticleAnalyticsProps {
   slug: string
   title: string
-  track: string
-  num: string
+  category: string
 }
 
 /**
- * Fires article analytics events via:
- *  - GTM (sendGTMEvent) for tag-manager-level tracking
- *  - /api/event for the Hub's internal analytics pipeline
+ * Fires post_viewed events to /api/event (Supabase) with full UTM attribution.
+ * Tracks scroll depth milestones (50% and 95%) in event metadata.
  *
- * Events fired:
- *   article_view     — on mount
- *   article_read_50  — when reader scrolls past 50% of article
- *   article_read_100 — when reader reaches 95%+ of article
+ * The global PublicTracker fires a generic page_view — this fires the richer
+ * post_viewed event type with blog-specific context (slug, category, depth).
  */
-export default function ArticleAnalytics({ slug, title, track, num }: ArticleAnalyticsProps) {
+export default function ArticleAnalytics({ slug, title, category }: ArticleAnalyticsProps) {
   const fired50 = useRef(false)
   const fired100 = useRef(false)
 
-  const fire = (eventName: string) => {
-    // GTM layer
-    sendGTMEvent({
-      event: eventName,
-      article_slug: slug,
-      article_title: title,
-      article_track: track,
-      article_num: num,
-    })
-
-    // Internal Hub analytics pipeline — failures silently swallowed
+  function fire(depth: 'entry' | '50pct' | '95pct') {
+    const ctx = getEventContext({ pageUrl: `/education/blog/${slug}` })
     fetch('/api/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        eventType: eventName,
-        page: `/blog/${slug}`,
-        metadata: { title, track, num },
+        eventType: 'post_viewed',
+        leadSessionId: ctx.leadSessionId,
+        pageUrl: ctx.pageUrl,
+        referrer: ctx.referrer,
+        source: ctx.source,
+        medium: ctx.medium,
+        campaign: ctx.campaign,
+        term: ctx.term,
+        content: ctx.content,
+        metadata: { slug, title, category, depth },
       }),
       keepalive: true,
     }).catch(() => undefined)
   }
 
   useEffect(() => {
-    fire('article_view')
+    fire('entry')
 
     const handleScroll = () => {
       const doc = document.documentElement
@@ -58,11 +52,11 @@ export default function ArticleAnalytics({ slug, title, track, num }: ArticleAna
 
       if (!fired50.current && pct >= 0.5) {
         fired50.current = true
-        fire('article_read_50')
+        fire('50pct')
       }
       if (!fired100.current && pct >= 0.95) {
         fired100.current = true
-        fire('article_read_100')
+        fire('95pct')
       }
     }
 
