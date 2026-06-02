@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as never,
+            config: s.config as Prisma.InputJsonValue,
           })),
         },
       },

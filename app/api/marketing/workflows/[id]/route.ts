@@ -30,6 +30,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!auth.ok) return auth.response
 
   const { id } = await params
+
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id },
@@ -50,6 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (limited) return limited
 
   const { id } = await params
+
   const body = await req.json().catch(() => null)
   const parsed = PatchSchema.safeParse(body)
   if (!parsed.success) {
@@ -69,7 +71,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             order: s.order,
             type: s.type,
             label: s.label,
-            config: s.config as never,
+            config: s.config as Prisma.InputJsonValue,
           })),
         })
       }
@@ -90,6 +92,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   if (!auth.ok) return auth.response
 
   const { id } = await params
+
   try {
     await prisma.workflowTemplate.delete({ where: { id } })
     return NextResponse.json({ ok: true })
