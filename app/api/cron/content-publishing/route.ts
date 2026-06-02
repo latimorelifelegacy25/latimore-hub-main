@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireCronAuth, createSystemAiEvent } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
-import { createSystemAiEvent } from '@/lib/ai/shared'
+import { createSystemAiEvent, requireCronAuth } from '@/lib/ai/shared'
 import { publishSocialPost } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
-  const isCron = cronSecret && req.headers.get("x-cron-secret") === cronSecret
-
-  if (!isCron) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   try {
     const now = new Date()
