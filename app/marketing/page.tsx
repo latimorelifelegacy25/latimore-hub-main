@@ -389,7 +389,7 @@ export default function MarketingCommandCenter() {
   const [campaignTone, setCampaignTone] = useState<string>('warm')
   const [campaignAudience, setCampaignAudience] = useState('families and homeowners')
   const [includeVisualBrief, setIncludeVisualBrief] = useState(true)
-  const [campaignResult, setCampaignResult] = useState<Record<string, unknown> | null>(null)
+  const [campaignResult, setCampaignResult] = useState<Record<string, any> | null>(null)
   const [campaignLoading, setCampaignLoading] = useState(false)
 
   // ── Template gallery state ──────────────────────────────────────────────────
