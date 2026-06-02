@@ -36,6 +36,7 @@ function promptFor(action: string, input: any) {
 export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const action = String(body?.action || '')

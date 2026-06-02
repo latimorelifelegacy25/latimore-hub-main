@@ -7,6 +7,8 @@ const navItems = [
   { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
   { href: '/admin/nexus-agent', label: 'Nexus Agent', icon: 'fa-robot' },
+  { href: '/admin/workflow', label: 'Workflow Builder', icon: 'fa-diagram-project' },
+  { href: '/admin/autonomous-monitor', label: 'Auto Monitor', icon: 'fa-tower-broadcast' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
   { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },
