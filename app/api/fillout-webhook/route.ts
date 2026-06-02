@@ -1,12 +1,15 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
+import { upsertLead } from '@/lib/hub/upsert-lead';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 
 type FilloutQuestion = { name: string; value: unknown };
-type FilloutPayload = { submissionId?: string; submissionTime?: string; questions?: FilloutQuestion[] };
+type FilloutUrlParam = { id: string; value: unknown };
+type FilloutPayload = { submissionId?: string; submissionTime?: string; questions?: FilloutQuestion[]; urlParameters?: FilloutUrlParam[] };
 
 function field(questions: FilloutQuestion[], ...names: string[]): string {
   for (const name of names) {
@@ -16,10 +19,19 @@ function field(questions: FilloutQuestion[], ...names: string[]): string {
   return '';
 }
 
-export async function POST(req: Request) {
+function param(urlParams: FilloutUrlParam[], id: string): string {
+  const p = urlParams.find(p => p.id.toLowerCase() === id.toLowerCase());
+  return p?.value != null ? String(p.value).trim().slice(0, 150) : '';
+}
+
+export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'fillout')
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as FilloutPayload;
     const questions: FilloutQuestion[] = body.questions ?? [];
+    const urlParams: FilloutUrlParam[] = body.urlParameters ?? [];
 
     const firstName = field(questions, 'First name', 'First Name');
     const lastName = field(questions, 'Last name', 'Last Name');
@@ -35,6 +47,12 @@ export async function POST(req: Request) {
       field(questions, 'ZIP', 'Zip'),
     ].filter(Boolean).join(', ');
     const dob = field(questions, 'Date of birth', 'DOB');
+
+    const utmSource = param(urlParams, 'utm_source') || param(urlParams, 'utmsource') || 'pahs_qr';
+    const utmMedium = param(urlParams, 'utm_medium') || param(urlParams, 'utmmedium') || 'qr';
+    const utmCampaign = param(urlParams, 'utm_campaign') || param(urlParams, 'utmcampaign') || 'pahs';
+    const utmTerm = param(urlParams, 'utm_term') || param(urlParams, 'utmterm') || undefined;
+    const utmContent = param(urlParams, 'utm_content') || param(urlParams, 'utmcontent') || undefined;
 
     const notes = [
       'Fillout PAHS form submission.',
@@ -56,10 +74,32 @@ export async function POST(req: Request) {
         page_source: 'latimorelifelegacy.fillout.com/pahs',
         status: 'New',
         county: county || null,
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+        utm_term: utmTerm || null,
+        utm_content: utmContent || null,
         notes,
       });
-      if (error) console.error('Supabase insert error:', error.message);
+      if (error) logger.error({ error: error.message }, 'Supabase insert error');
     }
+
+    await upsertLead({
+      firstName: firstName || undefined,
+      lastName: lastName || undefined,
+      email: email || null,
+      phone: phone || null,
+      county: county || null,
+      productInterest: interest || null,
+      source: utmSource,
+      medium: utmMedium,
+      campaign: utmCampaign,
+      term: utmTerm || null,
+      content: utmContent || null,
+      landingPage: 'latimorelifelegacy.fillout.com/pahs',
+      notes,
+      metadata: { form: 'fillout-pahs', submissionId: body.submissionId ?? null },
+    });
 
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
@@ -76,7 +116,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('Fillout webhook error:', error);
-    return NextResponse.json({ ok: false, error: String(error) }, { status: 500 });
+    logger.error({ error }, 'Fillout webhook error');
+    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
   }
 }

@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -87,7 +88,10 @@ async function sendNotification(lead: Required<LeadBody>) {
   return { skipped: false };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = rateLimit(req, 'lead')
+  if (limited) return limited
+
   try {
     const body = (await req.json()) as LeadBody;
     const lead: Required<LeadBody> = {
@@ -117,7 +121,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, target, save: saveResult, email: emailResult });
   } catch (error) {
-    console.error('[pahs-lead]', error);
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, '[pahs-lead] submission error');
     return NextResponse.json(
       { ok: false, error: error instanceof Error ? error.message : 'Lead submission failed.' },
       { status: 500 }
