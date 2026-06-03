@@ -346,7 +346,6 @@ export default function AnalyticsPage() {
   }, [range])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchAll()
   }, [fetchAll])
 

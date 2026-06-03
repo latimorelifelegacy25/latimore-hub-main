@@ -56,7 +56,7 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
   };
 
   useEffect(() => {
-    void fetchRealTimeMetrics(); // eslint-disable-line react-hooks/set-state-in-effect
+    void fetchRealTimeMetrics()
   }, [scheduledPosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ensure Recharts doesn't render until the container is ready
