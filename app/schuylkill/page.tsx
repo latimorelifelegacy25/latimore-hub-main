@@ -322,6 +322,153 @@ export default function SchuylkillPage() {
         </div>
       </section>
 
+      {/* ── Term vs. Whole Life Comparison Chart ── */}
+      <section style={{ padding: '4rem 0', background: '#f9fafb' }}>
+        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '0 24px' }}>
+          <h2
+            style={{
+              fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
+              color: navy,
+              textAlign: 'center',
+              margin: '0 0 0.5rem',
+            }}
+          >
+            Term Life vs. Whole Life — Which Fits Your Family?
+          </h2>
+          <p style={{ textAlign: 'center', color: '#667085', marginBottom: '2.5rem', fontSize: '1rem' }}>
+            Understanding the difference is the first step to building the right plan.
+          </p>
+
+          {/* Comparison table */}
+          <div style={{ overflowX: 'auto', borderRadius: 16, boxShadow: '0 4px 20px rgba(14,26,43,0.08)', border: '1px solid #e5e7eb' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.97rem' }}>
+              <thead>
+                <tr style={{ background: navy }}>
+                  {['Policy Type', 'How It Works', 'Best Fit'].map(h => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: '1rem 1.25rem',
+                        textAlign: 'left',
+                        color: goldLight,
+                        fontWeight: 700,
+                        fontSize: '0.88rem',
+                        letterSpacing: '.06em',
+                        textTransform: 'uppercase',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr style={{ background: '#e8f4fd', borderBottom: '1px solid #bee3f8' }}>
+                  <td style={{ padding: '1.25rem', fontWeight: 700, color: navy, verticalAlign: 'top', whiteSpace: 'nowrap' }}>
+                    🛡️ Term Life
+                  </td>
+                  <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
+                    Provides coverage for a defined period — commonly 10, 20, or 30 years. Premiums are generally lower, and the death benefit is paid if the insured passes away during the term.
+                  </td>
+                  <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
+                    Families seeking the largest amount of coverage during the years they are most financially vulnerable — mortgage years, child-raising years, income-replacement years.
+                  </td>
+                </tr>
+                <tr style={{ background: '#fff' }}>
+                  <td style={{ padding: '1.25rem', fontWeight: 700, color: navy, verticalAlign: 'top', whiteSpace: 'nowrap' }}>
+                    🏛️ Whole Life
+                  </td>
+                  <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
+                    Provides lifelong coverage as long as required premiums are paid. It can also build cash value over time.
+                  </td>
+                  <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
+                    Families seeking permanent protection, final expense planning, estate planning, or a policy designed to last beyond working years.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Local examples */}
+          <div
+            style={{
+              marginTop: '2.5rem',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '1.25rem',
+            }}
+            className="examples-grid"
+          >
+            {[
+              {
+                icon: '👨‍👩‍👧‍👦',
+                label: 'Young couple in Tamaqua',
+                desc: 'With two children and a new mortgage, they may need the largest amount of coverage for the lowest practical cost — a 20- or 30-year term policy may be the right fit.',
+              },
+              {
+                icon: '💼',
+                label: 'Small business owner in Pottsville',
+                desc: 'May need a more permanent strategy to protect the family, support succession planning, or create a policy that stays in place for life.',
+              },
+              {
+                icon: '🕊️',
+                label: 'Retired widow in Frackville or Minersville',
+                desc: 'May not need a large income-replacement policy, but a smaller final expense policy may help ensure children are not left paying costs out of pocket.',
+              },
+            ].map(ex => (
+              <div
+                key={ex.label}
+                style={{
+                  background: '#fff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: 14,
+                  padding: '1.5rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{ex.icon}</div>
+                <div style={{ fontWeight: 700, color: navy, fontSize: '0.95rem', marginBottom: '0.5rem' }}>{ex.label}</div>
+                <p style={{ color: '#475467', fontSize: '0.92rem', lineHeight: 1.7, margin: 0 }}>{ex.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* 10x income rule callout */}
+          <div
+            style={{
+              marginTop: '2rem',
+              background: `linear-gradient(135deg, ${navy} 0%, #1a2942 100%)`,
+              borderRadius: 16,
+              padding: '1.75rem 2rem',
+              color: '#fff',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-start',
+            }}
+          >
+            <div style={{ fontSize: '2rem', flexShrink: 0 }}>💡</div>
+            <div>
+              <div style={{ fontWeight: 700, color: goldLight, marginBottom: '0.4rem', fontSize: '1rem' }}>
+                How much life insurance should you consider?
+              </div>
+              <p style={{ margin: 0, color: 'rgba(255,255,255,0.88)', lineHeight: 1.75, fontSize: '0.97rem' }}>
+                There is no one-size-fits-all answer. The right policy depends on your age, health, income,
+                dependents, goals, budget, and existing coverage. A common starting point is the{' '}
+                <strong style={{ color: goldLight }}>10x income rule</strong> — multiply your annual salary
+                by 10 to estimate a starting coverage amount. Then we refine from there.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
+          @media (max-width: 700px) {
+            .examples-grid { grid-template-columns: 1fr !important; }
+          }
+        `}</style>
+      </section>
+
       {/* ── "Which is right for you?" bridge ── */}
       <section
         style={{
