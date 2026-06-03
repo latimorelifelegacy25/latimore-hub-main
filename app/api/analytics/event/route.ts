@@ -63,7 +63,7 @@ async function sendToGa4(payload: Required<Pick<AnalyticsPayload, "event_name">>
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'event')
+  const limited = await rateLimit(req, 'event')
   if (limited) return limited
 
   try {
