@@ -28,7 +28,7 @@ export default function NotificationCenter({ className = '' }: NotificationCente
     loadNotifications()
     const interval = setInterval(loadNotifications, 30000)
     return () => clearInterval(interval)
-  }, [filter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filter]) // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
 
   const handleMarkAsRead = (id: string) => {
     markAsRead(id)
