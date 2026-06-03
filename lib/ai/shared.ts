@@ -20,7 +20,7 @@ export async function requireAdminSession() {
   return { ok: true as const, session }
 }
 
-export function applyAiRateLimit(req: NextRequest) {
+export async function applyAiRateLimit(req: NextRequest) {
   return rateLimit(req, 'reports')
 }
 
