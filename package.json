@@ -29,7 +29,7 @@
     "@react-email/render": "^2.0.8",
     "@supabase/supabase-js": "^2.105.4",
     "@upstash/ratelimit": "^1.2.1",
-    "@upstash/redis": "^1.38.0",
+    "@upstash/redis": "^1.31.3",
     "@vercel/analytics": "^2.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -52,7 +52,8 @@
     "slugify": "^1.6.9",
     "tailwind-merge": "^2.3.0",
     "twilio": "^5.4.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "gray-matter": "^4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

@@ -10,16 +10,15 @@ interface ArticleAnalyticsProps {
   readingTime: string
 }
 
-declare global {
-  interface Window {
-    dataLayer: Record<string, unknown>[]
-  }
+type AnalyticsWindow = Window & {
+  dataLayer?: Record<string, unknown>[]
 }
 
 function pushEvent(event: Record<string, unknown>) {
   try {
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push(event)
+    const analyticsWindow = window as AnalyticsWindow
+    analyticsWindow.dataLayer = analyticsWindow.dataLayer || []
+    analyticsWindow.dataLayer.push(event)
   } catch {
     // analytics failures are silently swallowed
   }

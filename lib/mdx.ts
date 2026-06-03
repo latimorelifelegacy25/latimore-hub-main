@@ -14,9 +14,15 @@ export interface PostFrontmatter {
   featured?: boolean
   coverImage?: string
   track?: 'A' | 'B' | 'C'
+  trackLabel?: string
   kpi?: string
   cta?: string
   bilingual?: boolean
+  tags?: string[]
+  description?: string
+  publishedAt?: string
+  format?: string
+  num?: string
 }
 
 export interface Post extends PostFrontmatter {
@@ -62,3 +68,7 @@ export function getPostsByCategory(category: string): Post[] {
 
 export { CATEGORIES } from './blog-constants'
 export type { Category } from './blog-constants'
+
+// Aliases for legacy components that predated this module
+export type Track = 'A' | 'B' | 'C'
+export type ArticleMeta = Post

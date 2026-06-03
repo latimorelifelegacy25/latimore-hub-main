@@ -5,6 +5,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 import { rateLimit } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 /**
  * Verify Twilio webhook signature.

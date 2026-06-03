@@ -2,10 +2,7 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "crons": [
-    { "path": "/api/cron/daily-brief", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/lead-score-updates", "schedule": "0 2 * * *" },
-    { "path": "/api/cron/appointment-reminders", "schedule": "0 9 * * *" },
-    { "path": "/api/cron/notification-checks", "schedule": "0 12 * * *" }
+    { "path": "/api/cron/daily", "schedule": "0 13 * * *" }
   ],
   "rewrites": [
     { "source": "/webhooks/notion", "destination": "/api/webhooks/notion" }
