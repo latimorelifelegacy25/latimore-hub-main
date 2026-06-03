@@ -4,6 +4,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
 import { Analytics } from '@vercel/analytics/next'
+import { GoogleTagManager } from '@next/third-parties/google'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
 // This value should match the production domain (`latimorelifelegacy.com`) rather than the

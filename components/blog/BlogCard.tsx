@@ -98,8 +98,9 @@ interface BlogCardProps {
 }
 
 export default function BlogCard({ article, index = 0 }: BlogCardProps) {
-  const trackColor = TRACK_COLOR[article.track]
-  const trackBg = TRACK_BG[article.track]
+  const track = article.track ?? 'A'
+  const trackColor = TRACK_COLOR[track]
+  const trackBg = TRACK_BG[track]
 
   return (
     <Link
