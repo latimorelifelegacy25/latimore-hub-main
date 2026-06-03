@@ -95,7 +95,7 @@ export default function SchuylkillLeadForm() {
             id="sk-name"
             type="text"
             required
-            placeholder="Jane Smith"
+            placeholder="Jackson M."
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
             style={{
@@ -121,7 +121,7 @@ export default function SchuylkillLeadForm() {
             id="sk-phone"
             type="tel"
             required
-            placeholder="(570) 555-1234"
+            placeholder="(717) 615-2613"
             value={form.phone}
             onChange={e => setForm({ ...form, phone: e.target.value })}
             style={{
@@ -146,7 +146,7 @@ export default function SchuylkillLeadForm() {
           <input
             id="sk-email"
             type="email"
-            placeholder="jane@example.com"
+            placeholder="jackson1989@latimorelegacy.com"
             value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })}
             style={{
