@@ -45,7 +45,7 @@ function verifyTwilioSignature(req: NextRequest, rawBody: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const rawBody = await req.text()

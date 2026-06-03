@@ -28,7 +28,7 @@ const schema = {
 const displayName = (contact: any) => contact.fullName || [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'Unknown Contact'
 
 export async function POST(req: NextRequest) {
-  const limited = applyAiRateLimit(req)
+  const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const cronSecret = process.env.CRON_SECRET
   const isCron = cronSecret && req.headers.get("x-cron-secret") === cronSecret
