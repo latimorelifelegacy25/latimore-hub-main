@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
   }
 
-  const limited = rateLimit(req, 'analytics')
+  const limited = await rateLimit(req, 'analytics')
   if (limited) return limited
 
   try {
