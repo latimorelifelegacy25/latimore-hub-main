@@ -234,7 +234,8 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 
 /* Story section 2-column on tablet+ */
 @media (min-width: 768px) {
-  .story-inner { max-width: 860px; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+  .story-inner { max-width: 960px; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+  .story-copy { display: flex; flex-direction: column; }
   .story-image-wrap { margin-top: 0; }
 }
 

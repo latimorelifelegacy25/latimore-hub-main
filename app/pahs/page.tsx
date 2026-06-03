@@ -280,7 +280,7 @@ export default function PAHSPage() {
       </section>
 
       <section className="spgfx">
-        <img src="/pahs-sponsor-flyer.jpg" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
+        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
       </section>
 
       <section className="campaign-videos">
@@ -449,6 +449,7 @@ export default function PAHSPage() {
 
       <section className="story-section" id="story">
         <div className="story-inner reveal">
+          <div className="story-copy">
           <div className="section-label">The Full Circle Legacy</div>
 
           <h2>
@@ -491,6 +492,9 @@ export default function PAHSPage() {
             <strong>right here, in our community.</strong>
           </p>
 
+          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
+          </div>
+
           <div className="story-image-wrap">
             <div className="retro-card">
               <div className="retro-card-inner">
@@ -509,8 +513,6 @@ export default function PAHSPage() {
               </div>
             </div>
           </div>
-
-          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
         </div>
       </section>
 
@@ -576,7 +578,7 @@ export default function PAHSPage() {
       <section className="cpn">
         <div className="cpn-inner">
           <img
-            src="/pahs-free-consult.jpg"
+            src="/pahs-free-consult.png"
             alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide · ID #2777749"
           />
           <div className="cpn-note">Powered by Campus Box Media &middot; ID #2777749 &middot; Limit one per transaction</div>
@@ -598,9 +600,9 @@ export default function PAHSPage() {
           <h2>Official PAHS Sponsorship Campaign</h2>
 
           <div className="gallery-grid">
-            <img src="/pahs-sponsor-flyer.jpg" alt="Official sponsorship graphic" />
+            <img src="/pahs-sponsor-flyer.png" alt="Official sponsorship graphic" />
             <img src="/pahs-protect-go.png" alt="Protect and Go campaign graphic" />
-            <img src="/pahs-free-consult.jpg" alt="PAHS QR campaign poster" />
+            <img src="/pahs-free-consult.png" alt="PAHS QR campaign poster" />
           </div>
         </div>
       </section>
