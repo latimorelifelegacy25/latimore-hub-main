@@ -23,7 +23,7 @@ export async function upsertSocialLead(lead: NormalizedSocialLead): Promise<{ co
   })
 
   await ingestEvent({
-    eventType: 'social_lead_captured',
+    eventType: 'lead_created',
     contactId: result.contact.id,
     leadSessionId: null,
     metadata: {

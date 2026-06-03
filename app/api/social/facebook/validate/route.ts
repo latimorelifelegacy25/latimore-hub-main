@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { getSocialConnection } from '@/lib/social'
 import { inspectToken } from '@/lib/social/facebook-oauth'
+import { decryptToken } from '@/lib/crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,18 +22,23 @@ export async function GET(req: NextRequest) {
       })()
     : await getSocialConnection('facebook')
 
-  if (!connection?.accessToken) {
+  const accessToken = decryptToken(connection?.accessToken)
+  if (!accessToken) {
     return NextResponse.json({ ok: false, valid: false, error: 'No Facebook connection found' }, { status: 400 })
   }
 
   try {
-    const tokenInfo = await inspectToken(connection.accessToken)
+    const tokenInfo = await inspectToken(accessToken)
     const expiresAt = tokenInfo.expires_at ? new Date(tokenInfo.expires_at * 1000) : null
+    const dataAccessExpiresAt = tokenInfo.data_access_expires_at
+      ? new Date(tokenInfo.data_access_expires_at * 1000)
+      : null
     return NextResponse.json({
       ok: true,
       valid: tokenInfo.is_valid,
-      scopes: tokenInfo.scopes,
+      scopes: tokenInfo.scopes ?? [],
       expiresAt: expiresAt?.toISOString() ?? null,
+      dataAccessExpiresAt: dataAccessExpiresAt?.toISOString() ?? null,
       daysUntilExpiry: expiresAt
         ? Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 86_400_000))
         : null,
