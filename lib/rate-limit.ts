@@ -40,8 +40,17 @@ const store = new Map<string, { count: number; reset: number }>()
 
 setInterval(() => {
   const now = Date.now()
-  for (const [key, rec] of store) {
-    if (now > rec.reset) store.delete(key)
+  for (const [k, rec] of store) {
+    if (now > rec.reset) store.delete(k)
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
   }
 }, 60_000)
 
