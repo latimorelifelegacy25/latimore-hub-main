@@ -1,8 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
 import { Eye, MousePointerClick, Link2 } from 'lucide-react'
+
+import PageHeader from '../_components/PageHeader'
+import AdminCard from '../_components/AdminCard'
+import StatPill from '../_components/StatPill'
+import EmptyState from '../_components/EmptyState'
 
 type ClickStat = { label: string | null; _count: { label: number } }
 type CardEventRow = {
@@ -22,29 +26,8 @@ type AnalyticsData = {
   visitsByDay: DayStat[]
 }
 
-const navy = '#0E1A2B'
-const gold = '#C9A24D'
-const lightGold = 'rgba(201,162,77,0.12)'
-
-function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
-  return (
-    <div style={{
-      background: '#fff',
-      border: '1px solid #e8e8e8',
-      borderTop: `3px solid ${gold}`,
-      borderRadius: 12,
-      padding: '1.5rem',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    }}>
-      <p style={{ color: '#999', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.5rem' }}>
-        {icon} {label}
-      </p>
-      <p style={{ color: navy, fontSize: '2.25rem', fontWeight: 700, margin: 0, lineHeight: 1 }}>
-        {value.toLocaleString()}
-      </p>
-    </div>
-  )
-}
+const gold = '#C9A25F'
+const navy = '#0D1117'
 
 function getReferrerHost(ref: string | null): string {
   if (!ref) return 'Direct'
@@ -52,21 +35,24 @@ function getReferrerHost(ref: string | null): string {
 }
 
 function MiniBarChart({ data }: { data: DayStat[] }) {
-  if (!data.length) return <p style={{ color: '#bbb', fontSize: '0.9rem' }}>No data yet.</p>
+  if (!data.length) {
+    return <p className="text-sm text-[#A9B1BE]">No data yet.</p>
+  }
+
   const max = Math.max(...data.map(d => d.count), 1)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4, height: 80, overflowX: 'auto' }}>
+    <div className="flex items-end gap-1 h-24 overflow-x-auto">
       {data.map((d) => (
-        <div key={d.day} title={`${d.day}: ${d.count} visits`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: '0 0 auto' }}>
-          <div style={{
-            width: 18,
-            height: `${Math.max((d.count / max) * 72, 4)}px`,
-            background: gold,
-            borderRadius: '3px 3px 0 0',
-            transition: 'height 0.3s',
-          }} />
-          <span style={{ fontSize: '0.6rem', color: '#bbb', marginTop: 2, whiteSpace: 'nowrap' }}>
+        <div key={d.day} className="flex flex-col items-center">
+          <div
+            className="w-3 rounded-t-md transition-all"
+            style={{
+              height: `${Math.max((d.count / max) * 80, 4)}px`,
+              background: gold,
+            }}
+          />
+          <span classname="text-[10px] text-[#A9B1BE] mt-1 whitespace-nowrap">
             {d.day.slice(5)}
           </span>
         </div>
@@ -89,156 +75,149 @@ export default function CardAnalyticsPage() {
   }
 
   useEffect(() => {
-    const run = async () => {
-      await refresh()
-    }
-    void run()
+    refresh()
   }, [])
-
-  const s: React.CSSProperties = { fontFamily: 'system-ui, sans-serif', padding: '2rem', maxWidth: 1100, margin: '0 auto' }
 
   if (loading) {
     return (
-      <div style={{ ...s, textAlign: 'center', color: '#888', padding: '4rem 2rem 2rem' }}>
+      <div className="p-8 text-center text-[#A9B1BE]">
         Loading analytics…
       </div>
     )
   }
-  
+
   if (error || !data) {
     return (
-      <div style={{ ...s, textAlign: 'center', color: '#c0392b', padding: '4rem 2rem 2rem' }}>
+      <div className="p-8 text-center text-red-400">
         Failed to load. Check database connection.
       </div>
     )
   }
 
-  
   const conversionRate = data.totalVisits > 0
-    ? ((data.clicks.find(c => c.label === 'Book' || c.label === 'Free Legacy Strategy Review')?._count.label ?? 0) / data.totalVisits * 100).toFixed(1)
+    ? (
+        ((data.clicks.find(c => c.label === 'Book' || c.label === 'Free Legacy Strategy Review')?._count.label ?? 0)
+        / data.totalVisits) * 100
+      ).toFixed(1)
     : '0.0'
 
   return (
-    <div style={s}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
-        <div>
-          <h1 style={{ color: navy, fontSize: '1.6rem', fontWeight: 700, margin: '0 0 0.25rem' }}>
-            Digital Card Analytics
-          </h1>
-          <p style={{ color: '#888', margin: 0, fontSize: '0.9rem' }}>
-            legacylandingpage.vercel.app — live tracking
-          </p>
-        </div>
-        <button
-          onClick={refresh}
-          style={{
-            background: navy, color: '#fff', border: 'none', borderRadius: 8,
-            padding: '0.5rem 1.25rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.9rem'
-          }}
-        >
-          ↻ Refresh
-        </button>
-      </div>
+    <div className="p-6 md:p-8">
+      <PageHeader
+        eyebrow="Analytics OS"
+        title="Digital Card Analytics"
+        description="Live tracking for legacylandingpage.vercel.app"
+      />
 
       {/* Stats Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <StatCard icon={<Eye size={22} />} label="Total Visits" value={data.totalVisits} />
-        <StatCard icon={<MousePointerClick size={22} />} label="Total Clicks" value={data.totalClicks} />
-        <StatCard icon={<Link2 size={22} />} label="Actions Tracked" value={data.clicks.length} />
-        <div style={{
-          background: '#fff',
-          border: '1px solid #e8e8e8',
-          borderTop: `3px solid ${gold}`,
-          borderRadius: 12,
-          padding: '1.5rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        }}>
-          <p style={{ color: '#999', fontSize: '0.8rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 0.5rem' }}>
-            Booking CVR
-          </p>
-          <p style={{ color: navy, fontSize: '2.25rem', fontWeight: 700, margin: 0, lineHeight: 1 }}>
-            {conversionRate}%
-          </p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <AdminCard>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Total Visits</span>
+            <Eye size={18} className="text-[#C9A25F]" />
+          </div>
+          <p className="text-3xl font-bold text-white">{data.totalVisits.toLocaleString()}</p>
+        </AdminCard>
+
+        <AdminCard>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Total Clicks</span>
+            <MousePointerClick size={18} className="text-[#C9A25F]" />
+          </div>
+          <p className="text-3xl font-bold text-white">{data.totalClicks.toLocaleString()}</p>
+        </AdminCard>
+
+        <AdminCard>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Actions Tracked</span>
+            <Link2 size={18} className="text-[#C9A25F]" />
+          </div>
+          <p className="text-3xl font-bold text-white">{data.clicks.length}</p>
+        </AdminCard>
+
+        <AdminCard>
+          <div className="text-xs uppercase tracking-wider text-[#A9B1BE] mb-2">Booking CVR</div>
+          <p className="text-3xl font-bold text-white">{conversionRate}%</p>
+        </AdminCard>
       </div>
 
-      {/* Two columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-
-        {/* Visits Over Time */}
-        <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ color: navy, fontSize: '1rem', fontWeight: 700, margin: '0 0 1.25rem' }}>
-            Visits — Last 30 Days
-          </h2>
+      {/* Two Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <AdminCard title="Visits — Last 30 Days">
           <MiniBarChart data={data.visitsByDay} />
-        </div>
+        </AdminCard>
 
-        {/* Clicks by Button */}
-        <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ color: navy, fontSize: '1rem', fontWeight: 700, margin: '0 0 1.25rem' }}>
-            Clicks by Button
-          </h2>
+        <AdminCard title="Clicks by Button">
           {data.clicks.length === 0 ? (
-            <p style={{ color: '#bbb', fontSize: '0.9rem' }}>No clicks recorded yet.</p>
+            <p className="text-sm text-[#A9B1BE]">No clicks recorded yet.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="flex flex-col gap-3">
               {data.clicks.map((c, i) => {
-                const pct = data.totalClicks > 0 ? Math.round((c._count.label / data.totalClicks) * 100) : 0
+                const pct = data.totalClicks > 0
+                  ? Math.round((c._count.label / data.totalClicks) * 100)
+                  : 0
+
                 return (
                   <div key={i}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                      <span style={{ color: navy, fontWeight: 600, fontSize: '0.88rem' }}>{c.label ?? '(unknown)'}</span>
-                      <span style={{ color: '#888', fontSize: '0.85rem' }}>{c._count.label} ({pct}%)</span>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-white font-semibold">{c.label ?? '(unknown)'}</span>
+                      <span className="text-[#A9B1BE] text-sm">{c._count.label} ({pct}%)</span>
                     </div>
-                    <div style={{ background: '#f0f0f0', borderRadius: 4, height: 7 }}>
-                      <div style={{ background: gold, width: `${pct}%`, height: '100%', borderRadius: 4, transition: 'width 0.5s' }} />
+                    <div className="h-2 bg-white/10 rounded">
+                      <div
+                        className="h-full rounded bg-[#C9A25F] transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 )
               })}
             </div>
           )}
-        </div>
+        </AdminCard>
       </div>
 
-      {/* Recent Activity Table */}
-      <div style={{ background: '#fff', border: '1px solid #e8e8e8', borderRadius: 12, padding: '1.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-        <h2 style={{ color: navy, fontSize: '1rem', fontWeight: 700, margin: '0 0 1.25rem' }}>Recent Activity</h2>
+      {/* Recent Activity */}
+      <AdminCard title="Recent Activity">
         {data.recent.length === 0 ? (
-          <p style={{ color: '#bbb', fontSize: '0.9rem' }}>No activity yet — deploy the card update to start tracking.</p>
+          <EmptyState
+            title="No activity yet"
+            description="Deploy the card update to start tracking."
+          />
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: '2px solid #f0f0f0' }}>
+                <tr className="border-b border-white/10">
                   {['Time', 'Event', 'Label / Action', 'Referrer'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '0.4rem 0.75rem', color: '#aaa', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
+                    <th
+                      key={h}
+                      className="text-left py-2 px-3 text-[#A9B1BE] uppercase text-xs tracking-wider"
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {data.recent.map((e) => (
-                  <tr key={e.id} style={{ borderBottom: '1px solid #f5f5f5' }}>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#888', whiteSpace: 'nowrap', fontSize: '0.82rem' }}>
+                  <tr key={e.id} className="border-b border-white/5">
+                    <td className="py-2 px-3 text-[#A9B1BE] whitespace-nowrap">
                       {new Date(e.timestamp).toLocaleString()}
                     </td>
-                    <td style={{ padding: '0.55rem 0.75rem' }}>
-                      <span style={{
-                        background: e.event === 'visit' ? 'rgba(14,26,43,0.08)' : lightGold,
-                        color: e.event === 'visit' ? navy : '#8a6a1f',
-                        padding: '0.2rem 0.65rem',
-                        borderRadius: 5,
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}>
+                    <td className="py-2 px-3">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${
+                          e.event === 'visit'
+                            ? 'bg-white/10 text-white'
+                            : 'bg-[#C9A25F]/20 text-[#C9A25F]'
+                        }`}
+                      >
                         {e.event}
                       </span>
                     </td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: navy, fontWeight: 500 }}>{e.label ?? '—'}</td>
-                    <td style={{ padding: '0.55rem 0.75rem', color: '#aaa', fontSize: '0.82rem' }}>
+                    <td className="py-2 px-3 text-white">{e.label ?? '—'}</td>
+                    <td className="py-2 px-3 text-[#A9B1BE]">
                       {getReferrerHost(e.referrer)}
                     </td>
                   </tr>
@@ -247,7 +226,7 @@ export default function CardAnalyticsPage() {
             </table>
           </div>
         )}
-      </div>
+      </AdminCard>
     </div>
   )
 }
