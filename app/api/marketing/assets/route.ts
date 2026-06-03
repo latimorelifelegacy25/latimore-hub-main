@@ -9,7 +9,7 @@ import { logger } from '@/lib/logger'
 const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500 MB
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   try {
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const contentType = req.headers.get('content-type') ?? ''

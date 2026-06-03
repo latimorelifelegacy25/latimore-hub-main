@@ -90,7 +90,7 @@ async function sendNotification(lead: Required<LeadBody>) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'lead')
+  const limited = await rateLimit(req, 'lead')
   if (limited) return limited
 
   try {
