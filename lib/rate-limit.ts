@@ -40,8 +40,17 @@ const store = new Map<string, { count: number; reset: number }>()
 
 setInterval(() => {
   const now = Date.now()
-  for (const [key, rec] of store) {
-    if (now > rec.reset) store.delete(key)
+  for (const [k, rec] of store) {
+    if (now > rec.reset) store.delete(k)
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
   }
   if (rec.count >= limit) return true
   rec.count++
@@ -52,8 +61,6 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
   const { limit, windowSec } = LIMITS[type] ?? LIMITS.default
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   const key = `rl:${type}:${ip}`
-  const now = Date.now()
-  const rec = store.get(key)
 
   const limited = process.env.UPSTASH_REDIS_REST_URL
     ? await upstashLimit(key, limit, windowSec)

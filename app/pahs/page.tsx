@@ -222,23 +222,7 @@ export default function PAHSPage() {
     <main>
       <section className="hero">
         <div className="hero-bg" />
-
-        <div className="stadium-lights">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div className="light-beam" key={i} />
-          ))}
-        </div>
-
-        <div className="field-bottom">
-          <div className="field-lines">
-            <div className="field-line" />
-            <div className="field-line" />
-            <div className="field-line" />
-            <span className="yard-number left">2</span>
-            <span className="yard-number center">5 0</span>
-            <span className="yard-number right">6</span>
-          </div>
-        </div>
+        <div className="hero-ov" />
 
         <div className="hero-content">
           <div className="sponsor-badge">Proud All-Star Sponsor</div>
@@ -249,14 +233,7 @@ export default function PAHSPage() {
             HIGH SCHOOL
           </div>
 
-          <div className="hero-year">FOOTBALL ’26</div>
-
-          <div className="pulse-badge">
-            <div className="pulse-dot" />
-            CRIMSON TIDE — GAME DAY
-          </div>
-
-          <div className="football-icon">🏈</div>
+          <div className="hero-year">Crimson Tide &middot; Class of &apos;26</div>
 
           <div className="hero-profile">
             <img src="/jackson-headshot.jpg" alt="Jackson M. Latimore Sr." className="hero-profile-img" />
@@ -276,27 +253,59 @@ export default function PAHSPage() {
             <div className="latimore-logo-container logo-card">
               <img
                 src="/pahs-latimore-logo.png"
-                alt="Latimore Life & Legacy logo"
+                alt="Latimore Life &amp; Legacy logo"
                 className="business-logo-image"
               />
             </div>
           </div>
 
-          <div className="beat-img-wrap">
-            <div className="beat-banner">#TheBeatGoesOn</div>
-          </div>
+          <svg className="hbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline
+              points="0,15 34,15 42,4 48,26 54,10 60,20 66,15 100,15 108,2 116,28 122,8 128,22 134,15 200,15"
+              stroke="#C49A6C"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.85"
+            />
+          </svg>
 
-          <div className="qr-section">
-            <div className="qr-frame">
-              <QRCodeCanvas
-                value={PAGE_URL}
-                size={130}
-                fgColor="#2C3E50"
-                bgColor="#FFFFFF"
-                includeMargin
+          <div className="hero-tagline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+
+          <div className="hero-ctas">
+            <a href="tel:+17176152613" className="btn1">Schedule Free Consultation</a>
+            <a href="#story" className="btn2">The Full Circle Story &darr;</a>
+          </div>
+        </div>
+      </section>
+
+      <section className="spgfx">
+        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
+      </section>
+
+      <section className="campaign-videos">
+        <div className="campaign-videos-inner">
+          <div className="section-label gold-label">Campaign Videos</div>
+          <h2 className="campaign-videos-title">Watch the Campaign</h2>
+          <div className="videos-grid">
+            <div className="video-wrap">
+              <iframe
+                loading="lazy"
+                src="https://www.canva.com/design/DAHLhIdBi1g/XrwK0tvOGXRX57S6xQtgdA/watch?embed"
+                allowFullScreen
+                allow="fullscreen"
+                title="PAHS Campaign Video 1"
               />
             </div>
-            <span className="qr-url">www.latimorelifelegacy.com/pahs</span>
+            <div className="video-wrap">
+              <iframe
+                loading="lazy"
+                src="https://www.canva.com/design/DAHLhNdroHQ/DSj1SN6LGJKvtoSIqk8hmQ/watch?embed"
+                allowFullScreen
+                allow="fullscreen"
+                title="PAHS Campaign Video 2"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -438,8 +447,9 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="story-section">
+      <section className="story-section" id="story">
         <div className="story-inner reveal">
+          <div className="story-copy">
           <div className="section-label">The Full Circle Legacy</div>
 
           <h2>
@@ -482,20 +492,27 @@ export default function PAHSPage() {
             <strong>right here, in our community.</strong>
           </p>
 
-          <div className="story-image-wrap">
-            <img
-              src="/pahs-2005-allarea.png"
-              alt="Local football newspaper clipping — 2005 Republican & Herald All-Area Football Team"
-              className="story-image"
-            />
-            <p className="story-image-caption">
-              Headlining the 2005 Republican &amp; Herald All-Area Football Team — Jackson Latimore
-              (#20, Cardinal Brennan) named Offensive Player of the Year alongside Pottsville&apos;s
-              finest. Photo: Jacqueline Dormer / Staff Photo.
-            </p>
+          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
           </div>
 
-          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
+          <div className="story-image-wrap">
+            <div className="retro-card">
+              <div className="retro-card-inner">
+                <div className="retro-card-hdr">
+                  <div className="retro-card-title">Pottsville caps magical season</div>
+                  <div className="retro-card-sub">Tide&rsquo;s Keating, Buziak, DeMarkis join CB&rsquo;s Latimore atop team</div>
+                </div>
+                <img
+                  src="/pahs-2005-allarea.png"
+                  alt="2005 Republican &amp; Herald All-Area Football — Jackson Latimore named Offensive Player of the Year"
+                />
+                <div className="retro-card-cap">
+                  Headlining the 2005 R&amp;H All-Area Football Team — Jackson Latimore (#20, Cardinal Brennan)
+                  named Offensive Player of the Year. Photo: Jacqueline Dormer / Staff Photo.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -558,6 +575,16 @@ export default function PAHSPage() {
         </div>
       </section>
 
+      <section className="cpn">
+        <div className="cpn-inner">
+          <img
+            src="/pahs-free-consult.png"
+            alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide · ID #2777749"
+          />
+          <div className="cpn-note">Powered by Campus Box Media &middot; ID #2777749 &middot; Limit one per transaction</div>
+        </div>
+      </section>
+
       <section className="territory-section">
         <div className="territory-inner reveal">
           <h3>Serving</h3>
@@ -573,9 +600,9 @@ export default function PAHSPage() {
           <h2>Official PAHS Sponsorship Campaign</h2>
 
           <div className="gallery-grid">
-            <img src="/pahs-sponsor-flyer.jpg" alt="Official sponsorship graphic" />
+            <img src="/pahs-sponsor-flyer.png" alt="Official sponsorship graphic" />
             <img src="/pahs-protect-go.png" alt="Protect and Go campaign graphic" />
-            <img src="/pahs-free-consult.jpg" alt="PAHS QR campaign poster" />
+            <img src="/pahs-free-consult.png" alt="PAHS QR campaign poster" />
           </div>
         </div>
       </section>

@@ -26,7 +26,7 @@ function param(urlParams: FilloutUrlParam[], id: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   try {

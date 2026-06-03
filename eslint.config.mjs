@@ -44,7 +44,7 @@ export default [
       'no-empty': 'warn',
       'prefer-const': 'warn',
       'react-hooks/exhaustive-deps': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
       '@next/next/no-img-element': 'warn',
     },
   },
