@@ -283,6 +283,33 @@ export default function PAHSPage() {
         <img src="/pahs-sponsor-flyer.jpg" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
       </section>
 
+      <section className="campaign-videos">
+        <div className="campaign-videos-inner">
+          <div className="section-label gold-label">Campaign Videos</div>
+          <h2 className="campaign-videos-title">Watch the Campaign</h2>
+          <div className="videos-grid">
+            <div className="video-wrap">
+              <iframe
+                loading="lazy"
+                src="https://www.canva.com/design/DAHLhIdBi1g/XrwK0tvOGXRX57S6xQtgdA/watch?embed"
+                allowFullScreen
+                allow="fullscreen"
+                title="PAHS Campaign Video 1"
+              />
+            </div>
+            <div className="video-wrap">
+              <iframe
+                loading="lazy"
+                src="https://www.canva.com/design/DAHLhNdroHQ/DSj1SN6LGJKvtoSIqk8hmQ/watch?embed"
+                allowFullScreen
+                allow="fullscreen"
+                title="PAHS Campaign Video 2"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="cta-strip reveal">
         <h2>GET YOUR FREE PROTECTION REVIEW</h2>
         <p>No pressure. Just clarity. One conversation can change your family&apos;s future.</p>
