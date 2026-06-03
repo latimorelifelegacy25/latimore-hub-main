@@ -6,6 +6,7 @@ import {
   getUserPages,
 } from '@/lib/social/facebook-oauth'
 import { prisma } from '@/lib/prisma'
+import { encryptToken } from '@/lib/crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,10 +56,14 @@ export async function GET(req: NextRequest) {
           provider: 'facebook',
           accountName: page.name,
           externalId: page.id,
-          accessToken: page.access_token,
+          accessToken: encryptToken(page.access_token),
           tokenExpiresAt: expiresAt,
           status: 'connected',
-          metadata: { category: page.category, tasks: page.tasks ?? [] },
+          metadata: {
+            category: page.category,
+            tasks: page.tasks ?? [],
+            connectedBy: auth.session?.user?.email ?? null,
+          },
         }
         const existing = await socialConnectionModel.findFirst({
           where: { provider: 'facebook', externalId: page.id },

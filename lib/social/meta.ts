@@ -1,4 +1,7 @@
 import crypto from 'crypto'
+import { decryptToken } from '@/lib/crypto'
+import { prisma } from '@/lib/prisma'
+import { GRAPH_VERSION } from './facebook-oauth'
 import { NormalizedSocialLead, readFieldValue, splitName } from './types'
 
 export function verifyMetaSignature(rawBody: string, signature: string | null): boolean {
@@ -13,17 +16,37 @@ export function verifyMetaSignature(rawBody: string, signature: string | null): 
   }
 }
 
+async function getPageAccessToken(pageId?: string): Promise<string | null> {
+  if (pageId) {
+    const connection = await (prisma as any).socialConnection?.findFirst({
+      where: { provider: 'facebook', externalId: pageId },
+      orderBy: { updatedAt: 'desc' },
+    })
+    const token = decryptToken(connection?.accessToken)
+    if (token) return token
+  }
+
+  return process.env.META_PAGE_ACCESS_TOKEN || null
+}
+
 export async function fetchMetaLead(
   leadgenId: string,
-  pageAccessToken?: string
+  pageAccessToken?: string,
+  pageId?: string
 ): Promise<Record<string, unknown>> {
-  const token = pageAccessToken || process.env.META_PAGE_ACCESS_TOKEN
-  if (!token) throw new Error('META_PAGE_ACCESS_TOKEN not configured')
-  const res = await fetch(
-    `https://graph.facebook.com/v19.0/${leadgenId}?fields=field_data,created_time,ad_id,adset_id,campaign_id,form_id&access_token=${token}`
-  )
-  if (!res.ok) throw new Error(`Meta Graph API ${res.status}`)
-  return res.json()
+  const token = pageAccessToken || await getPageAccessToken(pageId)
+  if (!token) throw new Error('A Meta page access token is not configured for this page')
+
+  const params = new URLSearchParams({
+    fields: 'field_data,created_time,ad_id,adset_id,campaign_id,form_id',
+    access_token: token,
+  })
+  const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${leadgenId}?${params}`)
+  const data = await res.json()
+  if (!res.ok || data.error) {
+    throw new Error(`Meta Graph API lead fetch failed: ${data.error?.message ?? res.status}`)
+  }
+  return data
 }
 
 export function normalizeMetaLead(
