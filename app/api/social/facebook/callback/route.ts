@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { encryptToken } from '@/lib/crypto'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -37,17 +38,43 @@ export async function GET(req: Request) {
     update: {
       accountName: page.name,
       externalId: page.id,
-      accessToken: page.access_token,
+      accessToken: encryptToken(page.access_token),
       status: 'connected',
     },
     create: {
       provider: 'facebook',
       accountName: page.name,
       externalId: page.id,
-      accessToken: page.access_token,
+      accessToken: encryptToken(page.access_token),
       status: 'connected',
     },
   })
+
+  // Also save the linked Instagram business account if present
+  const igRes = await fetch(
+    `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+  )
+  const igData = await igRes.json()
+  const instagramBusinessId = igData.instagram_business_account?.id
+
+  if (instagramBusinessId) {
+    await prisma.socialConnection.upsert({
+      where: { provider: 'instagram' },
+      update: {
+        accountName: page.name,
+        externalId: instagramBusinessId,
+        accessToken: encryptToken(page.access_token),
+        status: 'connected',
+      },
+      create: {
+        provider: 'instagram',
+        accountName: page.name,
+        externalId: instagramBusinessId,
+        accessToken: encryptToken(page.access_token),
+        status: 'connected',
+      },
+    })
+  }
 
   return NextResponse.redirect('/admin/social?fb_success=1')
 }
