@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import FilterBar from './components/FilterBar'
 import KpiSection from './components/KpiSection'
 import TrendChart from './components/TrendChart'
@@ -17,12 +17,12 @@ export default function AnalyticsPage() {
 
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
 
-  const overviewFetcher = useCallback(() => analyticsApi.overview(qs), [qs])
-  const funnelFetcher = useCallback(() => analyticsApi.funnel(qs), [qs])
-  const timeSeriesFetcher = useCallback(() => analyticsApi.timeSeries(qs), [qs])
-  const breakdownsFetcher = useCallback(() => analyticsApi.breakdowns(qs), [qs])
-  const recentEventsFetcher = useCallback(() => analyticsApi.recentEvents(), [])
-  const opportunitiesFetcher = useCallback(() => analyticsApi.opportunities(), [])
+  const overviewFetcher = () => analyticsApi.overview(qs)
+  const funnelFetcher = () => analyticsApi.funnel(qs)
+  const timeSeriesFetcher = () => analyticsApi.timeSeries(qs)
+  const breakdownsFetcher = () => analyticsApi.breakdowns(qs)
+  const recentEventsFetcher = () => analyticsApi.recentEvents()
+  const opportunitiesFetcher = () => analyticsApi.opportunities()
 
   const overview = useApi(overviewFetcher)
   const funnel = useApi(funnelFetcher)
@@ -39,18 +39,17 @@ export default function AnalyticsPage() {
     recentEvents.loading ||
     opportunities.loading
 
-  const refresh = useCallback(() => {
+  function refresh() {
     overview.run()
     funnel.run()
     timeSeries.run()
     breakdowns.run()
     recentEvents.run()
     opportunities.run()
-  }, [overview.run, funnel.run, timeSeries.run, breakdowns.run, recentEvents.run, opportunities.run])
+  }
 
-  useEffect(() => {
-    refresh()
-  }, [refresh])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { refresh() }, [qs])
 
   return (
     <main className="min-h-screen bg-[#0B0F17] px-4 py-8 text-white md:px-8">
