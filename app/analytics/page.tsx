@@ -39,14 +39,21 @@ export default function AnalyticsPage() {
     recentEvents.loading ||
     opportunities.loading
 
+  const { run: runOverview } = overview
+  const { run: runFunnel } = funnel
+  const { run: runTimeSeries } = timeSeries
+  const { run: runBreakdowns } = breakdowns
+  const { run: runRecentEvents } = recentEvents
+  const { run: runOpportunities } = opportunities
+
   const refresh = useCallback(() => {
-    overview.run()
-    funnel.run()
-    timeSeries.run()
-    breakdowns.run()
-    recentEvents.run()
-    opportunities.run()
-  }, [overview.run, funnel.run, timeSeries.run, breakdowns.run, recentEvents.run, opportunities.run])
+    runOverview()
+    runFunnel()
+    runTimeSeries()
+    runBreakdowns()
+    runRecentEvents()
+    runOpportunities()
+  }, [runOverview, runFunnel, runTimeSeries, runBreakdowns, runRecentEvents, runOpportunities])
 
   useEffect(() => {
     refresh()
