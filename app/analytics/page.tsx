@@ -13,8 +13,6 @@ import { analyticsApi } from './lib/analyticsApi'
 import { Range } from './lib/types'
 
 export default function AnalyticsPage() {
-  'use no memo'
-
   const [range, setRange] = useState<Range>('30d')
 
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
@@ -33,6 +31,13 @@ export default function AnalyticsPage() {
   const recentEvents = useApi(recentEventsFetcher)
   const opportunities = useApi(opportunitiesFetcher)
 
+  const { run: runOverview } = overview
+  const { run: runFunnel } = funnel
+  const { run: runTimeSeries } = timeSeries
+  const { run: runBreakdowns } = breakdowns
+  const { run: runRecentEvents } = recentEvents
+  const { run: runOpportunities } = opportunities
+
   const loading =
     overview.loading ||
     funnel.loading ||
@@ -42,13 +47,13 @@ export default function AnalyticsPage() {
     opportunities.loading
 
   const refresh = useCallback(() => {
-    overview.run()
-    funnel.run()
-    timeSeries.run()
-    breakdowns.run()
-    recentEvents.run()
-    opportunities.run()
-  }, [overview.run, funnel.run, timeSeries.run, breakdowns.run, recentEvents.run, opportunities.run])
+    runOverview()
+    runFunnel()
+    runTimeSeries()
+    runBreakdowns()
+    runRecentEvents()
+    runOpportunities()
+  }, [runOverview, runFunnel, runTimeSeries, runBreakdowns, runRecentEvents, runOpportunities])
 
   useEffect(() => {
     refresh()
