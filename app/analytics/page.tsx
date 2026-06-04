@@ -13,6 +13,8 @@ import { analyticsApi } from './lib/analyticsApi'
 import { Range } from './lib/types'
 
 export default function AnalyticsPage() {
+  'use no memo'
+
   const [range, setRange] = useState<Range>('30d')
 
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
