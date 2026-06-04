@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   }
 
   const res = await fetch(
-    `https://graph.facebook.com/v19.0/${pageId}?fields=access_token&access_token=${accessToken}`
+    `https://graph.facebook.com/v19.0/${pageId}?fields=access_token&access_token=${EAAVdvyMtUv0BRuNudbn0PraEvxgrzrvXT7jEl9Pq15uRiHsNl5EU9P34HNQi0jFHBDxwUxrGzyfFQTZBdQLLyaDApdxSgZBvKt9KoFArc9ErXUT48qSTIj5zziyRJvCZAzwuAIquGnDxKm5ZCTCYAOZAEA6HebVvC8NrTw9YkXVqS6uVqGCsRq2pppr8gHRazL6kx4JXSoAZA0ZC8PT6L9kSXiTrhoZAg1xAaQXt}`
   )
   const data = await res.json()
 
