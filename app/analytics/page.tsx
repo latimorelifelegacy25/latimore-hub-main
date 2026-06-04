@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
     breakdowns.run()
     recentEvents.run()
     opportunities.run()
-  }, [overview.run, funnel.run, timeSeries.run, breakdowns.run, recentEvents.run, opportunities.run])
+  }, [overview, funnel, timeSeries, breakdowns, recentEvents, opportunities])
 
   useEffect(() => {
     refresh()
