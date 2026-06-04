@@ -40,6 +40,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
   const { id } = await params
@@ -79,6 +81,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
   const { id } = await params
   try {
     await prisma.workflowTemplate.delete({ where: { id } })
