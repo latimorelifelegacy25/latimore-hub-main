@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import PageHeader from '../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 
 type LinkCategory = 'Carrier Portal' | 'Client Portal' | 'Tools' | 'Community' | 'Compliance' | 'Other'
 

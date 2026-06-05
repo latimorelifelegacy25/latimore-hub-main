@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -184,3 +184,85 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 /* Service card updates */
 .service-num { font-family: 'Oswald', sans-serif; font-size: 2.2rem; line-height: 1; color: rgba(196,154,108,0.3); min-width: 2.5rem; flex-shrink: 0; }
 .service-desc { font-size: 0.82rem; line-height: 1.65; color: #666; margin-top: 6px; }
+
+/* ─── v2 Design Enhancements ─── */
+
+/* Bebas Neue headings for hero */
+.hero-school-name { font-family: 'Bebas Neue', 'Oswald', sans-serif; }
+.hero-year { font-family: 'Bebas Neue', 'Oswald', sans-serif; font-size: clamp(1.4rem, 5vw, 2rem); letter-spacing: 0.12em; color: var(--crimson); margin-bottom: 20px; }
+
+/* Hero overlay */
+.hero-ov { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(13,24,33,.82) 0%, rgba(44,62,80,.45) 50%, rgba(139,26,26,.22) 100%); z-index: 1; pointer-events: none; }
+
+/* Reduce hero-content bottom padding now that field-bottom is removed */
+.hero-content { padding-bottom: 48px; z-index: 10; }
+
+/* Star-decorated sponsor badge */
+.sponsor-badge::before { content: '★ '; font-size: 0.75em; }
+.sponsor-badge::after  { content: ' ★'; font-size: 0.75em; }
+
+/* Heartbeat SVG */
+.hbeat { width: 200px; height: 30px; margin: 16px auto 8px; display: block; opacity: 0; animation: fadeIn 1s 0.6s ease forwards; }
+
+/* Hero tagline */
+.hero-tagline { font-family: 'Oswald', sans-serif; font-size: clamp(0.7rem, 2vw, 0.82rem); letter-spacing: 0.18em; text-transform: uppercase; color: rgba(232,201,154,0.82); margin: 0 0 28px; text-align: center; }
+
+/* Hero CTA wrapper */
+.hero-ctas { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+/* Clip-path polygon primary button */
+.btn1 { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; color: var(--navy-dark); background: linear-gradient(135deg, #e8c99a, #C49A6C, #9a7448); padding: 14px 36px; clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%); transition: transform .2s, box-shadow .2s; display: inline-block; }
+.btn1:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(196,154,108,.45); }
+
+/* Underline secondary button */
+.btn2 { font-family: 'Oswald', sans-serif; font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(232,201,154,0.88); text-decoration: none; border-bottom: 1px solid rgba(196,154,108,.4); padding-bottom: 2px; transition: color .2s, border-color .2s; }
+.btn2:hover { color: #fff; border-color: #fff; }
+
+/* Full-width sponsor graphic section */
+.spgfx { background: #0d1821; line-height: 0; }
+.spgfx img { width: 100%; display: block; max-height: 540px; object-fit: cover; object-position: center top; }
+
+/* Retro newspaper card for story image */
+.retro-card { transform: rotate(-1.5deg); transition: transform .3s; margin: 0 auto; max-width: 380px; }
+.retro-card:hover { transform: rotate(0deg) scale(1.02); }
+.retro-card-inner { background: #f0e8d8; border: 1px solid #c8b89a; box-shadow: 4px 4px 20px rgba(0,0,0,.22), -1px -1px 0 #b8a880; overflow: hidden; }
+.retro-card-hdr { padding: .6rem .8rem .4rem; border-bottom: 2px solid #1a1a1a; }
+.retro-card-title { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.2rem; color: #1a1a1a; line-height: 1.15; }
+.retro-card-sub { font-family: 'Oswald', sans-serif; font-weight: 400; font-size: .72rem; color: #555; margin-top: .15rem; }
+.retro-card-inner img { width: 100%; display: block; }
+.retro-card-cap { background: #e8dcc8; padding: .5rem .8rem; font-style: italic; font-size: .68rem; color: #555; line-height: 1.5; border-top: 1px solid #c8b89a; }
+
+/* Story section 2-column on tablet+ */
+@media (min-width: 768px) {
+  .story-inner { max-width: 960px; display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+  .story-copy { display: flex; flex-direction: column; }
+  .story-image-wrap { margin-top: 0; }
+}
+
+/* Coupon banner section */
+.cpn { background: #0d1821; padding: 3rem 1.5rem; border-top: 3px solid var(--crimson); border-bottom: 3px solid var(--crimson); }
+.cpn-inner { max-width: 900px; margin: 0 auto; }
+.cpn-inner img { width: 100%; display: block; border: 2px solid rgba(196,154,108,.3); }
+.cpn-note { line-height: 1.5; margin-top: 1rem; text-align: center; font-family: 'Oswald', sans-serif; font-size: .72rem; letter-spacing: .15em; text-transform: uppercase; color: rgba(255,255,255,.32); }
+
+/* Footer social links */
+.footer-socials { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 16px; }
+.footer-socials a { font-size: .85rem; color: rgba(255,255,255,.45); text-decoration: none; transition: color .2s; }
+.footer-socials a:hover { color: var(--gold); }
+.footer-home-link { text-decoration: none; }
+
+/* Campaign videos section */
+.campaign-videos { background: #0d1821; padding: 3.5rem 1.5rem; }
+.campaign-videos-inner { max-width: 1100px; margin: 0 auto; }
+.campaign-videos-title { font-family: 'Bebas Neue', 'Oswald', sans-serif; font-size: clamp(2rem, 6vw, 3.2rem); color: #fff; letter-spacing: .03em; margin-bottom: 2rem; text-align: center; }
+.campaign-videos .section-label { justify-content: center; }
+.video-center-wrap,
+.videos-grid { display: flex; justify-content: center; align-items: center; margin: 2rem auto; width: 100%; }
+.video-wrap { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16 / 9; border: 2px solid rgba(196,154,108,.25); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.15), 0 8px 32px rgba(0,0,0,.5); overflow: hidden; }
+.video-wrap iframe,
+.video-center-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+@media (max-width: 768px) {
+  .campaign-videos { padding: 3rem 1rem; }
+  .video-wrap { max-width: 100%; aspect-ratio: 16 / 9; }
+}

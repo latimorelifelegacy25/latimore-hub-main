@@ -23,9 +23,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import EmptyState from '../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 const G = '#C9A25F'
 const NAVY = '#0B0F17'
