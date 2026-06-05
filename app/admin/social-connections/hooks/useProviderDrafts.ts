@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { ProviderKey, ConnectionDraft, SocialConnection } from './types'
-import { providerConfig } from './providerConfig'
+import { useEffect, useMemo, useState } from 'react'
+import type { ProviderKey, ConnectionDraft, SocialConnection } from '../types'
+import { providerConfig } from '../config/providerConfig'
 
 export function useProviderDrafts(connections: SocialConnection[]) {
   const initialDrafts = useMemo(() => {
@@ -13,6 +13,7 @@ export function useProviderDrafts(connections: SocialConnection[]) {
 
     for (const provider of Object.keys(providerConfig) as ProviderKey[]) {
       const existing = connections.find((c) => c.provider === provider)
+
       if (existing) {
         base[provider] = {
           accountName: existing.accountName ?? '',
@@ -22,7 +23,9 @@ export function useProviderDrafts(connections: SocialConnection[]) {
           tokenExpiresAt: existing.tokenExpiresAt
             ? new Date(existing.tokenExpiresAt).toISOString().slice(0, 16)
             : '',
-          metadata: existing.metadata ? JSON.stringify(existing.metadata, null, 2) : '',
+          metadata: existing.metadata
+            ? JSON.stringify(existing.metadata, null, 2)
+            : '',
         }
       }
     }
@@ -33,6 +36,10 @@ export function useProviderDrafts(connections: SocialConnection[]) {
   const [drafts, setDrafts] =
     useState<Record<ProviderKey, ConnectionDraft>>(initialDrafts)
 
+  useEffect(() => {
+    setDrafts(initialDrafts)
+  }, [initialDrafts])
+
   const updateField = (
     provider: ProviderKey,
     field: keyof ConnectionDraft,
@@ -40,7 +47,10 @@ export function useProviderDrafts(connections: SocialConnection[]) {
   ) => {
     setDrafts((prev) => ({
       ...prev,
-      [provider]: { ...prev[provider], [field]: value },
+      [provider]: {
+        ...prev[provider],
+        [field]: value,
+      },
     }))
   }
 

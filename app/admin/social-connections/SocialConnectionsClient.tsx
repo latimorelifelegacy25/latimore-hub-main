@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { ProviderKey, SocialConnection } from './types'
-import { providerConfig } from './providerConfig'
-import { useProviderDrafts } from './useProviderDrafts'
-import { useTokenValidation } from './useTokenValidation'
-import ProviderCard from './ProviderCard'
+import type { ProviderKey, SocialConnection } from './types'
+import { providerConfig } from './config/providerConfig'
+import { useProviderDrafts } from './hooks/useProviderDrafts'
+import { useTokenValidation } from './hooks/useTokenValidation'
+import ProviderCard from './components/ProviderCard'
 
 export default function SocialConnectionsClient({
   initialConnections,
@@ -26,19 +26,30 @@ export default function SocialConnectionsClient({
     const draft = drafts[provider]
 
     try {
+      let parsedMetadata: unknown = undefined
+
+      if (draft.metadata.trim()) {
+        parsedMetadata = JSON.parse(draft.metadata)
+      }
+
       const response = await fetch('/api/admin/social-connections', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           provider,
           ...draft,
-          metadata: draft.metadata ? JSON.parse(draft.metadata) : undefined,
+          metadata: parsedMetadata,
           status: 'connected',
         }),
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Unable to save connection')
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to save connection')
+      }
 
       setConnections((prev) => [
         ...prev.filter((c) => c.provider !== provider),
@@ -47,7 +58,11 @@ export default function SocialConnectionsClient({
 
       setMessage(`${providerConfig[provider].label} connection saved.`)
     } catch (err) {
-      setMessage(`Failed to save ${providerConfig[provider].label}: ${String(err)}`)
+      setMessage(
+        `Failed to save ${providerConfig[provider].label}: ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      )
     } finally {
       setSaving(false)
     }
