@@ -46,6 +46,13 @@ export default function AnalyticsPage() {
     recentEvents.loading ||
     opportunities.loading
 
+  const runOverview = overview.run
+  const runFunnel = funnel.run
+  const runTimeSeries = timeSeries.run
+  const runBreakdowns = breakdowns.run
+  const runRecentEvents = recentEvents.run
+  const runOpportunities = opportunities.run
+
   const refresh = useCallback(() => {
     runOverview()
     runFunnel()
