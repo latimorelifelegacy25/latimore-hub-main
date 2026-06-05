@@ -47,13 +47,13 @@ export default function AnalyticsPage() {
     opportunities.loading
 
   const refresh = useCallback(() => {
-    runOverview()
-    runFunnel()
-    runTimeSeries()
-    runBreakdowns()
-    runRecentEvents()
-    runOpportunities()
-  }, [runOverview, runFunnel, runTimeSeries, runBreakdowns, runRecentEvents, runOpportunities])
+    overview.run()
+    funnel.run()
+    timeSeries.run()
+    breakdowns.run()
+    recentEvents.run()
+    opportunities.run()
+  }, [overview, funnel, timeSeries, breakdowns, recentEvents, opportunities])
 
   useEffect(() => {
     refresh()

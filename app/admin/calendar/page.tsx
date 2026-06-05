@@ -4,8 +4,9 @@ import { CalendarDays } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import PageHeader from '../_components/PageHeader'
 import AdminCard from '../_components/AdminCard'
-import StatPill from '../_components/StatPill'
 import EmptyState from '../_components/EmptyState'
+import StatPill from '../_components/StatPill'
+import { countAll } from '@/lib/prisma-helpers'
 
 function fmtDate(value?: Date | null) {
   if (!value) return '—'
@@ -41,11 +42,16 @@ export default async function CalendarPage() {
   return (
     <div className="p-6 md:p-8">
       <PageHeader
-        eyebrow="Calendar"
-        title="Calendar Events"
-        description="Synced calendar events linked to contacts and pipeline inquiries."
+        eyebrow="Scheduling OS"
+        title="Calendar"
+        description="Synced events, appointment workflow state, and contact-linked meeting activity."
       />
-      <AdminCard title="Upcoming and past events" subtitle="Most recent 50 events ordered by start date.">
+      <div className="mb-4 flex flex-wrap gap-2">
+        {counts.map((row) => (
+          <StatPill key={row.status} label={row.status} value={countAll(row._count)} />
+        ))}
+      </div>
+      <AdminCard title="Upcoming and recent calendar events">
         {events.length === 0 ? (
           <EmptyState
             title="No calendar events yet"
