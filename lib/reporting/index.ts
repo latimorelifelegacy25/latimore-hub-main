@@ -1,3 +1,4 @@
+import { generateInsights } from './insights'
 // lib/reporting/insights.ts
 import type { 
   PipelineItem, 
