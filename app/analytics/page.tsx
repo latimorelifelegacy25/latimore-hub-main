@@ -31,6 +31,13 @@ export default function AnalyticsPage() {
   const recentEvents = useApi(recentEventsFetcher)
   const opportunities = useApi(opportunitiesFetcher)
 
+  const { run: runOverview } = overview
+  const { run: runFunnel } = funnel
+  const { run: runTimeSeries } = timeSeries
+  const { run: runBreakdowns } = breakdowns
+  const { run: runRecentEvents } = recentEvents
+  const { run: runOpportunities } = opportunities
+
   const loading =
     overview.loading ||
     funnel.loading ||
@@ -38,13 +45,6 @@ export default function AnalyticsPage() {
     breakdowns.loading ||
     recentEvents.loading ||
     opportunities.loading
-
-  const { run: runOverview } = overview
-  const { run: runFunnel } = funnel
-  const { run: runTimeSeries } = timeSeries
-  const { run: runBreakdowns } = breakdowns
-  const { run: runRecentEvents } = recentEvents
-  const { run: runOpportunities } = opportunities
 
   const refresh = useCallback(() => {
     runOverview()
