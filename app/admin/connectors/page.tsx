@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 import SocialConnectionsClient from './SocialConnectionsClient'
 
 export const dynamic = 'force-dynamic'
