@@ -477,7 +477,7 @@ export default function PAHSPage() {
 
           <p className="story-text">
             That moment — watching a prepared community save a life — is the heartbeat behind
-            everything we do at <strong>Latimore Life &amp; Legacy LLC.</strong>
+            everything we do at <strong> Latimore Life & Legacy LLC.</strong>
           </p>
 
           <p className="story-text">
@@ -492,7 +492,7 @@ export default function PAHSPage() {
             <strong>right here, in our community.</strong>
           </p>
 
-          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
+          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLife&Legacy</span>
           </div>
 
           <div className="story-image-wrap">
