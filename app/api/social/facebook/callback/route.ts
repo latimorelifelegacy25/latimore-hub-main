@@ -33,8 +33,9 @@ export async function GET(req: Request) {
   const page = pages.data[0]
 
   // Save Facebook connection
+  const existingFb = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })
   await prisma.socialConnection.upsert({
-    where: { provider: 'facebook' },
+    where: { id: existingFb?.id ?? '' },
     update: {
       accountName: page.name,
       externalId: page.id,
@@ -58,8 +59,9 @@ export async function GET(req: Request) {
   const instagramBusinessId = igData.instagram_business_account?.id
 
   if (instagramBusinessId) {
+    const existingIg = await prisma.socialConnection.findFirst({ where: { provider: 'instagram' } })
     await prisma.socialConnection.upsert({
-      where: { provider: 'instagram' },
+      where: { id: existingIg?.id ?? '' },
       update: {
         accountName: page.name,
         externalId: instagramBusinessId,
