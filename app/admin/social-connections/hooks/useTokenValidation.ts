@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SocialConnection } from './types'
+import type { SocialConnection } from '../types'
 
 export function useTokenValidation(connections: SocialConnection[]) {
   const [status, setStatus] = useState<

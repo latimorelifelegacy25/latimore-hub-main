@@ -1,78 +1,30 @@
-'use client'
+export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
-import { ProviderKey, SocialConnection } from './types'
-import { providerConfig } from './providerConfig'
-import { useProviderDrafts } from './useProviderDrafts'
-import { useTokenValidation } from './useTokenValidation'
-import ProviderCard from './ProviderCard'
+import { prisma } from '@/lib/prisma'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import SocialConnectionsClient from './SocialConnectionsClient'
 
-export default function SocialConnectionsClient({
-  initialConnections,
-}: {
-  initialConnections: SocialConnection[]
-}) {
-  const [connections, setConnections] = useState(initialConnections)
-  const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+export default async function SocialConnectionsPage() {
+  const socialConnectionModel = (prisma as any).socialConnection
+  const connections: any[] = socialConnectionModel
+    ? await socialConnectionModel.findMany({ orderBy: { updatedAt: 'desc' } })
+    : []
 
-  const { drafts, updateField } = useProviderDrafts(connections)
-  const tokenStatus = useTokenValidation(connections)
-
-  const saveConnection = async (provider: ProviderKey) => {
-    setSaving(true)
-    setMessage(null)
-
-    const draft = drafts[provider]
-
-    try {
-      const response = await fetch('/api/admin/social-connections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          provider,
-          ...draft,
-          metadata: draft.metadata ? JSON.parse(draft.metadata) : undefined,
-          status: 'connected',
-        }),
-      })
-
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Unable to save connection')
-
-      setConnections((prev) => [
-        ...prev.filter((c) => c.provider !== provider),
-        data.connection,
-      ])
-
-      setMessage(`${providerConfig[provider].label} connection saved.`)
-    } catch (err) {
-      setMessage(`Failed to save ${providerConfig[provider].label}: ${String(err)}`)
-    } finally {
-      setSaving(false)
-    }
-  }
+  const serialized = connections.map((c: any) => ({
+    ...c,
+    tokenExpiresAt: c.tokenExpiresAt ? c.tokenExpiresAt.toISOString() : null,
+    updatedAt: c.updatedAt instanceof Date ? c.updatedAt.toISOString() : c.updatedAt,
+  }))
 
   return (
-    <div className="space-y-6 mt-6">
-      {message && (
-        <div className="rounded-xl border border-white/10 bg-[#C9A25F]/10 px-4 py-3 text-sm text-[#E1C87E]">
-          {message}
-        </div>
-      )}
+    <div className="p-6 md:p-8">
+      <PageHeader
+        eyebrow="Settings"
+        title="Social Connections"
+        description="Manage access tokens and credentials for social media publishing."
+      />
 
-      {(Object.keys(providerConfig) as ProviderKey[]).map((provider) => (
-        <ProviderCard
-          key={provider}
-          provider={provider}
-          connection={connections.find((c) => c.provider === provider)}
-          draft={drafts[provider]}
-          updateField={updateField}
-          saveConnection={saveConnection}
-          saving={saving}
-          tokenStatus={tokenStatus}
-        />
-      ))}
+      <SocialConnectionsClient initialConnections={serialized} />
     </div>
   )
 }
