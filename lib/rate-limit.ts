@@ -7,7 +7,11 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   inquiries:  { limit: 60,  windowSec: 60 },
   booking:    { limit: 10,  windowSec: 60 },
   reports:    { limit: 30,  windowSec: 60 },
-  lead:       { limit: 10,  windowSec: 60 },
+  event:      { limit: 120, windowSec: 60 },
+  lead:       { limit: 30,  windowSec: 60 },
+  join:       { limit: 10,  windowSec: 60 },
+  analytics:  { limit: 120, windowSec: 60 },
+  ethos_redirect: { limit: 60, windowSec: 60 },
   default:    { limit: 100, windowSec: 60 },
 }
 
@@ -29,22 +33,6 @@ function getUpstash(): import('@upstash/ratelimit').Ratelimit | null {
   } catch {
     return null
   }
-}, 60_000)
-
-const LIMITS: Record<string, { limit: number; windowMs: number }> = {
-  cardEvents: { limit: 200, windowMs: 60_000 },
-  event:     { limit: 120, windowMs: 60_000 },
-  lead:      { limit: 20,  windowMs: 60_000 },
-  join:      { limit: 10,  windowMs: 60_000 },
-  fillout:   { limit: 20,  windowMs: 60_000 },
-  lead:      { limit: 20,  windowMs: 60_000 },
-  event:     { limit: 200, windowMs: 60_000 },
-  inquiries: { limit: 60,  windowMs: 60_000 },
-  booking:   { limit: 10,  windowMs: 60_000 },
-  reports:   { limit: 30,  windowMs: 60_000 },
-  event:     { limit: 120, windowMs: 60_000 }, // public analytics endpoint
-  lead:      { limit: 30,  windowMs: 60_000 }, // public lead capture endpoint
-  default:   { limit: 100, windowMs: 60_000 },
 }
 
 async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {

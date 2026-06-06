@@ -115,7 +115,7 @@ const STARTER_TEMPLATES = [
 ]
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   try {
@@ -143,7 +143,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)

@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { logger } from '@/lib/logger';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -25,7 +26,7 @@ function param(urlParams: FilloutUrlParam[], id: string): string {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   try {

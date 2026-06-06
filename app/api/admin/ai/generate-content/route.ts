@@ -5,6 +5,7 @@
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,

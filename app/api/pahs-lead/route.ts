@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { rateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -89,7 +90,7 @@ async function sendNotification(lead: Required<LeadBody>) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'lead')
+  const limited = await rateLimit(req, 'lead')
   if (limited) return limited
 
   try {

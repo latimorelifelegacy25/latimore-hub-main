@@ -81,7 +81,7 @@ type HistoryMessage = {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const auth = await requireAdminSession()

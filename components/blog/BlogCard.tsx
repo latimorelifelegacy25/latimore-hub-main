@@ -135,10 +135,10 @@ export default function BlogCard({ article, index = 0 }: BlogCardProps) {
             background: trackBg,
             color: trackColor,
           }}>
-            {article.trackLabel}
+            {article.trackLabel ?? `Track ${article.track}`}
           </span>
           <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: C.muted, letterSpacing: '0.06em' }}>
-            {article.num}
+            {article.num ?? article.category}
           </span>
           <span style={{
             marginLeft: 'auto',
@@ -200,7 +200,7 @@ export default function BlogCard({ article, index = 0 }: BlogCardProps) {
         background: C.cream,
       }}>
         <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 10, color: C.muted }}>
-          {article.format}
+          {article.format ?? 'Article'}
           {article.readingTime ? ` · ${article.readingTime} min read` : ''}
         </span>
         <span style={{

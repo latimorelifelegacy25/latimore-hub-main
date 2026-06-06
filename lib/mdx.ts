@@ -19,6 +19,15 @@ export interface PostFrontmatter {
   bilingual?: boolean
 }
 
+
+export type Track = NonNullable<PostFrontmatter['track']>
+export type ArticleMeta = Post & {
+  track: Track
+  trackLabel?: string
+  num?: string
+  format?: string
+}
+
 export interface Post extends PostFrontmatter {
   slug: string
   readingTime: string
