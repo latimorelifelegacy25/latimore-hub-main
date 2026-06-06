@@ -2,7 +2,7 @@
 
 
 import React from 'react';
-import { NAV_ITEMS, COLORS } from '../constants';
+import { NAV_ITEMS } from '../constants';
 
 interface SidebarProps {
   activeTab: string;

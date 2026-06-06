@@ -1,11 +1,15 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireCronAuth } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req)
+  if (authError) return authError
+
   try {
     // Get contacts that need lead score updates
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
     // Find contacts with recent activity that might need score adjustments
@@ -37,14 +41,14 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    console.log(`Found ${contactsToUpdate.length} contacts for lead score updates`)
+    logger.info({ count: contactsToUpdate.length }, 'Found contacts for lead score updates')
 
     let updatedCount = 0
 
     for (const contact of contactsToUpdate) {
       try {
         let scoreAdjustment = 0
-        let reasons = []
+        const reasons: string[] = []
 
         // Base score from status
         const statusScores = {
@@ -135,11 +139,11 @@ export async function GET(req: NextRequest) {
           })
 
           updatedCount++
-          console.log(`Updated ${contact.firstName} ${contact.lastName} score: ${(contact.leadScore || 0)} → ${newScore}`)
+          logger.info({ contactId: contact.id, from: contact.leadScore || 0, to: newScore }, 'Updated lead score')
         }
 
       } catch (error) {
-        console.error(`Failed to update score for contact ${contact.id}:`, error)
+        logger.error({ contactId: contact.id, error }, 'Failed to update lead score')
       }
     }
 
@@ -151,7 +155,7 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Lead score update error:', error)
+    logger.error({ error }, 'Lead score update error')
     return NextResponse.json({ error: 'Failed to update lead scores' }, { status: 500 })
   }
 }

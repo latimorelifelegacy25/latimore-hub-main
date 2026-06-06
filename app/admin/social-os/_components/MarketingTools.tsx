@@ -1,28 +1,8 @@
 'use client'
 
-// ─── Secure server-side fetch helpers ─────────────────────────────────────────
-async function fetchBulkCampaign(goal: string, persona: string): Promise<any[]> {
-  const res = await fetch('/api/admin/ai/campaign', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal, persona }) });
-  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Campaign generation failed'); }
-  const data = await res.json(); return data.posts ?? [];
-}
-async function fetchAIText(prompt: string): Promise<string> {
-  const res = await fetch('/api/admin/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: prompt, mode: 'chat', history: [] }) });
-  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'AI request failed'); }
-  const data = await res.json(); return data.data ?? '';
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-import React, { useMemo, useState } from "react";
-import { Sparkles, Network, Check, Copy, Zap, Calendar } from "lucide-react";
+import React, { useState } from "react";
+import { Sparkles, Network, Check, Zap, Calendar } from "lucide-react";
 import { SocialPost } from "../types";
-
-const BRAND = {
-  navy: "#2C3E50",
-  gold: "#C49A6C",
-  white: "#FFFFFF",
-};
 
 async function copyToClipboard(text: string) {
   try {
@@ -30,7 +10,7 @@ async function copyToClipboard(text: string) {
       await navigator.clipboard.writeText(text);
       return true;
     }
-  } catch (_) {}
+  } catch { }
   try {
     const ta = document.createElement("textarea");
     ta.value = text;
@@ -42,7 +22,7 @@ async function copyToClipboard(text: string) {
     const ok = document.execCommand("copy");
     document.body.removeChild(ta);
     return ok;
-  } catch (_) {
+  } catch {
     return false;
   }
 }
@@ -142,8 +122,8 @@ const CampaignAutoPilot = ({ onBulkSchedule }: { onBulkSchedule?: (posts: Social
       });
       const data = await res.json();
       setCampaignPosts(data.results || []);
-    } catch (e) {
-      console.error('Bulk campaign failed:', e);
+    } catch {
+      console.error('Bulk campaign failed');
     } finally {
       setLoading(false);
     }
@@ -272,7 +252,7 @@ const CanvaSpecGenerator = () => {
       });
       const data = await res.json();
       setSpec(data.response || "Error generating spec.");
-    } catch (e) {
+    } catch {
       setSpec("Error generating spec.");
     } finally {
       setLoading(false);
@@ -345,7 +325,7 @@ const AutomationPackGenerator = () => {
       });
       const data = await res.json();
       setPack(data.response || "Error generating pack.");
-    } catch (e) {
+    } catch {
       setPack("Error generating pack.");
     } finally {
       setLoading(false);

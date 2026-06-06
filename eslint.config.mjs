@@ -14,6 +14,7 @@ export default [
       'coverage/**',
       'public/**',
       'prisma/migrations/**',
+      'next-env.d.ts',
     ],
   },
 
@@ -38,6 +39,13 @@ export default [
       ...reactHooks.configs.recommended.rules,
 
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-require-imports': 'warn',
+      'no-empty': 'warn',
+      'prefer-const': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
+      '@next/next/no-img-element': 'warn',
     },
   },
 

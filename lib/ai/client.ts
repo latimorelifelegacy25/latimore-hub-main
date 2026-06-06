@@ -10,9 +10,106 @@ type CompletionResult<T> = {
   }
 }
 
+export async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit & { timeoutMs?: number } = {},
+): Promise<Response> {
+  const { timeoutMs = Number(process.env.AI_FETCH_TIMEOUT_MS ?? 30000), signal, ...fetchInit } = init
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+  if (signal) {
+    if (signal.aborted) controller.abort()
+    else signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+
+  try {
+    return await fetch(input, { ...fetchInit, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`AI provider request timed out after ${timeoutMs}ms`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 function getAiProvider() {
   return (process.env.AI_PROVIDER ?? 'openai').toLowerCase()
 }
+
+// ─── Plain-text completion (no JSON schema required) ──────────────────────────
+export async function createTextCompletion({
+  system,
+  user,
+  temperature = 0.7,
+}: {
+  system: string
+  user: string
+  temperature?: number
+}): Promise<string> {
+  const provider = getAiProvider()
+  if (provider === 'gemini') return createGeminiTextCompletion({ system, user, temperature })
+  return createOpenAiTextCompletion({ system, user, temperature })
+}
+
+async function createOpenAiTextCompletion({
+  system,
+  user,
+  temperature,
+}: {
+  system: string
+  user: string
+  temperature: number
+}): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) throw new Error('Missing OPENAI_API_KEY')
+  const model = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
+  const res = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+    body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
+    cache: 'no-store',
+  })
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(json?.error?.message ?? 'OpenAI request failed')
+  const text = json?.choices?.[0]?.message?.content
+  if (!text) throw new Error('OpenAI returned empty output')
+  return text as string
+}
+
+async function createGeminiTextCompletion({
+  system,
+  user,
+  temperature,
+}: {
+  system: string
+  user: string
+  temperature: number
+}): Promise<string> {
+  if (!process.env.GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY')
+  const model = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash'
+  const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
+  const res = await fetchWithTimeout(
+    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
+        contents: [{ role: 'user', parts: [{ text: user }] }],
+        generationConfig: { temperature },
+      }),
+      cache: 'no-store',
+    }
+  )
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(`Gemini request failed (${res.status}): ${JSON.stringify(json)}`)
+  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text
+  if (!text) throw new Error('Gemini returned empty output')
+  return text as string
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export async function createOpenAIJsonCompletion<T>({
   model,
@@ -71,7 +168,7 @@ async function createOpenAiProviderJsonCompletion<T>({
     throw new Error('Missing OPENAI_API_KEY')
   }
 
-  const response = await fetch('https://api.openai.com/v1/responses', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -153,7 +250,7 @@ async function createGeminiJsonCompletion<T>({
 
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
 
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import PageHeader from '../../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 
 interface GeneratedPost {
   title: string
@@ -165,9 +165,8 @@ export default function ContentCreatorContent() {
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g., 'Mortgage protection for new homeowners'"
               className="w-full mt-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-[#C9A25F]"
-              onKeyPress={(e) => {
+              onKeyPress={() => {
                 // Temporarily disabled to prevent accidental generation
-                // e.key === 'Enter' && handleGenerate()
               }}
             />
           </div>
