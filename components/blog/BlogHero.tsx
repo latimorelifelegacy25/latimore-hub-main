@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 interface Props {
   title: string
   description: string
@@ -9,7 +11,7 @@ export default function BlogHero({ title, description, category }: Props) {
     <div className="blog-hero">
       <div className="blog-hero__inner">
         <p className="blog-hero__breadcrumb">
-          <a href="/">Home</a> &rsaquo; <a href="/education">Education</a> &rsaquo; Blog
+          <Link href="/">Home</Link> &rsaquo; <Link href="/education">Education</Link> &rsaquo; Blog
           {category && <> &rsaquo; {category}</>}
         </p>
         <h1 className="blog-hero__title">

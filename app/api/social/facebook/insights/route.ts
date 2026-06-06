@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { getSocialConnection } from '@/lib/social'
 import { fetchPageInsights } from '@/lib/social/facebook-oauth'
+import { decryptToken } from '@/lib/crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,9 @@ export async function GET(req: NextRequest) {
     : ['page_impressions', 'page_engaged_users', 'page_fans', 'page_post_engagements']
 
   const connection = await getSocialConnection('facebook')
-  if (!connection?.accessToken || !connection?.externalId) {
+  const accessToken = decryptToken(connection?.accessToken)
+
+  if (!accessToken || !connection?.externalId) {
     return NextResponse.json(
       { ok: false, error: 'No connected Facebook page found. Connect via the Integrations page.' },
       { status: 400 }
@@ -26,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const insights = await fetchPageInsights(
     connection.externalId,
-    connection.accessToken,
+    accessToken,
     metrics,
     period
   )

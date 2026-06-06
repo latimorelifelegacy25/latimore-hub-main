@@ -14,8 +14,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!auth.ok) return auth.response
   }
 
-  const { id } = await params
-
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
       where: { id: id },

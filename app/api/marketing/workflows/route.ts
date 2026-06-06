@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   try {
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)

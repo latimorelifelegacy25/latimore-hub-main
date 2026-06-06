@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
   const contact = await prisma.contact.findUnique({ where: { id: body.contactId } })
   if (!contact) return NextResponse.json({ ok: false, error: 'Contact not found' }, { status: 404 })
 
-  let providerId: string
+  let providerId: string | null = null
 
   if (body.channel === 'sms') {
     return NextResponse.json({ ok: false, error: 'SMS not configured' }, { status: 400 })
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     logger.info({ result }, '[resend] send result')
 
-    providerId = (result as any)?.data?.id ?? (result as any)?.id ?? null
+    providerId = (result as any)?.data?.id ?? (result as any)?.id ?? null as string | null
 
     if (!providerId) {
       console.warn('[resend] providerMessageId missing from response')

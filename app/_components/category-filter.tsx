@@ -13,10 +13,10 @@ export default function CategoryFilter() {
   const router = useRouter()
   const pathname = usePathname()
   const params = useSearchParams()
-  const active = params.get('category') ?? 'all'
+  const active = params?.get('category') ?? 'all'
 
   function select(value: string) {
-    const next = new URLSearchParams(params.toString())
+    const next = new URLSearchParams(params?.toString() ?? '')
     if (value === 'all') next.delete('category')
     else next.set('category', value)
     router.push(`${pathname}?${next.toString()}`, { scroll: false })
