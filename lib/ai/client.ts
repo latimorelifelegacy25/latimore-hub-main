@@ -1,5 +1,15 @@
 type JsonSchema = Record<string, unknown>
 
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 20_000): Promise<Response> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 type CompletionResult<T> = {
   model: string
   output: T
@@ -40,7 +50,7 @@ async function createOpenAiTextCompletion({
 }): Promise<string> {
   if (!process.env.OPENAI_API_KEY) throw new Error('Missing OPENAI_API_KEY')
   const model = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetchWithTimeout('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
     body: JSON.stringify({ model, temperature, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }),
@@ -65,7 +75,7 @@ async function createGeminiTextCompletion({
   if (!process.env.GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY')
   const model = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash'
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
-  const res = await fetch(
+  const res = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',
@@ -143,7 +153,7 @@ async function createOpenAiProviderJsonCompletion<T>({
     throw new Error('Missing OPENAI_API_KEY')
   }
 
-  const response = await fetch('https://api.openai.com/v1/responses', {
+  const response = await fetchWithTimeout('https://api.openai.com/v1/responses', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -225,7 +235,7 @@ async function createGeminiJsonCompletion<T>({
 
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
 
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',

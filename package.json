@@ -13,7 +13,8 @@
     "db:push": "prisma db push",
     "build:fresh-db": "prisma generate && prisma db push && next build",
     "db:seed": "prisma db seed",
-    "check": "tsx scripts/verify-workspace.ts"
+    "check": "tsx scripts/verify-workspace.ts",
+    "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
@@ -34,7 +35,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "gray-matter": "^4.0.3",
+    "framer-motion": "^12.40.0",
     "gsap": "^3.12.5",
     "lucide-react": "^0.378.0",
     "marked": "^18.0.4",
@@ -45,13 +46,14 @@
     "qrcode.react": "^4.2.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "reading-duration": "^1.1.2",
+    "reading-time": "^1.5.0",
     "recharts": "^2.15.4",
     "resend": "^3.2.0",
     "slugify": "^1.6.9",
     "tailwind-merge": "^2.3.0",
     "twilio": "^5.4.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "gray-matter": "^4.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

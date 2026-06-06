@@ -11,7 +11,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const limited = rateLimit(req, 'inquiries')
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)

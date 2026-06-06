@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { AiRunType } from '@prisma/client'
+import { AiRunStatus, AiRunType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { applyAiRateLimit, completeAiRun, createAiRun, createSystemAiEvent, failAiRun, requireAdminSession } from '@/lib/ai/shared'
@@ -27,8 +27,25 @@ const schema = {
 
 const displayName = (contact: any) => contact.fullName || [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'Unknown Contact'
 
+export async function GET(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const latest = await prisma.aiRun.findFirst({
+    where: { type: AiRunType.daily_brief, status: AiRunStatus.succeeded },
+    orderBy: { createdAt: 'desc' },
+    select: { output: true, createdAt: true },
+  }).catch(() => null)
+
+  if (!latest?.output) {
+    return NextResponse.json({ ok: false, error: 'No brief available yet' })
+  }
+
+  return NextResponse.json({ ok: true, ...(latest.output as Record<string, unknown>) })
+}
+
 export async function POST(req: NextRequest) {
-  const limited = applyAiRateLimit(req)
+  const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const cronSecret = process.env.CRON_SECRET
   const isCron = cronSecret && req.headers.get("x-cron-secret") === cronSecret

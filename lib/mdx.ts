@@ -1,88 +1,74 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import { marked } from 'marked'
+import readingTime from 'reading-time'
 
-export type Track = 'A' | 'B' | 'C'
+const CONTENT_DIR = path.join(process.cwd(), 'content/blog')
 
-export interface ArticleMeta {
-  slug: string
+export interface PostFrontmatter {
   title: string
-  track: Track
-  trackLabel: string
-  num: string
+  date: string
   excerpt: string
-  format: string
-  kpi: string
-  cta: string
+  category: string
+  author: string
+  featured?: boolean
+  coverImage?: string
+  track?: 'A' | 'B' | 'C'
+  trackLabel?: string
+  kpi?: string
+  cta?: string
   bilingual?: boolean
-  publishedAt: string
-  readingTime?: number // minutes
+  tags?: string[]
+  description?: string
+  publishedAt?: string
+  format?: string
+  num?: string
 }
 
-const CONTENT_DIR = path.join(process.cwd(), 'content', 'blog')
-
-/** Estimate reading time in minutes from raw markdown content. */
-function calcReadingTime(content: string): number {
-  const words = content.trim().split(/\s+/).length
-  return Math.ceil(words / 200) // 200 wpm average
-}
-
-/** Return all article metadata sorted by article number (A1, A2, …, C4). */
-export function getAllArticles(): ArticleMeta[] {
-  if (!fs.existsSync(CONTENT_DIR)) return []
-
-  const files = fs
-    .readdirSync(CONTENT_DIR)
-    .filter((f) => f.endsWith('.mdx'))
-
-  return files
-    .map((filename) => {
-      const slug = filename.replace(/\.mdx$/, '')
-      const filePath = path.join(CONTENT_DIR, filename)
-      const raw = fs.readFileSync(filePath, 'utf-8')
-      const { data, content } = matter(raw)
-      return {
-        slug,
-        ...(data as Omit<ArticleMeta, 'slug'>),
-        readingTime: calcReadingTime(content),
-      } as ArticleMeta
-    })
-    .sort((a, b) => a.num.localeCompare(b.num))
-}
-
-/** Return a single article's metadata + raw MDX content for rendering. */
-export async function getArticleBySlug(
+export interface Post extends PostFrontmatter {
   slug: string
-): Promise<{ meta: ArticleMeta; content: string } | null> {
-  const filePath = path.join(CONTENT_DIR, `${slug}.mdx`)
-  if (!fs.existsSync(filePath)) return null
-
-  const raw = fs.readFileSync(filePath, 'utf-8')
-  const { data, content } = matter(raw)
-
-  const meta: ArticleMeta = {
-    slug,
-    ...(data as Omit<ArticleMeta, 'slug'>),
-    readingTime: calcReadingTime(content),
-  }
-
-  return { meta, content }
+  readingTime: string
+  content: string
 }
 
-/**
- * Convert raw markdown content to an HTML string.
- * Uses `marked` (GFM-enabled by default) — no RSC React dependency.
- */
-export async function renderMarkdown(content: string): Promise<string> {
-  return marked(content, { gfm: true, breaks: false }) as string
-}
-
-/** Return all slugs — used to pre-generate static pages. */
-export function getAllSlugs(): string[] {
+export function getPostSlugs(): string[] {
   if (!fs.existsSync(CONTENT_DIR)) return []
   return fs
     .readdirSync(CONTENT_DIR)
     .filter((f) => f.endsWith('.mdx'))
     .map((f) => f.replace(/\.mdx$/, ''))
 }
+
+export function getPostBySlug(slug: string): Post {
+  const fullPath = path.join(CONTENT_DIR, `${slug}.mdx`)
+  const raw = fs.readFileSync(fullPath, 'utf8')
+  const { data, content } = matter(raw)
+  const stats = readingTime(content)
+  return {
+    slug,
+    ...(data as PostFrontmatter),
+    readingTime: stats.text,
+    content,
+  }
+}
+
+export function getAllPosts(): Post[] {
+  return getPostSlugs()
+    .map((slug) => getPostBySlug(slug))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+}
+
+export function getFeaturedPost(): Post | undefined {
+  return getAllPosts().find((p) => p.featured)
+}
+
+export function getPostsByCategory(category: string): Post[] {
+  return getAllPosts().filter((p) => p.category === category)
+}
+
+export { CATEGORIES } from './blog-constants'
+export type { Category } from './blog-constants'
+
+// Aliases for legacy components that predated this module
+export type Track = 'A' | 'B' | 'C'
+export type ArticleMeta = Post

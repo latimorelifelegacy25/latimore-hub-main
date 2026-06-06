@@ -1,4 +1,5 @@
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
+import { logger } from '@/lib/logger'
 
 /**
  * Triggers automatic lead scoring when relevant events occur
@@ -18,17 +19,14 @@ export async function triggerLeadScoring(input: {
           inquiryId: input.inquiryId
         })
 
-        console.log(`Lead scoring triggered: ${input.reason || 'unknown reason'}`, {
-          contactId: input.contactId,
-          inquiryId: input.inquiryId
-        })
+        logger.info({ contactId: input.contactId, inquiryId: input.inquiryId, reason: input.reason || 'unknown' }, 'Lead scoring triggered')
       } catch (error) {
-        console.error('Auto lead scoring failed:', error)
+        logger.error({ error }, 'Auto lead scoring failed')
       }
     })
   } catch (error) {
     // Don't let scoring failures break the main flow
-    console.error('Failed to trigger lead scoring:', error)
+    logger.error({ error }, 'Failed to trigger lead scoring')
   }
 }
 

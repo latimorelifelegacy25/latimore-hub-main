@@ -3,23 +3,24 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import BlogCard from '@/components/blog/BlogCard'
+import { COLORS } from '@/lib/brand'
 import type { ArticleMeta, Track } from '@/lib/mdx'
 
-// ── Brand tokens ──────────────────────────────────────────────────────────────
+// ── Brand tokens — aligned to globals.css :root and lib/brand.ts COLORS ──────
 const C = {
-  navy: '#2C3E50',
-  navyDeep: '#1a2530',
-  gold: '#C49A6C',
-  goldPale: '#fdf6ee',
-  goldBorder: '#e8d5b8',
-  cream: '#f9f6f0',
-  ink: '#1a1a1a',
-  muted: '#6b6460',
-  rule: '#e2dcd4',
-  white: '#ffffff',
-  trackA: '#2d5f8a',
-  trackB: '#4a7c59',
-  trackC: '#7a4f2e',
+  navy:       COLORS.navy,       // #0E1A2B  --color-navy-800
+  navyDeep:   COLORS.navyDeep,   // #0B0F17  --color-navy-900
+  gold:       COLORS.gold,       // #C9A25F  --color-gold-500
+  goldPale:   COLORS.goldPale,   // #fdf6ee  --color-gold-100
+  goldBorder: COLORS.goldBorder, // #e8d5b8  --color-gold-200
+  cream:      COLORS.goldCream,  // #f9f6f0  --color-gold-50
+  ink:        COLORS.text,       // #0E1A2B  --color-text
+  muted:      COLORS.textMuted,  // #475467  --color-text-muted
+  rule:       COLORS.gray200,    // #e5e7eb  --color-border
+  white:      COLORS.white,
+  trackA:     COLORS.trackA,     // --color-track-a
+  trackB:     COLORS.trackB,     // --color-track-b
+  trackC:     COLORS.trackC,     // --color-track-c
 } as const
 
 const TRACK_COLOR: Record<Track, string> = {
