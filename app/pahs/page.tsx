@@ -1,64 +1,388 @@
-'use client';
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import { Suspense } from 'react'
+import StartForm from './start/StartForm'
 
-import { useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
-import './pahs.css';
+export const metadata: Metadata = {
+  title: 'Latimore Life & Legacy | Proud PAHS All-Star Sponsor',
+  description: 'Proud PAHS All-Star Sponsor. Start your quick quote and view the Pottsville Area High School football schedule.',
+}
 
-const SERVICES = [
-  ['01', 'Life Insurance', 'Term and permanent coverage built for real family budgets.'],
-  ['02', 'Living Benefits', 'Coverage that can pay while you are living after qualifying critical, chronic, or terminal illness.'],
-  ['03', 'Indexed Universal Life', 'Tax-advantaged protection and growth potential with downside protection.'],
-  ['04', 'Fixed Index Annuities', 'Retirement income strategies designed to help protect principal and create lifetime income.'],
-  ['05', 'Estate & Legacy Planning', 'Guidance that helps families organize assets, wishes, and protection priorities.'],
-  ['06', 'Mortgage Protection', 'Affordable coverage designed to help keep the family home protected.'],
-];
-
-const PILLARS = [
-  ['Protecting Today', 'Life insurance and living-benefit solutions that safeguard the people depending on you right now.'],
-  ['Securing Tomorrow', 'Annuities, IUL strategies, and income planning designed for long-term family stability.'],
-  ['Serving Locally', 'Rooted in Schuylkill, Luzerne, and Northumberland Counties — not just selling, serving.'],
-];
+const games = [
+  { date: 'Sep 6', opponent: 'Minersville', location: 'Home' },
+  { date: 'Sep 13', opponent: 'Mahanoy Area', location: 'Away' },
+  { date: 'Sep 20', opponent: 'Tamaqua', location: 'Home' },
+  { date: 'Sep 27', opponent: 'North Schuylkill', location: 'Away' },
+  { date: 'Oct 4', opponent: 'Jim Thorpe', location: 'Home' },
+  { date: 'Oct 11', opponent: 'Shenandoah Valley', location: 'Away' },
+  { date: 'Oct 18', opponent: 'Nativity BVM', location: 'Home' },
+  { date: 'Oct 25', opponent: 'Tri-Valley', location: 'Away' },
+]
 
 export default function PAHSPage() {
-  useEffect(() => {
-    const revealEls = document.querySelectorAll('.fu2');
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach((entry, index) => {
-          if (entry.isIntersecting) {
-            window.setTimeout(() => entry.target.classList.add('vis'), index * 80);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 },
-    );
-
-    revealEls.forEach(el => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <main className="pahs-v2">
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="hero-ov" />
+    <main className="pahs-page">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
-        <div className="hero-c">
-          <div className="sbadge">Proud All-Star Sponsor</div>
+        :root {
+          --navy: #2C3E50;
+          --navy-deep: #0d1821;
+          --gold: #C49A6C;
+          --gold-light: #e8c99a;
+          --gold-dark: #9a7448;
+          --crimson: #8B1A1A;
+          --crimson-light: #b02020;
+          --white: #FFFFFF;
+          --offwhite: #f5f0e8;
+          --muted: #93A4B4;
+        }
 
-          <h1 className="hs">
-            Pottsville Area
-            <span>High School</span>
+        * { box-sizing: border-box; }
+
+        body { background: var(--navy-deep); }
+
+        .pahs-page {
+          min-height: 100vh;
+          position: relative;
+          overflow-x: hidden;
+          color: var(--white);
+          font-family: 'Lora', Georgia, serif;
+          background: var(--navy-deep);
+        }
+
+        .pahs-page h1,
+        .pahs-page h2,
+        .pahs-page p {
+          margin: 0;
+        }
+
+        .pahs-bg {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          background-image: url('/pahs-latimore-logo.png');
+          background-size: cover;
+          background-position: center 30%;
+          filter: brightness(.32) saturate(.8);
+          transform: scale(1.02);
+        }
+
+        .pahs-bg-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          background:
+            radial-gradient(ellipse at 50% 10%, rgba(196,154,108,.18) 0%, transparent 48%),
+            linear-gradient(160deg, rgba(13,24,33,.78) 0%, rgba(44,62,80,.48) 50%, rgba(139,26,26,.36) 100%),
+            linear-gradient(180deg, rgba(13,24,33,.08) 0%, rgba(13,24,33,.94) 100%);
+        }
+
+        .page-shell {
+          position: relative;
+          z-index: 1;
+          width: min(100%, 760px);
+          margin: 0 auto;
+          padding: 28px 16px 72px;
+        }
+
+        .lead-card,
+        .schedule-card {
+          background: rgba(13,24,33,.80);
+          border: 1px solid rgba(196,154,108,.28);
+          box-shadow: 0 28px 80px rgba(0,0,0,.52);
+          backdrop-filter: blur(10px);
+        }
+
+        .lead-card {
+          border-radius: 28px;
+          padding: clamp(22px, 5vw, 36px) clamp(16px, 5vw, 32px);
+          text-align: center;
+          animation: fadeUp .7s ease both;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .lead-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, var(--crimson), var(--gold), var(--crimson));
+        }
+
+        .sponsor-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: .5rem;
+          background: rgba(196,154,108,.15);
+          border: 1px solid rgba(196,154,108,.45);
+          color: var(--gold-light);
+          font-family: 'Oswald', sans-serif;
+          font-size: .72rem;
+          font-weight: 500;
+          letter-spacing: .22em;
+          margin-bottom: 18px;
+          padding: .42rem 1.15rem;
+          text-transform: uppercase;
+        }
+
+        .sponsor-badge::before,
+        .sponsor-badge::after {
+          content: '★';
+          color: var(--gold);
+          font-size: .6rem;
+        }
+
+        .headline {
+          color: #fff;
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(3rem, 12vw, 6rem);
+          line-height: .92;
+          letter-spacing: .035em;
+          text-shadow: 0 4px 38px rgba(0,0,0,.82);
+        }
+
+        .headline span {
+          color: var(--gold);
+          display: block;
+        }
+
+        .subline {
+          color: var(--crimson-light);
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.25rem, 5vw, 2.15rem);
+          letter-spacing: .12em;
+          margin-top: 4px;
+        }
+
+        .form-player-wrap {
+          margin: 22px auto 18px;
+          border: 1px solid rgba(196,154,108,.34);
+          background: rgba(255,255,255,.05);
+          box-shadow: 0 18px 46px rgba(0,0,0,.42);
+          overflow: hidden;
+          border-radius: 18px;
+        }
+
+        .form-player-image {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        .form-player-caption {
+          padding: 10px 14px 12px;
+          color: rgba(255,255,255,.74);
+          font-family: 'Oswald', sans-serif;
+          font-size: .72rem;
+          font-weight: 400;
+          letter-spacing: .12em;
+          line-height: 1.5;
+          text-transform: uppercase;
+          background: rgba(13,24,33,.72);
+          border-top: 1px solid rgba(196,154,108,.22);
+        }
+
+        .heartbeat {
+          width: 200px;
+          height: 30px;
+          margin: 16px auto 8px;
+        }
+
+        .tagline {
+          color: var(--gold-light);
+          font-family: 'Oswald', sans-serif;
+          font-size: clamp(.76rem, 2.8vw, .95rem);
+          font-weight: 400;
+          letter-spacing: .16em;
+          line-height: 1.6;
+          text-transform: uppercase;
+        }
+
+        .form-intro {
+          max-width: 470px;
+          margin: 18px auto 0;
+          color: rgba(255,255,255,.74);
+          font-size: .96rem;
+          line-height: 1.7;
+        }
+
+        .form-wrap {
+          max-width: 520px;
+          margin: 24px auto 0;
+          text-align: left;
+        }
+
+        .phone-line {
+          display: inline-flex;
+          margin-top: 18px;
+          color: var(--gold-light);
+          font-family: 'Oswald', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: .12em;
+          text-decoration: none;
+          text-transform: uppercase;
+        }
+
+        .goalposts-wrap {
+          margin: 22px 0 18px;
+          text-align: center;
+          animation: fadeUp .7s .1s ease both;
+        }
+
+        .goalposts {
+          opacity: .38;
+          filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+        }
+
+        .schedule-card {
+          border-radius: 24px;
+          overflow: hidden;
+          animation: fadeUp .7s .16s ease both;
+        }
+
+        .schedule-head {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 20px 22px;
+          background: linear-gradient(135deg, rgba(196,154,108,.22), rgba(196,154,108,.07));
+          border-bottom: 1px solid rgba(196,154,108,.24);
+        }
+
+        .schedule-icon {
+          font-size: 1.9rem;
+          filter: drop-shadow(0 4px 14px rgba(0,0,0,.5));
+        }
+
+        .schedule-title {
+          color: var(--gold-light);
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.9rem, 7vw, 3rem);
+          letter-spacing: .12em;
+          line-height: .95;
+          text-transform: uppercase;
+        }
+
+        .schedule-subtitle {
+          color: var(--muted);
+          font-family: 'Oswald', sans-serif;
+          font-size: .88rem;
+          font-weight: 300;
+          letter-spacing: .05em;
+          margin-top: 5px;
+        }
+
+        .game-row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px 22px;
+          border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .game-row:last-child { border-bottom: none; }
+
+        .yard-bar {
+          width: 5px;
+          height: 40px;
+          border-radius: 4px;
+          flex: 0 0 auto;
+        }
+
+        .yard-bar.home { background: linear-gradient(to bottom, var(--gold-dark), var(--gold-light)); }
+        .yard-bar.away { background: rgba(255,255,255,.14); }
+
+        .game-date {
+          width: 64px;
+          color: var(--muted);
+          flex: 0 0 auto;
+          font-family: 'Oswald', sans-serif;
+          font-size: 1rem;
+          font-weight: 600;
+          letter-spacing: .05em;
+        }
+
+        .game-opponent {
+          flex: 1;
+          color: var(--white);
+          font-family: 'Oswald', sans-serif;
+          font-size: clamp(1.15rem, 4.8vw, 1.75rem);
+          font-weight: 500;
+          line-height: 1.12;
+        }
+
+        .game-tag {
+          border-radius: 8px;
+          font-family: 'Oswald', sans-serif;
+          font-size: .78rem;
+          font-weight: 700;
+          letter-spacing: .08em;
+          padding: 6px 11px;
+          text-transform: uppercase;
+        }
+
+        .game-tag.home {
+          background: rgba(196,154,108,.18);
+          border: 1px solid rgba(196,154,108,.38);
+          color: var(--gold-light);
+        }
+
+        .game-tag.away {
+          background: rgba(255,255,255,.05);
+          border: 1px solid rgba(255,255,255,.12);
+          color: var(--muted);
+        }
+
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(22px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 440px) {
+          .page-shell { padding-left: 12px; padding-right: 12px; }
+          .lead-card { border-radius: 22px; }
+          .headline { font-size: clamp(2.8rem, 15vw, 4.5rem); }
+          .schedule-card { border-radius: 20px; }
+          .schedule-head { padding: 18px 16px; }
+          .game-row { gap: 10px; padding: 14px 14px; }
+          .game-date { width: 54px; font-size: .92rem; }
+          .yard-bar { height: 36px; }
+          .game-tag { padding: 5px 9px; font-size: .7rem; }
+        }
+      `}</style>
+
+      <div className="pahs-bg" aria-hidden="true" />
+      <div className="pahs-bg-overlay" aria-hidden="true" />
+
+      <div className="page-shell">
+        <section className="lead-card" aria-labelledby="pahs-heading">
+          <div className="sponsor-badge">Proud All-Star Sponsor</div>
+
+          <h1 className="headline" id="pahs-heading">
+            Start Your
+            <span>Quick Quote</span>
           </h1>
+          <div className="subline">Pottsville Area · Crimson Tide</div>
 
-          <div className="hy">Crimson Tide · Class of ‘26</div>
-
-          <div className="lhero">
-            <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
+          <div className="form-player-wrap">
+            <Image
+              className="form-player-image"
+              src="/pahs-form-hero.jpeg"
+              alt="2005 Coal Region All-Area football throwback featuring Jackson Latimore"
+              width={1024}
+              height={1024}
+              priority
+            />
+            <div className="form-player-caption">Where the journey began · PAHS football lead form</div>
           </div>
 
-          <svg className="hbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="heartbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <polyline
               points="0,15 34,15 42,4 48,26 54,10 60,20 66,15 100,15 108,2 116,28 122,8 128,22 134,15 200,15"
               stroke="#C49A6C"
@@ -68,191 +392,50 @@ export default function PAHSPage() {
             />
           </svg>
 
-          <div className="tline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <div className="tagline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <p className="form-intro">Your information hits the Latimore Hub first, then routes to the quick quote flow.</p>
 
-          <div className="ctas">
-            <a className="btn1" href="#consult">Schedule Free Consultation</a>
-            <a className="btn2" href="#story">The Full Circle Story ↓</a>
-          </div>
-        </div>
-
-        <div className="scrollh">
-          <span>Scroll</span>
-          <div className="sarrow" />
-        </div>
-      </section>
-
-      <section className="spgfx">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
-      </section>
-
-      <section className="campaign-videos">
-        <div className="campaign-videos-inner fu2">
-          <div className="seclab">Campaign Video</div>
-          <h2 className="sect">Watch the <em>Campaign</em></h2>
-          <div className="video-center-wrap">
-            <iframe
-              loading="lazy"
-              src="https://www.canva.com/design/DAHLhIdBi1g/XrwK0tvOGXRX57S6xQtgdA/watch?embed"
-              allowFullScreen
-              allow="fullscreen"
-              title="PAHS Campaign Video"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="story" id="story">
-        <div className="si">
-          <div className="fu2">
-            <div className="slabel">The Full Circle Legacy</div>
-            <div className="yb">2005 → 2026</div>
-            <h2 className="sh2">
-              From the Field
-              <br />
-              to the <em>Family</em>
-            </h2>
-
-            <p className="sbody">
-              Jackson M. Latimore Sr. wore <strong>#20 for Cardinal Brennan</strong>, earning Republican & Herald All-Area Offensive Player of the Year honors in 2005. He knows what it means to compete in the Coal Region — the early mornings, the community that shows up, and the weight of a jersey.
-            </p>
-
-            <blockquote className="pq">
-              A cardiac arrest at ESU&apos;s Koehler Fieldhouse nearly ended my story. An AED funded through local preparedness helped save my life. That is why protection, preparation, and legacy are personal.
-            </blockquote>
-
-            <p className="sbody">
-              That moment is the heartbeat behind everything we do at <strong>Latimore Life & Legacy LLC</strong>. We help families prepare for life&apos;s uncertainties with clarity and confidence — because legacy is not just what you leave behind. It is how you show up today.
-            </p>
+          <div className="form-wrap">
+            <Suspense fallback={<div style={{ color: '#fff', textAlign: 'center' }}>Loading form...</div>}>
+              <StartForm />
+            </Suspense>
           </div>
 
-          <div className="cf fu2">
-            <div className="ci2">
-              <div className="ch">
-                <div className="cht">Pottsville caps magical season</div>
-                <div className="chs">Tide&apos;s Keating, Buziak, DeMarkis join CB&apos;s Latimore atop team</div>
-              </div>
-              <img className="cp" src="/pahs-2005-allarea.png" alt="2005 Republican & Herald All-Area Football — Jackson Latimore named Offensive Player of the Year" />
-              <div className="cc">
-                Headlining the 2005 R&H All-Area Football Team — Jackson Latimore (#20, Cardinal Brennan) named Offensive Player of the Year.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          <a className="phone-line" href="tel:+17176152613">(717) 615-2613</a>
+        </section>
 
-      <section className="pills">
-        <div className="sechdr fu2">
-          <div className="seclab">Why Latimore Life & Legacy</div>
-          <h2 className="sect">Built for <em>Coal Region</em> Families</h2>
+        <div className="goalposts-wrap" aria-hidden="true">
+          <svg className="goalposts" width="84" height="44" viewBox="0 0 84 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="42" y1="44" x2="42" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="12" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="72" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="12" y1="18" x2="12" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="72" y1="18" x2="72" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+          </svg>
         </div>
 
-        <div className="pg">
-          {PILLARS.map(([title, body]) => (
-            <article className="pc fu2" key={title}>
-              <div className="pt">{title}</div>
-              <p className="pb">{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="cpn">
-        <div className="cpni fu2">
-          <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide · ID #2777749" />
-          <div className="cpnn">Powered by CampusBox Media · ID #2777749 · Limit one per transaction</div>
-        </div>
-      </section>
-
-      <section className="svcs">
-        <div className="svci">
-          <div className="sechdr fu2">
-            <div className="seclab dark">What We Offer</div>
-            <h2 className="sect dark-text">Protection <em>Strategies</em></h2>
-          </div>
-
-          <div className="sg">
-            {SERVICES.map(([num, title, body]) => (
-              <article className="svc fu2" key={title}>
-                <div className="sn">{num}</div>
-                <div>
-                  <h3 className="st">{title}</h3>
-                  <p className="sv">{body}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="art-strip">
-        <img src="/pahs-protect-go.png" alt="Protect What You Play For — Pottsville Area Crimson Tide ‘26" />
-      </section>
-
-      <section className="qrs" id="consult">
-        <div className="qrsi fu2">
-          <h2>Scan. Connect. Protect.</h2>
-          <p>Scan the code or visit the link below to schedule your free protection review.</p>
-          <div className="qrb">
-            <QRCodeCanvas value="https://latimorelifelegacy.fillout.com/pahs" size={180} level="H" includeMargin />
-            <div className="qru">latimorelifelegacy.fillout.com/pahs</div>
-          </div>
-          <a href="tel:7176152613" className="qruw">(717) 615-2613</a>
-        </div>
-      </section>
-
-      <section className="art-strip">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
-      </section>
-
-      <section className="contact" id="contact">
-        <div className="conti">
-          <div className="seclab">Get in Touch</div>
-          <h2 className="sect" style={{ marginTop: '.5rem' }}>
-            Let&apos;s Protect
-            <br />
-            Your <em>Legacy</em>
-          </h2>
-
-          <div className="contc fu2">
-            <div className="cname">Jackson M. Latimore Sr., MBA</div>
-            <div className="ctitle">Founder & CEO · Latimore Life & Legacy LLC · GFI Affiliate</div>
-            <div className="cdiv" />
-
-            <div className="citems">
-              <a href="tel:7176152613" className="citem">(717) 615-2613</a>
-              <a href="mailto:leads@latimorelegacy.com" className="citem">leads@latimorelegacy.com</a>
-              <div className="citem">1544 Route 61 Hwy S, Suite 6104, Pottsville, PA 17901</div>
-              <div className="citem">PA DOI #1268820 · NIPR #21638507</div>
+        <section className="schedule-card" aria-labelledby="schedule-heading">
+          <div className="schedule-head">
+            <span className="schedule-icon">🏈</span>
+            <div>
+              <h2 className="schedule-title" id="schedule-heading">PAHS Crimson Tide — 2025 Schedule</h2>
+              <div className="schedule-subtitle">Pottsville Area High School Football</div>
             </div>
           </div>
 
-          <div className="lic">
-            Latimore Life & Legacy LLC is an independent insurance brokerage licensed in the Commonwealth of Pennsylvania.
-            <br />
-            Products offered through licensed carrier appointments. Not all products available in all areas.
-            <br />
-            Affiliated with Global Financial Impact (GFI). Insurance products are not FDIC insured, not bank guaranteed, and may lose value.
-          </div>
-        </div>
-      </section>
-
-      <footer>
-        <div className="fi">
-          <div className="fs">
-            <span>Life Insurance</span>
-            <span>Living Benefits</span>
-            <span>Annuities</span>
-            <span>Financial Strategies</span>
-          </div>
-          <div className="fc">© 2026 Latimore Life & Legacy LLC · latimorelifelegacy.fillout.com/pahs</div>
-        </div>
-      </footer>
-
-      <div className="mcta">
-        <div className="mctx">Free Consultation</div>
-        <a href="tel:7176152613" className="mctb">Call Now</a>
+          {games.map(game => {
+            const locationClass = game.location.toLowerCase()
+            return (
+              <div className="game-row" key={`${game.date}-${game.opponent}`}>
+                <div className={`yard-bar ${locationClass}`} />
+                <div className="game-date">{game.date}</div>
+                <div className="game-opponent">{game.opponent}</div>
+                <span className={`game-tag ${locationClass}`}>{game.location}</span>
+              </div>
+            )
+          })}
+        </section>
       </div>
     </main>
-  );
+  )
 }

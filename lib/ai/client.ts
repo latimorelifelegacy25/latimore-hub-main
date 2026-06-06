@@ -1,15 +1,5 @@
 type JsonSchema = Record<string, unknown>
 
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 20_000): Promise<Response> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    return await fetch(url, { ...options, signal: controller.signal })
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
 type CompletionResult<T> = {
   model: string
   output: T
@@ -19,7 +9,6 @@ type CompletionResult<T> = {
     total_tokens?: number
   }
 }
-
 
 export async function fetchWithTimeout(
   input: RequestInfo | URL,
@@ -36,6 +25,11 @@ export async function fetchWithTimeout(
 
   try {
     return await fetch(input, { ...fetchInit, signal: controller.signal })
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`AI provider request timed out after ${timeoutMs}ms`)
+    }
+    throw error
   } finally {
     clearTimeout(timeout)
   }
