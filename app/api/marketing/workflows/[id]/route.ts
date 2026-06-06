@@ -5,7 +5,6 @@ import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
-import { requireAdminSession } from '@/lib/ai/shared'
 
 const StepSchema = z.object({
   order: z.number().int().min(0),
@@ -40,9 +39,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
-  const { id } = await params
+
 
   const body = await req.json().catch(() => null)
   const parsed = PatchSchema.safeParse(body)

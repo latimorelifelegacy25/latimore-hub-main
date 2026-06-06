@@ -27,7 +27,6 @@ const schema = {
 }
 
 export async function POST(req: NextRequest) {
-  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const auth = await requireAdminSession()
