@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Limit config shared by both the Upstash and in-memory implementations
+// Limit config shared by both the Upstash and in-memory implementations.
 const LIMITS: Record<string, { limit: number; windowSec: number }> = {
+  analytics: { limit: 120, windowSec: 60 },
+  booking: { limit: 10, windowSec: 60 },
   cardEvents: { limit: 200, windowSec: 60 },
   fillout:    { limit: 20,  windowSec: 60 },
   inquiries:  { limit: 60,  windowSec: 60 },
@@ -15,12 +17,7 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   default:    { limit: 100, windowSec: 60 },
 }
 
-// ─── Upstash Redis (preferred: works across all instances / edge) ─────────────
-
-let _upstash: import('@upstash/ratelimit').Ratelimit | null = null
-
-function getUpstash(): import('@upstash/ratelimit').Ratelimit | null {
-  if (_upstash) return _upstash
+async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
@@ -39,10 +36,8 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
   const client = getUpstash()
   if (!client) return false
   try {
-    const { Ratelimit } = require('@upstash/ratelimit')
-    const { Redis } = require('@upstash/redis')
-    const url = process.env.UPSTASH_REDIS_REST_URL!
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN!
+    const { Ratelimit } = await import('@upstash/ratelimit')
+    const { Redis } = await import('@upstash/redis')
     const redis = new Redis({ url, token })
     const limiter = new Ratelimit({
       redis,
@@ -55,9 +50,15 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
   }
 }
 
-// ─── In-memory fallback (single-instance only — used when Upstash is not configured) ─
-
+// In-memory fallback (single-instance only — used when Upstash is not configured).
 const store = new Map<string, { count: number; reset: number }>()
+
+setInterval(() => {
+  const now = Date.now()
+  for (const [k, rec] of store) {
+    if (now > rec.reset) store.delete(k)
+  }
+}, 60_000)
 
 function memoryLimit(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now()
@@ -71,11 +72,8 @@ function memoryLimit(key: string, limit: number, windowMs: number): boolean {
   return false
 }
 
-// ─── Public interface ─────────────────────────────────────────────────────────
-
 export async function rateLimit(req: NextRequest, type = 'default'): Promise<NextResponse | null> {
   const { limit, windowSec } = LIMITS[type] ?? LIMITS.default
-  // Validate x-forwarded-for against a trusted structure to prevent header spoofing
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   const key = `rl:${type}:${ip}`
 
@@ -86,6 +84,6 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
   if (!limited) return null
   return NextResponse.json(
     { ok: false, error: 'Too many requests — please slow down.' },
-    { status: 429, headers: { 'Retry-After': String(windowSec), 'X-RateLimit-Limit': String(limit) } }
+    { status: 429, headers: { 'Retry-After': String(windowSec), 'X-RateLimit-Limit': String(limit) } },
   )
 }

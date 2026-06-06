@@ -23,13 +23,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import EmptyState from '../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 const G = '#C9A25F'
 const NAVY = '#0B0F17'
-const SURF = '#131929'
 const DIM = '#A9B1BE'
 const MUTED = '#8F98A8'
 
@@ -105,6 +104,16 @@ type Opportunity = {
   leadScore: number
   lastActivityAt: string | null
   reason: string
+}
+
+
+type DashboardData = {
+  overview: OverviewData
+  funnel: FunnelStage[]
+  timeSeries: TimeSeriesPoint[]
+  breakdowns: BreakdownRow[]
+  recentEvents: RecentEvent[]
+  opportunities: Opportunity[]
 }
 
 type ApiEnvelope<T> = {
@@ -274,75 +283,57 @@ export default function AnalyticsPage() {
   const [breakdownsErr, setBreakdownsErr] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
-    const qs = buildQs(range)
+    const qs = buildQs(range, {
+      dimension: 'source',
+      metrics: 'lead_count,contact_count,appointment_booked_count,cta_click_count',
+      recentLimit: '15',
+    })
 
-    // Overview
     setOverviewLoading(true)
-    setOverviewErr(null)
-    fetch(`/api/analytics/v1/overview?${qs}`)
-      .then(r => r.json() as Promise<ApiEnvelope<OverviewData>>)
-      .then(res => {
-        if (res.ok && res.data) {
-          setOverview(res.data)
-          setWarnings(res.meta?.warnings ?? [])
-        } else {
-          setOverviewErr(res.error ?? 'Failed to load overview')
-        }
-      })
-      .catch(() => setOverviewErr('Network error'))
-      .finally(() => setOverviewLoading(false))
-
-    // Funnel
     setFunnelLoading(true)
-    setFunnelErr(null)
-    fetch(`/api/analytics/v1/funnel?${qs}`)
-      .then(r => r.json() as Promise<ApiEnvelope<FunnelStage[]>>)
-      .then(res => {
-        if (res.ok && res.data) setFunnel(res.data)
-        else setFunnelErr(res.error ?? 'Failed to load funnel')
-      })
-      .catch(() => setFunnelErr('Network error'))
-      .finally(() => setFunnelLoading(false))
-
-    // Time series
     setTimeSeriesLoading(true)
-    setTimeSeriesErr(null)
-    fetch(`/api/analytics/v1/time-series?${qs}&metrics=lead_count,contact_count,appointment_booked_count,cta_click_count`)
-      .then(r => r.json() as Promise<ApiEnvelope<TimeSeriesPoint[]>>)
-      .then(res => {
-        if (res.ok && res.data) setTimeSeries(res.data)
-        else setTimeSeriesErr(res.error ?? 'Failed to load time series')
-      })
-      .catch(() => setTimeSeriesErr('Network error'))
-      .finally(() => setTimeSeriesLoading(false))
-
-    // Breakdowns (source)
     setBreakdownsLoading(true)
-    setBreakdownsErr(null)
-    fetch(`/api/analytics/v1/breakdowns?${qs}&dimension=source`)
-      .then(r => r.json() as Promise<ApiEnvelope<BreakdownRow[]>>)
-      .then(res => {
-        if (res.ok && res.data) setBreakdowns(res.data)
-        else setBreakdownsErr(res.error ?? 'Failed to load breakdowns')
-      })
-      .catch(() => setBreakdownsErr('Network error'))
-      .finally(() => setBreakdownsLoading(false))
-
-    // Recent events
     setRecentLoading(true)
-    fetch('/api/analytics/v1/recent-events?limit=15')
-      .then(r => r.json() as Promise<ApiEnvelope<RecentEvent[]>>)
-      .then(res => { if (res.ok && res.data) setRecentEvents(res.data) })
-      .catch(() => {})
-      .finally(() => setRecentLoading(false))
-
-    // Opportunities
     setOppsLoading(true)
-    fetch('/api/analytics/v1/opportunities')
-      .then(r => r.json() as Promise<ApiEnvelope<Opportunity[]>>)
-      .then(res => { if (res.ok && res.data) setOpportunities(res.data) })
-      .catch(() => {})
-      .finally(() => setOppsLoading(false))
+    setOverviewErr(null)
+    setFunnelErr(null)
+    setTimeSeriesErr(null)
+    setBreakdownsErr(null)
+
+    try {
+      const response = await fetch(`/api/analytics/v1/dashboard?${qs}`)
+      const res = await response.json() as ApiEnvelope<DashboardData>
+
+      if (!response.ok || !res.ok || !res.data) {
+        const message = res.error ?? 'Failed to load dashboard analytics'
+        setOverviewErr(message)
+        setFunnelErr(message)
+        setTimeSeriesErr(message)
+        setBreakdownsErr(message)
+        return
+      }
+
+      setOverview(res.data.overview)
+      setFunnel(res.data.funnel)
+      setTimeSeries(res.data.timeSeries)
+      setBreakdowns(res.data.breakdowns)
+      setRecentEvents(res.data.recentEvents)
+      setOpportunities(res.data.opportunities)
+      setWarnings(res.meta?.warnings ?? [])
+    } catch {
+      const message = 'Network error'
+      setOverviewErr(message)
+      setFunnelErr(message)
+      setTimeSeriesErr(message)
+      setBreakdownsErr(message)
+    } finally {
+      setOverviewLoading(false)
+      setFunnelLoading(false)
+      setTimeSeriesLoading(false)
+      setBreakdownsLoading(false)
+      setRecentLoading(false)
+      setOppsLoading(false)
+    }
   }, [range])
 
   useEffect(() => {

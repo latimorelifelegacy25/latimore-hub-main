@@ -1,4 +1,4 @@
-const GRAPH_VERSION = 'v19.0'
+export const GRAPH_VERSION = process.env.META_GRAPH_VERSION ?? 'v25.0'
 const GRAPH_BASE = `https://graph.facebook.com/${GRAPH_VERSION}`
 
 export type FacebookPage = {
@@ -12,10 +12,11 @@ export type FacebookPage = {
 export type FacebookTokenInfo = {
   app_id: string
   type: string
-  expires_at: number
+  expires_at?: number
+  data_access_expires_at?: number
   is_valid: boolean
-  scopes: string[]
-  user_id: string
+  scopes?: string[]
+  user_id?: string
 }
 
 /** Build the Facebook OAuth dialog URL. */
@@ -86,9 +87,11 @@ export async function getLongLivedUserToken(shortLivedToken: string): Promise<{ 
 
 /** Fetch all Facebook Pages the user manages, with their page access tokens. */
 export async function getUserPages(userAccessToken: string): Promise<FacebookPage[]> {
-  const res = await fetch(
-    `${GRAPH_BASE}/me/accounts?fields=id,name,access_token,category,tasks&access_token=${userAccessToken}`
-  )
+  const params = new URLSearchParams({
+    fields: 'id,name,access_token,category,tasks',
+    access_token: userAccessToken,
+  })
+  const res = await fetch(`${GRAPH_BASE}/me/accounts?${params}`)
   const data = await res.json()
   if (!res.ok || data.error) {
     throw new Error(`Failed to fetch Facebook pages: ${data.error?.message ?? res.status}`)
@@ -146,7 +149,7 @@ export async function fetchPageInsights(
 
   const [insightsRes, pageRes] = await Promise.all([
     fetch(`${GRAPH_BASE}/${pageId}/insights?${params}`),
-    fetch(`${GRAPH_BASE}/${pageId}?fields=name&access_token=${pageAccessToken}`),
+    fetch(`${GRAPH_BASE}/${pageId}?${new URLSearchParams({ fields: 'name', access_token: pageAccessToken })}`),
   ])
 
   const [insightsData, pageData] = await Promise.all([insightsRes.json(), pageRes.json()])
