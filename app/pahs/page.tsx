@@ -1,594 +1,440 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
+import { Suspense } from 'react'
+import StartForm from './start/StartForm'
 
 export const metadata: Metadata = {
-  title: 'PAHS Football 2026 · Latimore Life & Legacy',
-  description: 'Proud sponsor of Pottsville Area High School Football 2026. Protecting families and futures in the Coal Region.',
+  title: 'Latimore Life & Legacy | Proud PAHS All-Star Sponsor',
+  description: 'Proud PAHS All-Star Sponsor. Start your quick quote and view the Pottsville Area High School football schedule.',
 }
 
-const quickQuoteUrl = 'https://agents.ethoslife.com/invite/29ad1?utm_source=pahs&utm_medium=qr&utm_campaign=football2026'
-const bookingUrl = 'https://latimorelifelegacy.fillout.com/latimorelifelegacy'
-const cardUrl = 'https://card.latimorelifelegacy.com'
-const websiteUrl = 'https://www.latimorelifelegacy.com'
+const games = [
+  { date: 'Sep 6', opponent: 'Minersville', location: 'Home' },
+  { date: 'Sep 13', opponent: 'Mahanoy Area', location: 'Away' },
+  { date: 'Sep 20', opponent: 'Tamaqua', location: 'Home' },
+  { date: 'Sep 27', opponent: 'North Schuylkill', location: 'Away' },
+  { date: 'Oct 4', opponent: 'Jim Thorpe', location: 'Home' },
+  { date: 'Oct 11', opponent: 'Shenandoah Valley', location: 'Away' },
+  { date: 'Oct 18', opponent: 'Nativity BVM', location: 'Home' },
+  { date: 'Oct 25', opponent: 'Tri-Valley', location: 'Away' },
+]
 
 export default function PAHSPage() {
   return (
-    <>
+    <main className="pahs-page">
       <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
         :root {
-          --pahs-navy: #1a2d3f;
-          --pahs-navy-dark: #0f1e2a;
-          --pahs-navy-deep: #091520;
-          --pahs-gold: #C49A6C;
-          --pahs-gold-light: #e7c9a3;
-          --pahs-crimson: #8B1A1A;
-          --pahs-white: #ffffff;
-          --pahs-text: rgba(255,255,255,0.88);
-          --pahs-text-muted: rgba(255,255,255,0.55);
+          --navy: #2C3E50;
+          --navy-deep: #0d1821;
+          --gold: #C49A6C;
+          --gold-light: #e8c99a;
+          --gold-dark: #9a7448;
+          --crimson: #8B1A1A;
+          --crimson-light: #b02020;
+          --white: #FFFFFF;
+          --offwhite: #f5f0e8;
+          --muted: #93A4B4;
         }
 
-        html { scroll-behavior: smooth; }
+        * { box-sizing: border-box; }
 
         body {
-          background: var(--pahs-navy-deep);
+          background: var(--navy-deep);
         }
 
-        .pahs-qr-page {
-          font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-          background: var(--pahs-navy-deep);
-          color: var(--pahs-white);
+        .pahs-page {
           min-height: 100vh;
-          overflow-x: hidden;
           position: relative;
+          overflow-x: hidden;
+          color: var(--white);
+          font-family: 'Lora', Georgia, serif;
+          background: var(--navy-deep);
         }
 
-        .pahs-qr-page a {
-          -webkit-tap-highlight-color: transparent;
-        }
-
-        .field-bg {
+        .pahs-bg {
           position: fixed;
           inset: 0;
           z-index: 0;
-          background: linear-gradient(180deg, var(--pahs-navy-deep) 0%, #112233 40%, #0d1d2b 100%);
-          overflow: hidden;
+          background:
+            linear-gradient(160deg, rgba(13,24,33,.82) 0%, rgba(44,62,80,.58) 52%, rgba(139,26,26,.42) 100%),
+            url('/pahs-sponsor-flyer.png');
+          background-size: cover;
+          background-position: center 30%;
+          filter: brightness(.72) saturate(.88);
+          transform: scale(1.02);
         }
 
-        .field-lines {
+        .pahs-bg::after {
+          content: '';
           position: absolute;
-          bottom: 0;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 140vw;
-          height: 60vh;
-          opacity: 0.07;
+          inset: 0;
+          background:
+            radial-gradient(ellipse at 50% 10%, rgba(196,154,108,.20) 0%, transparent 52%),
+            linear-gradient(180deg, rgba(13,24,33,.15) 0%, rgba(13,24,33,.92) 100%);
         }
 
-        .field-lines line {
-          stroke: white;
-          stroke-width: 1.5;
-        }
-
-        .field-glow {
-          position: absolute;
-          top: -20%;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 80vw;
-          height: 50vh;
-          background: radial-gradient(ellipse, rgba(196,154,108,0.12) 0%, transparent 65%);
-          pointer-events: none;
-        }
-
-        .field-glow-red {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 40vh;
-          background: radial-gradient(ellipse at 50% 100%, rgba(139,26,26,0.18) 0%, transparent 60%);
-          pointer-events: none;
-        }
-
-        .page {
+        .page-shell {
           position: relative;
           z-index: 1;
-          max-width: 680px;
+          width: min(100%, 760px);
           margin: 0 auto;
-          padding: 20px 16px 60px;
+          padding: 28px 16px 72px;
         }
 
-        .scoreboard {
-          background: linear-gradient(135deg, var(--pahs-crimson) 0%, #6b1414 100%);
-          border: 2px solid rgba(255,255,255,0.15);
-          border-radius: 16px 16px 0 0;
-          padding: 10px 20px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          box-shadow: 0 4px 24px rgba(139,26,26,0.4);
-          gap: 14px;
+        .lead-card,
+        .schedule-card {
+          background: rgba(13,24,33,.78);
+          border: 1px solid rgba(196,154,108,.26);
+          box-shadow: 0 28px 80px rgba(0,0,0,.48);
+          backdrop-filter: blur(10px);
         }
 
-        .scoreboard-left {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .scoreboard-label {
-          font-family: 'Oswald', sans-serif;
-          font-size: 0.62rem;
-          font-weight: 600;
-          letter-spacing: 0.28em;
-          color: rgba(255,255,255,0.65);
-          text-transform: uppercase;
-        }
-
-        .scoreboard-team {
-          font-family: 'Oswald', sans-serif;
-          font-size: 1.15rem;
-          font-weight: 700;
-          color: var(--pahs-white);
-          letter-spacing: 0.05em;
-          white-space: nowrap;
-        }
-
-        .scoreboard-badge {
-          background: var(--pahs-gold);
-          color: var(--pahs-navy-deep);
-          font-family: 'Oswald', sans-serif;
-          font-size: 0.72rem;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          padding: 4px 12px;
-          border-radius: 20px;
-          white-space: nowrap;
-        }
-
-        .card {
-          background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.03) 100%);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-top: none;
-          border-radius: 0 0 24px 24px;
-          overflow: hidden;
-          box-shadow: 0 32px 80px rgba(0,0,0,0.4);
-        }
-
-        .card-inner {
-          padding: 28px 22px 32px;
-        }
-
-        .scan-tag {
-          display: inline-block;
-          font-family: 'Oswald', sans-serif;
-          font-size: 0.7rem;
-          font-weight: 600;
-          letter-spacing: 0.3em;
-          color: var(--pahs-gold-light);
-          text-transform: uppercase;
-          margin-bottom: 10px;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.1s forwards;
-        }
-
-        .hero-headline {
-          font-family: 'Oswald', sans-serif;
-          font-size: clamp(2.6rem, 10vw, 4rem);
-          font-weight: 700;
-          line-height: 0.95;
-          letter-spacing: -0.01em;
-          color: var(--pahs-white);
-          text-transform: uppercase;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.2s forwards;
-        }
-
-        .hero-headline span {
-          color: var(--pahs-gold);
-          display: block;
-        }
-
-        .hero-sub {
-          margin-top: 14px;
-          font-size: 1rem;
-          line-height: 1.65;
-          color: var(--pahs-text);
-          max-width: 520px;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.3s forwards;
-        }
-
-        .yardline {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin: 22px 0;
-          opacity: 0;
-          animation: fadeUp 0.4s ease 0.35s forwards;
-        }
-
-        .yardline-number {
-          font-family: 'Oswald', sans-serif;
-          font-size: 1.8rem;
-          font-weight: 700;
-          color: rgba(255,255,255,0.08);
-          line-height: 1;
-          white-space: nowrap;
-        }
-
-        .yardline-bar {
-          flex: 1;
-          height: 1px;
-          background: linear-gradient(90deg, rgba(196,154,108,0.4), rgba(196,154,108,0.1));
-        }
-
-        .ctas {
-          display: grid;
-          gap: 10px;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.4s forwards;
-        }
-
-        .btn-primary {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 18px 20px;
-          background: var(--pahs-gold);
-          color: var(--pahs-navy-deep);
-          border-radius: 14px;
-          text-decoration: none;
-          font-weight: 700;
-          font-size: 1rem;
-          box-shadow: 0 8px 24px rgba(196,154,108,0.35);
-          transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .btn-primary:active {
-          transform: scale(0.98);
-          box-shadow: 0 4px 12px rgba(196,154,108,0.25);
-        }
-
-        .btn-secondary {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 16px 20px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(196,154,108,0.3);
-          color: var(--pahs-gold-light);
-          border-radius: 14px;
-          text-decoration: none;
-          font-weight: 600;
-          font-size: 0.95rem;
-          transition: background 0.15s ease, border-color 0.15s ease;
-        }
-
-        .btn-secondary:active {
-          background: rgba(255,255,255,0.08);
-        }
-
-        .btn-ghost {
-          display: block;
+        .lead-card {
+          border-radius: 28px;
+          padding: clamp(24px, 5vw, 40px) clamp(18px, 5vw, 34px);
           text-align: center;
-          padding: 13px 20px;
-          color: var(--pahs-text-muted);
-          text-decoration: none;
-          font-size: 0.9rem;
+          animation: fadeUp .7s ease both;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .lead-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(90deg, var(--crimson), var(--gold), var(--crimson));
+        }
+
+        .sponsor-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: .5rem;
+          background: rgba(196,154,108,.15);
+          border: 1px solid rgba(196,154,108,.45);
+          color: var(--gold-light);
+          font-family: 'Oswald', sans-serif;
+          font-size: .72rem;
           font-weight: 500;
-          border-radius: 14px;
-          transition: color 0.15s ease;
+          letter-spacing: .22em;
+          margin-bottom: 18px;
+          padding: .42rem 1.15rem;
+          text-transform: uppercase;
         }
 
-        .btn-ghost:active { color: var(--pahs-text); }
-
-        .profile-section {
-          margin-top: 28px;
-          display: grid;
-          grid-template-columns: auto 1fr;
-          gap: 18px;
-          align-items: start;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.5s forwards;
+        .sponsor-badge::before,
+        .sponsor-badge::after {
+          content: '★';
+          color: var(--gold);
+          font-size: .6rem;
         }
 
-        .profile-photo {
-          width: 80px;
-          height: 80px;
-          border-radius: 50%;
-          border: 3px solid var(--pahs-gold);
+        .brand-logo {
+          display: block;
+          width: min(230px, 72vw);
+          height: auto;
+          margin: 0 auto 20px;
+          filter: drop-shadow(0 8px 24px rgba(0,0,0,.62));
+        }
+
+        .player-wrap {
+          display: flex;
+          justify-content: center;
+          margin: 0 auto 18px;
+        }
+
+        .player-photo {
+          width: 126px;
+          height: 126px;
+          border-radius: 999px;
+          border: 4px solid var(--gold);
+          box-shadow: 0 16px 42px rgba(0,0,0,.46);
           object-fit: cover;
           object-position: top;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-          background: rgba(255,255,255,0.05);
-          flex-shrink: 0;
+          background: rgba(255,255,255,.08);
         }
 
-        .profile-name {
-          font-family: 'Oswald', sans-serif;
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: var(--pahs-white);
-          line-height: 1.2;
+        .headline {
+          margin: 0;
+          color: #fff;
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(3rem, 12vw, 6rem);
+          line-height: .92;
+          letter-spacing: .035em;
+          text-shadow: 0 4px 38px rgba(0,0,0,.82);
         }
 
-        .profile-title {
-          font-size: 0.82rem;
-          color: var(--pahs-gold);
-          font-weight: 600;
-          letter-spacing: 0.06em;
-          margin-top: 2px;
-        }
-
-        .profile-story {
-          margin-top: 10px;
-          font-size: 0.92rem;
-          line-height: 1.7;
-          color: var(--pahs-text);
-        }
-
-        .pull-quote {
-          margin-top: 20px;
-          padding: 16px 18px;
-          border-left: 3px solid var(--pahs-gold);
-          background: rgba(255,255,255,0.04);
-          border-radius: 0 12px 12px 0;
-          font-size: 0.95rem;
-          line-height: 1.65;
-          color: var(--pahs-text);
-          font-style: italic;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.6s forwards;
-        }
-
-        .why-grid {
-          margin-top: 24px;
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr;
-          gap: 8px;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.65s forwards;
-        }
-
-        .why-item {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 12px;
-          padding: 12px 10px;
-          text-align: center;
-        }
-
-        .why-item .icon {
-          font-size: 1.3rem;
-          margin-bottom: 6px;
+        .headline span {
+          color: var(--gold);
           display: block;
         }
 
-        .why-item .label {
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: var(--pahs-text-muted);
-          line-height: 1.4;
-        }
-
-        .contact-bar {
-          margin-top: 24px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.7s forwards;
-        }
-
-        .contact-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 12px 14px;
-          background: rgba(255,255,255,0.04);
-          border-radius: 12px;
-          text-decoration: none;
-          color: var(--pahs-text);
-          font-size: 0.85rem;
-          font-weight: 500;
-          border: 1px solid rgba(255,255,255,0.07);
-        }
-
-        .contact-item .icon { font-size: 1rem; flex-shrink: 0; }
-
-        .hashtag-footer {
-          margin-top: 28px;
-          text-align: center;
-          opacity: 0;
-          animation: fadeUp 0.5s ease 0.75s forwards;
-        }
-
-        .hashtag-footer p {
-          font-family: 'Oswald', sans-serif;
-          font-size: 0.85rem;
-          font-weight: 600;
-          letter-spacing: 0.18em;
-          color: var(--pahs-gold);
-          text-transform: uppercase;
-        }
-
-        .hashtag-footer .tagline {
-          font-family: 'Inter', system-ui, sans-serif;
-          font-size: 0.75rem;
-          font-weight: 400;
-          color: var(--pahs-text-muted);
-          letter-spacing: 0.06em;
+        .subline {
+          color: var(--crimson-light);
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.25rem, 5vw, 2.15rem);
+          letter-spacing: .12em;
           margin-top: 4px;
         }
 
-        .yard-markers {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 4px 0;
-          opacity: 0.18;
+        .heartbeat {
+          width: 200px;
+          height: 30px;
+          margin: 16px auto 8px;
         }
 
-        .yard-num {
+        .tagline {
+          color: var(--gold-light);
           font-family: 'Oswald', sans-serif;
-          font-size: 0.65rem;
+          font-size: clamp(.76rem, 2.8vw, .95rem);
+          font-weight: 400;
+          letter-spacing: .16em;
+          line-height: 1.6;
+          text-transform: uppercase;
+        }
+
+        .form-intro {
+          max-width: 470px;
+          margin: 18px auto 0;
+          color: rgba(255,255,255,.74);
+          font-size: .96rem;
+          line-height: 1.7;
+        }
+
+        .form-wrap {
+          max-width: 520px;
+          margin: 24px auto 0;
+          text-align: left;
+        }
+
+        .phone-line {
+          display: inline-flex;
+          margin-top: 18px;
+          color: var(--gold-light);
+          font-family: 'Oswald', sans-serif;
+          font-size: 1rem;
           font-weight: 700;
-          color: white;
-          letter-spacing: 0.1em;
+          letter-spacing: .12em;
+          text-decoration: none;
+          text-transform: uppercase;
+        }
+
+        .goalposts-wrap {
+          margin: 22px 0 18px;
+          text-align: center;
+          animation: fadeUp .7s .1s ease both;
+        }
+
+        .goalposts {
+          opacity: .38;
+          filter: drop-shadow(0 6px 18px rgba(0,0,0,.45));
+        }
+
+        .schedule-card {
+          border-radius: 24px;
+          overflow: hidden;
+          animation: fadeUp .7s .16s ease both;
+        }
+
+        .schedule-head {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 20px 22px;
+          background: linear-gradient(135deg, rgba(196,154,108,.22), rgba(196,154,108,.07));
+          border-bottom: 1px solid rgba(196,154,108,.24);
+        }
+
+        .schedule-icon {
+          font-size: 1.9rem;
+          filter: drop-shadow(0 4px 14px rgba(0,0,0,.5));
+        }
+
+        .schedule-title {
+          color: var(--gold-light);
+          font-family: 'Bebas Neue', sans-serif;
+          font-size: clamp(1.9rem, 7vw, 3rem);
+          letter-spacing: .12em;
+          line-height: .95;
+          text-transform: uppercase;
+        }
+
+        .schedule-subtitle {
+          color: var(--muted);
+          font-family: 'Oswald', sans-serif;
+          font-size: .88rem;
+          font-weight: 300;
+          letter-spacing: .05em;
+          margin-top: 5px;
+        }
+
+        .game-row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px 22px;
+          border-bottom: 1px solid rgba(255,255,255,.06);
+        }
+
+        .game-row:last-child {
+          border-bottom: none;
+        }
+
+        .yard-bar {
+          width: 5px;
+          height: 40px;
+          border-radius: 4px;
+          flex: 0 0 auto;
+        }
+
+        .yard-bar.home {
+          background: linear-gradient(to bottom, var(--gold-dark), var(--gold-light));
+        }
+
+        .yard-bar.away {
+          background: rgba(255,255,255,.14);
+        }
+
+        .game-date {
+          width: 64px;
+          color: var(--muted);
+          flex: 0 0 auto;
+          font-family: 'Oswald', sans-serif;
+          font-size: 1rem;
+          font-weight: 600;
+          letter-spacing: .05em;
+        }
+
+        .game-opponent {
+          flex: 1;
+          color: var(--white);
+          font-family: 'Oswald', sans-serif;
+          font-size: clamp(1.15rem, 4.8vw, 1.75rem);
+          font-weight: 500;
+          line-height: 1.12;
+        }
+
+        .game-tag {
+          border-radius: 8px;
+          font-family: 'Oswald', sans-serif;
+          font-size: .78rem;
+          font-weight: 700;
+          letter-spacing: .08em;
+          padding: 6px 11px;
+          text-transform: uppercase;
+        }
+
+        .game-tag.home {
+          background: rgba(196,154,108,.18);
+          border: 1px solid rgba(196,154,108,.38);
+          color: var(--gold-light);
+        }
+
+        .game-tag.away {
+          background: rgba(255,255,255,.05);
+          border: 1px solid rgba(255,255,255,.12);
+          color: var(--muted);
         }
 
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(14px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(22px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        @media (max-width: 380px) {
-          .why-grid { grid-template-columns: 1fr 1fr; }
-          .contact-bar { grid-template-columns: 1fr; }
-          .hero-headline { font-size: 2.3rem; }
-          .scoreboard { padding: 10px 14px; }
-          .scoreboard-badge { font-size: 0.66rem; letter-spacing: 0.1em; }
-          .scoreboard-team { font-size: 1rem; }
+        @media (max-width: 440px) {
+          .page-shell { padding-left: 12px; padding-right: 12px; }
+          .lead-card { border-radius: 22px; }
+          .schedule-card { border-radius: 20px; }
+          .schedule-head { padding: 18px 16px; }
+          .game-row { gap: 10px; padding: 14px 14px; }
+          .game-date { width: 54px; font-size: .92rem; }
+          .yard-bar { height: 36px; }
+          .game-tag { padding: 5px 9px; font-size: .7rem; }
         }
       `}</style>
 
-      <main className="pahs-qr-page">
-        <div className="field-bg" aria-hidden="true">
-          <svg className="field-lines" viewBox="0 0 1400 600" preserveAspectRatio="xMidYMax meet">
-            <line x1="0" y1="60" x2="1400" y2="60" />
-            <line x1="0" y1="120" x2="1400" y2="120" />
-            <line x1="0" y1="180" x2="1400" y2="180" />
-            <line x1="0" y1="240" x2="1400" y2="240" />
-            <line x1="0" y1="300" x2="1400" y2="300" />
-            <line x1="0" y1="360" x2="1400" y2="360" />
-            <line x1="0" y1="420" x2="1400" y2="420" />
-            <line x1="0" y1="480" x2="1400" y2="480" />
-            <line x1="0" y1="540" x2="1400" y2="540" />
-            <line x1="0" y1="600" x2="1400" y2="600" />
-            <line x1="140" y1="0" x2="140" y2="600" />
-            <line x1="280" y1="0" x2="280" y2="600" />
-            <line x1="420" y1="0" x2="420" y2="600" />
-            <line x1="560" y1="0" x2="560" y2="600" />
-            <line x1="700" y1="0" x2="700" y2="600" />
-            <line x1="840" y1="0" x2="840" y2="600" />
-            <line x1="980" y1="0" x2="980" y2="600" />
-            <line x1="1120" y1="0" x2="1120" y2="600" />
-            <line x1="1260" y1="0" x2="1260" y2="600" />
-            <line x1="0" y1="0" x2="1400" y2="0" strokeWidth="4" />
-            <line x1="0" y1="600" x2="1400" y2="600" strokeWidth="4" />
+      <div className="pahs-bg" aria-hidden="true" />
+
+      <div className="page-shell">
+        <section className="lead-card" aria-labelledby="pahs-heading">
+          <div className="sponsor-badge">Proud All-Star Sponsor</div>
+          <img className="brand-logo" src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
+
+          <div className="player-wrap">
+            <Image
+              className="player-photo"
+              src="/jackson-headshot.jpg"
+              alt="Jackson M. Latimore Sr."
+              width={126}
+              height={126}
+              priority
+            />
+          </div>
+
+          <h1 className="headline" id="pahs-heading">
+            Start Your
+            <span>Quick Quote</span>
+          </h1>
+          <div className="subline">Pottsville Area · Crimson Tide</div>
+
+          <svg className="heartbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline
+              points="0,15 34,15 42,4 48,26 54,10 60,20 66,15 100,15 108,2 116,28 122,8 128,22 134,15 200,15"
+              stroke="#C49A6C"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
-          <div className="field-glow" />
-          <div className="field-glow-red" />
-        </div>
 
-        <div className="page">
-          <div className="scoreboard">
-            <div className="scoreboard-left">
-              <span className="scoreboard-label">Proud Sponsor</span>
-              <span className="scoreboard-team">POTTSVILLE AREA 🏈</span>
-            </div>
-            <div className="scoreboard-badge">SEASON 2026</div>
+          <div className="tagline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <p className="form-intro">Your information hits the Latimore Hub first, then routes to the quick quote flow.</p>
+
+          <div className="form-wrap">
+            <Suspense fallback={<div style={{ color: '#fff', textAlign: 'center' }}>Loading form...</div>}>
+              <StartForm />
+            </Suspense>
           </div>
 
-          <div className="card">
-            <div className="yard-markers" aria-hidden="true">
-              <span className="yard-num">10</span>
-              <span className="yard-num">20</span>
-              <span className="yard-num">30</span>
-              <span className="yard-num">40</span>
-              <span className="yard-num">50</span>
-              <span className="yard-num">40</span>
-              <span className="yard-num">30</span>
-              <span className="yard-num">20</span>
-              <span className="yard-num">10</span>
-            </div>
+          <a className="phone-line" href="tel:+17176152613">(717) 615-2613</a>
+        </section>
 
-            <div className="card-inner">
-              <span className="scan-tag">You scanned the QR · Welcome to the team</span>
+        <div className="goalposts-wrap" aria-hidden="true">
+          <svg className="goalposts" width="84" height="44" viewBox="0 0 84 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="42" y1="44" x2="42" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="12" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="72" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="12" y1="18" x2="12" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="72" y1="18" x2="72" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        </div>
 
-              <h1 className="hero-headline">
-                Thanks for
-                <br />
-                <span>Scanning.</span>
-              </h1>
-
-              <p className="hero-sub">
-                Protecting families and futures in the Coal Region — one Friday night at a time.
-              </p>
-
-              <div className="yardline" aria-hidden="true">
-                <span className="yardline-number">50</span>
-                <div className="yardline-bar" />
-                <span className="yardline-number">YD</span>
-              </div>
-
-              <div className="ctas">
-                <a href={quickQuoteUrl} className="btn-primary">
-                  <span>Get Your Quick Quote</span>
-                  <span aria-hidden="true">→</span>
-                </a>
-                <a href={bookingUrl} className="btn-secondary">
-                  <span>Book a Conversation</span>
-                  <span aria-hidden="true">📅</span>
-                </a>
-                <a href={cardUrl} className="btn-ghost">View Digital Business Card →</a>
-                <a href={websiteUrl} className="btn-ghost">Visit Website →</a>
-              </div>
-
-              <div className="profile-section">
-                <img
-                  className="profile-photo"
-                  src="/jackson-headshot.jpg"
-                  alt="Jackson Latimore"
-                />
-                <div>
-                  <div className="profile-name">Jackson M. Latimore Sr.</div>
-                  <div className="profile-title">Independent Insurance Consultant · Latimore Life & Legacy LLC</div>
-                  <p className="profile-story">
-                    Serving Schuylkill, Luzerne, and Northumberland Counties with life insurance, income protection, and legacy planning built for Coal Region families.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pull-quote">
-                On December 7, 2010, an AED saved my life during a college basketball game. That defibrillator was placed by the Gregory W. Moyer Fund — honoring a 15-year-old who died from sudden cardiac arrest. My second chance became my mission. <strong style={{ color: 'var(--pahs-gold-light)' }}>#TheBeatGoesOn</strong>
-              </div>
-
-              <div className="why-grid">
-                <div className="why-item">
-                  <span className="icon" aria-hidden="true">🏠</span>
-                  <div className="label">Local &amp; Community-Centered</div>
-                </div>
-                <div className="why-item">
-                  <span className="icon" aria-hidden="true">🛡️</span>
-                  <div className="label">Protection &amp; Legacy Focused</div>
-                </div>
-                <div className="why-item">
-                  <span className="icon" aria-hidden="true">📍</span>
-                  <div className="label">Coal Region Roots</div>
-                </div>
-              </div>
-
-              <div className="contact-bar">
-                <a href="tel:+18568951457" className="contact-item">
-                  <span className="icon" aria-hidden="true">📞</span>
-                  <span>(856) 895-1457</span>
-                </a>
-                <a href={websiteUrl} className="contact-item">
-                  <span className="icon" aria-hidden="true">🌐</span>
-                  <span>latimorelifelegacy.com</span>
-                </a>
-              </div>
-
-              <div className="hashtag-footer">
-                <p>#TheBeatGoesOn &nbsp;·&nbsp; #PAHS2026 &nbsp;·&nbsp; #CoalRegion</p>
-                <p className="tagline">Protecting Today. Securing Tomorrow. · Latimore Life &amp; Legacy LLC</p>
-              </div>
+        <section className="schedule-card" aria-labelledby="schedule-heading">
+          <div className="schedule-head">
+            <span className="schedule-icon">🏈</span>
+            <div>
+              <h2 className="schedule-title" id="schedule-heading">PAHS Crimson Tide — 2025 Schedule</h2>
+              <div className="schedule-subtitle">Pottsville Area High School Football</div>
             </div>
           </div>
-        </div>
-      </main>
-    </>
+
+          {games.map(game => {
+            const locationClass = game.location.toLowerCase()
+            return (
+              <div className="game-row" key={`${game.date}-${game.opponent}`}>
+                <div className={`yard-bar ${locationClass}`} />
+                <div className="game-date">{game.date}</div>
+                <div className="game-opponent">{game.opponent}</div>
+                <span className={`game-tag ${locationClass}`}>{game.location}</span>
+              </div>
+            )
+          })}
+        </section>
+      </div>
+    </main>
   )
 }
