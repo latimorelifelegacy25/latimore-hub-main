@@ -1,64 +1,81 @@
-'use client';
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import { Suspense } from 'react'
+import StartForm from './start/StartForm'
 
-import { useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
+import Image from 'next/image';
 import './pahs.css';
+import { QRCodeCanvas } from 'qrcode.react';
 
-const SERVICES = [
-  ['01', 'Life Insurance', 'Term and permanent coverage built for real family budgets.'],
-  ['02', 'Living Benefits', 'Coverage that can pay while you are living after qualifying critical, chronic, or terminal illness.'],
-  ['03', 'Indexed Universal Life', 'Tax-advantaged protection and growth potential with downside protection.'],
-  ['04', 'Fixed Index Annuities', 'Retirement income strategies designed to help protect principal and create lifetime income.'],
-  ['05', 'Estate & Legacy Planning', 'Guidance that helps families organize assets, wishes, and protection priorities.'],
-  ['06', 'Mortgage Protection', 'Affordable coverage designed to help keep the family home protected.'],
-];
+type LeadForm = {
+  name: string;
+  phone: string;
+  email: string;
+  promo: string;
+  interest: string;
+};
 
-const PILLARS = [
-  ['Protecting Today', 'Life insurance and living-benefit solutions that safeguard the people depending on you right now.'],
-  ['Securing Tomorrow', 'Annuities, IUL strategies, and income planning designed for long-term family stability.'],
-  ['Serving Locally', 'Rooted in Schuylkill, Luzerne, and Northumberland Counties — not just selling, serving.'],
-];
+const games = [
+  { date: 'Sep 6', opponent: 'Minersville', location: 'Home' },
+  { date: 'Sep 13', opponent: 'Mahanoy Area', location: 'Away' },
+  { date: 'Sep 20', opponent: 'Tamaqua', location: 'Home' },
+  { date: 'Sep 27', opponent: 'North Schuylkill', location: 'Away' },
+  { date: 'Oct 4', opponent: 'Jim Thorpe', location: 'Home' },
+  { date: 'Oct 11', opponent: 'Shenandoah Valley', location: 'Away' },
+  { date: 'Oct 18', opponent: 'Nativity BVM', location: 'Home' },
+  { date: 'Oct 25', opponent: 'Tri-Valley', location: 'Away' },
+]
 
 export default function PAHSPage() {
-  useEffect(() => {
-    const revealEls = document.querySelectorAll('.fu2');
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach((entry, index) => {
-          if (entry.isIntersecting) {
-            window.setTimeout(() => entry.target.classList.add('vis'), index * 80);
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1 },
-    );
-
-    revealEls.forEach(el => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <main className="pahs-v2">
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="hero-ov" />
+    <main className="pahs-page">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
-        <div className="hero-c">
-          <div className="sbadge">Proud All-Star Sponsor</div>
+        <div className="hero-content">
+          <div className="sponsor-badge">Proud Sponsor Of</div>
+          <div className="hero-school-name">POTTSVILLE AREA<br />HIGH SCHOOL</div>
+          <div className="hero-year">FOOTBALL '26</div>
+          <div className="pulse-badge"><div className="pulse-dot" />CRIMSON TIDE — GAME DAY</div>
+          <div className="football-icon">🏈</div>
+          <div className="logos-row">
+            <div className="tide-logo-container">
+              <Image src="/pahs-tide-logo.png" alt="Pottsville Area High School Crimson Tide logo" fill sizes="(max-width: 768px) 140px, 180px" style={{ objectFit: 'contain' }} />
+            </div>
+            <div className="logo-divider" />
+            <div className="latimore-logo-container">
+              <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy logo" fill sizes="(max-width: 768px) 180px, 220px" style={{ objectFit: 'contain' }} />
+            </div>
+          </div>
+          <div className="beat-img-wrap"><div className="beat-banner">#TheBeatGoesOn</div></div>
+          <div className="qr-section"><div className="qr-frame"><QRCodeCanvas value="https://card.latimorelifelegacy.com/pahs" size={130} fgColor="#2C3E50" bgColor="#FFFFFF" includeMargin /></div><span className="qr-url">card.latimorelifelegacy.com/pahs</span></div>
+        </div>
+      </section>
 
-          <h1 className="hs">
-            Pottsville Area
-            <span>High School</span>
-          </h1>
+      <section className="cta-strip reveal">
+        <h2>GET YOUR FREE PROTECTION REVIEW</h2>
+        <p>No pressure. Just clarity. One conversation can change your family's future.</p>
+        <div className="cta-buttons"><a href="#intakeFormSection" className="btn-primary"><i className="fas fa-clipboard-list" />Start My Free Review</a><a href="tel:+17176152613" className="btn-secondary"><i className="fas fa-phone" />Call Jackson Direct</a></div>
+      </section>
 
-          <div className="hy">Crimson Tide · Class of ‘26</div>
-
-          <div className="lhero">
-            <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
+      <section className="intake-section" id="intakeFormSection">
+        <div className="intake-inner reveal">
+          <div className="section-label">Take Action</div><h2>Claim Your Free Consultation</h2>
+          <p>Whether you're redeeming your Football Game Day Coupon or simply want to review your protection, take the first step toward securing your family's future. Fill out the form below.</p>
+          <div className="intake-box">
+            {leadStatus !== 'success' ? (
+              <form className="intake-form" onSubmit={submitLead}>
+                <div className="form-row"><div className="form-group"><label htmlFor="ifName">Full Name *</label><input id="ifName" className="form-control" placeholder="John Doe" required value={lead.name} onChange={e => setLead({ ...lead, name: e.target.value })} /></div><div className="form-group"><label htmlFor="ifPhone">Phone Number *</label><input id="ifPhone" className="form-control" placeholder="(555) 555-5555" required value={lead.phone} onChange={e => setLead({ ...lead, phone: e.target.value })} /></div></div>
+                <div className="form-row"><div className="form-group"><label htmlFor="ifEmail">Email Address</label><input id="ifEmail" type="email" className="form-control" placeholder="john@example.com" value={lead.email} onChange={e => setLead({ ...lead, email: e.target.value })} /></div><div className="form-group"><label htmlFor="ifPromo">Coupon / Promo Code</label><input id="ifPromo" className="form-control" placeholder="e.g. ID#2777749" value={lead.promo} onChange={e => setLead({ ...lead, promo: e.target.value })} /></div></div>
+                <div className="form-group"><label htmlFor="ifInterest">What are you most interested in? *</label><select id="ifInterest" className="form-control" required value={lead.interest} onChange={e => setLead({ ...lead, interest: e.target.value })}><option value="" disabled>Select an option...</option><option>Life Insurance & Living Benefits</option><option>Retirement & Annuities</option><option>Legacy & Estate Planning</option><option>Mortgage Protection</option><option>General Financial Review</option></select></div>
+                <button type="submit" disabled={leadStatus === 'submitting'} className="btn-primary" style={{ width: '100%', marginTop: 10 }}><i className="fas fa-paper-plane" />{leadStatus === 'submitting' ? 'Submitting...' : 'Request My Free Review'}</button>
+                {leadStatus === 'error' && <div className="error-msg">{leadError}</div>}
+              </form>
+            ) : <div className="success-msg"><i className="fas fa-check-circle" /><div><strong>Thank you!</strong> Your request was received. Jackson will follow up soon.</div></div>}
+            <a href="https://latimorelifelegacy.fillout.com/latimorelifelegacy" className="intake-external-link" target="_blank" rel="noopener">Prefer our detailed intake questionnaire? Click here.</a>
           </div>
 
-          <svg className="hbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg className="heartbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <polyline
               points="0,15 34,15 42,4 48,26 54,10 60,20 66,15 100,15 108,2 116,28 122,8 128,22 134,15 200,15"
               stroke="#C49A6C"
@@ -68,191 +85,50 @@ export default function PAHSPage() {
             />
           </svg>
 
-          <div className="tline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <div className="tagline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <p className="form-intro">Your information hits the Latimore Hub first, then routes to the quick quote flow.</p>
 
-          <div className="ctas">
-            <a className="btn1" href="#consult">Schedule Free Consultation</a>
-            <a className="btn2" href="#story">The Full Circle Story ↓</a>
-          </div>
-        </div>
-
-        <div className="scrollh">
-          <span>Scroll</span>
-          <div className="sarrow" />
-        </div>
-      </section>
-
-      <section className="spgfx">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
-      </section>
-
-      <section className="campaign-videos">
-        <div className="campaign-videos-inner fu2">
-          <div className="seclab">Campaign Video</div>
-          <h2 className="sect">Watch the <em>Campaign</em></h2>
-          <div className="video-center-wrap">
-            <iframe
-              loading="lazy"
-              src="https://www.canva.com/design/DAHLhIdBi1g/XrwK0tvOGXRX57S6xQtgdA/watch?embed"
-              allowFullScreen
-              allow="fullscreen"
-              title="PAHS Campaign Video"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="story" id="story">
-        <div className="si">
-          <div className="fu2">
-            <div className="slabel">The Full Circle Legacy</div>
-            <div className="yb">2005 → 2026</div>
-            <h2 className="sh2">
-              From the Field
-              <br />
-              to the <em>Family</em>
-            </h2>
-
-            <p className="sbody">
-              Jackson M. Latimore Sr. wore <strong>#20 for Cardinal Brennan</strong>, earning Republican & Herald All-Area Offensive Player of the Year honors in 2005. He knows what it means to compete in the Coal Region — the early mornings, the community that shows up, and the weight of a jersey.
-            </p>
-
-            <blockquote className="pq">
-              A cardiac arrest at ESU&apos;s Koehler Fieldhouse nearly ended my story. An AED funded through local preparedness helped save my life. That is why protection, preparation, and legacy are personal.
-            </blockquote>
-
-            <p className="sbody">
-              That moment is the heartbeat behind everything we do at <strong>Latimore Life & Legacy LLC</strong>. We help families prepare for life&apos;s uncertainties with clarity and confidence — because legacy is not just what you leave behind. It is how you show up today.
-            </p>
+          <div className="form-wrap">
+            <Suspense fallback={<div style={{ color: '#fff', textAlign: 'center' }}>Loading form...</div>}>
+              <StartForm />
+            </Suspense>
           </div>
 
-          <div className="cf fu2">
-            <div className="ci2">
-              <div className="ch">
-                <div className="cht">Pottsville caps magical season</div>
-                <div className="chs">Tide&apos;s Keating, Buziak, DeMarkis join CB&apos;s Latimore atop team</div>
-              </div>
-              <img className="cp" src="/pahs-2005-allarea.png" alt="2005 Republican & Herald All-Area Football — Jackson Latimore named Offensive Player of the Year" />
-              <div className="cc">
-                Headlining the 2005 R&H All-Area Football Team — Jackson Latimore (#20, Cardinal Brennan) named Offensive Player of the Year.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          <a className="phone-line" href="tel:+17176152613">(717) 615-2613</a>
+        </section>
 
-      <section className="pills">
-        <div className="sechdr fu2">
-          <div className="seclab">Why Latimore Life & Legacy</div>
-          <h2 className="sect">Built for <em>Coal Region</em> Families</h2>
+        <div className="goalposts-wrap" aria-hidden="true">
+          <svg className="goalposts" width="84" height="44" viewBox="0 0 84 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="42" y1="44" x2="42" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="12" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="72" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="12" y1="18" x2="12" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="72" y1="18" x2="72" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+          </svg>
         </div>
 
-        <div className="pg">
-          {PILLARS.map(([title, body]) => (
-            <article className="pc fu2" key={title}>
-              <div className="pt">{title}</div>
-              <p className="pb">{body}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="cpn">
-        <div className="cpni fu2">
-          <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide · ID #2777749" />
-          <div className="cpnn">Powered by CampusBox Media · ID #2777749 · Limit one per transaction</div>
-        </div>
-      </section>
-
-      <section className="svcs">
-        <div className="svci">
-          <div className="sechdr fu2">
-            <div className="seclab dark">What We Offer</div>
-            <h2 className="sect dark-text">Protection <em>Strategies</em></h2>
-          </div>
-
-          <div className="sg">
-            {SERVICES.map(([num, title, body]) => (
-              <article className="svc fu2" key={title}>
-                <div className="sn">{num}</div>
-                <div>
-                  <h3 className="st">{title}</h3>
-                  <p className="sv">{body}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="art-strip">
-        <img src="/pahs-protect-go.png" alt="Protect What You Play For — Pottsville Area Crimson Tide ‘26" />
-      </section>
-
-      <section className="qrs" id="consult">
-        <div className="qrsi fu2">
-          <h2>Scan. Connect. Protect.</h2>
-          <p>Scan the code or visit the link below to schedule your free protection review.</p>
-          <div className="qrb">
-            <QRCodeCanvas value="https://latimorelifelegacy.fillout.com/pahs" size={180} level="H" includeMargin />
-            <div className="qru">latimorelifelegacy.fillout.com/pahs</div>
-          </div>
-          <a href="tel:7176152613" className="qruw">(717) 615-2613</a>
-        </div>
-      </section>
-
-      <section className="art-strip">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
-      </section>
-
-      <section className="contact" id="contact">
-        <div className="conti">
-          <div className="seclab">Get in Touch</div>
-          <h2 className="sect" style={{ marginTop: '.5rem' }}>
-            Let&apos;s Protect
-            <br />
-            Your <em>Legacy</em>
-          </h2>
-
-          <div className="contc fu2">
-            <div className="cname">Jackson M. Latimore Sr., MBA</div>
-            <div className="ctitle">Founder & CEO · Latimore Life & Legacy LLC · GFI Affiliate</div>
-            <div className="cdiv" />
-
-            <div className="citems">
-              <a href="tel:7176152613" className="citem">(717) 615-2613</a>
-              <a href="mailto:leads@latimorelegacy.com" className="citem">leads@latimorelegacy.com</a>
-              <div className="citem">1544 Route 61 Hwy S, Suite 6104, Pottsville, PA 17901</div>
-              <div className="citem">PA DOI #1268820 · NIPR #21638507</div>
+        <section className="schedule-card" aria-labelledby="schedule-heading">
+          <div className="schedule-head">
+            <span className="schedule-icon">🏈</span>
+            <div>
+              <h2 className="schedule-title" id="schedule-heading">PAHS Crimson Tide — 2025 Schedule</h2>
+              <div className="schedule-subtitle">Pottsville Area High School Football</div>
             </div>
           </div>
 
-          <div className="lic">
-            Latimore Life & Legacy LLC is an independent insurance brokerage licensed in the Commonwealth of Pennsylvania.
-            <br />
-            Products offered through licensed carrier appointments. Not all products available in all areas.
-            <br />
-            Affiliated with Global Financial Impact (GFI). Insurance products are not FDIC insured, not bank guaranteed, and may lose value.
-          </div>
-        </div>
-      </section>
-
-      <footer>
-        <div className="fi">
-          <div className="fs">
-            <span>Life Insurance</span>
-            <span>Living Benefits</span>
-            <span>Annuities</span>
-            <span>Financial Strategies</span>
-          </div>
-          <div className="fc">© 2026 Latimore Life & Legacy LLC · latimorelifelegacy.fillout.com/pahs</div>
-        </div>
-      </footer>
-
-      <div className="mcta">
-        <div className="mctx">Free Consultation</div>
-        <a href="tel:7176152613" className="mctb">Call Now</a>
+          {games.map(game => {
+            const locationClass = game.location.toLowerCase()
+            return (
+              <div className="game-row" key={`${game.date}-${game.opponent}`}>
+                <div className={`yard-bar ${locationClass}`} />
+                <div className="game-date">{game.date}</div>
+                <div className="game-opponent">{game.opponent}</div>
+                <span className={`game-tag ${locationClass}`}>{game.location}</span>
+              </div>
+            )
+          })}
+        </section>
       </div>
     </main>
-  );
+  )
 }

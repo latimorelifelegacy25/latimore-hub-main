@@ -29,7 +29,6 @@ import EmptyState from '@/app/admin/_components/EmptyState'
 
 const G = '#C9A25F'
 const NAVY = '#0B0F17'
-const SURF = '#131929'
 const DIM = '#A9B1BE'
 const MUTED = '#8F98A8'
 
@@ -105,6 +104,16 @@ type Opportunity = {
   leadScore: number
   lastActivityAt: string | null
   reason: string
+}
+
+
+type DashboardData = {
+  overview: OverviewData
+  funnel: FunnelStage[]
+  timeSeries: TimeSeriesPoint[]
+  breakdowns: BreakdownRow[]
+  recentEvents: RecentEvent[]
+  opportunities: Opportunity[]
 }
 
 type ApiEnvelope<T> = {
@@ -274,7 +283,12 @@ export default function AnalyticsPage() {
   const [breakdownsErr, setBreakdownsErr] = useState<string | null>(null)
 
   const fetchAll = useCallback(async () => {
-    const qs = buildQs(range)
+    const qs = buildQs(range, {
+      dimension: 'source',
+      metrics: 'lead_count,contact_count,appointment_booked_count,cta_click_count',
+      recentLimit: '15',
+    })
+
     setOverviewLoading(true)
     setFunnelLoading(true)
     setTimeSeriesLoading(true)
@@ -287,30 +301,31 @@ export default function AnalyticsPage() {
     setBreakdownsErr(null)
 
     try {
-      const res = await fetch(`/api/analytics/v1/dashboard?${qs}`)
-      const data = await res.json()
+      const response = await fetch(`/api/analytics/v1/dashboard?${qs}`)
+      const res = await response.json() as ApiEnvelope<DashboardData>
 
-      if (data.ok) {
-        setOverview(data.overview ?? null)
-        setWarnings(data.warnings ?? [])
-        setFunnel(data.funnel ?? [])
-        setTimeSeries(data.timeSeries ?? [])
-        setBreakdowns(data.breakdowns ?? [])
-        setRecentEvents(data.recentEvents ?? [])
-        setOpportunities(data.opportunities ?? [])
-      } else {
-        const msg = data.error ?? 'Failed to load dashboard'
-        setOverviewErr(msg)
-        setFunnelErr(msg)
-        setTimeSeriesErr(msg)
-        setBreakdownsErr(msg)
+      if (!response.ok || !res.ok || !res.data) {
+        const message = res.error ?? 'Failed to load dashboard analytics'
+        setOverviewErr(message)
+        setFunnelErr(message)
+        setTimeSeriesErr(message)
+        setBreakdownsErr(message)
+        return
       }
+
+      setOverview(res.data.overview)
+      setFunnel(res.data.funnel)
+      setTimeSeries(res.data.timeSeries)
+      setBreakdowns(res.data.breakdowns)
+      setRecentEvents(res.data.recentEvents)
+      setOpportunities(res.data.opportunities)
+      setWarnings(res.meta?.warnings ?? [])
     } catch {
-      const msg = 'Network error'
-      setOverviewErr(msg)
-      setFunnelErr(msg)
-      setTimeSeriesErr(msg)
-      setBreakdownsErr(msg)
+      const message = 'Network error'
+      setOverviewErr(message)
+      setFunnelErr(message)
+      setTimeSeriesErr(message)
+      setBreakdownsErr(message)
     } finally {
       setOverviewLoading(false)
       setFunnelLoading(false)

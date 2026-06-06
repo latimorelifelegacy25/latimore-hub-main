@@ -41,17 +41,20 @@ export default function DailyBrief() {
   const [loading, setLoading] = useState(true)
   const [regenerating, setRegenerating] = useState(false)
 
-  const loadSaved = useCallback(async () => {
-    setLoading(true)
-    try {
-      const res = await fetch('/api/ai/daily-brief', { credentials: 'include' })
-      const data = await res.json()
-      setBriefing(data)
-    } catch {
-      setBriefing(null)
-    } finally {
-      setLoading(false)
-    }
+  useEffect(() => {
+    fetch('/api/ai/daily-brief/latest', {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(res => res.json())
+      .then(data => {
+        setBriefing(data)
+        setLoading(false)
+      })
+      .catch(error => {
+        console.error('Failed to load daily brief:', error)
+        setLoading(false)
+      })
   }, [])
 
   useEffect(() => { void loadSaved() }, [loadSaved])

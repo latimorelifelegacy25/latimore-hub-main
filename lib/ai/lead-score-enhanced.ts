@@ -28,60 +28,59 @@ export async function computeEnhancedLeadScore(input: { contactId?: string | nul
   })
   if (!contact) throw new Error('Contact not found')
 
-  // Get the basic score first
+  // Get the basic score first. This still acts as the safe deterministic fallback.
   const basicResult = await computeLeadScore(input)
   let score = basicResult.result.total
   const reasons = [...basicResult.result.reasons]
   const recommendations = [...basicResult.result.recommendations]
 
-  // AI Enhancement: Analyze conversation patterns and intent
   try {
-    const conversationAnalysis = await analyzeConversationPatterns(contact)
+    // Run independent AI enrichment steps together so scoring does not wait on three serial model calls.
+    const [conversationAnalysis, productRecommendations, timingInsights] = await Promise.all([
+      analyzeConversationPatterns(contact),
+      generateProductRecommendations(contact, inquiry),
+      analyzeOptimalTiming(contact),
+    ])
+
     if (conversationAnalysis.insights.length > 0) {
       reasons.push(...conversationAnalysis.insights)
       score += conversationAnalysis.scoreAdjustment
     }
 
-    // AI Product Recommendations
-    const productRecommendations = await generateProductRecommendations(contact, inquiry)
     if (productRecommendations.length > 0) {
       recommendations.push(...productRecommendations.map((r: any) => `Consider: ${r.product} - ${r.reason}`))
     }
 
-    // AI Timing Optimization
-    const timingInsights = await analyzeOptimalTiming(contact)
     if (timingInsights.optimalTime) {
       recommendations.push(`Optimal follow-up time: ${timingInsights.optimalTime}`)
     }
 
-    // AI Task Generation
     const autoTasks = await generateAutomatedTasks(contact, inquiry, basicResult.result.category)
-    if (autoTasks.length > 0) {
-      // Create the tasks automatically
-      for (const task of autoTasks) {
-        await prisma.task.create({
-          data: {
-            title: task.title,
-            description: task.description,
-            status: 'Open',
-            dueAt: task.dueAt,
-            contactId: contact.id,
-            inquiryId: inquiry?.id ?? null,
-          },
-        })
-      }
-      recommendations.push(`Created ${autoTasks.length} automated follow-up tasks`)
+    let createdTaskCount = 0
+
+    for (const task of autoTasks) {
+      const created = await createOpenTaskIfMissing({
+        contactId: contact.id,
+        inquiryId: inquiry?.id ?? null,
+        title: task.title,
+        description: task.description,
+        dueAt: task.dueAt,
+      })
+
+      if (created) createdTaskCount++
+    }
+
+    if (createdTaskCount > 0) {
+      recommendations.push(`Created ${createdTaskCount} automated follow-up task${createdTaskCount === 1 ? '' : 's'}`)
     }
 
   } catch (error) {
     console.error('AI enhancement failed, using basic scoring:', error)
-    // Fall back to basic scoring if AI fails
   }
 
   score = Math.max(0, Math.min(100, score))
   const category = score >= 80 ? 'hot' : score >= 60 ? 'warm' : score >= 35 ? 'cool' : 'cold'
 
-  // Update contact with enhanced score
   await prisma.contact.update({
     where: { id: contact.id },
     data: { leadScore: score, lastActivityAt: contact.lastActivityAt ?? undefined },
@@ -105,6 +104,39 @@ export async function computeEnhancedLeadScore(input: { contactId?: string | nul
       aiEnhanced: true,
     },
   }
+}
+
+async function createOpenTaskIfMissing(input: {
+  contactId: string
+  inquiryId: string | null
+  title: string
+  description: string
+  dueAt: Date
+}) {
+  const existing = await prisma.task.findFirst({
+    where: {
+      contactId: input.contactId,
+      inquiryId: input.inquiryId ?? undefined,
+      title: input.title,
+      status: { notIn: ['Done', 'Completed', 'Cancelled'] },
+    },
+    select: { id: true },
+  })
+
+  if (existing) return false
+
+  await prisma.task.create({
+    data: {
+      title: input.title,
+      description: input.description,
+      status: 'Open',
+      dueAt: input.dueAt,
+      contactId: input.contactId,
+      inquiryId: input.inquiryId,
+    },
+  })
+
+  return true
 }
 
 /**
@@ -249,42 +281,38 @@ async function analyzeOptimalTiming(contact: any) {
 async function generateAutomatedTasks(contact: any, inquiry: any, category: string) {
   const tasks = []
 
-  // Hot leads get immediate tasks
   if (category === 'hot') {
     tasks.push({
       title: 'Immediate follow-up call',
       description: 'High-priority lead requires immediate attention',
-      dueAt: new Date(Date.now() + 2 * 60 * 60 * 1000), // 2 hours
+      dueAt: new Date(Date.now() + 2 * 60 * 60 * 1000),
       priority: 'High' as const,
     })
   }
 
-  // Warm leads get scheduled tasks
   else if (category === 'warm') {
     tasks.push({
       title: 'Follow-up email sequence',
       description: 'Send personalized email with product recommendations',
-      dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 1 day
+      dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
       priority: 'Medium' as const,
     })
   }
 
-  // Cool leads get nurture tasks
   else if (category === 'cool') {
     tasks.push({
       title: 'Nurture campaign enrollment',
       description: 'Add to educational content drip campaign',
-      dueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+      dueAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       priority: 'Low' as const,
     })
   }
 
-  // Check for specific triggers
   if (inquiry?.stage === 'Qualified') {
     tasks.push({
       title: 'Prepare quote presentation',
       description: 'Lead is qualified - prepare customized quote',
-      dueAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12 hours
+      dueAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
       priority: 'High' as const,
     })
   }
@@ -293,7 +321,7 @@ async function generateAutomatedTasks(contact: any, inquiry: any, category: stri
     tasks.push({
       title: 'Appointment preparation',
       description: 'Prepare meeting brief and client materials',
-      dueAt: new Date(Date.now() + 4 * 60 * 60 * 1000), // 4 hours
+      dueAt: new Date(Date.now() + 4 * 60 * 60 * 1000),
       priority: 'Medium' as const,
     })
   }
