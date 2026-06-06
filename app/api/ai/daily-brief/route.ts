@@ -27,6 +27,23 @@ const schema = {
 
 const displayName = (contact: any) => contact.fullName || [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'Unknown Contact'
 
+export async function GET(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const latest = await prisma.aiRun.findFirst({
+    where: { type: AiRunType.daily_brief, status: 'completed' },
+    orderBy: { createdAt: 'desc' },
+    select: { output: true, createdAt: true },
+  }).catch(() => null)
+
+  if (!latest?.output) {
+    return NextResponse.json({ ok: false, error: 'No brief available yet' })
+  }
+
+  return NextResponse.json({ ok: true, ...(latest.output as Record<string, unknown>) })
+}
+
 export async function POST(req: NextRequest) {
   const limited = await applyAiRateLimit(req)
   if (limited) return limited

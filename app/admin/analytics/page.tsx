@@ -275,74 +275,50 @@ export default function AnalyticsPage() {
 
   const fetchAll = useCallback(async () => {
     const qs = buildQs(range)
-
-    // Overview
     setOverviewLoading(true)
-    setOverviewErr(null)
-    fetch(`/api/analytics/v1/overview?${qs}`)
-      .then(r => r.json() as Promise<ApiEnvelope<OverviewData>>)
-      .then(res => {
-        if (res.ok && res.data) {
-          setOverview(res.data)
-          setWarnings(res.meta?.warnings ?? [])
-        } else {
-          setOverviewErr(res.error ?? 'Failed to load overview')
-        }
-      })
-      .catch(() => setOverviewErr('Network error'))
-      .finally(() => setOverviewLoading(false))
-
-    // Funnel
     setFunnelLoading(true)
-    setFunnelErr(null)
-    fetch(`/api/analytics/v1/funnel?${qs}`)
-      .then(r => r.json() as Promise<ApiEnvelope<FunnelStage[]>>)
-      .then(res => {
-        if (res.ok && res.data) setFunnel(res.data)
-        else setFunnelErr(res.error ?? 'Failed to load funnel')
-      })
-      .catch(() => setFunnelErr('Network error'))
-      .finally(() => setFunnelLoading(false))
-
-    // Time series
     setTimeSeriesLoading(true)
-    setTimeSeriesErr(null)
-    fetch(`/api/analytics/v1/time-series?${qs}&metrics=lead_count,contact_count,appointment_booked_count,cta_click_count`)
-      .then(r => r.json() as Promise<ApiEnvelope<TimeSeriesPoint[]>>)
-      .then(res => {
-        if (res.ok && res.data) setTimeSeries(res.data)
-        else setTimeSeriesErr(res.error ?? 'Failed to load time series')
-      })
-      .catch(() => setTimeSeriesErr('Network error'))
-      .finally(() => setTimeSeriesLoading(false))
-
-    // Breakdowns (source)
     setBreakdownsLoading(true)
-    setBreakdownsErr(null)
-    fetch(`/api/analytics/v1/breakdowns?${qs}&dimension=source`)
-      .then(r => r.json() as Promise<ApiEnvelope<BreakdownRow[]>>)
-      .then(res => {
-        if (res.ok && res.data) setBreakdowns(res.data)
-        else setBreakdownsErr(res.error ?? 'Failed to load breakdowns')
-      })
-      .catch(() => setBreakdownsErr('Network error'))
-      .finally(() => setBreakdownsLoading(false))
-
-    // Recent events
     setRecentLoading(true)
-    fetch('/api/analytics/v1/recent-events?limit=15')
-      .then(r => r.json() as Promise<ApiEnvelope<RecentEvent[]>>)
-      .then(res => { if (res.ok && res.data) setRecentEvents(res.data) })
-      .catch(() => {})
-      .finally(() => setRecentLoading(false))
-
-    // Opportunities
     setOppsLoading(true)
-    fetch('/api/analytics/v1/opportunities')
-      .then(r => r.json() as Promise<ApiEnvelope<Opportunity[]>>)
-      .then(res => { if (res.ok && res.data) setOpportunities(res.data) })
-      .catch(() => {})
-      .finally(() => setOppsLoading(false))
+    setOverviewErr(null)
+    setFunnelErr(null)
+    setTimeSeriesErr(null)
+    setBreakdownsErr(null)
+
+    try {
+      const res = await fetch(`/api/analytics/v1/dashboard?${qs}`)
+      const data = await res.json()
+
+      if (data.ok) {
+        setOverview(data.overview ?? null)
+        setWarnings(data.warnings ?? [])
+        setFunnel(data.funnel ?? [])
+        setTimeSeries(data.timeSeries ?? [])
+        setBreakdowns(data.breakdowns ?? [])
+        setRecentEvents(data.recentEvents ?? [])
+        setOpportunities(data.opportunities ?? [])
+      } else {
+        const msg = data.error ?? 'Failed to load dashboard'
+        setOverviewErr(msg)
+        setFunnelErr(msg)
+        setTimeSeriesErr(msg)
+        setBreakdownsErr(msg)
+      }
+    } catch {
+      const msg = 'Network error'
+      setOverviewErr(msg)
+      setFunnelErr(msg)
+      setTimeSeriesErr(msg)
+      setBreakdownsErr(msg)
+    } finally {
+      setOverviewLoading(false)
+      setFunnelLoading(false)
+      setTimeSeriesLoading(false)
+      setBreakdownsLoading(false)
+      setRecentLoading(false)
+      setOppsLoading(false)
+    }
   }, [range])
 
   useEffect(() => {
