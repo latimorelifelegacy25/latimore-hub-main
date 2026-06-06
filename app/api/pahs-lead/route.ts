@@ -89,8 +89,8 @@ async function sendNotification(lead: ValidatedLead) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = await rateLimit(req, 'lead');
-  if (limited) return limited;
+  const limited = await rateLimit(req, 'lead')
+  if (limited) return limited
 
   try {
     const body = (await req.json()) as LeadBody;
@@ -109,54 +109,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { ok: false, error: 'Name, phone, and interest are required.' },
         { status: 400 }
-      );
+      )
     }
 
-    const target = process.env.PAHS_LEAD_TARGET ?? 'crm';
+    const [firstName, ...rest] = name.split(' ')
+    const lastName = rest.join(' ') || undefined
 
-    // Run save + email in parallel
     const [saveResult, emailResult] = await Promise.allSettled([
-      target === 'crm' ? saveToCRM(lead) : saveToSupabase(lead),
-      sendNotification(lead),
-    ]);
+      upsertLead({
+        firstName,
+        lastName,
+        phone,
+        email,
+        productInterest: interest,
+        source,
+        landingPage: page,
+        notes: promo ? `Promo: ${promo}` : undefined,
+      }),
+      sendMail({
+        to: process.env.NOTIFY_TO ?? '',
+        from: process.env.THANKYOU_FROM ?? 'noreply@latimorelifelegacy.com',
+        subject: `New PAHS Lead: ${name}`,
+        html: `<p><strong>Name:</strong> ${name}</p>
+<p><strong>Phone:</strong> ${phone}</p>
+${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
+<p><strong>Interest:</strong> ${interest}</p>
+<p><strong>Source:</strong> ${source}</p>
+<p><strong>Page:</strong> ${page}</p>
+${promo ? `<p><strong>Promo:</strong> ${promo}</p>` : ''}`,
+      }),
+    ])
 
-    const response: Record<string, unknown> = { ok: true, target };
+    const response: Record<string, unknown> = { ok: true }
 
-    // CRM/Supabase result
     if (saveResult.status === 'fulfilled') {
-      response.save = saveResult.value;
+      response.contactId = saveResult.value.contact.id
+      response.inquiryId = saveResult.value.inquiry.id
     } else {
-      logger.error(
-        { err: saveResult.reason },
-        '[pahs-lead] CRM/Supabase save failed'
-      );
-      response.save = { ok: false, error: String(saveResult.reason) };
+      logger.error({ err: saveResult.reason }, '[pahs-lead] CRM save failed')
+      response.save = { ok: false, error: String(saveResult.reason) }
     }
 
-    // Email result
-    if (emailResult.status === 'fulfilled') {
-      response.email = emailResult.value;
-    } else {
-      logger.error(
-        { err: emailResult.reason },
-        '[pahs-lead] Email notification failed'
-      );
-      response.email = { ok: false, error: String(emailResult.reason) };
+    if (emailResult.status === 'rejected') {
+      logger.error({ err: emailResult.reason }, '[pahs-lead] Email notification failed')
     }
 
-    return NextResponse.json(response);
+    return NextResponse.json(response)
   } catch (error) {
     logger.error(
       { err: error instanceof Error ? error.message : String(error) },
       '[pahs-lead] submission error'
-    );
-
+    )
     return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : 'Lead submission failed.',
-      },
+      { ok: false, error: error instanceof Error ? error.message : 'Lead submission failed.' },
       { status: 500 }
-    );
+    )
   }
 }
