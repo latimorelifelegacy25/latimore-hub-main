@@ -25,9 +25,6 @@ const BodySchema = z.object({
 )
 
 export async function POST(req: NextRequest) {
-  const startedAt = Date.now()
-
-  // Rate limit
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
 

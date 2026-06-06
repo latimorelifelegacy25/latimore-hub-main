@@ -45,7 +45,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const cronSecret = process.env.CRON_SECRET
