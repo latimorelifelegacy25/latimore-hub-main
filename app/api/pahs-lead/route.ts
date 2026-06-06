@@ -5,21 +5,88 @@ import { upsertLead } from '@/lib/hub/upsert-lead';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 
-import { NextRequest, NextResponse } from 'next/server'
-import { rateLimit } from '@/lib/rate-limit'
-import { upsertLead } from '@/lib/hub/upsert-lead'
-import { cleanString } from '@/lib/hub/normalizers'
-import { sendMail } from '@/lib/mailer'
-import { logger } from '@/lib/logger'
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 type LeadBody = {
-  name?: string | null
-  phone?: string | null
-  email?: string | null
-  promo?: string | null
-  interest?: string | null
-  source?: string | null
-  page?: string | null
+  name?: string;
+  phone?: string;
+  email?: string;
+  promo?: string;
+  interest?: string;
+  source?: string;
+  page?: string;
+};
+
+function clean(value: unknown, max = 500) {
+  return String(value || '').trim().slice(0, max);
+}
+
+function splitName(full: string): { firstName: string | null; lastName: string | null } {
+  const parts = full.trim().split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0] || null, lastName: null };
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+}
+
+async function saveToCRM(lead: Required<LeadBody>) {
+  const { firstName, lastName } = splitName(lead.name);
+  const { contact, inquiry } = await upsertLead({
+    firstName,
+    lastName,
+    email: lead.email || null,
+    phone: lead.phone,
+    productInterest: lead.interest,
+    source: lead.source,
+    landingPage: lead.page,
+    notes: lead.promo ? `Promo/Coupon: ${lead.promo}` : 'PAHS sponsorship landing page consultation request.',
+    metadata: { form: 'pahs-lead', promo: lead.promo || null },
+  });
+  return { contact: contact.id, inquiry: inquiry.id };
+}
+
+async function saveToSupabase(lead: Required<LeadBody>) {
+  const url = process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return { skipped: true, reason: 'Supabase env vars not configured.' };
+
+  const table = process.env.PAHS_LEADS_TABLE || 'pahs_leads';
+  const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
+  const { error } = await supabase.from(table).insert({
+    full_name: lead.name,
+    phone: lead.phone,
+    email: lead.email || null,
+    promo_code: lead.promo || null,
+    product_interest: lead.interest,
+    lead_source: lead.source,
+    page_source: lead.page,
+    status: 'New',
+    county: null,
+    notes: 'PAHS sponsorship landing page consultation request.',
+  });
+
+  if (error) throw new Error(`Supabase insert failed: ${error.message}`);
+  return { skipped: false };
+}
+
+async function sendNotification(lead: Required<LeadBody>) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return { skipped: true, reason: 'RESEND_API_KEY not configured.' };
+
+  const resend = new Resend(apiKey);
+  const to = process.env.LEAD_NOTIFY_TO || process.env.NOTIFY_TO || 'Jackson1989@latimorelegacy.com';
+  const from = process.env.LEAD_NOTIFY_FROM || process.env.THANKYOU_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
+
+  const text = `New PAHS consultation request\n\nName: ${lead.name}\nPhone: ${lead.phone}\nEmail: ${lead.email || 'Not provided'}\nPromo/Coupon: ${lead.promo || 'None'}\nInterest: ${lead.interest}\nSource: ${lead.source}\nPage: ${lead.page}`;
+
+  const { error } = await resend.emails.send({
+    from,
+    to,
+    subject: `New PAHS Consultation Request: ${lead.name}`,
+    text,
+  });
+
+  if (error) throw new Error(`Resend notification failed: ${error.message}`);
+  return { skipped: false };
 }
 
 export async function POST(req: NextRequest) {
