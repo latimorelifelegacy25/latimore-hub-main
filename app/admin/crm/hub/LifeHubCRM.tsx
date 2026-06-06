@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Contact } from '@prisma/client'
-import PageHeader from '../../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 
 interface ClientWithDetails extends Contact {
   inquiries?: any[]
