@@ -40,9 +40,7 @@ export default function PAHSPage() {
 
         * { box-sizing: border-box; }
 
-        body {
-          background: var(--navy-deep);
-        }
+        body { background: var(--navy-deep); }
 
         .pahs-page {
           min-height: 100vh;
@@ -53,26 +51,32 @@ export default function PAHSPage() {
           background: var(--navy-deep);
         }
 
+        .pahs-page h1,
+        .pahs-page h2,
+        .pahs-page p {
+          margin: 0;
+        }
+
         .pahs-bg {
           position: fixed;
           inset: 0;
           z-index: 0;
-          background:
-            linear-gradient(160deg, rgba(13,24,33,.82) 0%, rgba(44,62,80,.58) 52%, rgba(139,26,26,.42) 100%),
-            url('/pahs-sponsor-flyer.png');
+          background-image: url('/pahs-latimore-logo.png');
           background-size: cover;
           background-position: center 30%;
-          filter: brightness(.72) saturate(.88);
+          filter: brightness(.32) saturate(.8);
           transform: scale(1.02);
         }
 
-        .pahs-bg::after {
-          content: '';
-          position: absolute;
+        .pahs-bg-overlay {
+          position: fixed;
           inset: 0;
+          z-index: 0;
+          pointer-events: none;
           background:
-            radial-gradient(ellipse at 50% 10%, rgba(196,154,108,.20) 0%, transparent 52%),
-            linear-gradient(180deg, rgba(13,24,33,.15) 0%, rgba(13,24,33,.92) 100%);
+            radial-gradient(ellipse at 50% 10%, rgba(196,154,108,.18) 0%, transparent 48%),
+            linear-gradient(160deg, rgba(13,24,33,.78) 0%, rgba(44,62,80,.48) 50%, rgba(139,26,26,.36) 100%),
+            linear-gradient(180deg, rgba(13,24,33,.08) 0%, rgba(13,24,33,.94) 100%);
         }
 
         .page-shell {
@@ -85,15 +89,15 @@ export default function PAHSPage() {
 
         .lead-card,
         .schedule-card {
-          background: rgba(13,24,33,.78);
-          border: 1px solid rgba(196,154,108,.26);
-          box-shadow: 0 28px 80px rgba(0,0,0,.48);
+          background: rgba(13,24,33,.80);
+          border: 1px solid rgba(196,154,108,.28);
+          box-shadow: 0 28px 80px rgba(0,0,0,.52);
           backdrop-filter: blur(10px);
         }
 
         .lead-card {
           border-radius: 28px;
-          padding: clamp(24px, 5vw, 40px) clamp(18px, 5vw, 34px);
+          padding: clamp(22px, 5vw, 36px) clamp(16px, 5vw, 32px);
           text-align: center;
           animation: fadeUp .7s ease both;
           overflow: hidden;
@@ -133,33 +137,7 @@ export default function PAHSPage() {
           font-size: .6rem;
         }
 
-        .brand-logo {
-          display: block;
-          width: min(230px, 72vw);
-          height: auto;
-          margin: 0 auto 20px;
-          filter: drop-shadow(0 8px 24px rgba(0,0,0,.62));
-        }
-
-        .player-wrap {
-          display: flex;
-          justify-content: center;
-          margin: 0 auto 18px;
-        }
-
-        .player-photo {
-          width: 126px;
-          height: 126px;
-          border-radius: 999px;
-          border: 4px solid var(--gold);
-          box-shadow: 0 16px 42px rgba(0,0,0,.46);
-          object-fit: cover;
-          object-position: top;
-          background: rgba(255,255,255,.08);
-        }
-
         .headline {
-          margin: 0;
           color: #fff;
           font-family: 'Bebas Neue', sans-serif;
           font-size: clamp(3rem, 12vw, 6rem);
@@ -179,6 +157,34 @@ export default function PAHSPage() {
           font-size: clamp(1.25rem, 5vw, 2.15rem);
           letter-spacing: .12em;
           margin-top: 4px;
+        }
+
+        .form-player-wrap {
+          margin: 22px auto 18px;
+          border: 1px solid rgba(196,154,108,.34);
+          background: rgba(255,255,255,.05);
+          box-shadow: 0 18px 46px rgba(0,0,0,.42);
+          overflow: hidden;
+          border-radius: 18px;
+        }
+
+        .form-player-image {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        .form-player-caption {
+          padding: 10px 14px 12px;
+          color: rgba(255,255,255,.74);
+          font-family: 'Oswald', sans-serif;
+          font-size: .72rem;
+          font-weight: 400;
+          letter-spacing: .12em;
+          line-height: 1.5;
+          text-transform: uppercase;
+          background: rgba(13,24,33,.72);
+          border-top: 1px solid rgba(196,154,108,.22);
         }
 
         .heartbeat {
@@ -280,9 +286,7 @@ export default function PAHSPage() {
           border-bottom: 1px solid rgba(255,255,255,.06);
         }
 
-        .game-row:last-child {
-          border-bottom: none;
-        }
+        .game-row:last-child { border-bottom: none; }
 
         .yard-bar {
           width: 5px;
@@ -291,13 +295,8 @@ export default function PAHSPage() {
           flex: 0 0 auto;
         }
 
-        .yard-bar.home {
-          background: linear-gradient(to bottom, var(--gold-dark), var(--gold-light));
-        }
-
-        .yard-bar.away {
-          background: rgba(255,255,255,.14);
-        }
+        .yard-bar.home { background: linear-gradient(to bottom, var(--gold-dark), var(--gold-light)); }
+        .yard-bar.away { background: rgba(255,255,255,.14); }
 
         .game-date {
           width: 64px;
@@ -348,6 +347,7 @@ export default function PAHSPage() {
         @media (max-width: 440px) {
           .page-shell { padding-left: 12px; padding-right: 12px; }
           .lead-card { border-radius: 22px; }
+          .headline { font-size: clamp(2.8rem, 15vw, 4.5rem); }
           .schedule-card { border-radius: 20px; }
           .schedule-head { padding: 18px 16px; }
           .game-row { gap: 10px; padding: 14px 14px; }
@@ -358,28 +358,29 @@ export default function PAHSPage() {
       `}</style>
 
       <div className="pahs-bg" aria-hidden="true" />
+      <div className="pahs-bg-overlay" aria-hidden="true" />
 
       <div className="page-shell">
         <section className="lead-card" aria-labelledby="pahs-heading">
           <div className="sponsor-badge">Proud All-Star Sponsor</div>
-          <img className="brand-logo" src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
-
-          <div className="player-wrap">
-            <Image
-              className="player-photo"
-              src="/jackson-headshot.jpg"
-              alt="Jackson M. Latimore Sr."
-              width={126}
-              height={126}
-              priority
-            />
-          </div>
 
           <h1 className="headline" id="pahs-heading">
             Start Your
             <span>Quick Quote</span>
           </h1>
           <div className="subline">Pottsville Area · Crimson Tide</div>
+
+          <div className="form-player-wrap">
+            <Image
+              className="form-player-image"
+              src="/pahs-form-hero.jpeg"
+              alt="2005 Coal Region All-Area football throwback featuring Jackson Latimore"
+              width={1024}
+              height={1024}
+              priority
+            />
+            <div className="form-player-caption">Where the journey began · PAHS football lead form</div>
+          </div>
 
           <svg className="heartbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <polyline
