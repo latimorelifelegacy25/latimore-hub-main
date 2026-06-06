@@ -75,3 +75,4 @@ export function generateInsights({
   return insights
 }
 9
+export { getCrmEvents } from './events'
