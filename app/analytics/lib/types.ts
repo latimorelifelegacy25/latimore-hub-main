@@ -69,6 +69,37 @@ export type Opportunity = {
   reason: string
 }
 
+export type AiAnalyticsData = {
+  totalRuns: number
+  successCount: number
+  failedCount: number
+  successRate: number
+  avgLatencyMs: number
+  byType: Array<{
+    type: string
+    count: number
+    successRate: number
+    avgLatencyMs: number
+  }>
+  recentRuns: Array<{
+    id: string
+    type: string
+    status: string
+    latencyMs: number | null
+    createdAt: string
+  }>
+}
+
+export type DashboardData = {
+  overview: OverviewData
+  funnel: FunnelStage[]
+  timeSeries: TimeSeriesPoint[]
+  breakdowns: BreakdownRow[]
+  recentEvents: RecentEvent[]
+  opportunities: Opportunity[]
+  ai: AiAnalyticsData
+}
+
 export type ApiEnvelope<T> = {
   ok: boolean
   data?: T

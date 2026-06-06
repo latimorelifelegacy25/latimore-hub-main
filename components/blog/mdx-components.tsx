@@ -133,7 +133,7 @@ function MdxAnchor({
   )
 }
 
-function MdxBlockquote({ children }: { children: React.ReactNode }) {
+function MdxBlockquote({ children }: { children?: React.ReactNode }) {
   return <blockquote style={{ borderLeft: '4px solid var(--gold)' }}>{children}</blockquote>
 }
 
@@ -150,7 +150,7 @@ export function getMDXComponents(): Record<string, any> {
     Stat,
     InlineCTA,
     // Element overrides
-    img: MdxImage as MDXComponents['img'],
+    img: MdxImage,
     a: MdxAnchor,
     blockquote: MdxBlockquote as MDXComponents['blockquote'],
   }
