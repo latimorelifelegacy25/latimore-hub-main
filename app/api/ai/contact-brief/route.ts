@@ -27,6 +27,7 @@ const schema = {
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const auth = await requireAdminSession()
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.15,
     })
     const output = { contactId: context.contact.id, inquiryId: context.inquiry?.id ?? null, brief: completion.output }
-    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens })
+    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens, latencyMs: Date.now() - startedAt })
     await createSystemAiEvent({ type: 'ai.contact_brief.completed', contactId: context.contact.id, inquiryId: context.inquiry?.id ?? undefined, payload: output as Record<string, unknown> })
     return NextResponse.json({ ok: true, ...output })
   } catch (error) {

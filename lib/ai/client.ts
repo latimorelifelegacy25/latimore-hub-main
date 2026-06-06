@@ -20,6 +20,27 @@ type CompletionResult<T> = {
   }
 }
 
+
+export async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit & { timeoutMs?: number } = {},
+): Promise<Response> {
+  const { timeoutMs = Number(process.env.AI_FETCH_TIMEOUT_MS ?? 30000), signal, ...fetchInit } = init
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+  if (signal) {
+    if (signal.aborted) controller.abort()
+    else signal.addEventListener('abort', () => controller.abort(), { once: true })
+  }
+
+  try {
+    return await fetch(input, { ...fetchInit, signal: controller.signal })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 function getAiProvider() {
   return (process.env.AI_PROVIDER ?? 'openai').toLowerCase()
 }
