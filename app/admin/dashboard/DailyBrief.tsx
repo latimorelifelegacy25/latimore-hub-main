@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface DailyBriefReport {
   summary: string
@@ -39,24 +39,40 @@ interface DailyBriefData {
 export default function DailyBrief() {
   const [briefing, setBriefing] = useState<DailyBriefData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [regenerating, setRegenerating] = useState(false)
 
-  useEffect(() => {
-    fetch('/api/ai/daily-brief', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 10 }),
-    })
-      .then(res => res.json())
-      .then(data => {
-        setBriefing(data)
-        setLoading(false)
-      })
-      .catch(error => {
-        console.error('Failed to load daily brief:', error)
-        setLoading(false)
-      })
+  const loadSaved = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/ai/daily-brief', { credentials: 'include' })
+      const data = await res.json()
+      setBriefing(data)
+    } catch {
+      setBriefing(null)
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => { void loadSaved() }, [loadSaved])
+
+  const regenerate = async () => {
+    setRegenerating(true)
+    try {
+      const res = await fetch('/api/ai/daily-brief', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ limit: 10 }),
+      })
+      const data = await res.json()
+      setBriefing(data)
+    } catch {
+      // silently fail — stale brief stays visible
+    } finally {
+      setRegenerating(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -74,8 +90,17 @@ export default function DailyBrief() {
   if (!briefing?.ok || !briefing.brief) {
     return (
       <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white">
-        <h3 className="text-xl font-black mb-4">Daily Brief</h3>
-        <p className="text-slate-400">Unable to load today's briefing.</p>
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-black">Daily Brief</h3>
+          <button
+            onClick={regenerate}
+            disabled={regenerating}
+            className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 disabled:opacity-50 transition"
+          >
+            {regenerating ? 'Generating…' : 'Generate Now'}
+          </button>
+        </div>
+        <p className="text-slate-400 text-sm">No brief generated yet today. Click Generate Now to create one.</p>
       </div>
     )
   }
@@ -89,11 +114,22 @@ export default function DailyBrief() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h3 className="text-xl font-black">Daily Brief</h3>
-          <p className="text-slate-400 text-sm">{briefing.generatedAt ? new Date(briefing.generatedAt).toLocaleDateString() : new Date().toLocaleDateString()}</p>
+          <p className="text-slate-400 text-sm">
+            {briefing.generatedAt ? new Date(briefing.generatedAt).toLocaleDateString() : new Date().toLocaleDateString()}
+          </p>
         </div>
-        <div className="text-right text-sm">
-          <div className="text-emerald-400 font-semibold">{hotLeadCount} Hot Leads</div>
-          <div className="text-amber-400">{overdueTaskCount} Overdue Tasks</div>
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-right text-sm">
+            <div className="text-emerald-400 font-semibold">{hotLeadCount} Hot Leads</div>
+            <div className="text-amber-400">{overdueTaskCount} Overdue Tasks</div>
+          </div>
+          <button
+            onClick={regenerate}
+            disabled={regenerating}
+            className="text-xs px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 disabled:opacity-50 transition"
+          >
+            {regenerating ? 'Generating…' : 'Regenerate'}
+          </button>
         </div>
       </div>
 
