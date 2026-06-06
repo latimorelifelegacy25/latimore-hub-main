@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 
@@ -41,11 +41,9 @@ export default function DailyBrief() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/ai/daily-brief', {
-      method: 'POST',
+    fetch('/api/ai/daily-brief/latest', {
+      method: 'GET',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ limit: 10 }),
     })
       .then(res => res.json())
       .then(data => {

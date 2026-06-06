@@ -28,6 +28,7 @@ const schema = {
 const displayName = (contact: any) => contact.fullName || [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'Unknown Contact'
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const cronSecret = process.env.CRON_SECRET
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
     })
 
     const output = { generatedAt: now.toISOString(), brief: completion.output }
-    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens })
+    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens, latencyMs: Date.now() - startedAt })
     await createSystemAiEvent({ type: 'ai.daily_brief.completed', payload: output as Record<string, unknown> })
     return NextResponse.json({ ok: true, ...output })
   } catch (error) {
