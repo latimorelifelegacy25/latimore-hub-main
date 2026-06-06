@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { computeEnhancedLeadScore } from '@/lib/ai/lead-score-enhanced'
-import { requireCronAuth } from '@/lib/ai/shared'
 
 const DEFAULT_BATCH_SIZE = 25
 const DEFAULT_CONCURRENCY = 3
