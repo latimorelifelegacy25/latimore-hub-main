@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { AiRunType } from '@prisma/client'
+import { AiRunStatus, AiRunType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { applyAiRateLimit, completeAiRun, createAiRun, createSystemAiEvent, failAiRun, requireAdminSession } from '@/lib/ai/shared'
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   if (!auth.ok) return auth.response
 
   const latest = await prisma.aiRun.findFirst({
-    where: { type: AiRunType.daily_brief, status: 'completed' },
+    where: { type: AiRunType.daily_brief, status: AiRunStatus.succeeded },
     orderBy: { createdAt: 'desc' },
     select: { output: true, createdAt: true },
   }).catch(() => null)
