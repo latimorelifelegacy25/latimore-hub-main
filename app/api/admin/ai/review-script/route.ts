@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const SCRIPT_SCHEMA = {
   type: 'object' as const,
@@ -32,6 +33,9 @@ const SCRIPT_SCHEMA = {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { clientData } = body

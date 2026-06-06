@@ -15,3 +15,16 @@ export const GA4_EVENTS = {
   INSIGHT_VIEWED: 'insight_viewed',
   SENTIMENT_ANALYZED: 'sentiment_analyzed',
 }
+
+export const ga4 = {
+  event: trackDashboardEvent,
+  track: trackDashboardEvent,
+  pageview: (path?: string) => {
+    if (typeof window === 'undefined') return
+    const gtag = (window as any).gtag
+    if (!gtag) return
+    gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID, {
+      page_path: path ?? window.location.pathname,
+    })
+  },
+}

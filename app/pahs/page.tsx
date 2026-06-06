@@ -1,4 +1,7 @@
-'use client';
+import type { Metadata } from 'next'
+import Image from 'next/image'
+import { Suspense } from 'react'
+import StartForm from './start/StartForm'
 
 import Image from 'next/image';
 import './pahs.css';
@@ -12,114 +15,22 @@ type LeadForm = {
   interest: string;
 };
 
+const games = [
+  { date: 'Sep 6', opponent: 'Minersville', location: 'Home' },
+  { date: 'Sep 13', opponent: 'Mahanoy Area', location: 'Away' },
+  { date: 'Sep 20', opponent: 'Tamaqua', location: 'Home' },
+  { date: 'Sep 27', opponent: 'North Schuylkill', location: 'Away' },
+  { date: 'Oct 4', opponent: 'Jim Thorpe', location: 'Home' },
+  { date: 'Oct 11', opponent: 'Shenandoah Valley', location: 'Away' },
+  { date: 'Oct 18', opponent: 'Nativity BVM', location: 'Home' },
+  { date: 'Oct 25', opponent: 'Tri-Valley', location: 'Away' },
+]
 
 export default function PAHSPage() {
-  const [lead, setLead] = useState<LeadForm>({ name: '', phone: '', email: '', promo: '', interest: '' });
-  const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [leadError, setLeadError] = useState('');
-
-  const [legacyRecipient, setLegacyRecipient] = useState('');
-  const [legacyMessage, setLegacyMessage] = useState('');
-  const [legacyTone, setLegacyTone] = useState('Heartfelt and loving');
-  const [legacyOutput, setLegacyOutput] = useState('');
-  const [legacyLoading, setLegacyLoading] = useState(false);
-  const [legacyError, setLegacyError] = useState('');
-
-  const [jargon, setJargon] = useState('');
-  const [jargonOutput, setJargonOutput] = useState('');
-  const [jargonLoading, setJargonLoading] = useState(false);
-  const [jargonError, setJargonError] = useState('');
-
-  const [showSticky, setShowSticky] = useState(false);
-
-  useEffect(() => {
-    const revealObserver = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 },
-    );
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-    const onScroll = () => setShowSticky(window.scrollY > window.innerHeight * 0.6);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      revealObserver.disconnect();
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, []);
-
-  async function submitLead(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLeadStatus('submitting');
-    setLeadError('');
-    try {
-      await postJson<{ ok: boolean }>('/api/pahs-lead', {
-        ...lead,
-        source: 'PAHS Sponsorship Page',
-        page: 'card.latimorelifelegacy.com/pahs',
-      });
-      setLeadStatus('success');
-    } catch (err) {
-      setLeadStatus('error');
-      setLeadError(err instanceof Error ? err.message : 'Lead submission failed.');
-    }
-  }
-
-  async function generateLegacyLetter() {
-    setLegacyLoading(true);
-    setLegacyError('');
-    setLegacyOutput('');
-    try {
-      const data = await postJson<{ text: string }>('/api/gemini/legacy-letter', {
-        recipient: legacyRecipient || 'My Loved Ones',
-        message: legacyMessage || 'I want you to know how much I love you and that I will always be looking out for you.',
-        tone: legacyTone,
-      });
-      setLegacyOutput(data.text);
-    } catch (err) {
-      setLegacyError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setLegacyLoading(false);
-    }
-  }
-
-  async function translateJargon() {
-    if (!jargon.trim()) return;
-    setJargonLoading(true);
-    setJargonError('');
-    setJargonOutput('');
-    try {
-      const data = await postJson<{ text: string }>('/api/gemini/jargon', { jargon });
-      setJargonOutput(data.text);
-    } catch (err) {
-      setJargonError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setJargonLoading(false);
-    }
-  }
-
-  async function copyLegacyLetter() {
-    await navigator.clipboard.writeText(legacyOutput);
-  }
-
   return (
-    <main>
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="stadium-lights">{Array.from({ length: 6 }).map((_, i) => <div className="light-beam" key={i} />)}</div>
-        <div className="field-bottom">
-          <div className="field-lines">
-            <div className="field-line" /><div className="field-line" /><div className="field-line" />
-            <span className="yard-number left">2</span><span className="yard-number center">5 0</span><span className="yard-number right">6</span>
-          </div>
-        </div>
+    <main className="pahs-page">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
 
         <div className="hero-content">
           <div className="sponsor-badge">Proud Sponsor Of</div>
@@ -163,24 +74,61 @@ export default function PAHSPage() {
             ) : <div className="success-msg"><i className="fas fa-check-circle" /><div><strong>Thank you!</strong> Your request was received. Jackson will follow up soon.</div></div>}
             <a href="https://latimorelifelegacy.fillout.com/latimorelifelegacy" className="intake-external-link" target="_blank" rel="noopener">Prefer our detailed intake questionnaire? Click here.</a>
           </div>
+
+          <svg className="heartbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <polyline
+              points="0,15 34,15 42,4 48,26 54,10 60,20 66,15 100,15 108,2 116,28 122,8 128,22 134,15 200,15"
+              stroke="#C49A6C"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          <div className="tagline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
+          <p className="form-intro">Your information hits the Latimore Hub first, then routes to the quick quote flow.</p>
+
+          <div className="form-wrap">
+            <Suspense fallback={<div style={{ color: '#fff', textAlign: 'center' }}>Loading form...</div>}>
+              <StartForm />
+            </Suspense>
+          </div>
+
+          <a className="phone-line" href="tel:+17176152613">(717) 615-2613</a>
+        </section>
+
+        <div className="goalposts-wrap" aria-hidden="true">
+          <svg className="goalposts" width="84" height="44" viewBox="0 0 84 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="42" y1="44" x2="42" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="12" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="42" y1="18" x2="72" y2="18" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="12" y1="18" x2="12" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+            <line x1="72" y1="18" x2="72" y2="4" stroke="#C49A6C" strokeWidth="3" strokeLinecap="round" />
+          </svg>
         </div>
-      </section>
 
-      <section className="story-section"><div className="story-inner reveal"><div className="section-label">Our Story</div><h2>A Saved Life Became<br />A <em>Mission</em></h2><div className="date-callout"><div className="date">December 7, 2010</div><p>Jackson M. Latimore Sr. collapsed from sudden cardiac arrest at ESU's Koehler Fieldhouse — and was saved by an AED placed by the Gregory W. Moyer Defibrillator Fund, honoring a 15-year-old boy who died from the same cause.</p></div><p className="story-text">That moment — watching a prepared community save a life — is the heartbeat behind everything we do at <strong>Latimore Life & Legacy LLC.</strong></p><p className="story-text">We don't sell fear. We help <strong>families in Schuylkill, Luzerne, and Northumberland counties</strong> prepare for life's uncertainties with clarity and confidence — because legacy isn't just what you leave behind. It's how you show up today.</p><p className="story-text">Supporting PAHS football is just one way we put our mission into action — <strong>right here, in our community.</strong></p><span className="hashtag">#TheBeatGoesOn &nbsp;🏈&nbsp; #LatimoreLifeAndLegacy</span></div></section>
+        <section className="schedule-card" aria-labelledby="schedule-heading">
+          <div className="schedule-head">
+            <span className="schedule-icon">🏈</span>
+            <div>
+              <h2 className="schedule-title" id="schedule-heading">PAHS Crimson Tide — 2025 Schedule</h2>
+              <div className="schedule-subtitle">Pottsville Area High School Football</div>
+            </div>
+          </div>
 
-      <section className="services-section"><div className="services-inner reveal"><div className="section-label">What We Do</div><h2>Your Complete<br />Financial Protection Team</h2><p className="services-subtitle">From your first policy to your retirement paycheck — we've got Central Pennsylvania covered.</p><div className="services-grid">{[['fa-shield-heart','Life Insurance & Living Benefits'],['fa-piggy-bank','Retirement Income & Annuities'],['fa-chart-line','Indexed Growth & IRA Strategies'],['fa-scroll','Estate & Legacy Planning'],['fa-building','Business Owner & Key Person'],['fa-house','Mortgage Protection Term']].map(([icon,title]) => <div className="service-card" key={title}><div className="service-icon"><i className={`fas ${icon}`} /></div><h3>{title}</h3></div>)}</div></div></section>
-      <section className="territory-section"><div className="territory-inner reveal"><h3>Serving</h3><p>Schuylkill · Luzerne · Northumberland</p><p className="county-detail">560,000+ residents across Central Pennsylvania</p><div className="tide-pride"><i className="fas fa-football-ball" />GO CRIMSON TIDE</div></div></section>
-
-      <section className="legacy-section"><div className="legacy-inner reveal"><div className="section-label" style={{ justifyContent: 'center', color: 'var(--gold)' }}>Free Digital Tool</div><h2 style={{ fontFamily: 'Oswald, sans-serif', fontSize: 'clamp(1.5rem, 6vw, 2.1rem)', color: 'var(--white)', textAlign: 'center', marginBottom: 8 }}>Draft Your Legacy Letter</h2><p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginBottom: 20 }}>Financial protection is only half the equation. Leave behind your wisdom, values, and love. Use our AI assistant to help you draft a meaningful letter to your loved ones.</p><div className="legacy-box"><div className="form-group"><label htmlFor="llRecipient">To Who?</label><input id="llRecipient" className="form-control" placeholder="e.g., My children, Sarah and Michael" value={legacyRecipient} onChange={e => setLegacyRecipient(e.target.value)} /></div><div className="form-group"><label htmlFor="llMessage">Core Values or Lesson</label><textarea id="llMessage" className="form-control" placeholder="e.g., Always support each other, remember the importance of community, and never give up." value={legacyMessage} onChange={e => setLegacyMessage(e.target.value)} /></div><div className="form-group"><label htmlFor="llTone">Tone</label><select id="llTone" className="form-control" value={legacyTone} onChange={e => setLegacyTone(e.target.value)}><option>Heartfelt and loving</option><option>Encouraging and inspiring</option><option>Wise and reflective</option></select></div><button className="btn-gemini" disabled={legacyLoading} onClick={generateLegacyLetter}>{legacyLoading ? 'Drafting...' : '✨ Draft My Legacy Letter ✨'}</button>{legacyError && <div className="error-msg">{legacyError}</div>}{legacyOutput && <div className="letter-output-container quoted"><div className="letter-content">{legacyOutput}</div><button className="copy-btn" onClick={copyLegacyLetter}><i className="fas fa-copy" />Copy to Clipboard</button></div>}</div></div></section>
-
-      <section className="legacy-section" style={{ background: 'linear-gradient(135deg, #111a22 0%, #1a2632 100%)' }}><div className="legacy-inner reveal"><div className="section-label" style={{ justifyContent: 'center', color: 'var(--gold)' }}>Free Digital Tool</div><h2 style={{ fontFamily: 'Oswald, sans-serif', fontSize: 'clamp(1.5rem, 6vw, 2.1rem)', color: 'var(--white)', textAlign: 'center', marginBottom: 8 }}>Insurance Jargon Translator</h2><p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'rgba(255,255,255,0.7)', marginBottom: 20 }}>Insurance policies can be confusing. Paste a complicated term or phrase below, and our AI assistant will explain it in simple, plain English.</p><div className="legacy-box"><div className="form-group"><label htmlFor="jargonInput">Confusing Term or Phrase</label><textarea id="jargonInput" className="form-control" style={{ minHeight: 60 }} placeholder="e.g., Return of Premium Term or Accelerated Death Benefit Rider" value={jargon} onChange={e => setJargon(e.target.value)} /></div><button className="btn-gemini" disabled={jargonLoading} onClick={translateJargon}>{jargonLoading ? 'Translating...' : '✨ Translate to Plain English ✨'}</button>{jargonError && <div className="error-msg">{jargonError}</div>}{jargonOutput && <div className="letter-output-container"><div className="letter-content" style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.95rem' }}>{jargonOutput}</div></div>}</div></div></section>
-
-      <section className="contact-section"><div className="contact-inner reveal"><div className="section-label">Let's Connect</div><h2>Start the Conversation</h2><p>A 15-minute call is all it takes to know exactly where you stand.</p><div className="contact-cards">{[
-        ['#intakeFormSection','fa-clipboard-list','Free Protection Review','Get Started — Takes 2 Min',''],['tel:+17176152613','fa-phone','Call Jackson Direct','(717) 615-2613',''],['mailto:Jackson1989@latimorelegacy.com','fa-envelope','Email Jackson','Jackson1989@latimorelegacy.com',''],['https://agents.ethoslife.com/invite/29ad1','fa-file-contract','Get a Term Life Quote','Apply Online via Ethos','target'],['https://www.instagram.com/jacksonlatimore.global?igsh=MTI5N25yNzR4emlieQ==','fab fa-instagram','Follow on Instagram','@jacksonlatimore.global','target'],['https://www.facebook.com/LatimoreLegacyLLC/','fab fa-facebook-f','Follow on Facebook','@LatimoreLegacyLLC','target'],['https://www.linkedin.com/in/startwithjacksongfi?trk=contact-info','fab fa-linkedin-in','Connect on LinkedIn','Jackson M. Latimore Sr.','target']].map(([href, icon, label, value, target]) => <a href={href} className="contact-card" key={label} target={target ? '_blank' : undefined} rel={target ? 'noopener' : undefined}><div className="contact-card-icon"><i className={icon.startsWith('fab') ? icon : `fas ${icon}`} /></div><div className="contact-card-text"><div className="contact-card-label">{label}</div><div className="contact-card-value">{value}</div></div><span className="contact-card-arrow"><i className="fas fa-chevron-right" /></span></a>)}</div><a href="#intakeFormSection" className="btn-primary" style={{ width: '100%', maxWidth: 360, margin: '0 auto' }}><i className="fas fa-shield-heart" />Get My Free Protection Review</a></div></section>
-
-      <footer className="footer"><a href="https://www.latimorelifelegacy.com" target="_blank" rel="noopener" style={{ textDecoration: 'none' }}><div className="footer-logo">LATIMORE LIFE & LEGACY LLC</div></a><div className="footer-tagline">Protecting Today. Securing Tomorrow.</div><div className="footer-hashtag">#TheBeatGoesOn · #LifeHappensLegacyIsPlanned</div><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20, marginBottom: 20 }}><a href="tel:+17176152613"><i className="fas fa-phone" /></a><a href="mailto:Jackson1989@latimorelegacy.com"><i className="fas fa-envelope" /></a><a href="https://www.facebook.com/LatimoreLegacyLLC/" target="_blank" rel="noopener"><i className="fab fa-facebook-f" /></a><a href="https://www.instagram.com/jacksonlatimore.global?igsh=MTI5N25yNzR4emlieQ==" target="_blank" rel="noopener"><i className="fab fa-instagram" /></a><a href="https://www.linkedin.com/in/startwithjacksongfi?trk=contact-info" target="_blank" rel="noopener"><i className="fab fa-linkedin-in" /></a><a href="https://agents.ethoslife.com/invite/29ad1" target="_blank" rel="noopener"><i className="fas fa-file-contract" /></a></div><div className="footer-disclaimer">Jackson M. Latimore Sr. · Latimore Life & Legacy LLC · Independent Insurance Consultant<br />Licensed in Pennsylvania · NIPR #21638507 · PA D.O.I. License #1268820<br />Schuylkill · Luzerne · Northumberland Counties · <a href="https://www.latimorelifelegacy.com" target="_blank" rel="noopener">www.latimorelifelegacy.com</a><br /><br />Life insurance and annuity products are subject to underwriting approval. Rates and availability vary by individual factors. Insurance products are not deposits, not FDIC insured, not guaranteed by any bank, and may be subject to limitations, exclusions, underwriting, carrier approval, surrender charges, and market-value adjustments where applicable. This page is intended for informational purposes and does not constitute financial, legal, or tax advice. Proud sponsor of Pottsville Area High School Football 2026.</div></footer>
-
-      <div className={`sticky-cta ${showSticky ? 'show' : ''}`}><div className="sticky-cta-text"><span>Free</span> Protection Review</div><a href="#intakeFormSection" className="sticky-btn">Start Now</a></div>
+          {games.map(game => {
+            const locationClass = game.location.toLowerCase()
+            return (
+              <div className="game-row" key={`${game.date}-${game.opponent}`}>
+                <div className={`yard-bar ${locationClass}`} />
+                <div className="game-date">{game.date}</div>
+                <div className="game-opponent">{game.opponent}</div>
+                <span className={`game-tag ${locationClass}`}>{game.location}</span>
+              </div>
+            )
+          })}
+        </section>
+      </div>
     </main>
-  );
+  )
 }

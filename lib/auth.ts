@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ profile }) {
       const email = (profile?.email ?? '').toLowerCase()
-      const allowed = adminEmails.length === 0 || adminEmails.includes(email)
+      const allowed = adminEmails.length > 0 && adminEmails.includes(email)
       logger.info({ email, allowed }, '[auth] signIn attempt')
       return allowed
     },

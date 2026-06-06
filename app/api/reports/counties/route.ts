@@ -7,7 +7,7 @@ import { getCountyReport } from '@/lib/hub/reporting'
 import { countAll } from '@/lib/prisma-helpers'
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })

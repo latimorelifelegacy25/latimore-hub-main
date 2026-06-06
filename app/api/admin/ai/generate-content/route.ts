@@ -4,6 +4,8 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,
@@ -46,12 +48,10 @@ Non-Negotiables:
 - Warm and community-focused`
 
 export async function POST(req: Request) {
-  try {
-    console.log('Environment check:')
-    console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY)
-    console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY)
-    console.log('AI_PROVIDER:', process.env.AI_PROVIDER || 'default(gemini)')
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
+  try {
     const body = await req.json()
     const { topic, platform = 'linkedin', count = 1 } = body
 
@@ -72,11 +72,11 @@ export async function POST(req: Request) {
         schema: CONTENT_SCHEMA,
         temperature: 0.8,
       })
-      console.log('AI result for post', i, ':', result)
+      logger.debug({ index: i, result }, 'AI result for post')
       results.push(result.output)
     }
 
-    console.log('Final results:', results)
+    logger.debug({ count: results.length }, 'Final content generation results')
 
     return Response.json({
       success: true,

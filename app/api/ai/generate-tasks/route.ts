@@ -7,7 +7,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)

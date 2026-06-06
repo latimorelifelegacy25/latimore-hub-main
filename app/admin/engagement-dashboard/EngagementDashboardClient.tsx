@@ -1,453 +1,527 @@
-'use client'
+"use client";
 
-import { useEffect, useState, useCallback } from 'react'
-import { ga4 } from '@/lib/analytics/ga4'
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { trackDashboardEvent } from "@/lib/analytics/ga4";
 
 type Totals = {
-  impressions: number
-  reach: number
-  clicks: number
-  reactions: number
-  comments: number
-  shares: number
-  saves: number
-  leads: number
-}
+  impressions: number;
+  reach: number;
+  clicks: number;
+  reactions: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  leads: number;
+};
 
 type TrendPoint = {
-  date: string
-  reactions: number
-  comments: number
-  shares: number
-  clicks: number
-}
+  date: string;
+  reactions: number;
+  comments: number;
+  shares: number;
+  clicks: number;
+};
 
 type Insight = {
-  id: string
-  type: string
-  severity: string
-  title: string
-  summary: string
-  action?: string
-  createdAt: string
-}
+  id: string;
+  type: string;
+  severity: string;
+  title: string;
+  summary: string;
+  action?: string;
+  createdAt: string;
+};
 
 type Post = {
-  id: string
-  platform: string
-  caption: string
-  publishedAt: string | null
-  metrics: { reactions: number; comments: number; shares: number; clicks: number; reach: number }[]
-}
+  id: string;
+  platform: string;
+  caption: string;
+  publishedAt: string | null;
+  metrics: { reactions: number; comments: number; shares: number; clicks: number; reach: number }[];
+};
 
 type MetricsData = {
-  totals: Totals
-  byPlatform: Record<string, Totals>
-  trend: TrendPoint[]
-  insights: Insight[]
-  recentPosts: Post[]
-  days: number
-}
+  totals: Totals;
+  byPlatform: Record<string, Totals>;
+  trend: TrendPoint[];
+  insights: Insight[];
+  recentPosts: Post[];
+  days: number;
+};
+
+type TabKey = "overview" | "posts" | "ai";
 
 const PLATFORM_COLORS: Record<string, string> = {
-  facebook: '#1877F2',
-  instagram: '#E1306C',
-  linkedin: '#0A66C2',
-  twitter: '#1DA1F2',
-  website: '#C49A6C',
+  facebook: "#1877F2",
+  instagram: "#E1306C",
+  linkedin: "#0A66C2",
+  twitter: "#1DA1F2",
+  website: "#C49A6C",
+};
+
+const SEVERITY_BADGE: Record<string, { label: string; className: string }> = {
+  high: { label: "High", className: "border-red-500/30 bg-red-500/10 text-red-700" },
+  medium: { label: "Medium", className: "border-amber-500/30 bg-amber-500/10 text-amber-700" },
+  low: { label: "Low", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" },
+  info: { label: "Info", className: "border-sky-500/30 bg-sky-500/10 text-sky-700" },
+};
+
+function safeNumber(n: unknown, fallback = 0) {
+  const x = Number(n);
+  return Number.isFinite(x) ? x : fallback;
 }
 
-const SEVERITY_COLORS: Record<string, string> = {
-  high: '#ef4444',
-  medium: '#f59e0b',
-  low: '#22c55e',
-  info: '#3b82f6',
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
 }
 
-function KpiCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+function formatNumber(value: number | undefined) {
+  return safeNumber(value).toLocaleString();
+}
+
+function metricTotal(post: Post, key: keyof Post["metrics"][number]) {
+  return post.metrics?.reduce((sum, metric) => sum + safeNumber(metric[key]), 0) ?? 0;
+}
+
+function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <section className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${className}`}>{children}</section>;
+}
+
+function CardHeader({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`px-5 pt-5 ${className}`}>{children}</div>;
+}
+
+function CardTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-base font-semibold tracking-tight text-slate-950">{children}</h2>;
+}
+
+function CardContent({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <div className={`p-5 ${className}`}>{children}</div>;
+}
+
+function Badge({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(196,154,108,0.2)', borderRadius: 10, padding: '16px 20px' }}>
-      <div style={{ fontSize: '0.72rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: '1.8rem', fontWeight: 700, color: '#fff', lineHeight: 1 }}>{value}</div>
-      {sub && <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 4 }}>{sub}</div>}
-    </div>
-  )
+    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${className}`}>
+      {children}
+    </span>
+  );
 }
 
-function MiniBar({ value, max, color }: { value: number; max: number; color: string }) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0
+function Button({
+  children,
+  onClick,
+  disabled,
+  type = "button",
+  className = "",
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit";
+  className?: string;
+}) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-      <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 3, transition: 'width 0.5s' }} />
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ExecutiveKpi({ label, value, note }: { label: string; value: string; note?: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="text-sm font-medium text-slate-500">{label}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-3xl font-semibold tracking-tight text-slate-950">{value}</div>
+        {note && <div className="mt-1 text-xs text-slate-500">{note}</div>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function MiniBarRow({ label, value, max, color }: { label: string; value: number; max: number; color: string }) {
+  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-4">
+        <div className="text-sm font-medium capitalize" style={{ color }}>
+          {label}
+        </div>
+        <div className="text-sm tabular-nums text-slate-500">{value.toLocaleString()}</div>
       </div>
-      <span style={{ fontSize: '0.78rem', color: '#fff', minWidth: 36, textAlign: 'right' }}>{value.toLocaleString()}</span>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+      </div>
     </div>
-  )
+  );
 }
 
-function TrendChart({ trend }: { trend: TrendPoint[] }) {
-  if (!trend.length) return <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center', padding: '24px 0' }}>No trend data yet</div>
-  const maxVal = Math.max(...trend.map(t => t.reactions + t.comments + t.shares + t.clicks), 1)
+function TrendMiniBars({ trend }: { trend: TrendPoint[] }) {
+  if (!trend?.length) {
+    return <div className="py-10 text-center text-sm text-slate-500">No trend data yet.</div>;
+  }
+
+  const points = trend.slice(-21);
+  const maxVal = Math.max(...points.map((t) => t.reactions + t.comments + t.shares + t.clicks), 1);
+
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 3, height: 80, padding: '0 4px' }}>
-      {trend.slice(-21).map((t) => {
-        const total = t.reactions + t.comments + t.shares + t.clicks
-        const h = Math.max((total / maxVal) * 72, 2)
+    <div className="flex h-28 items-end gap-1">
+      {points.map((t) => {
+        const total = t.reactions + t.comments + t.shares + t.clicks;
+        const h = Math.max((total / maxVal) * 100, 6);
+
         return (
-          <div key={t.date} title={`${t.date}: ${total} engagements`} style={{ flex: 1, height: h, background: 'linear-gradient(180deg,#C49A6C,#8B6530)', borderRadius: '2px 2px 0 0', cursor: 'default', transition: 'opacity 0.2s' }} />
-        )
+          <div
+            key={t.date}
+            title={`${t.date}: ${total.toLocaleString()} engagements`}
+            className="flex-1 rounded-sm"
+            style={{ height: `${h}%`, background: "#C49A6C", opacity: 0.9 }}
+          />
+        );
       })}
     </div>
-  )
+  );
+}
+
+function LoadingDashboard() {
+  return (
+    <div className="grid gap-4 md:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index}>
+          <CardContent>
+            <div className="h-4 w-24 animate-pulse rounded bg-slate-200" />
+            <div className="mt-4 h-8 w-32 animate-pulse rounded bg-slate-200" />
+            <div className="mt-3 h-3 w-40 animate-pulse rounded bg-slate-200" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 export default function EngagementDashboardClient() {
-  const [data, setData] = useState<MetricsData | null>(null)
-  const [days, setDays] = useState(30)
-  const [platform, setPlatform] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [sentimentText, setSentimentText] = useState('')
-  const [sentimentResult, setSentimentResult] = useState<Record<string, unknown> | null>(null)
-  const [sentimentLoading, setSentimentLoading] = useState(false)
-  const [weeklyLoading, setWeeklyLoading] = useState(false)
-  const [weeklyReport, setWeeklyReport] = useState<Record<string, unknown> | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'sentiment' | 'reports' | 'insights'>('overview')
+  const [data, setData] = useState<MetricsData | null>(null);
+  const [days, setDays] = useState(30);
+  const [platform, setPlatform] = useState("all");
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const [sentimentText, setSentimentText] = useState("");
+  const [sentimentResult, setSentimentResult] = useState<Record<string, unknown> | null>(null);
+  const [sentimentLoading, setSentimentLoading] = useState(false);
+
+  const [weeklyLoading, setWeeklyLoading] = useState(false);
+  const [weeklyReport, setWeeklyReport] = useState<Record<string, unknown> | null>(null);
 
   const load = useCallback(async () => {
-    setLoading(true)
+    setLoading(true);
+    setLoadError(null);
+
     try {
-      const params = new URLSearchParams({ days: String(days) })
-      if (platform) params.set('platform', platform)
-      const res = await fetch(`/api/social/metrics?${params}`)
-      const json = res.ok ? await res.json() : null
-      setData(json)
+      const params = new URLSearchParams({ days: String(days) });
+      if (platform !== "all") params.set("platform", platform);
+
+      const res = await fetch(`/api/social/metrics?${params}`, { cache: "no-store" });
+      if (!res.ok) {
+        setData(null);
+        setLoadError(`Metrics request failed (${res.status}).`);
+        return;
+      }
+
+      const json = (await res.json()) as MetricsData;
+      setData(json);
     } catch {
-      setData(null)
+      setData(null);
+      setLoadError("Unable to load metrics.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [days, platform])
+  }, [days, platform]);
 
   useEffect(() => {
-    load()
-    ga4.dashboardView('engagement_intelligence')
-  }, [load])
+    load();
+    trackDashboardEvent("dashboard_view", { dashboard: "engagement_intelligence" });
+  }, [load]);
 
   async function runSentiment() {
-    if (!sentimentText.trim()) return
-    setSentimentLoading(true)
-    setSentimentResult(null)
+    if (!sentimentText.trim()) return;
+
+    setSentimentLoading(true);
+    setSentimentResult(null);
+
     try {
-      const res = await fetch('/api/ai/sentiment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/ai/sentiment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: sentimentText }),
-      })
-      const json = await res.json()
-      setSentimentResult(json.result ?? null)
+      });
+
+      const json = await res.json();
+      const result = isRecord(json?.result) ? (json.result as Record<string, unknown>) : null;
+      setSentimentResult(result ?? { error: "No result returned" });
     } catch {
-      setSentimentResult({ error: 'Analysis failed' })
+      setSentimentResult({ error: "Analysis failed" });
     } finally {
-      setSentimentLoading(false)
+      setSentimentLoading(false);
     }
   }
 
   async function runWeeklyReport() {
-    setWeeklyLoading(true)
-    setWeeklyReport(null)
+    setWeeklyLoading(true);
+    setWeeklyReport(null);
+
     try {
-      const res = await fetch('/api/reports/weekly', { method: 'POST' })
-      const json = await res.json()
-      setWeeklyReport(json.analysis ?? null)
-      ga4.reportGenerated('weekly')
+      const res = await fetch("/api/reports/weekly", { method: "POST" });
+      const json = await res.json();
+      const analysis = isRecord(json?.analysis) ? (json.analysis as Record<string, unknown>) : null;
+      setWeeklyReport(analysis ?? { error: "No report returned" });
+      trackDashboardEvent("report_generated", { type: "weekly" });
     } catch {
-      setWeeklyReport({ error: 'Report failed' })
+      setWeeklyReport({ error: "Report failed" });
     } finally {
-      setWeeklyLoading(false)
+      setWeeklyLoading(false);
     }
   }
 
-  const totals = data?.totals
-  const engRate = totals && totals.reach > 0
-    ? (((totals.reactions + totals.comments + totals.shares) / totals.reach) * 100).toFixed(1) + '%'
-    : '—'
+  const totals = data?.totals;
 
-  const platforms = data ? Object.keys(data.byPlatform) : []
-  const maxPlatformReach = platforms.length
-    ? Math.max(...platforms.map(p => data!.byPlatform[p].reach), 1)
-    : 1
+  const engRate = useMemo(() => {
+    if (!totals || totals.reach <= 0) return "—";
+    const rate = ((totals.reactions + totals.comments + totals.shares) / totals.reach) * 100;
+    return `${rate.toFixed(1)}%`;
+  }, [totals]);
 
-  const TABS = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'insights', label: `Insights${data?.insights?.length ? ` (${data.insights.length})` : ''}` },
-    { id: 'sentiment', label: 'Sentiment AI' },
-    { id: 'reports', label: 'Weekly Report' },
-  ] as const
+  const platforms = useMemo(() => (data ? Object.keys(data.byPlatform || {}) : []), [data]);
+
+  const maxPlatformReach = useMemo(() => {
+    if (!data || platforms.length === 0) return 1;
+    return Math.max(...platforms.map((p) => data.byPlatform[p]?.reach ?? 0), 1);
+  }, [data, platforms]);
+
+  const insightCount = data?.insights?.length ?? 0;
 
   return (
-    <div style={{ padding: '24px', maxWidth: 1100, margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>Engagement Intelligence</h1>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Cross-platform analytics, AI sentiment, and weekly reports</p>
+    <div className="mx-auto max-w-7xl space-y-8 px-6 py-8 text-slate-950">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight">Engagement Intelligence</h1>
+            {insightCount > 0 && <Badge className="border-blue-200 bg-blue-50 text-blue-800">{insightCount} insight{insightCount !== 1 ? "s" : ""}</Badge>}
+          </div>
+          <p className="text-sm text-slate-500">hub.latimorelifelegacy.com</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
           <select
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: '0.82rem' }}
+            value={String(days)}
+            onChange={(event) => setDays(Number(event.target.value))}
+            className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm shadow-sm"
           >
-            <option value={7}>Last 7 days</option>
-            <option value={30}>Last 30 days</option>
-            <option value={60}>Last 60 days</option>
-            <option value={90}>Last 90 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="90">Last 90 days</option>
           </select>
+
           <select
             value={platform}
-            onChange={e => setPlatform(e.target.value)}
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', padding: '6px 12px', borderRadius: 6, fontSize: '0.82rem' }}
+            onChange={(event) => setPlatform(event.target.value)}
+            className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm shadow-sm"
           >
-            <option value="">All Platforms</option>
-            <option value="facebook">Facebook</option>
-            <option value="instagram">Instagram</option>
-            <option value="linkedin">LinkedIn</option>
-            <option value="website">Website</option>
+            <option value="all">All platforms</option>
+            {platforms.map((item) => (
+              <option key={item} value={item}>
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </option>
+            ))}
           </select>
-          <button
-            onClick={load}
-            style={{ background: '#C49A6C', color: '#1a2632', padding: '6px 14px', borderRadius: 6, border: 'none', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer' }}
-          >
-            Refresh
-          </button>
+
+          <Button onClick={load} disabled={loading}>Refresh</Button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 2, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 0 }}>
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '8px 16px', fontSize: '0.85rem', fontWeight: activeTab === tab.id ? 600 : 400,
-              color: activeTab === tab.id ? '#C49A6C' : 'rgba(255,255,255,0.5)',
-              borderBottom: activeTab === tab.id ? '2px solid #C49A6C' : '2px solid transparent',
-              marginBottom: -1,
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {loadError && (
+        <Card className="border-red-500/30 bg-red-50">
+          <CardContent className="text-sm text-red-700">{loadError}</CardContent>
+        </Card>
+      )}
 
-      {loading && <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: '60px 0' }}>Loading metrics…</div>}
-
-      {/* OVERVIEW TAB */}
-      {!loading && activeTab === 'overview' && (
-        <div>
-          {/* KPI Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12, marginBottom: 24 }}>
-            <KpiCard label="Impressions" value={(totals?.impressions ?? 0).toLocaleString()} sub={`${days}d window`} />
-            <KpiCard label="Reach" value={(totals?.reach ?? 0).toLocaleString()} />
-            <KpiCard label="Clicks" value={(totals?.clicks ?? 0).toLocaleString()} />
-            <KpiCard label="Reactions" value={(totals?.reactions ?? 0).toLocaleString()} />
-            <KpiCard label="Comments" value={(totals?.comments ?? 0).toLocaleString()} />
-            <KpiCard label="Shares" value={(totals?.shares ?? 0).toLocaleString()} />
-            <KpiCard label="Leads" value={(totals?.leads ?? 0).toLocaleString()} />
-            <KpiCard label="Eng. Rate" value={engRate} sub="(react+comment+share)/reach" />
+      {loading ? (
+        <LoadingDashboard />
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-4">
+            <ExecutiveKpi label="Reach" value={formatNumber(totals?.reach)} note={`${days}-day audience exposure`} />
+            <ExecutiveKpi label="Clicks" value={formatNumber(totals?.clicks)} note="Traffic intent signals" />
+            <ExecutiveKpi label="Engagement Rate" value={engRate} note="Reactions + comments + shares / reach" />
+            <ExecutiveKpi label="Leads" value={formatNumber(totals?.leads)} note="CRM conversion events" />
           </div>
 
-          {/* Trend + Platform breakdown */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.15)', borderRadius: 10, padding: 20 }}>
-              <div style={{ fontSize: '0.78rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12 }}>Engagement Trend</div>
-              <TrendChart trend={data?.trend ?? []} />
-              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', marginTop: 8 }}>Daily total engagements (last 21 data points)</div>
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.15)', borderRadius: 10, padding: 20 }}>
-              <div style={{ fontSize: '0.78rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>By Platform — Reach</div>
-              {platforms.length === 0 && <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem' }}>No platform data yet</div>}
-              {platforms.map(p => (
-                <div key={p} style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: '0.78rem', color: PLATFORM_COLORS[p] ?? '#fff', marginBottom: 4, textTransform: 'capitalize' }}>{p}</div>
-                  <MiniBar value={data!.byPlatform[p].reach} max={maxPlatformReach} color={PLATFORM_COLORS[p] ?? '#C49A6C'} />
-                </div>
+          <div className="space-y-6">
+            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+              {(["overview", "posts", "ai"] as TabKey[]).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`rounded-lg px-4 py-2 text-sm font-medium capitalize transition ${
+                    activeTab === tab ? "bg-white text-slate-950 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  {tab === "ai" ? "AI Tools" : tab}
+                </button>
               ))}
             </div>
-          </div>
 
-          {/* Recent Posts */}
-          <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.15)', borderRadius: 10, padding: 20 }}>
-            <div style={{ fontSize: '0.78rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>Recent Posts</div>
-            {(!data?.recentPosts?.length) && <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem' }}>No posts ingested yet. Use POST /api/social/ingest to add data.</div>}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {(data?.recentPosts ?? []).map(post => {
-                const m = post.metrics[0]
-                const eng = m ? m.reactions + m.comments + m.shares : 0
-                return (
-                  <div key={post.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 8, gap: 12 }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: '0.7rem', color: PLATFORM_COLORS[post.platform] ?? '#fff', textTransform: 'uppercase', letterSpacing: 1, marginRight: 8 }}>{post.platform}</span>
-                      <span style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block', maxWidth: '60%', verticalAlign: 'middle' }}>{post.caption}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 16, flexShrink: 0 }}>
-                      {m && (
-                        <>
-                          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>👍 {m.reactions}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>💬 {m.comments}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>🔁 {m.shares}</span>
-                        </>
+            {activeTab === "overview" && (
+              <div className="space-y-6">
+                <div className="grid gap-6 lg:grid-cols-5">
+                  <Card className="lg:col-span-3">
+                    <CardHeader>
+                      <CardTitle>Engagement Trend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <TrendMiniBars trend={data?.trend ?? []} />
+                    </CardContent>
+                  </Card>
+
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Reach by Platform</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                      {platforms.length ? (
+                        platforms.map((item) => (
+                          <MiniBarRow
+                            key={item}
+                            label={item}
+                            value={data?.byPlatform[item]?.reach ?? 0}
+                            max={maxPlatformReach}
+                            color={PLATFORM_COLORS[item] ?? "#C49A6C"}
+                          />
+                        ))
+                      ) : (
+                        <div className="py-8 text-center text-sm text-slate-500">No platform data yet.</div>
                       )}
-                      <span style={{ fontSize: '0.75rem', color: eng > 50 ? '#22c55e' : 'rgba(255,255,255,0.3)' }}>{eng} eng</span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* INSIGHTS TAB */}
-      {!loading && activeTab === 'insights' && (
-        <div>
-          <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem' }}>{data?.insights?.length ?? 0} open insights</div>
-          </div>
-          {(!data?.insights?.length) && (
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 32, textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>
-              No open insights yet. Insights are generated automatically from engagement spikes and weekly reports.
-            </div>
-          )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {(data?.insights ?? []).map(ins => (
-              <div key={ins.id} style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${SEVERITY_COLORS[ins.severity] ?? '#555'}40`, borderLeft: `3px solid ${SEVERITY_COLORS[ins.severity] ?? '#555'}`, borderRadius: 8, padding: '14px 16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <span style={{ fontSize: '0.92rem', fontWeight: 600, color: '#fff' }}>{ins.title}</span>
-                  <span style={{ fontSize: '0.7rem', color: SEVERITY_COLORS[ins.severity] ?? '#fff', textTransform: 'uppercase', letterSpacing: 1 }}>{ins.severity}</span>
+                    </CardContent>
+                  </Card>
                 </div>
-                <p style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)', marginBottom: ins.action ? 8 : 0 }}>{ins.summary}</p>
-                {ins.action && <p style={{ fontSize: '0.8rem', color: '#C49A6C' }}>→ {ins.action}</p>}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>AI Insights</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {data?.insights?.length ? (
+                      data.insights.map((insight) => {
+                        const severity = SEVERITY_BADGE[insight.severity] ?? SEVERITY_BADGE.info;
+                        return (
+                          <div key={insight.id} className="rounded-xl border border-slate-200 p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div className="font-medium">{insight.title}</div>
+                              <Badge className={severity.className}>{severity.label}</Badge>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-500">{insight.summary}</p>
+                            {insight.action && <p className="mt-3 text-sm font-medium">Action: {insight.action}</p>}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <div className="py-8 text-center text-sm text-slate-500">No AI insights generated yet.</div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            )}
 
-      {/* SENTIMENT TAB */}
-      {activeTab === 'sentiment' && (
-        <div style={{ maxWidth: 640 }}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: '0.78rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>Analyze a Comment or Message</div>
-            <textarea
-              value={sentimentText}
-              onChange={e => setSentimentText(e.target.value)}
-              placeholder="Paste a social media comment, DM, or review here…"
-              rows={4}
-              style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', padding: '12px', borderRadius: 8, fontSize: '0.9rem', resize: 'vertical', fontFamily: 'inherit' }}
-            />
-            <button
-              onClick={runSentiment}
-              disabled={sentimentLoading || !sentimentText.trim()}
-              style={{ marginTop: 10, background: '#C49A6C', color: '#1a2632', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', opacity: sentimentLoading ? 0.7 : 1 }}
-            >
-              {sentimentLoading ? 'Analyzing…' : '✨ Analyze Sentiment'}
-            </button>
-          </div>
+            {activeTab === "posts" && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Posts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {data?.recentPosts?.length ? (
+                    data.recentPosts.map((post) => (
+                      <div key={post.id} className="rounded-xl border border-slate-200 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <Badge className="border-slate-200 bg-slate-50 capitalize text-slate-700">{post.platform}</Badge>
+                          <span className="text-xs text-slate-500">
+                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : "Draft / unscheduled"}
+                          </span>
+                        </div>
+                        <p className="mt-3 text-sm">{post.caption}</p>
+                        <div className="my-4 h-px bg-slate-200" />
+                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-5">
+                          <div>Reach: {metricTotal(post, "reach").toLocaleString()}</div>
+                          <div>Clicks: {metricTotal(post, "clicks").toLocaleString()}</div>
+                          <div>Reactions: {metricTotal(post, "reactions").toLocaleString()}</div>
+                          <div>Comments: {metricTotal(post, "comments").toLocaleString()}</div>
+                          <div>Shares: {metricTotal(post, "shares").toLocaleString()}</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-sm text-slate-500">No recent posts found.</div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-          {sentimentResult && !('error' in sentimentResult) && (
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.2)', borderRadius: 10, padding: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                {[
-                  ['Sentiment', String(sentimentResult.sentiment)],
-                  ['Confidence', `${Math.round(Number(sentimentResult.confidence) * 100)}%`],
-                  ['Intent', String(sentimentResult.intent)],
-                  ['Urgency', String(sentimentResult.urgency)],
-                  ['Lead Potential', String(sentimentResult.lead_potential)],
-                  ['Compliance Risk', String(sentimentResult.compliance_risk)],
-                ].map(([k, v]) => (
-                  <div key={k}>
-                    <div style={{ fontSize: '0.68rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 2 }}>{k}</div>
-                    <div style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 500 }}>{v}</div>
-                  </div>
-                ))}
+            {activeTab === "ai" && (
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Sentiment Analyzer</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <textarea
+                      value={sentimentText}
+                      onChange={(event) => setSentimentText(event.target.value)}
+                      placeholder="Paste a comment, DM, review, or post caption..."
+                      className="min-h-32 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm shadow-sm"
+                    />
+                    <Button onClick={runSentiment} disabled={sentimentLoading || !sentimentText.trim()}>
+                      {sentimentLoading ? "Analyzing..." : "Analyze Sentiment"}
+                    </Button>
+                    {sentimentResult && (
+                      <pre className="max-h-80 overflow-auto rounded-xl bg-slate-100 p-4 text-xs">
+                        {JSON.stringify(sentimentResult, null, 2)}
+                      </pre>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Weekly Report</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-slate-500">
+                      Generate an executive summary for the current social and CRM reporting period.
+                    </p>
+                    <Button onClick={runWeeklyReport} disabled={weeklyLoading}>
+                      {weeklyLoading ? "Generating..." : "Generate Weekly Report"}
+                    </Button>
+                    {weeklyReport && (
+                      <pre className="max-h-80 overflow-auto rounded-xl bg-slate-100 p-4 text-xs">
+                        {JSON.stringify(weeklyReport, null, 2)}
+                      </pre>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
-              {Array.isArray(sentimentResult.topics) && sentimentResult.topics.length > 0 && (
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: '0.68rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Topics</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {(sentimentResult.topics as string[]).map(t => (
-                      <span key={t} style={{ background: 'rgba(196,154,108,0.15)', border: '1px solid rgba(196,154,108,0.3)', color: '#C49A6C', padding: '2px 10px', borderRadius: 12, fontSize: '0.75rem' }}>{t}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {sentimentResult.recommended_action && (
-                <div style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 6, padding: '10px 14px' }}>
-                  <div style={{ fontSize: '0.68rem', color: '#22c55e', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 }}>Recommended Action</div>
-                  <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)' }}>{String(sentimentResult.recommended_action)}</div>
-                </div>
-              )}
-            </div>
-          )}
-          {sentimentResult && 'error' in sentimentResult && (
-            <div style={{ color: '#ef4444', fontSize: '0.85rem' }}>{String(sentimentResult.error)}</div>
-          )}
-        </div>
-      )}
-
-      {/* WEEKLY REPORT TAB */}
-      {activeTab === 'reports' && (
-        <div style={{ maxWidth: 720 }}>
-          <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem' }}>Generate a new AI-powered weekly performance report.</div>
-            </div>
-            <button
-              onClick={runWeeklyReport}
-              disabled={weeklyLoading}
-              style={{ background: '#C49A6C', color: '#1a2632', padding: '10px 20px', borderRadius: 6, border: 'none', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', opacity: weeklyLoading ? 0.7 : 1 }}
-            >
-              {weeklyLoading ? 'Generating…' : '📊 Generate Weekly Report'}
-            </button>
+            )}
           </div>
-
-          {weeklyReport && !('error' in weeklyReport) && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {weeklyReport.summary && (
-                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.2)', borderRadius: 10, padding: 20 }}>
-                  <div style={{ fontSize: '0.72rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>Executive Summary</div>
-                  <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', lineHeight: 1.6 }}>{String(weeklyReport.summary)}</p>
-                </div>
-              )}
-              {([
-                ['KPI Highlights', weeklyReport.kpi_highlights],
-                ['Top Performing', weeklyReport.top_performing],
-                ['Growth Opportunities', weeklyReport.growth_opportunities],
-                ['Risks to Watch', weeklyReport.risks],
-                ['Recommended Actions', weeklyReport.recommended_actions],
-                ['Recommended Posts', weeklyReport.recommended_posts],
-              ] as [string, unknown][]).map(([title, items]) =>
-                Array.isArray(items) && items.length > 0 ? (
-                  <div key={title} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 20 }}>
-                    <div style={{ fontSize: '0.72rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 10 }}>{title}</div>
-                    <ul style={{ margin: 0, paddingLeft: 16 }}>
-                      {items.map((item, i) => (
-                        <li key={i} style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.85rem', marginBottom: 6, lineHeight: 1.5 }}>{String(item)}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null
-              )}
-            </div>
-          )}
-          {weeklyReport && 'error' in weeklyReport && (
-            <div style={{ color: '#ef4444', fontSize: '0.85rem' }}>{String(weeklyReport.error)}</div>
-          )}
-        </div>
+        </>
       )}
     </div>
-  )
+  );
 }

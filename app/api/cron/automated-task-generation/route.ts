@@ -1,9 +1,14 @@
 export const dynamic = 'force-dynamic'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireCronAuth } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req)
+  if (authError) return authError
+
   try {
     // Get contacts that need automated task generation
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -50,7 +55,7 @@ export async function GET() {
       take: 10 // Process up to 10 contacts per run
     })
 
-    console.log(`Found ${contactsNeedingTasks.length} contacts needing automated tasks`)
+    logger.info({ count: contactsNeedingTasks.length }, 'Found contacts needing automated tasks')
 
     let totalTasksCreated = 0
 
@@ -114,6 +119,7 @@ Provide a single task in this JSON format:
           schemaName: 'automatedTask',
           schema: {
             type: 'object',
+            additionalProperties: false,
             properties: {
               title: { type: 'string' },
               description: { type: 'string' },
@@ -141,10 +147,10 @@ Provide a single task in this JSON format:
           })
 
           totalTasksCreated++
-          console.log(`Created automated task for ${contact.firstName} ${contact.lastName}`)
+          logger.info({ contactId: contact.id }, 'Created automated task')
         }
       } catch (error) {
-        console.error(`Failed to generate task for contact ${contact.id}:`, error)
+        logger.error({ contactId: contact.id, error }, 'Failed to generate task for contact')
       }
     }
 
@@ -156,7 +162,7 @@ Provide a single task in this JSON format:
     })
 
   } catch (error) {
-    console.error('Automated task generation error:', error)
+    logger.error({ error }, 'Automated task generation error')
     return NextResponse.json({ error: 'Failed to generate automated tasks' }, { status: 500 })
   }
 }

@@ -21,7 +21,8 @@ export type EventIngestInput = {
 export async function ingestEvent(input: EventIngestInput) {
   const leadSessionId = cleanString(input.leadSessionId, 191)
   const eventType = normalizeEventType(input.eventType)
-  const occurredAt = input.occurredAt ? new Date(input.occurredAt) : new Date()
+  const parsedAt = input.occurredAt ? new Date(input.occurredAt) : null
+  const occurredAt = parsedAt && !Number.isNaN(parsedAt.getTime()) ? parsedAt : new Date()
 
   if (leadSessionId) {
     await prisma.leadSession.upsert({
