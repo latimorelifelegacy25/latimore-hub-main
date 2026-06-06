@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
 import './pahs.css';
 
 const SERVICES = [
@@ -157,10 +156,12 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="cpn">
+      <section className="cpn" id="consult">
         <div className="cpni fu2">
           <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide · ID #2777749" />
           <div className="cpnn">Powered by CampusBox Media · ID #2777749 · Limit one per transaction</div>
+          <a href="https://latimorelifelegacy.fillout.com/pahs" className="qruw" target="_blank" rel="noopener noreferrer">Schedule your free protection review</a>
+          <a href="tel:7176152613" className="qruw">(717) 615-2613</a>
         </div>
       </section>
 
@@ -187,22 +188,6 @@ export default function PAHSPage() {
 
       <section className="art-strip">
         <img src="/pahs-protect-go.png" alt="Protect What You Play For — Pottsville Area Crimson Tide ‘26" />
-      </section>
-
-      <section className="qrs" id="consult">
-        <div className="qrsi fu2">
-          <h2>Scan. Connect. Protect.</h2>
-          <p>Scan the code or visit the link below to schedule your free protection review.</p>
-          <div className="qrb">
-            <QRCodeCanvas value="https://latimorelifelegacy.fillout.com/pahs" size={180} level="H" includeMargin />
-            <div className="qru">latimorelifelegacy.fillout.com/pahs</div>
-          </div>
-          <a href="tel:7176152613" className="qruw">(717) 615-2613</a>
-        </div>
-      </section>
-
-      <section className="art-strip">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
       </section>
 
       <section className="contact" id="contact">
