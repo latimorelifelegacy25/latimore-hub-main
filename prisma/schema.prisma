@@ -68,6 +68,7 @@ model Contact {
   systemEvents         SystemEvent[]
   tasks                Task[]
 
+  @@index([createdAt])
   @@index([county])
   @@index([phone])
   @@index([leadScore])
@@ -109,6 +110,7 @@ model Inquiry {
   systemEvents    SystemEvent[]
   tasks           Task[]
 
+  @@index([createdAt])
   @@index([stage])
   @@index([productInterest])
   @@index([source, medium, campaign])
@@ -139,6 +141,7 @@ model Appointment {
   inquiry         Inquiry?        @relation(fields: [inquiryId], references: [id])
   calendarEvents  CalendarEvent[]
 
+  @@index([createdAt])
   @@index([scheduledFor])
   @@index([status])
 }
@@ -180,6 +183,7 @@ model Event {
   inquiry         Inquiry?         @relation(fields: [inquiryId], references: [id])
   leadSession     LeadSession?     @relation(fields: [leadSessionId], references: [id])
 
+  @@index([occurredAt])
   @@index([eventType, occurredAt])
   @@index([source, medium, campaign])
   @@index([county])
@@ -351,6 +355,24 @@ model ContentAsset {
   @@index([type, status])
   @@index([campaign])
   @@index([scheduledFor])
+}
+
+model MarketingContent {
+  id          String   @id @default(cuid())
+  title       String
+  bodyHtml    String
+  campaign    String?
+  destination String?
+  utmSource   String?
+  type        String   @default("post")
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([campaign])
+  @@index([createdAt])
 }
 
 model CalendarConnection {
@@ -937,4 +959,40 @@ model PostComment {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([postId, createdAt])
+}
+
+model WorkflowTemplate {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?
+  triggerType  String         // manual | webhook | cron | crm_stage
+  triggerValue String?        // cron expr, stage name, webhook key
+  category     String?
+  tags         String[]       @default([])
+  isPreset     Boolean        @default(false)
+  isActive     Boolean        @default(false)
+  runCount     Int            @default(0)
+  lastRunAt    DateTime?
+  steps        WorkflowStep[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([triggerType])
+  @@index([isActive])
+  @@index([isPreset])
+}
+
+model WorkflowStep {
+  id         String           @id @default(cuid())
+  workflowId String
+  order      Int
+  type       String           // email | sms | social_post | ai_generate | delay | condition
+  label      String
+  config     Json
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  workflow   WorkflowTemplate @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId, order])
 }

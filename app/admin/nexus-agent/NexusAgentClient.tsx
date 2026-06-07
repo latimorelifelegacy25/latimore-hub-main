@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState, type ComponentType } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   Bot,
@@ -41,7 +42,7 @@ const defaultTasks: Task[] = [
   { text: 'Confirm analytics events for booking, call, and lead capture flows', priority: 'low', done: false },
 ]
 
-const tabs: Array<{ key: TabKey; label: string; icon: ComponentType<{ size?: number; className?: string }> }> = [
+const tabs: Array<{ key: TabKey; label: string; icon: LucideIcon }> = [
   { key: 'dashboard', label: 'Command', icon: LayoutDashboard },
   { key: 'revenue', label: 'Revenue', icon: Target },
   { key: 'tasks', label: 'Tasks', icon: CheckCircle2 },

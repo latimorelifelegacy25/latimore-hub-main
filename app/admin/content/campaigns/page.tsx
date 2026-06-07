@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'

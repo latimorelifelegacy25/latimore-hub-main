@@ -1,13 +1,13 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:safe",
   "crons": [
     {
-      "path": "/api/ai/daily-brief",
+      "path": "/api/cron/daily-brief",
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/ai/lead-score",
+      "path": "/api/cron/lead-score-updates",
       "schedule": "0 * * * *"
     },
     {
@@ -16,6 +16,10 @@
     },
     {
       "path": "/api/cron/notification-checks",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/social-publisher",
       "schedule": "*/15 * * * *"
     }
   ]

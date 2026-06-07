@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { FileText, Plus, Copy, Trash2, CheckCircle, Clock, Filter } from 'lucide-react'
-import PageHeader from '../../_components/PageHeader'
-import AdminCard from '../../_components/AdminCard'
-import EmptyState from '../../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 interface SocialTemplate {
   id:               string
@@ -57,7 +57,7 @@ export default function TemplatesPage() {
     setLoading(true)
     const params = new URLSearchParams({ take: '100' })
     if (platform) params.set('platform', platform)
-    const res = await fetch(\`/api/social/templates?\${params}\`)
+    const res = await fetch(`/api/social/templates?\${params}`)
     const data = await res.json()
     if (data.ok) {
       setTemplates(data.templates)
@@ -75,7 +75,7 @@ export default function TemplatesPage() {
 
   const remove = async (id: string) => {
     if (!confirm('Delete this template?')) return
-    await fetch(\`/api/social/templates?id=\${id}\`, { method: 'DELETE' })
+    await fetch(`/api/social/templates?id=\${id}`, { method: 'DELETE' })
     load()
   }
 
@@ -201,7 +201,7 @@ export default function TemplatesPage() {
                           {t.suggestedTime ? ` @ ${t.suggestedTime}` : ''}
                         </p>
                       </div>
-                      <span className={\`rounded-full border px-2 py-0.5 text-[10px] \${STATUS_COLOR[t.complianceStatus] ?? STATUS_COLOR.draft}\`}>
+                      <span className={`rounded-full border px-2 py-0.5 text-[10px] \${STATUS_COLOR[t.complianceStatus] ?? STATUS_COLOR.draft}`}>
                         {t.complianceStatus}
                       </span>
                     </div>
