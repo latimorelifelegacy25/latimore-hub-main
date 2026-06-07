@@ -705,6 +705,9 @@ ntn workers deploy
 # Test a tool locally
 ntn workers exec <toolName> --local -d '{"key": "value"}'
 
+# Open the interactive terminal UI for managing workers
+ntn workers tui
+
 # Monitor sync status (live-updating)
 ntn workers sync status
 
@@ -752,6 +755,7 @@ ntn --help
 ```shell
 npm run check # type-check
 npm run build # emit dist/
+npm run tui   # open the Notion Workers terminal UI
 ```
 
 Store secrets in `.env` for local development:
