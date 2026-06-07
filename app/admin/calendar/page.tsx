@@ -69,7 +69,8 @@ export default async function CalendarPage() {
                   <div>
                     <p className="text-sm font-semibold text-white">{event.title}</p>
                     <p className="mt-1 text-xs text-[#A9B1BE]">
-                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} · {event.provider}
+                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} ·{' '}
+                      {event.provider}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
