@@ -46,11 +46,13 @@ export default async function CalendarPage() {
         title="Calendar"
         description="Synced events, appointment workflow state, and contact-linked meeting activity."
       />
+
       <div className="mb-4 flex flex-wrap gap-2">
         {counts.map((row) => (
           <StatPill key={row.status} label={row.status} value={countAll(row._count)} />
         ))}
       </div>
+
       <AdminCard title="Upcoming and recent calendar events">
         {events.length === 0 ? (
           <EmptyState
