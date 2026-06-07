@@ -2,10 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { CalendarDays } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '@/app/admin/_components/PageHeader'
-import AdminCard from '@/app/admin/_components/AdminCard'
-import StatPill from '@/app/admin/_components/StatPill'
-import EmptyState from '@/app/admin/_components/EmptyState'
+import PageHeader from '../_components/PageHeader'
+import AdminCard from '../_components/AdminCard'
+import EmptyState from '../_components/EmptyState'
+import StatPill from '../_components/StatPill'
+import { countAll } from '@/lib/prisma-helpers'
 
 function fmtDate(value?: Date | null) {
   if (!value) return '—'
@@ -29,28 +30,30 @@ function displayName(contact: {
 }
 
 export default async function CalendarPage() {
-  let events: any[] = []
-  try {
-    events = await prisma.calendarEvent.findMany({
-      orderBy: { startAt: 'desc' },
-      take: 50,
-      include: {
-        contact: { select: { fullName: true, firstName: true, lastName: true, email: true, phone: true } },
-        inquiry: { select: { stage: true } },
-      },
-    })
-  } catch {
-    // DB unavailable — render empty state
-  }
+  const [events, counts] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      orderBy: { startAt: 'asc' },
+      take: 40,
+      include: { contact: true, inquiry: true },
+    }),
+    prisma.calendarEvent.groupBy({ by: ['status'], _count: { _all: true } }),
+  ])
 
   return (
     <div className="p-6 md:p-8">
       <PageHeader
-        eyebrow="Scheduling"
-        title="Calendar Events"
-        description="Upcoming and past appointments synced from connected calendars."
+        eyebrow="Scheduling OS"
+        title="Calendar"
+        description="Synced events, appointment workflow state, and contact-linked meeting activity."
       />
-      <AdminCard title="All calendar events">
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {counts.map((row) => (
+          <StatPill key={row.status} label={row.status} value={countAll(row._count)} />
+        ))}
+      </div>
+
+      <AdminCard title="Upcoming and recent calendar events">
         {events.length === 0 ? (
           <EmptyState
             title="No calendar events yet"
@@ -68,7 +71,8 @@ export default async function CalendarPage() {
                   <div>
                     <p className="text-sm font-semibold text-white">{event.title}</p>
                     <p className="mt-1 text-xs text-[#A9B1BE]">
-                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} · {event.provider}
+                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} ·{' '}
+                      {event.provider}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">

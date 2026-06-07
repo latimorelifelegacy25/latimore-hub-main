@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import FilterBar from './components/FilterBar'
 import KpiSection from './components/KpiSection'
 import TrendChart from './components/TrendChart'
@@ -17,12 +17,12 @@ export default function AnalyticsPage() {
 
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
 
-  const overviewFetcher = useCallback(() => analyticsApi.overview(qs), [qs])
-  const funnelFetcher = useCallback(() => analyticsApi.funnel(qs), [qs])
-  const timeSeriesFetcher = useCallback(() => analyticsApi.timeSeries(qs), [qs])
-  const breakdownsFetcher = useCallback(() => analyticsApi.breakdowns(qs), [qs])
-  const recentEventsFetcher = useCallback(() => analyticsApi.recentEvents(), [])
-  const opportunitiesFetcher = useCallback(() => analyticsApi.opportunities(), [])
+  const overviewFetcher = () => analyticsApi.overview(qs)
+  const funnelFetcher = () => analyticsApi.funnel(qs)
+  const timeSeriesFetcher = () => analyticsApi.timeSeries(qs)
+  const breakdownsFetcher = () => analyticsApi.breakdowns(qs)
+  const recentEventsFetcher = () => analyticsApi.recentEvents()
+  const opportunitiesFetcher = () => analyticsApi.opportunities()
 
   const overview = useApi(overviewFetcher)
   const funnel = useApi(funnelFetcher)
@@ -39,25 +39,25 @@ export default function AnalyticsPage() {
     recentEvents.loading ||
     opportunities.loading
 
-  const { run: runOverview } = overview
-  const { run: runFunnel } = funnel
-  const { run: runTimeSeries } = timeSeries
-  const { run: runBreakdowns } = breakdowns
-  const { run: runRecentEvents } = recentEvents
-  const { run: runOpportunities } = opportunities
+  const runOverview = overview.run
+  const runFunnel = funnel.run
+  const runTimeSeries = timeSeries.run
+  const runBreakdowns = breakdowns.run
+  const runRecentEvents = recentEvents.run
+  const runOpportunities = opportunities.run
 
   const refresh = useCallback(() => {
-    runOverview()
-    runFunnel()
-    runTimeSeries()
-    runBreakdowns()
-    runRecentEvents()
-    runOpportunities()
-  }, [runOverview, runFunnel, runTimeSeries, runBreakdowns, runRecentEvents, runOpportunities])
+    overview.run()
+    funnel.run()
+    timeSeries.run()
+    breakdowns.run()
+    recentEvents.run()
+    opportunities.run()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overview, funnel, timeSeries, breakdowns, recentEvents, opportunities])
 
-  useEffect(() => {
-    refresh()
-  }, [refresh])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { refresh() }, [qs])
 
   return (
     <main className="min-h-screen bg-[#0B0F17] px-4 py-8 text-white md:px-8">
@@ -70,24 +70,24 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <FilterBar range={range} onRange={setRange} onRefresh={refresh} loading={loading} />
+        <FilterBar range={range} onRange={setRange} onRefresh={refresh} loading={dashboard.loading} />
 
-        <KpiSection overview={overview.data} loading={overview.loading} error={overview.error} />
+        <KpiSection overview={dashboard.data?.overview ?? null} loading={dashboard.loading} error={dashboard.error} />
 
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
-          <TrendChart data={timeSeries.data} loading={timeSeries.loading} error={timeSeries.error} />
-          <FunnelSection funnel={funnel.data} loading={funnel.loading} error={funnel.error} />
+          <TrendChart data={dashboard.data?.timeSeries ?? null} loading={dashboard.loading} error={dashboard.error} />
+          <FunnelSection funnel={dashboard.data?.funnel ?? null} loading={dashboard.loading} error={dashboard.error} />
         </div>
 
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
-          <BreakdownSection rows={breakdowns.data} loading={breakdowns.loading} error={breakdowns.error} />
-          <RecentEventsSection events={recentEvents.data} loading={recentEvents.loading} error={recentEvents.error} />
+          <BreakdownSection rows={dashboard.data?.breakdowns ?? null} loading={dashboard.loading} error={dashboard.error} />
+          <RecentEventsSection events={dashboard.data?.recentEvents ?? null} loading={dashboard.loading} error={dashboard.error} />
         </div>
 
         <OpportunitiesTable
-          opportunities={opportunities.data}
-          loading={opportunities.loading}
-          error={opportunities.error}
+          opportunities={dashboard.data?.opportunities ?? null}
+          loading={dashboard.loading}
+          error={dashboard.error}
         />
       </div>
     </main>

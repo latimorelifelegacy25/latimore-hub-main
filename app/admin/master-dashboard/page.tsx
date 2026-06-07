@@ -1,33 +1,87 @@
+import Link from 'next/link'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-async function getKpis() {
+type DashboardTotals = {
+  impressions: number
+  reach: number
+  clicks: number
+  reactions: number
+  leads: number
+}
+
+type DashboardKpis = {
+  totalContacts: number
+  newLeads30d: number
+  newLeads7d: number
+  openInsights: number
+  recentReports: Array<{
+    id: string
+    weekStart: Date
+    weekEnd: Date
+    kpis: unknown
+  }>
+  totals: DashboardTotals
+  isDbConnected: boolean
+}
+
+const EMPTY_TOTALS: DashboardTotals = { impressions: 0, reach: 0, clicks: 0, reactions: 0, leads: 0 }
+
+function emptyKpis(): DashboardKpis {
+  return {
+    totalContacts: 0,
+    newLeads30d: 0,
+    newLeads7d: 0,
+    openInsights: 0,
+    recentReports: [],
+    totals: EMPTY_TOTALS,
+    isDbConnected: false,
+  }
+}
+
+function readReportMetric(kpis: unknown, key: 'reach' | 'leads') {
+  if (!kpis || typeof kpis !== 'object' || Array.isArray(kpis)) return 0
+  const value = (kpis as Record<string, unknown>)[key]
+  return typeof value === 'number' ? value : 0
+}
+
+async function getKpis(): Promise<DashboardKpis> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-  const [totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, recentMetrics] = await Promise.all([
-    prisma.contact.count(),
-    prisma.contact.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-    prisma.contact.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
-    prisma.insight.count({ where: { status: 'open' } }),
-    prisma.weeklyReport.findMany({ orderBy: { weekStart: 'desc' }, take: 4 }),
-    prisma.socialMetric.findMany({ where: { metricDate: { gte: thirtyDaysAgo } } }),
-  ])
+  try {
+    const [totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, recentMetrics] = await Promise.all([
+      prisma.contact.count(),
+      prisma.contact.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.contact.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+      prisma.insight.count({ where: { status: 'open' } }),
+      prisma.weeklyReport.findMany({
+        orderBy: { weekStart: 'desc' },
+        take: 4,
+        select: { id: true, weekStart: true, weekEnd: true, kpis: true },
+      }),
+      prisma.socialMetric.findMany({ where: { metricDate: { gte: thirtyDaysAgo } } }),
+    ])
 
-  const totals = recentMetrics.reduce(
-    (a, m) => ({
-      impressions: a.impressions + m.impressions,
-      reach: a.reach + m.reach,
-      clicks: a.clicks + m.clicks,
-      reactions: a.reactions + m.reactions,
-      leads: a.leads + m.leads,
-    }),
-    { impressions: 0, reach: 0, clicks: 0, reactions: 0, leads: 0 }
-  )
+    const totals = recentMetrics.reduce<DashboardTotals>(
+      (a, m) => ({
+        impressions: a.impressions + m.impressions,
+        reach: a.reach + m.reach,
+        clicks: a.clicks + m.clicks,
+        reactions: a.reactions + m.reactions,
+        leads: a.leads + m.leads,
+      }),
+      { ...EMPTY_TOTALS }
+    )
 
-  return { totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, totals }
+    return { totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, totals, isDbConnected: true }
+  } catch (error) {
+    logger.error({ error }, 'Master dashboard KPI fetch failed')
+    return emptyKpis()
+  }
 }
 
 const PHASES = [
@@ -55,7 +109,7 @@ function KpiTile({ label, value, sub }: { label: string; value: string | number;
 
 export default async function MasterDashboard() {
   await requireAdminSession()
-  const { totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, totals } = await getKpis()
+  const { totalContacts, newLeads30d, newLeads7d, openInsights, recentReports, totals, isDbConnected } = await getKpis()
 
   return (
     <div style={{ padding: '28px 24px', maxWidth: 1100, margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
@@ -63,6 +117,12 @@ export default async function MasterDashboard() {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff', marginBottom: 4 }}>Master Dashboard</h1>
         <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem' }}>Latimore Life & Legacy — Hub OS command center</p>
       </div>
+
+      {!isDbConnected && (
+        <div style={{ background: 'rgba(244,63,94,0.10)', border: '1px solid rgba(244,63,94,0.25)', borderRadius: 12, padding: '14px 16px', marginBottom: 20, color: '#fda4af', fontSize: '0.85rem' }}>
+          <strong>Dashboard data unavailable.</strong> Check the database connection and run migrations if this environment was just provisioned. Placeholder values are shown below so the command center still loads.
+        </div>
+      )}
 
       {/* KPI Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
@@ -75,7 +135,7 @@ export default async function MasterDashboard() {
         <KpiTile label="Social Leads (30d)" value={totals.leads.toLocaleString()} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 28 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20, marginBottom: 28 }}>
         {/* Marketing Phases */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(196,154,108,0.15)', borderRadius: 12, padding: '20px 22px' }}>
           <div style={{ fontSize: '0.72rem', color: '#C49A6C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 16 }}>
@@ -106,14 +166,15 @@ export default async function MasterDashboard() {
             <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem' }}>No reports generated yet.</div>
           )}
           {recentReports.map(r => {
-            const kpis = r.kpis as Record<string, number>
+            const reach = readReportMetric(r.kpis, 'reach')
+            const leads = readReportMetric(r.kpis, 'leads')
             return (
               <div key={r.id} style={{ marginBottom: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.03)', borderRadius: 8 }}>
                 <div style={{ fontSize: '0.82rem', color: '#fff', fontWeight: 600, marginBottom: 4 }}>
                   {r.weekStart.toLocaleDateString()} – {r.weekEnd.toLocaleDateString()}
                 </div>
                 <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)' }}>
-                  Reach {(kpis?.reach ?? 0).toLocaleString()} · Leads {kpis?.leads ?? 0}
+                  Reach {reach.toLocaleString()} · Leads {leads.toLocaleString()}
                 </div>
               </div>
             )
@@ -135,7 +196,7 @@ export default async function MasterDashboard() {
             { href: '/admin/reports', label: 'Reports' },
             { href: '/admin/analytics', label: 'Analytics' },
           ].map(link => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               style={{
@@ -150,7 +211,7 @@ export default async function MasterDashboard() {
               }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

@@ -7,7 +7,7 @@ import { BRAND } from '@/lib/brand'
 
 
 const services = [
-  { title: 'Tax-Advantaged Wealth Accumulation', desc: 'Build wealth using tax-deferred and tax-free growth strategies' },
+  { title: 'Tax-Advantaged Wealth Accumulation', desc: 'Build wealth using tax-deferred and tax-advantaged strategies' },
   { title: 'Asset Protection & Plan Rollovers', desc: 'Protect wealth and roll over 401(k), 403(b), pension plans strategically' },
   { title: 'College Education Funding', desc: 'Strategic funding for higher education without crippling debt' },
   { title: 'Debt Management', desc: 'Consolidation strategies to eliminate high-interest debt' },

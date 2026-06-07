@@ -303,8 +303,8 @@ export default async function BlogPage({
               </div>
               <p className="text-white/65 text-[15px] font-light leading-relaxed max-w-2xl">
                 In December 2010, I collapsed on the basketball court at East Stroudsburg
-                University. My heart stopped. An AED funded by the Gregory W. Moyer
-                Defibrillator Fund brought me back. That question — what would have happened
+                University. My heart stopped. An AED placed through the Gregory W. Moyer
+                Defibrillator Fund helped bring me back. That question — what would have happened
                 to the people who depended on me if I had not survived — drives everything I
                 do.
               </p>
