@@ -1,86 +1,88 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/ai/shared'
-import {
-  exchangeCodeForToken,
-  getLongLivedUserToken,
-  getUserPages,
-} from '@/lib/social/facebook-oauth'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { encryptToken } from '@/lib/crypto'
 
-export const dynamic = 'force-dynamic'
-
-export async function GET(req: NextRequest) {
-  const auth = await requireAdminSession()
-  if (!auth.ok) return auth.response
-
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? `https://${req.headers.get('host')}`
+export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
-
   const code = searchParams.get('code')
-  const state = searchParams.get('state')
-  const error = searchParams.get('error')
 
-  if (error) {
-    const desc = searchParams.get('error_description') ?? error
-    return NextResponse.redirect(`${baseUrl}/admin/connectors?fb_error=${encodeURIComponent(desc)}`)
+  // Exchange code for short-lived token
+  const tokenRes = await fetch(
+    `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${code}`
+  )
+  const tokenData = await tokenRes.json()
+
+  // Exchange for long-lived token
+  const longRes = await fetch(
+    `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&fb_exchange_token=${tokenData.access_token}`
+  )
+  const longData = await longRes.json()
+
+  const userToken = longData.access_token
+
+  // Fetch pages
+  const pagesRes = await fetch(
+    `https://graph.facebook.com/v19.0/me/accounts?access_token=${userToken}`
+  )
+  const pages = await pagesRes.json()
+
+  if (!pages.data?.length) {
+    return NextResponse.redirect('/admin/social?fb_error=no_pages')
   }
 
-  // Verify CSRF state
-  const storedState = req.cookies.get('fb_oauth_state')?.value
-  if (!state || !storedState || state !== storedState) {
-    return NextResponse.redirect(`${baseUrl}/admin/connectors?fb_error=invalid_state`)
-  }
+  const page = pages.data[0]
+  const sc = (prisma as any).socialConnection
 
-  if (!code) {
-    return NextResponse.redirect(`${baseUrl}/admin/connectors?fb_error=missing_code`)
-  }
+  // Save Facebook connection
+  const existingFb = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })
+  await prisma.socialConnection.upsert({
+    where: { id: existingFb?.id ?? '' },
+    update: {
+      accountName: page.name,
+      externalId: page.id,
+      accessToken: encryptToken(page.access_token),
+      status: 'connected',
+    },
+    create: {
+      provider: 'facebook',
+      accountName: page.name,
+      externalId: page.id,
+      accessToken: encryptToken(page.access_token),
+      status: 'connected',
+    },
+  })
 
-  try {
-    const redirectUri = `${baseUrl}/api/social/facebook/callback`
+  // Also save the linked Instagram business account if present
+  const igRes = await fetch(
+    `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
+  )
+  const igData = await igRes.json()
+  const instagramBusinessId = igData.instagram_business_account?.id
 
-    // Exchange code → short-lived user token → long-lived user token
-    const shortLivedToken = await exchangeCodeForToken(code, redirectUri)
-    const { token: longLivedToken, expiresIn } = await getLongLivedUserToken(shortLivedToken)
-
-    // Fetch all pages this user manages
-    const pages = await getUserPages(longLivedToken)
-
-    const socialConnectionModel = (prisma as any).socialConnection
-
-    // Upsert each page as a separate facebook SocialConnection
-    await Promise.all(
-      pages.map(async (page) => {
-        const expiresAt = new Date(Date.now() + expiresIn * 1000)
-        const data = {
-          provider: 'facebook',
+  if (instagramBusinessId) {
+    const igConn = await sc.findFirst({ where: { provider: 'instagram' } })
+    if (igConn) {
+      await prisma.socialConnection.update({
+        where: { id: igConn.id },
+        data: {
           accountName: page.name,
-          externalId: page.id,
+          externalId: instagramBusinessId,
           accessToken: encryptToken(page.access_token),
-          tokenExpiresAt: expiresAt,
           status: 'connected',
-          metadata: {
-            category: page.category,
-            tasks: page.tasks ?? [],
-            connectedBy: auth.session?.user?.email ?? null,
-          },
-        }
-        const existing = await socialConnectionModel.findFirst({
-          where: { provider: 'facebook', externalId: page.id },
-        })
-        return existing
-          ? socialConnectionModel.update({ where: { id: existing.id }, data })
-          : socialConnectionModel.create({ data })
+        },
       })
-    )
-
-    const response = NextResponse.redirect(
-      `${baseUrl}/admin/connectors?fb_success=${encodeURIComponent(`Connected ${pages.length} page(s)`)}`
-    )
-    response.cookies.delete('fb_oauth_state')
-    return response
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error'
-    return NextResponse.redirect(`${baseUrl}/admin/connectors?fb_error=${encodeURIComponent(msg)}`)
+    } else {
+      await sc.create({
+        data: {
+          provider: 'instagram',
+          accountName: page.name,
+          externalId: instagramBusinessId,
+          accessToken: encryptToken(page.access_token),
+          status: 'connected',
+        },
+      })
+    }
   }
+
+  return NextResponse.redirect('/admin/social?fb_success=1')
 }

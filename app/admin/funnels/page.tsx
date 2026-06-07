@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import PageHeader from '../_components/PageHeader'
-import { FUNNEL_BLUEPRINTS } from '../_lib/templates'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import { FUNNEL_BLUEPRINTS } from '@/app/admin/_lib/templates'
 
 type FunnelBlueprint = typeof FUNNEL_BLUEPRINTS[number]
 

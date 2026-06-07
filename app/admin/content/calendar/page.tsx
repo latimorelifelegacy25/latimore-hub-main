@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import PageHeader from '../../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 import calendarData from '@/lib/data/content-calendar-2026.json'
 
 const MONTHS = [

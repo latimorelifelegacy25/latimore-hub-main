@@ -2,8 +2,8 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../_components/PageHeader'
-import { BRAND_STORY } from '../_lib/templates'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import { BRAND_STORY } from '@/app/admin/_lib/templates'
 import DailyBrief from './DailyBrief'
 import { logger } from '@/lib/logger'
 

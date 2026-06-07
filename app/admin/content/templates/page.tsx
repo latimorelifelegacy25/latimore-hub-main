@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState, useCallback } from 'react'
 import { FileText, Plus, Copy, Trash2, CheckCircle, Clock, Filter } from 'lucide-react'
-import PageHeader from '../../_components/PageHeader'
-import AdminCard from '../../_components/AdminCard'
-import EmptyState from '../../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 interface SocialTemplate {
   id:               string
