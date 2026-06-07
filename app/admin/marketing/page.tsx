@@ -1,4 +1,4 @@
-import MarketingTools from '../social-os/_components/MarketingTools'
+import MarketingTools from '@/app/admin/social-os/_components/MarketingTools'
 import { MarketingDashboard } from '@/components/nexus/MarketingDashboard'
 
 export const dynamic = 'force-dynamic'

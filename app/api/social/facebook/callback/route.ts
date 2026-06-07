@@ -31,10 +31,12 @@ export async function GET(req: Request) {
   }
 
   const page = pages.data[0]
+  const sc = (prisma as any).socialConnection
 
   // Save Facebook connection
+  const existingFb = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })
   await prisma.socialConnection.upsert({
-    where: { provider: 'facebook' },
+    where: { id: existingFb?.id ?? '' },
     update: {
       accountName: page.name,
       externalId: page.id,
@@ -58,22 +60,28 @@ export async function GET(req: Request) {
   const instagramBusinessId = igData.instagram_business_account?.id
 
   if (instagramBusinessId) {
-    await prisma.socialConnection.upsert({
-      where: { provider: 'instagram' },
-      update: {
-        accountName: page.name,
-        externalId: instagramBusinessId,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-      create: {
-        provider: 'instagram',
-        accountName: page.name,
-        externalId: instagramBusinessId,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-    })
+    const igConn = await sc.findFirst({ where: { provider: 'instagram' } })
+    if (igConn) {
+      await prisma.socialConnection.update({
+        where: { id: igConn.id },
+        data: {
+          accountName: page.name,
+          externalId: instagramBusinessId,
+          accessToken: encryptToken(page.access_token),
+          status: 'connected',
+        },
+      })
+    } else {
+      await sc.create({
+        data: {
+          provider: 'instagram',
+          accountName: page.name,
+          externalId: instagramBusinessId,
+          accessToken: encryptToken(page.access_token),
+          status: 'connected',
+        },
+      })
+    }
   }
 
   return NextResponse.redirect('/admin/social?fb_success=1')

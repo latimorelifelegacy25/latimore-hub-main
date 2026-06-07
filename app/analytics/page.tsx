@@ -62,24 +62,24 @@ export default function AnalyticsPage() {
           </p>
         </div>
 
-        <FilterBar range={range} onRange={setRange} onRefresh={refresh} loading={loading} />
+        <FilterBar range={range} onRange={setRange} onRefresh={refresh} loading={dashboard.loading} />
 
-        <KpiSection overview={overview.data} loading={overview.loading} error={overview.error} />
+        <KpiSection overview={dashboard.data?.overview ?? null} loading={dashboard.loading} error={dashboard.error} />
 
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
-          <TrendChart data={timeSeries.data} loading={timeSeries.loading} error={timeSeries.error} />
-          <FunnelSection funnel={funnel.data} loading={funnel.loading} error={funnel.error} />
+          <TrendChart data={dashboard.data?.timeSeries ?? null} loading={dashboard.loading} error={dashboard.error} />
+          <FunnelSection funnel={dashboard.data?.funnel ?? null} loading={dashboard.loading} error={dashboard.error} />
         </div>
 
         <div className="mb-8 grid gap-6 lg:grid-cols-2">
-          <BreakdownSection rows={breakdowns.data} loading={breakdowns.loading} error={breakdowns.error} />
-          <RecentEventsSection events={recentEvents.data} loading={recentEvents.loading} error={recentEvents.error} />
+          <BreakdownSection rows={dashboard.data?.breakdowns ?? null} loading={dashboard.loading} error={dashboard.error} />
+          <RecentEventsSection events={dashboard.data?.recentEvents ?? null} loading={dashboard.loading} error={dashboard.error} />
         </div>
 
         <OpportunitiesTable
-          opportunities={opportunities.data}
-          loading={opportunities.loading}
-          error={opportunities.error}
+          opportunities={dashboard.data?.opportunities ?? null}
+          loading={dashboard.loading}
+          error={dashboard.error}
         />
       </div>
     </main>

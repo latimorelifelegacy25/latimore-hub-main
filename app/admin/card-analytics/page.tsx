@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import EmptyState from '../_components/EmptyState'
-import StatPill from '../_components/StatPill'
+import { Eye, MousePointerClick, Link2 } from 'lucide-react'
+
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 type DayStat = { day: string; count: number }
 type LinkStat = { slug: string; title?: string | null; visits: number; clicks: number; lastVisitedAt?: string | null }

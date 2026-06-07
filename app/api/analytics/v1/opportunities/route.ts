@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { rateLimit } from '@/lib/rate-limit'
-import { getAnalyticsOpportunities } from '@/lib/analytics/queries'
+import { getAnalyticsOpportunities, isOperationalAnalyticsFallbackEnabled, OPERATIONAL_FALLBACK_DISABLED_WARNING } from '@/lib/analytics/queries'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
@@ -24,8 +24,8 @@ export async function GET(req: NextRequest) {
       data,
       meta: {
         generatedAt: now.toISOString(),
-        source: 'operational_fallback' as const,
-        warnings: [],
+        source: isOperationalAnalyticsFallbackEnabled() ? 'operational_fallback' : 'disabled',
+        warnings: isOperationalAnalyticsFallbackEnabled() ? [] : [OPERATIONAL_FALLBACK_DISABLED_WARNING],
       },
     })
   } catch (err) {

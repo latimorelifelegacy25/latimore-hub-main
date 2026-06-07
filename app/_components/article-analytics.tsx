@@ -10,13 +10,10 @@ interface ArticleAnalyticsProps {
   readingTime: string
 }
 
-type AnalyticsWindow = Window & {
-  dataLayer?: Record<string, unknown>[]
-}
 
 function pushEvent(event: Record<string, unknown>) {
   try {
-    const analyticsWindow = window as AnalyticsWindow
+    const analyticsWindow = window as Window & { dataLayer?: Record<string, unknown>[] }
     analyticsWindow.dataLayer = analyticsWindow.dataLayer || []
     analyticsWindow.dataLayer.push(event)
   } catch {
