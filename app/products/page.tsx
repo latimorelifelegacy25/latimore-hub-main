@@ -25,7 +25,7 @@ const products = [
       {
         name: 'Whole Life Insurance',
         tagline: 'Coverage that never expires.',
-        description: 'Permanent protection with guaranteed cash value growth. Premiums lock in at the time of purchase — the younger and healthier you are, the lower they stay forever.',
+        description: 'Permanent protection with guaranteed cash value growth. Premiums are set at issue for many whole life designs, and applying younger and healthier can improve pricing.',
         bestFor: 'Final expense planning, legacy building, lifelong protection',
         cta: 'Schedule Consultation',
         ctaUrl: BRAND.bookingUrl,
@@ -33,8 +33,8 @@ const products = [
       {
         name: 'Indexed Universal Life (IUL)',
         tagline: 'Growth potential with downside protection.',
-        description: 'Flexible premiums, death benefit, and cash value tied to a market index — with a 0% floor so you never lose to a down market. One of the most powerful wealth-building tools available.',
-        bestFor: 'High earners, business owners, tax-free retirement planning',
+        description: 'Flexible premiums, death benefit, and cash value credited from market-index formulas — with downside protection from direct index losses, subject to policy charges and product terms.',
+        bestFor: 'High earners, business owners, tax-advantaged retirement planning',
         cta: 'Schedule Consultation',
         ctaUrl: BRAND.bookingUrl,
       },
@@ -55,7 +55,7 @@ const products = [
       {
         name: 'Fixed Indexed Annuity (FIA)',
         tagline: 'Growth without risk. Income you can\'t outlive.',
-        description: 'Your premium earns interest linked to a market index (like the S&P 500) — but with a guaranteed floor so you never lose principal. Convert to a lifetime income stream at retirement.',
+        description: 'Your premium can earn interest linked to a market index (like the S&P 500) with protection from direct index losses, subject to product terms, fees, riders, and surrender charges. Convert eligible contracts to a lifetime income stream at retirement.',
         bestFor: 'Pre-retirees (50-65), conservative investors, pension replacement',
         cta: 'Schedule Consultation',
         ctaUrl: BRAND.bookingUrl,

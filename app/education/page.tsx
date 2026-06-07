@@ -16,7 +16,7 @@ const topics = [
   {
     icon: <Shield size={28} />,
     title: 'What Is Life Insurance and Why Do You Need It?',
-    body: `Life insurance pays a tax-free lump sum to your chosen beneficiary when you pass away. That money can replace your income, pay off your mortgage, cover final expenses, or fund your children's education — whatever your family needs most.
+    body: `Life insurance generally pays an income-tax-free lump sum to your chosen beneficiary when you pass away. That money can replace your income, pay off your mortgage, cover final expenses, or fund your children's education — whatever your family needs most.
 
 Without it, your family absorbs every financial obligation you leave behind. With it, they have time to grieve without financial pressure. Life insurance is not about death — it is about protecting the life your family would need to rebuild.`,
     callout: 'Key fact: The death benefit is generally income-tax-free to your beneficiary.',
@@ -24,7 +24,7 @@ Without it, your family absorbs every financial obligation you leave behind. Wit
   {
     icon: <Clock size={28} />,
     title: 'Term vs. Permanent Insurance — What Is the Difference?',
-    body: `Term insurance covers you for a specific period — 10, 20, or 30 years. If you pass during that term, your beneficiary receives the death benefit. If the term ends and you are still living, coverage expires. It is the most affordable type of life insurance and ideal for income replacement during your working years.
+    body: `Term insurance covers you for a specific period — 10, 20, or 30 years. If you pass during that term, your beneficiary receives the death benefit. If the term ends and you are still living, coverage expires. It is often the most affordable type of life insurance and can be ideal for income replacement during your working years.
 
 Permanent insurance (whole life or universal life) never expires as long as premiums are paid. It also builds cash value over time — a living asset you can borrow against. Permanent coverage costs more but provides lifelong protection and can serve as a financial planning tool.`,
     callout: 'The right choice depends on your age, income, health, and long-term goals — not a one-size formula.',
@@ -42,8 +42,8 @@ This is a game-changer. Your life insurance policy becomes a safety net not just
     title: 'How Do Annuities Work?',
     body: `An annuity is a contract between you and an insurance company. You make a lump-sum or series of payments, and in return the company guarantees growth and/or a stream of income — either immediately or at a future date.
 
-Annuities are not market investments. They are insurance products designed to protect your principal while providing growth and income you cannot outlive. They are particularly valuable for rolling over 401(k)s, pensions, or other retirement funds into a protected vehicle.`,
-    callout: 'Fixed and fixed-indexed annuities offer principal protection — your balance cannot go negative due to market losses.',
+Fixed and fixed-indexed annuities are insurance products rather than direct market investments. Depending on the contract, they can help protect principal from direct market-index losses while providing growth potential and optional lifetime-income features, subject to product terms, fees, riders, surrender charges, and carrier claims-paying ability.`,
+    callout: 'Fixed and fixed-indexed annuities can offer principal-protection features, but product terms, fees, riders, and surrender charges still matter.',
   },
   {
     icon: '',
@@ -56,7 +56,7 @@ Done correctly, a rollover is tax-free and penalty-free. Done incorrectly — or
   {
     icon: '',
     title: 'What Is Key Person Insurance for a Business?',
-    body: `Key person insurance is a life insurance policy owned by a business on a critical employee or owner. If that person passes away or becomes disabled, the business receives a tax-free death benefit to cover losses — lost revenue, recruitment and training costs, loan repayments, or to fund a buy-sell agreement.
+    body: `Key person insurance is a life insurance policy owned by a business on a critical employee or owner. If that person passes away, the business generally receives an income-tax-free death benefit to cover losses — lost revenue, recruitment and training costs, loan repayments, or buy-sell funding. Disability protection requires separate disability coverage or riders.
 
 For small businesses, the loss of one key person can be fatal to operations. This coverage buys the business time to survive and recover.`,
     callout: 'Any business that would suffer a serious financial loss from losing one individual should consider key person coverage.',
@@ -72,9 +72,9 @@ Unlike private mortgage insurance (PMI), which protects the lender, mortgage pro
   {
     icon: '',
     title: 'How Can Life Insurance Fund College Education?',
-    body: `Certain permanent life insurance policies — particularly indexed universal life — can be structured as a college funding vehicle. You overfund the policy during your working years, allowing the cash value to grow tax-deferred. When college expenses arrive, you access funds through tax-free policy loans.
+    body: `Certain permanent life insurance policies — particularly indexed universal life — can be structured as a college funding vehicle. You overfund the policy during your working years, allowing the cash value to grow tax-deferred. When college expenses arrive, you access funds through policy loans that are generally income-tax-free when the policy is properly structured and kept in force.
 
-Unlike 529 plans, there are no restrictions on how you use the funds. And unlike savings accounts, the cash value is protected from market downturns and may not count against financial aid eligibility the same way other assets do.`,
+Unlike 529 plans, policy-loan proceeds are not limited to qualified education expenses. And unlike savings accounts, indexed policy cash value is not directly invested in the market and may not count against financial aid eligibility the same way other assets do.`,
     callout: 'This strategy works best when started early — the more time the cash value has to grow, the more powerful it becomes.',
   },
 ]
@@ -138,11 +138,11 @@ export default function EducationPage() {
             <h2 style={{ textAlign: 'center', color: navy, fontSize: 'clamp(1.4rem,3vw,2rem)', marginBottom: '3rem' }}>Key Terms Defined</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: '1.25rem' }}>
               {[
-                ['Death Benefit', 'The tax-free lump sum paid to your beneficiary when you pass away.'],
+                ['Death Benefit', 'The lump sum generally paid income-tax-free to your beneficiary when you pass away.'],
                 ['Beneficiary', 'The person or entity you designate to receive the death benefit.'],
                 ['Premium', 'The amount you pay — monthly, quarterly, or annually — to keep your policy active.'],
                 ['Cash Value', 'The savings component inside a permanent policy that grows over time and can be accessed while you are alive.'],
-                ['Policy Loan', 'A loan taken against your policy\'s cash value, typically tax-free and with no credit check required.'],
+                ['Policy Loan', 'A loan taken against your policy\'s cash value, generally income-tax-free if the policy is properly structured and stays in force, with no credit check required.'],
                 ['Rider', 'An add-on to your base policy that provides additional benefits, such as living benefits or disability waiver.'],
                 ['Underwriting', 'The insurance company\'s process of evaluating your health and risk profile to determine your premium rate.'],
                 ['Face Amount', 'The total death benefit your policy will pay — for example, a $500,000 policy has a $500,000 face amount.'],
