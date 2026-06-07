@@ -30,14 +30,14 @@ function displayName(contact: {
 }
 
 export default async function CalendarPage() {
-  const events = await prisma.calendarEvent.findMany({
-    take: 50,
-    orderBy: { startAt: 'desc' },
-    include: {
-      contact: { select: { fullName: true, firstName: true, lastName: true, email: true, phone: true } },
-      inquiry: { select: { stage: true } },
-    },
-  })
+  const [events, counts] = await Promise.all([
+    prisma.calendarEvent.findMany({
+      orderBy: { startAt: 'asc' },
+      take: 40,
+      include: { contact: true, inquiry: true },
+    }),
+    prisma.calendarEvent.groupBy({ by: ['status'], _count: { _all: true } }),
+  ])
 
   return (
     <div className="p-6 md:p-8">
