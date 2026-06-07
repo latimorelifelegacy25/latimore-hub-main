@@ -1,7 +1,6 @@
 export const dynamic = 'force-dynamic'
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 import { rateLimit } from '@/lib/rate-limit'
@@ -15,7 +14,10 @@ import { logger } from '@/lib/logger'
  */
 function verifyTwilioSignature(req: NextRequest, rawBody: string): boolean {
   const authToken = process.env.TWILIO_AUTH_TOKEN
-  if (!authToken) return true // allow through if not configured
+  if (!authToken) {
+    logger.error({}, '[twilio-webhook] TWILIO_AUTH_TOKEN not configured — rejecting request')
+    return false
+  }
 
   const twilioSig = req.headers.get('x-twilio-signature')
   if (!twilioSig) return false
@@ -132,12 +134,12 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // Trigger lead scoring for inbound message
-    await triggerLeadScoring({
+    // Trigger lead scoring for inbound message (non-blocking)
+    triggerLeadScoring({
       contactId: contact.id,
       inquiryId: contact.inquiries[0]?.id ?? null,
       reason: 'inbound_sms_received'
-    })
+    }).catch((err) => logger.warn({ err }, '[twilio-webhook] lead scoring trigger failed'))
 
     // Return empty response to acknowledge receipt
     return new NextResponse('', { status: 200 })

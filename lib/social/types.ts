@@ -32,6 +32,52 @@ export type MetaWebhookEntry = {
   }>
 }
 
+export type SocialPlatform = 'facebook' | 'instagram' | 'linkedin'
+
+export type PublishStatus = 'draft' | 'scheduled' | 'approved' | 'published' | 'failed' | 'archived'
+
+export type CreateSocialPostInput = {
+  caption: string
+  platforms: SocialPlatform[]
+  campaign?: string
+  linkUrl?: string
+  mediaUrls?: string[]
+  scheduledAt?: string | null
+  publishNow?: boolean
+}
+
+export type SocialConnectionRecord = {
+  id: string
+  provider: SocialPlatform
+  accountName: string | null
+  externalId: string | null
+  accessToken: string | null
+  refreshToken: string | null
+  tokenExpiresAt: Date | null
+  metadata: unknown
+  status: string | null
+}
+
+export type PublishTarget = {
+  platform: SocialPlatform
+  externalId?: string | null
+  accountName?: string | null
+  accessToken?: string | null
+  metadata?: unknown
+}
+
+export type PublishPayload = {
+  caption: string
+  linkUrl?: string | null
+  mediaUrls?: string[]
+}
+
+export type PublishResult = {
+  platform: SocialPlatform
+  externalPostId?: string
+  raw: unknown
+}
+
 export function readFieldValue(fields: Array<{ name: string; values: string[] }>, key: string): string {
   const f = fields.find(f => f.name.toLowerCase().includes(key.toLowerCase()))
   return f?.values?.[0] ?? ''

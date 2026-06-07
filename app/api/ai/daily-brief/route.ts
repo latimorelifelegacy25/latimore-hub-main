@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { AiRunType } from '@prisma/client'
+import { AiRunStatus, AiRunType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { applyAiRateLimit, completeAiRun, createAiRun, createSystemAiEvent, failAiRun, requireAdminSession } from '@/lib/ai/shared'
@@ -26,6 +26,23 @@ const schema = {
 }
 
 const displayName = (contact: any) => contact.fullName || [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'Unknown Contact'
+
+export async function GET(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const latest = await prisma.aiRun.findFirst({
+    where: { type: AiRunType.daily_brief, status: AiRunStatus.succeeded },
+    orderBy: { createdAt: 'desc' },
+    select: { output: true, createdAt: true },
+  }).catch(() => null)
+
+  if (!latest?.output) {
+    return NextResponse.json({ ok: false, error: 'No brief available yet' })
+  }
+
+  return NextResponse.json({ ok: true, ...(latest.output as Record<string, unknown>) })
+}
 
 export async function POST(req: NextRequest) {
   const limited = await applyAiRateLimit(req)
@@ -95,7 +112,7 @@ export async function POST(req: NextRequest) {
     })
 
     const output = { generatedAt: now.toISOString(), brief: completion.output }
-    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens })
+    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens, latencyMs: Date.now() - startedAt })
     await createSystemAiEvent({ type: 'ai.daily_brief.completed', payload: output as Record<string, unknown> })
     return NextResponse.json({ ok: true, ...output })
   } catch (error) {
