@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
 import { BookingNotifySchema } from '@/lib/schemas'
@@ -7,13 +8,23 @@ import { recordAppointment } from '@/lib/hub/record-appointment'
 
 function verifyWebhookSecret(req: NextRequest): boolean {
   const secret = process.env.BOOKING_WEBHOOK_SECRET
-  if (!secret) return true
+  if (!secret) {
+    logger.warn({}, '[booking-webhook] BOOKING_WEBHOOK_SECRET not configured — rejecting request')
+    return false
+  }
   const provided = req.headers.get('x-webhook-secret') ?? ''
-  return provided === secret
+  try {
+    const a = Buffer.from(provided)
+    const b = Buffer.from(secret)
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'booking')
+  const limited = await rateLimit(req, 'booking')
   if (limited) return limited
 
   if (!verifyWebhookSecret(req)) {

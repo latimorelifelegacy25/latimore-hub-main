@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/client-snapshot
  * Generate an AI-powered snapshot/brief of a client based on their notes and context
@@ -5,6 +6,7 @@
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const SNAPSHOT_SCHEMA = {
   type: 'object' as const,
@@ -42,6 +44,9 @@ const SNAPSHOT_SCHEMA = {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { contactId, notes, household } = body
@@ -59,11 +64,11 @@ export async function POST(req: Request) {
     if (contactId) {
       const contact = await prisma.contact.findUnique({
         where: { id: contactId },
-        select: { 
-          firstName: true, 
-          lastName: true, 
-          email: true, 
-          phone: true, 
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
           notes: {
             select: { body: true, createdAt: true },
             orderBy: { createdAt: 'desc' }
@@ -82,10 +87,10 @@ export async function POST(req: Request) {
       clientInfo = { notes, household: household || '', email: '' }
     }
 
-    const systemPrompt = `You are a legacy planning consultant assistant for Latimore Life & Legacy LLC. 
+    const systemPrompt = withAdminAiGuardrails(`You are a legacy planning consultant assistant for Latimore Life & Legacy LLC.
 Your role is to rapidly synthesize client information into actionable insights for Jackson's sales calls.
 Focus on family protection, legacy planning, and insurance solutions appropriate for Central PA.
-Be empathetic, practical, and solution-oriented.`
+Be empathetic, practical, and solution-oriented.`)
 
     const userPrompt = `Client Context:
 Household: ${clientInfo.household}

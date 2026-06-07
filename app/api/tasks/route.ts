@@ -4,9 +4,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -48,13 +49,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, task }, { status: 201 })
   } catch (error) {
-    console.error('Task create error:', error)
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Task create error')
     return NextResponse.json({ ok: false, error: 'failed to create task' }, { status: 500 })
   }
 }
 
 export async function PATCH(req: NextRequest) {
-  const limited = rateLimit(req, 'default')
+  const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -88,7 +89,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ ok: true, task })
   } catch (error) {
-    console.error('Task update error:', error)
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Task update error')
     return NextResponse.json({ ok: false, error: 'failed to update task' }, { status: 500 })
   }
 }

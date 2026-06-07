@@ -1,14 +1,65 @@
 export const dynamic = 'force-dynamic'
+import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
+import { rateLimit } from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
+
+/**
+ * Verify Twilio webhook signature.
+ * Uses HMAC-SHA1 of (url + sorted POST params) signed with TWILIO_AUTH_TOKEN.
+ * Falls through (returns true) if TWILIO_AUTH_TOKEN is not configured so the
+ * endpoint still works during local development / before credentials are set.
+ */
+function verifyTwilioSignature(req: NextRequest, rawBody: string): boolean {
+  const authToken = process.env.TWILIO_AUTH_TOKEN
+  if (!authToken) {
+    logger.error({}, '[twilio-webhook] TWILIO_AUTH_TOKEN not configured — rejecting request')
+    return false
+  }
+
+  const twilioSig = req.headers.get('x-twilio-signature')
+  if (!twilioSig) return false
+
+  // Reconstruct the URL Twilio signed
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? ''
+  const url = `${baseUrl}/api/webhooks/twilio`
+
+  // Parse POST body (application/x-www-form-urlencoded)
+  const params = new URLSearchParams(rawBody)
+  const sortedKeys = Array.from(params.keys()).sort()
+  const paramString = sortedKeys.map(k => `${k}${params.get(k)}`).join('')
+
+  const expectedSig = crypto
+    .createHmac('sha1', authToken)
+    .update(url + paramString)
+    .digest('base64')
+
+  try {
+    const a = Buffer.from(expectedSig)
+    const b = Buffer.from(twilioSig)
+    if (a.length !== b.length) return false
+    return crypto.timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
+}
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData()
-  const from = formData.get('From') as string
-  const to = formData.get('To') as string
-  const body = formData.get('Body') as string
-  const messageSid = formData.get('MessageSid') as string
+  const limited = await rateLimit(req, 'default')
+  if (limited) return limited
+
+  const rawBody = await req.text()
+  if (!verifyTwilioSignature(req, rawBody)) {
+    return new NextResponse('Forbidden', { status: 403 })
+  }
+
+  const params = new URLSearchParams(rawBody)
+  const from = params.get('From') as string
+  const to = params.get('To') as string
+  const body = params.get('Body') as string
+  const messageSid = params.get('MessageSid') as string
 
   if (!from || !body) {
     return new NextResponse('Missing required fields', { status: 400 })
@@ -22,7 +73,7 @@ export async function POST(req: NextRequest) {
     })
 
     if (!contact) {
-      console.log(`Inbound SMS from unknown number: ${from}`)
+      logger.info({ from }, 'Inbound SMS from unknown number')
       return new NextResponse('', { status: 200 }) // Acknowledge but don't process
     }
 
@@ -83,18 +134,18 @@ export async function POST(req: NextRequest) {
       }
     })
 
-    // Trigger lead scoring for inbound message
-    await triggerLeadScoring({
+    // Trigger lead scoring for inbound message (non-blocking)
+    triggerLeadScoring({
       contactId: contact.id,
       inquiryId: contact.inquiries[0]?.id ?? null,
       reason: 'inbound_sms_received'
-    })
+    }).catch((err) => logger.warn({ err }, '[twilio-webhook] lead scoring trigger failed'))
 
     // Return empty response to acknowledge receipt
     return new NextResponse('', { status: 200 })
 
   } catch (error) {
-    console.error('Twilio webhook error:', error)
+    logger.error({ error }, 'Twilio webhook error')
     return new NextResponse('Internal server error', { status: 500 })
   }
 }

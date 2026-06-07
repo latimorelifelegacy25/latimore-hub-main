@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { SiteHeader, SiteFooter, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
 import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 
-
-const navy = '#0E1A2B'
-const gold = '#C9A24D'
-const goldLight = '#E5C882'
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold     = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
 
 
@@ -218,7 +218,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
           <Image
-            src="/pahs-sponsor-flyer.jpg"
+            src="/pahs-sponsor-flyer.png"
             alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
             width={560}
             height={700}
