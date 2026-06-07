@@ -36,6 +36,7 @@ async function saveToCRM(lead: ValidatedLead) {
   const nameParts = lead.name.trim().split(/\s+/)
   const firstName = nameParts[0] ?? ''
   const lastName = nameParts.slice(1).join(' ') || undefined
+
   return upsertLead({
     firstName,
     lastName,
@@ -43,7 +44,7 @@ async function saveToCRM(lead: ValidatedLead) {
     phone: lead.phone || undefined,
     productInterest: lead.interest || undefined,
     source: lead.source || 'PAHS Sponsorship Page',
-    landingPage: lead.page || 'pahs.latimorelifelegacy.com',
+    landingPage: lead.page || 'app/pahs',
     notes: lead.promo ? `Promo: ${lead.promo}` : undefined,
   })
 }
@@ -52,7 +53,11 @@ async function saveToSupabase(lead: ValidatedLead) {
   const url = process.env.SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   const table = process.env.PAHS_LEADS_TABLE ?? 'pahs_leads'
-  if (!url || !key) throw new Error('Supabase env vars not configured')
+
+  if (!url || !key) {
+    return { ok: false, skipped: true, reason: 'Supabase env vars not configured' }
+  }
+
   const client = createClient(url, key)
   const { data, error } = await client.from(table).insert({
     name: lead.name,
@@ -64,14 +69,19 @@ async function saveToSupabase(lead: ValidatedLead) {
     page: lead.page,
     created_at: new Date().toISOString(),
   })
+
   if (error) throw error
-  return data
+  return { ok: true, data }
 }
 
 async function sendNotification(lead: ValidatedLead) {
   const to = process.env.NOTIFY_TO ?? process.env.LEAD_NOTIFY_TO
   const from = process.env.THANKYOU_FROM ?? process.env.LEAD_NOTIFY_FROM ?? 'noreply@latimorelifelegacy.com'
-  if (!to) return { ok: false, error: 'NOTIFY_TO not configured' }
+
+  if (!to) {
+    return { ok: false, skipped: true, reason: 'NOTIFY_TO not configured' }
+  }
+
   return sendMail({
     to,
     from,
@@ -93,7 +103,7 @@ export async function POST(req: NextRequest) {
   if (limited) return limited
 
   try {
-    const body = (await req.json()) as LeadBody;
+    const body = (await req.json()) as LeadBody
 
     const lead: ValidatedLead = {
       name: clean(body.name, 150),
@@ -102,8 +112,8 @@ export async function POST(req: NextRequest) {
       promo: clean(body.promo, 100),
       interest: clean(body.interest, 150),
       source: clean(body.source || 'PAHS Sponsorship Page', 100),
-      page: clean(body.page || 'pahs.latimorelifelegacy.com', 200),
-    };
+      page: clean(body.page || 'app/pahs', 200),
+    }
 
     if (!lead.name || !lead.phone || !lead.interest) {
       return NextResponse.json(
@@ -112,46 +122,33 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const [firstName, ...rest] = name.split(' ')
-    const lastName = rest.join(' ') || undefined
-
-    const [saveResult, emailResult] = await Promise.allSettled([
-      upsertLead({
-        firstName,
-        lastName,
-        phone,
-        email,
-        productInterest: interest,
-        source,
-        landingPage: page,
-        notes: promo ? `Promo: ${promo}` : undefined,
-      }),
-      sendMail({
-        to: process.env.NOTIFY_TO ?? '',
-        from: process.env.THANKYOU_FROM ?? 'noreply@latimorelifelegacy.com',
-        subject: `New PAHS Lead: ${name}`,
-        html: `<p><strong>Name:</strong> ${name}</p>
-<p><strong>Phone:</strong> ${phone}</p>
-${email ? `<p><strong>Email:</strong> ${email}</p>` : ''}
-<p><strong>Interest:</strong> ${interest}</p>
-<p><strong>Source:</strong> ${source}</p>
-<p><strong>Page:</strong> ${page}</p>
-${promo ? `<p><strong>Promo:</strong> ${promo}</p>` : ''}`,
-      }),
+    const [crmResult, supabaseResult, emailResult] = await Promise.allSettled([
+      saveToCRM(lead),
+      saveToSupabase(lead),
+      sendNotification(lead),
     ])
 
     const response: Record<string, unknown> = { ok: true }
 
-    if (saveResult.status === 'fulfilled') {
-      response.contactId = saveResult.value.contact.id
-      response.inquiryId = saveResult.value.inquiry.id
+    if (crmResult.status === 'fulfilled') {
+      response.crm = { ok: true, result: crmResult.value }
     } else {
-      logger.error({ err: saveResult.reason }, '[pahs-lead] CRM save failed')
-      response.save = { ok: false, error: String(saveResult.reason) }
+      logger.error({ err: crmResult.reason }, '[pahs-lead] CRM save failed')
+      response.crm = { ok: false, error: String(crmResult.reason) }
     }
 
-    if (emailResult.status === 'rejected') {
+    if (supabaseResult.status === 'fulfilled') {
+      response.supabase = supabaseResult.value
+    } else {
+      logger.error({ err: supabaseResult.reason }, '[pahs-lead] Supabase save failed')
+      response.supabase = { ok: false, error: String(supabaseResult.reason) }
+    }
+
+    if (emailResult.status === 'fulfilled') {
+      response.email = { ok: true, result: emailResult.value }
+    } else {
       logger.error({ err: emailResult.reason }, '[pahs-lead] Email notification failed')
+      response.email = { ok: false, error: String(emailResult.reason) }
     }
 
     return NextResponse.json(response)
