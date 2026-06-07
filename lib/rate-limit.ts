@@ -86,6 +86,15 @@ function memoryLimit(key: string, limit: number, windowMs: number): boolean {
     store.set(key, { count: 1, reset: now + windowMs })
     return false
   }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
+  }
   if (rec.count >= limit) return true
   rec.count++
   return false
