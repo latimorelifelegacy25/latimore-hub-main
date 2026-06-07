@@ -282,7 +282,7 @@ export default function QuoteCalculator() {
                 {annuityQuote.product === 'safe-income' && (
                   <div style={{ color: MUTED, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div>📈 <strong style={{ color: INK }}>7.20% Guaranteed Roll-Up</strong> — for first 10 years or until income starts</div>
-                    <div>🛡️ <strong style={{ color: INK }}>Principal Protection</strong> — never lose money due to market downturns</div>
+                    <div>🛡️ <strong style={{ color: INK }}>Principal Protection</strong> — protection from direct market-index losses, subject to product terms</div>
                   </div>
                 )}
                 <div style={{ color: MUTED, fontSize: '0.9rem', marginTop: 12 }}>💵 <strong style={{ color: INK }}>Lifetime Income Guarantee</strong> — payments continue for life, even if account depletes</div>

@@ -15,15 +15,17 @@ type TaskResult = {
   durationMs: number
 }
 
-async function runTask(name: string, url: string, req: NextRequest): Promise<TaskResult> {
+async function runTask(name: string, url: string, req: NextRequest, method: 'GET' | 'POST' = 'GET'): Promise<TaskResult> {
   const start = Date.now()
   try {
     const res = await fetch(url, {
-      method: 'GET',
+      method,
       headers: {
+        'content-type': 'application/json',
         'x-cron-secret': process.env.CRON_SECRET ?? '',
         'x-forwarded-for': req.headers.get('x-forwarded-for') ?? '',
       },
+      ...(method === 'POST' ? { body: JSON.stringify({ days: 7 }) } : {}),
     })
     const data = await res.json().catch(() => null)
     return { task: name, ok: res.ok, status: res.status, data, durationMs: Date.now() - start }
@@ -49,6 +51,7 @@ export async function GET(req: NextRequest) {
 
   const results: TaskResult[] = []
   results.push(await runTask('daily-brief',           `${baseUrl}/api/cron/daily-brief`,           req))
+  results.push(await runTask('analytics-rebuild',     `${baseUrl}/api/analytics/v1/jobs/run`,      req, 'POST'))
   results.push(await runTask('lead-score-updates',    `${baseUrl}/api/cron/lead-score-updates`,    req))
   results.push(await runTask('appointment-reminders', `${baseUrl}/api/cron/appointment-reminders`, req))
   results.push(await runTask('notification-checks',   `${baseUrl}/api/cron/notification-checks`,   req))

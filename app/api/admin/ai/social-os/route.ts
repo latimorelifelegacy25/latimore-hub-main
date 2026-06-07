@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const BRAND = `Latimore Life & Legacy LLC. Founder: Jackson M. Latimore Sr. Region: Schuylkill, Luzerne, and Northumberland Counties in Pennsylvania. Tagline: Protecting Today. Securing Tomorrow. Hashtag: #TheBeatGoesOn. Voice: education-first, practical, community-rooted, legacy-focused, urgent but never fear-based.`
 
@@ -27,7 +27,7 @@ function promptFor(action: string, input: any) {
     case 'clientSnapshot': return `Analyze client notes and household into an insurance CRM snapshot. Notes: ${input.notes}. Household: ${input.household}. ${BRAND}`
     case 'reviewScript': return `Create an annual review call script for this client JSON: ${JSON.stringify(input.clientData)}. ${BRAND}`
     case 'socialStrategy': return `Create 3 post ideas, 3 draft captions, and regional/industry hashtags for: ${input.topic}. ${BRAND}`
-    case 'trends': return `Identify 3 current durable content themes related to life insurance, mortgage protection, annuities, IUL, and financial planning in Central Pennsylvania. Avoid unsupported claims. ${BRAND}`
+    case 'trends': return `Identify 3 durable, non-breaking content themes related to life insurance, mortgage protection, annuities, IUL, and financial planning in Central Pennsylvania. Avoid unsupported claims and do not invent current statistics. ${BRAND}`
     case 'chat': return `Answer as the Latimore Legacy Business Co-Pilot. User message: ${input.message}. ${BRAND}`
     default: return ''
   }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     const schema = schemas[action]
     if (!schema) return NextResponse.json({ ok:false, error:'Unsupported Social OS AI action' }, { status:400 })
     const result = await createOpenAIJsonCompletion<any>({
-      system: 'You are a server-side AI engine for an authenticated insurance admin dashboard. Return only schema-valid JSON.',
+      system: withAdminAiGuardrails(`You are a server-side AI engine for an authenticated insurance admin dashboard. Return only schema-valid JSON.`),
       user: promptFor(action, body),
       schemaName: `social_os_${action}`,
       schema,
