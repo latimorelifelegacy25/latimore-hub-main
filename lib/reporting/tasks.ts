@@ -15,9 +15,9 @@ export async function getTaskMetrics() {
     SELECT
       status,
       COUNT(*) as count,
-      COUNT(CASE WHEN due_at < NOW() AND status = 'Open' THEN 1 END) as overdue
+      COUNT(CASE WHEN "dueAt" < NOW() AND status = 'Open' THEN 1 END) as overdue
     FROM "Task"
-    WHERE created_at >= ${thirtyDaysAgo}
+    WHERE "createdAt" >= ${thirtyDaysAgo}
     GROUP BY status
   `
 
