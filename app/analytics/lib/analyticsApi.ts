@@ -6,11 +6,12 @@ import {
   BreakdownRow,
   RecentEvent,
   Opportunity,
+  DashboardData,
 } from './types'
 
-async function getJson<T>(url: string): Promise<ApiEnvelope<T>> {
+async function getJson<T>(url: string, init?: RequestInit): Promise<ApiEnvelope<T>> {
   try {
-    const res = await fetch(url, { cache: 'no-store' })
+    const res = await fetch(url, init ?? { cache: 'no-store' })
     const json = (await res.json()) as ApiEnvelope<T>
 
     if (!res.ok) {
@@ -30,6 +31,11 @@ async function getJson<T>(url: string): Promise<ApiEnvelope<T>> {
 }
 
 export const analyticsApi = {
+  dashboard: (qs: string) =>
+    getJson<DashboardData>(`/api/analytics/v1/dashboard?${qs}`, {
+      cache: 'no-store',
+    }),
+
   overview: (qs: string) => getJson<OverviewData>(`/api/analytics/v1/overview?${qs}`),
 
   funnel: (qs: string) => getJson<FunnelStage[]>(`/api/analytics/v1/funnel?${qs}`),
