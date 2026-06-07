@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useRef, useState } from 'react'
 import './pahs.css'
 
 type LeadForm = {
@@ -23,28 +23,47 @@ export default function PAHSPage() {
   const [lead, setLead] = useState<LeadForm>(initialLead)
   const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [leadError, setLeadError] = useState('')
+  const formRef = useRef<HTMLFormElement>(null)
 
   function updateLead<K extends keyof LeadForm>(field: K, value: LeadForm[K]) {
-    setLead((current) => ({ ...current, [field]: value }))
+    setLead((current) => ({ ...current, value }))
+  }
+
+  function normalizeLead(data: LeadForm): LeadForm {
+    return {
+      name: data.name.trim(),
+      phone: data.phone.replace(/\D/g, ''), // keep digits only
+      email: data.email.trim().toLowerCase(),
+      promo: data.promo.trim(),
+      interest: data.interest,
+    }
   }
 
   async function submitLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
     setLeadStatus('submitting')
     setLeadError('')
+
+    const cleanLead = normalizeLead(lead)
 
     try {
       const response = await fetch('/api/pahs-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...lead,
+          ...cleanLead,
           source: 'PAHS Protect & Go Football Landing Page',
           page: 'app/pahs',
         }),
       })
 
-      const result = await response.json().catch(() => ({}))
+      let result: any = {}
+      try {
+        result = await response.json()
+      } catch {
+        result = {}
+      }
 
       if (!response.ok || result?.ok === false) {
         throw new Error(result?.error || 'Lead submission failed.')
@@ -52,71 +71,59 @@ export default function PAHSPage() {
 
       setLead(initialLead)
       setLeadStatus('success')
+
+      // scroll to success state (mobile UX win)
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
     } catch (error) {
       setLeadStatus('error')
       setLeadError(error instanceof Error ? error.message : 'Lead submission failed.')
+
+      // bring error into view
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
   return (
     <main className="pahs-v2 pahs-protect-flow">
+      {/* ---------- VIDEO SECTION ---------- */}
       <section className="pahs-open" id="top">
         <div className="pahs-open-bg" />
 
-        <div className="pahs-brand-pill" aria-label="Latimore Life and Legacy LLC">
+        <div className="pahs-brand-pill">
           <strong>LATIMORE</strong>
           <span>LIFE &amp; LEGACY LLC</span>
         </div>
 
-        <section className="pahs-video-stage" aria-labelledby="campaign-video-title">
+        <section className="pahs-video-stage">
           <div className="pahs-section-kicker">Campaign Video</div>
-          <h1 id="campaign-video-title">Watch the Campaign</h1>
+          <h1>Watch the Campaign</h1>
 
-          <video
-            className="pahs-campaign-video"
-            src="/pahs-campaign-video.mp4"
-            poster="/pahs-newspaper-clip.png"
-            controls
-            playsInline
-            preload="metadata"
-          />
+          /pahs-campaign-video.mp4
         </section>
       </section>
 
-      <section className="pahs-newspaper-section" aria-labelledby="newspaper-title">
-        <div className="pahs-section-wrap">
-          <div className="pahs-section-kicker dark">The Story</div>
-          <h2 id="newspaper-title">The Larger Clip</h2>
-          <p className="pahs-section-copy">
-            The campaign opens with the story, then moves families directly into a simple protection review.
-          </p>
-
-          <img
-            className="pahs-newspaper-image"
-            src="/pahs-newspaper-clip.png"
-            alt="PAHS campaign newspaper-style clip"
-          />
-        </div>
-      </section>
-
-      <section className="pahs-football-section" aria-labelledby="protection-title">
+      {/* ---------- FORM SECTION ---------- */}
+      <section className="pahs-football-section">
         <div className="pahs-section-wrap narrow">
-          <img
-            className="pahs-football-card"
-            src="/pahs-protect-go-card.png"
-            alt="Protect and Go Pottsville Area Crimson Tide 2026 official protection partner card"
-          />
+          /pahs-protect-go-card.png
 
-          <div className="pahs-partner-line">Official Protection Partner · Crimson Tide ’26</div>
+          <div className="pahs-partner-line">
+            Official Protection Partner · Crimson Tide ’26
+          </div>
 
-          <section className="pahs-lead-card" id="intakeFormSection" aria-labelledby="protection-title">
-            <h2 id="protection-title">Protect Your Family Today</h2>
+          <section
+            ref={formRef}
+            className="pahs-lead-card"
+            id="intakeFormSection"
+          >
+            <h2>Protect Your Family Today</h2>
             <p>
               Get a free protection review — income, debt &amp; family security. Takes 2 minutes.
             </p>
 
             {leadStatus === 'success' ? (
-              <div className="pahs-success-box" role="status">
+              <div className="pahs-success-box">
                 <strong>Request received.</strong>
                 <span>Jackson will follow up soon.</span>
               </div>
@@ -126,8 +133,9 @@ export default function PAHSPage() {
                   Full Name *
                   <input
                     value={lead.name}
-                    onChange={(event) => updateLead('name', event.target.value)}
+                    onChange={(e) => updateLead('name', e.target.value)}
                     placeholder="John Doe"
+                    autoComplete="name"
                     required
                   />
                 </label>
@@ -135,9 +143,12 @@ export default function PAHSPage() {
                 <label>
                   Phone Number *
                   <input
+                    type="tel"
+                    inputMode="tel"
                     value={lead.phone}
-                    onChange={(event) => updateLead('phone', event.target.value)}
+                    onChange={(e) => updateLead('phone', e.target.value)}
                     placeholder="(555) 555-5555"
+                    autoComplete="tel"
                     required
                   />
                 </label>
@@ -147,8 +158,9 @@ export default function PAHSPage() {
                   <input
                     type="email"
                     value={lead.email}
-                    onChange={(event) => updateLead('email', event.target.value)}
+                    onChange={(e) => updateLead('email', e.target.value)}
                     placeholder="john@example.com"
+                    autoComplete="email"
                   />
                 </label>
 
@@ -156,7 +168,7 @@ export default function PAHSPage() {
                   Coupon / Promo Code
                   <input
                     value={lead.promo}
-                    onChange={(event) => updateLead('promo', event.target.value)}
+                    onChange={(e) => updateLead('promo', e.target.value)}
                     placeholder="e.g. ID#2777749"
                   />
                 </label>
@@ -165,7 +177,7 @@ export default function PAHSPage() {
                   What are you most interested in? *
                   <select
                     value={lead.interest}
-                    onChange={(event) => updateLead('interest', event.target.value)}
+                    onChange={(e) => updateLead('interest', e.target.value)}
                     required
                   >
                     <option value="" disabled>Select an option...</option>
@@ -180,10 +192,14 @@ export default function PAHSPage() {
                 </label>
 
                 <button type="submit" disabled={leadStatus === 'submitting'}>
-                  {leadStatus === 'submitting' ? 'Submitting...' : 'Request My Free Review'}
+                  {leadStatus === 'submitting' ? 'Submitting…' : 'Request My Free Review'}
                 </button>
 
-                {leadStatus === 'error' && <div className="pahs-error-box">{leadError}</div>}
+                {leadStatus === 'error' && (
+                  <div className="pahs-error-box">
+                    {leadError}
+                  </div>
+                )}
               </form>
             )}
 
@@ -197,15 +213,16 @@ export default function PAHSPage() {
             </a>
           </section>
 
-          <a className="pahs-main-cta" href="#intakeFormSection">
+          #intakeFormSection
             Start My Free Protection Review
           </a>
         </div>
       </section>
 
+      {/* ---------- MOBILE CTA ---------- */}
       <div className="pahs-mobile-cta">
         <span>Free Protection Review</span>
-        <a href="#intakeFormSection">Start Now</a>
+        #intakeFormSectionStart Now</a>
       </div>
     </main>
   )
