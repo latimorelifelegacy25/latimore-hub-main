@@ -53,10 +53,20 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
 // In-memory fallback (single-instance only — used when Upstash is not configured).
 const store = new Map<string, { count: number; reset: number }>()
 
+// Periodically evict expired entries to prevent unbounded memory growth.
 setInterval(() => {
   const now = Date.now()
   for (const [k, rec] of store) {
     if (now > rec.reset) store.delete(k)
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
   }
 }, 60_000)
 
