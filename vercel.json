@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:safe",
   "crons": [
     {
       "path": "/api/cron/daily-brief",
@@ -16,6 +16,10 @@
     },
     {
       "path": "/api/cron/notification-checks",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/cron/social-publisher",
       "schedule": "*/15 * * * *"
     }
   ]
