@@ -32,8 +32,8 @@ const STRATEGIES: Strategy[] = [
     id: 's2', category: 'Life Insurance', subCategory: 'IUL',
     title: 'The "And" Asset Strategy (Builder Plus 4)',
     description: 'Explaining Indexed Universal Life for both protection and supplemental retirement using the North American Builder Plus 4.',
-    structure: 'Focus on the "Tax-Free" bucket. Compare traditional savings to IUL growth potential with a 0% floor. Emphasize the death benefit AND the living benefits. End with a legacy-building prompt. Reference IRS codes 7702A, 72E, and 101A.',
-    hashtags: ['IUL', 'TaxFreeRetirement', 'WealthBuilding'], isFavorite: true
+    structure: 'Focus on a tax-advantaged bucket. Compare traditional savings to properly structured IUL cash-value potential, noting policy charges, cap/participation limits, and lapse risk. Emphasize the death benefit and any living benefits only when available by rider. End with a legacy-building prompt. Reference IRC sections accurately: 7702, 72(e), and 101(a).',
+    hashtags: ['IUL', 'TaxAdvantaged', 'WealthBuilding'], isFavorite: true
   },
   {
     id: 's3', category: 'Annuities', subCategory: 'FIA',
@@ -81,7 +81,7 @@ const STRATEGIES: Strategy[] = [
     id: 's9', category: 'Life Insurance', subCategory: 'IUL',
     title: 'The 3-Bucket Money Strategy',
     description: 'Core educational framework for discovery calls and Facebook educational content.',
-    structure: 'Bucket 1: Taxable (savings, brokerage) — always taxed. Bucket 2: Tax-Deferred (401k, IRA) — taxed on withdrawal. Bucket 3: Tax-Free (IUL, Roth) — never taxed. IUL sits in Bucket 3 AND provides death benefit. IRS code 101A.',
+    structure: 'Bucket 1: Taxable (savings, brokerage) — interest/dividends/gains may be taxable. Bucket 2: Tax-Deferred (401k, IRA) — withdrawals are generally taxed as ordinary income. Bucket 3: Tax-Advantaged (Roth and properly structured life insurance) — Roth qualified distributions and life insurance death benefits are generally income-tax-free; IUL policy loans are generally income-tax-free if structured and maintained properly. Reference IRC section 101(a) accurately.',
     hashtags: ['3Buckets', 'TaxStrategy', 'WealthBuilding', 'FinancialEducation'], isFavorite: true
   },
 ]

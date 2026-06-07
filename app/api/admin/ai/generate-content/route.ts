@@ -4,7 +4,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
@@ -31,7 +31,7 @@ const CONTENT_SCHEMA = {
   required: ['title', 'draft', 'platform', 'hashtags'],
 }
 
-const BRAND_VOICE = `You are the content strategist for Latimore Life & Legacy LLC.
+const BRAND_VOICE = withAdminAiGuardrails(`You are the content strategist for Latimore Life & Legacy LLC.
 Brand Voice:
 - Authentic, personal, community-focused (Central PA: Schuylkill, Luzerne, Northumberland Counties)
 - Educational, urgent but NOT fear-based
@@ -45,7 +45,7 @@ Non-Negotiables:
 - Plain language (8th grade level)
 - Focus on legacy, not death
 - Solutions-oriented
-- Warm and community-focused`
+- Warm and community-focused`)
 
 export async function POST(req: Request) {
   const auth = await requireAdminSession()

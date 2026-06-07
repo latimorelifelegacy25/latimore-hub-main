@@ -5,7 +5,7 @@
 
 export const BRAND_STORY = {
   founder: 'Jackson M. Latimore Sr.',
-  origin: 'Jackson M. Latimore Sr. survived sudden cardiac arrest on December 7, 2010, while playing basketball at East Stroudsburg University. An AED was available and used by trainers to restart his heart. This life-altering event, combined with the story of Greg Moyer (who passed away in 2000 due to the lack of an AED), became the foundation for Latimore Life & Legacy LLC.',
+  origin: 'Jackson M. Latimore Sr. survived sudden cardiac arrest on December 7, 2010, while playing basketball at East Stroudsburg University. An AED was available and used by trainers to restart his heart. This life-altering event, combined with the story of Greg Moyer (who died of sudden cardiac arrest in 2000 before an AED was available in time), became the foundation for Latimore Life & Legacy LLC.',
   mission: 'To help families and organizations protect what matters and build legacies that outlive them — using clear education and preparation, never fear-based messaging.',
   tagline: 'Protecting Today. Securing Tomorrow.',
   hashtag: '#TheBeatGoesOn',
@@ -116,8 +116,8 @@ export const LIBRARY_TEMPLATES = [
     description:
       'Explaining Indexed Universal Life for both protection and supplemental retirement using the North American Builder Plus 4.',
     structure:
-      'Focus on the "Tax-Free" bucket. Compare traditional savings to IUL growth potential with a 0% floor. Emphasize the death benefit AND the living benefits. End with a legacy-building prompt. Reference IRS codes 7702A, 72E, and 101A.',
-    hashtags: ['IUL', 'TaxFreeRetirement', 'WealthBuilding'],
+      'Focus on a tax-advantaged bucket. Compare traditional savings to properly structured IUL cash-value potential, noting policy charges, caps/participation limits, and lapse risk. Emphasize the death benefit and any living benefits only when available by rider. End with a legacy-building prompt. Reference IRC sections accurately: 7702, 72(e), and 101(a).',
+    hashtags: ['IUL', 'TaxAdvantaged', 'WealthBuilding'],
   },
   {
     id: 'l3',

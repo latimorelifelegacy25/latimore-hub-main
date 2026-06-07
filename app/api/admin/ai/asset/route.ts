@@ -8,7 +8,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const POSTS_SCHEMA = {
   type: 'array' as const,
@@ -67,21 +67,21 @@ export async function POST(req: Request) {
       : `The user has uploaded a PDF carrier document named "${assetName}". This is likely a product brochure, spec sheet, or rate guide from an insurance carrier.`
 
     const result = await createOpenAIJsonCompletion<unknown[]>({
-      system: `You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
+      system: withAdminAiGuardrails(`You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
 
 NON-NEGOTIABLES:
 1. Education-first voice — NOT fear-based. Emphasize benefits, preparation, and family protection.
 2. No morbid language. Focus on living benefits, legacy, and financial security.
 3. Include tagline: "Protecting Today. Securing Tomorrow."
 4. Include hashtag: #TheBeatGoesOn
-5. Reference specific product features when visible/inferrable (Living Benefits, Cash Value, Income Riders, etc.)
-6. Central PA community framing (Schuylkill, Luzerne, Northumberland Counties).`,
+5. Reference specific product features only when visible in the uploaded asset or provided by the user (Living Benefits, Cash Value, Income Riders, etc.)
+6. Central PA community framing (Schuylkill, Luzerne, Northumberland Counties).`),
       user: `${fileContext}
 
 Generate 3 educational social media post drafts for ${platform} based on this carrier product asset.
 
 Each post must:
-- Reference at least 1 specific product benefit by name (e.g., "Living Benefits rider," "7.2% roll-up rate," "0% floor guarantee," "no medical exam")
+- Reference at least 1 specific product benefit by name only if it appears in the uploaded asset or user context (e.g., "Living Benefits rider," "income rider," "downside protection from direct index losses," "no medical exam")
 - Educate the audience about WHY this matters to a Central PA family
 - End with a clear call to action
 - Include the tagline and #TheBeatGoesOn

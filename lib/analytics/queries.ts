@@ -4,6 +4,13 @@ import { calculateStaleLeadCount, calculateOverdueTaskCount } from './metrics'
 import { calculateEngagement } from './engagement'
 import { logger } from '@/lib/logger'
 
+export function isOperationalAnalyticsFallbackEnabled() {
+  return process.env.NODE_ENV !== 'production' || process.env.ENABLE_OPERATIONAL_ANALYTICS_FALLBACK === 'true'
+}
+
+export const OPERATIONAL_FALLBACK_DISABLED_WARNING =
+  'Operational analytics fallback is disabled in production. Enable ENABLE_OPERATIONAL_ANALYTICS_FALLBACK=true to show live operational data when analytics mart data is unavailable.'
+
 export type AnalyticsOverviewData = {
   leadCount: number
   contactCount: number
@@ -110,25 +117,6 @@ export type AiAnalyticsData = {
   }>
 }
 
-// ─── Sum helper for aggregate tables ─────────────────────────────────────────
-
-async function sumMetric(
-  metricKey: string,
-  from: Date,
-  to: Date,
-  filters?: { source?: string; county?: string; productInterest?: string },
-): Promise<number> {
-  // Analytics mart first
-  const rows = await prisma.analyticsDailyMetric.findMany({
-    where: { metricKey, metricDate: { gte: from, lte: to } },
-    select: { value: true },
-  })
-  if (rows.length > 0) {
-    return rows.reduce((sum, r) => sum + r.value.toNumber(), 0)
-  }
-  return 0
-}
-
 // ─── Overview ─────────────────────────────────────────────────────────────────
 
 export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Promise<{
@@ -158,6 +146,36 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
   let socialEngagementCount = 0
   let aiSuccessRate = 0
   let aiAvgLatencyMs = 0
+
+  if (martCount === 0 && !isOperationalAnalyticsFallbackEnabled()) {
+    return {
+      source: 'analytics_mart',
+      data: {
+        leadCount,
+        contactCount,
+        appointmentBookedCount,
+        soldCount,
+        ctaClickCount,
+        formSubmitCount,
+        leadToBookingRate,
+        leadToSoldRate,
+        avgLeadScore,
+        staleLeadCount: 0,
+        taskOverdueCount: 0,
+        socialClickCount,
+        socialEngagementCount,
+        aiSuccessRate,
+        aiAvgLatencyMs,
+        delta: {
+          leadCount: null,
+          contactCount: null,
+          appointmentBookedCount: null,
+          soldCount: null,
+          ctaClickCount: null,
+        },
+      },
+    }
+  }
 
   if (martCount > 0) {
     // Read from mart
@@ -202,7 +220,7 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
     socialEngagementCount = sums['social_engagement_count'] ?? 0
     aiSuccessRate = sums['ai_success_rate'] ?? 0
     aiAvgLatencyMs = sums['ai_avg_latency_ms'] ?? 0
-  } else {
+  } else if (isOperationalAnalyticsFallbackEnabled()) {
     // Operational fallback
     source = 'operational_fallback'
     const [leads, contacts, appts, ctas, forms, aiAgg, socialAgg] = await Promise.all([
@@ -329,6 +347,10 @@ export async function getAnalyticsFunnel(filters: AnalyticsFiltersInput): Promis
     return { data, source: 'analytics_mart' }
   }
 
+  if (!isOperationalAnalyticsFallbackEnabled()) {
+    return { data: [], source: 'analytics_mart' }
+  }
+
   // Fallback: calculate from operational tables
   const { calculateDailyFunnel } = await import('./aggregation')
   const stages = await calculateDailyFunnel({ from, to })
@@ -368,6 +390,10 @@ export async function getAnalyticsTimeSeries(
 
     const data = Object.values(byDate).sort((a, b) => a.date.localeCompare(b.date))
     return { data, source: 'analytics_mart' }
+  }
+
+  if (!isOperationalAnalyticsFallbackEnabled()) {
+    return { data: [], source: 'analytics_mart' }
   }
 
   // Fallback: group operational data by day
@@ -435,6 +461,10 @@ export async function getAnalyticsBreakdowns(
     return { data, source: 'analytics_mart' }
   }
 
+  if (!isOperationalAnalyticsFallbackEnabled()) {
+    return { data: [], source: 'analytics_mart' }
+  }
+
   // Fallback: group inquiries by dimension
   const data: AnalyticsBreakdownRow[] = []
 
@@ -483,6 +513,8 @@ export async function getAnalyticsBreakdowns(
 // ─── Recent Events ────────────────────────────────────────────────────────────
 
 export async function getRecentBusinessEvents(limit = 20): Promise<AnalyticsRecentEvent[]> {
+  if (!isOperationalAnalyticsFallbackEnabled()) return []
+
   const [events, stageHistory, systemEvents] = await Promise.all([
     prisma.event.findMany({
       where: { eventType: { in: ['lead_created', 'appointment_booked', 'form_submit', 'stage_changed'] as any } },
@@ -548,6 +580,8 @@ export async function getRecentBusinessEvents(limit = 20): Promise<AnalyticsRece
 // ─── Opportunities ────────────────────────────────────────────────────────────
 
 export async function getAnalyticsOpportunities(): Promise<AnalyticsOpportunity[]> {
+  if (!isOperationalAnalyticsFallbackEnabled()) return []
+
   const staleThreshold = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
 
   const staleInquiries = await prisma.inquiry.findMany({
@@ -602,7 +636,9 @@ export async function getDataQualityWarnings(filters: AnalyticsFiltersInput): Pr
       warnings.push(`${Math.round((noCounty / totalLeads) * 100)}% of leads are missing county data.`)
     }
     if (martRows === 0 && totalLeads > 0) {
-      warnings.push('Analytics mart has no aggregated data for this range — showing operational fallback.')
+      warnings.push(isOperationalAnalyticsFallbackEnabled()
+        ? 'Analytics mart has no aggregated data for this range — showing operational fallback.'
+        : OPERATIONAL_FALLBACK_DISABLED_WARNING)
     }
   } catch (err) {
     logger.error({ err }, 'getDataQualityWarnings failed')
