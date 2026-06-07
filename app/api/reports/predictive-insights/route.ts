@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)

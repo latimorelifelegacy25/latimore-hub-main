@@ -12,11 +12,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
   }
 
-  const request = new Request(req.url, {
+  const headers = new Headers(req.headers)
+  headers.set('content-type', 'application/json')
+
+  const cronPostRequest = new Request(req.url, {
     method: 'POST',
-    headers: req.headers,
+    headers,
     body: JSON.stringify({ limit: 10 }),
   })
 
-  return runDailyBrief(request as NextRequest)
+  return runDailyBrief(cronPostRequest as NextRequest)
 }

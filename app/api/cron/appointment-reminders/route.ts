@@ -2,18 +2,15 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import twilio from 'twilio'
 import { prisma } from '@/lib/prisma'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
-  const headerSecret =
-    req.headers.get('x-cron-secret') ?? req.headers.get('authorization')?.replace('Bearer ', '')
-  if (!cronSecret || headerSecret !== cronSecret) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
+  const authError = requireCronAuth(req)
+  if (authError) return authError
 
   if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER) {
     return NextResponse.json({ ok: false, error: 'Twilio is not configured' }, { status: 400 })

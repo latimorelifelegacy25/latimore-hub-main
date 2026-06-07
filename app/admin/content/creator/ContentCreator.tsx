@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import PageHeader from '../../_components/PageHeader'
+import PageHeader from '@/app/admin/_components/PageHeader'
 
 interface GeneratedPost {
   title: string
