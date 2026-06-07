@@ -2,10 +2,10 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../../_components/PageHeader'
-import AdminCard from '../../_components/AdminCard'
-import StatPill from '../../_components/StatPill'
-import EmptyState from '../../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
 function fmtDate(value?: Date | null) {
   if (!value) return '—'

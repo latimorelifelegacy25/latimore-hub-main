@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'

@@ -5,21 +5,36 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   analytics: { limit: 120, windowSec: 60 },
   booking: { limit: 10, windowSec: 60 },
   cardEvents: { limit: 200, windowSec: 60 },
-  default: { limit: 100, windowSec: 60 },
-  ethos_redirect: { limit: 30, windowSec: 60 },
-  event: { limit: 120, windowSec: 60 },
-  fillout: { limit: 20, windowSec: 60 },
-  inquiries: { limit: 60, windowSec: 60 },
-  join: { limit: 10, windowSec: 60 },
-  lead: { limit: 30, windowSec: 60 },
-  reports: { limit: 30, windowSec: 60 },
+  fillout:    { limit: 20,  windowSec: 60 },
+  inquiries:  { limit: 60,  windowSec: 60 },
+  booking:    { limit: 10,  windowSec: 60 },
+  reports:    { limit: 30,  windowSec: 60 },
+  event:      { limit: 120, windowSec: 60 },
+  lead:       { limit: 30,  windowSec: 60 },
+  join:       { limit: 10,  windowSec: 60 },
+  analytics:  { limit: 120, windowSec: 60 },
+  ethos_redirect: { limit: 60, windowSec: 60 },
+  default:    { limit: 100, windowSec: 60 },
 }
 
 async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  if (!url || !token) return false
+  if (!url || !token) return null
+  try {
+    const { Ratelimit } = require('@upstash/ratelimit')
+    const { Redis } = require('@upstash/redis')
+    const redis = new Redis({ url, token })
+    _upstash = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(1, '1 s') })
+    return _upstash
+  } catch {
+    return null
+  }
+}
 
+async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
+  const client = getUpstash()
+  if (!client) return false
   try {
     const { Ratelimit } = await import('@upstash/ratelimit')
     const { Redis } = await import('@upstash/redis')
@@ -38,10 +53,38 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
 // In-memory fallback (single-instance only — used when Upstash is not configured).
 const store = new Map<string, { count: number; reset: number }>()
 
+// Periodically evict expired entries to prevent unbounded memory growth.
 setInterval(() => {
   const now = Date.now()
-  for (const [key, rec] of store) {
-    if (now > rec.reset) store.delete(key)
+  for (const [k, rec] of store) {
+    if (now > rec.reset) store.delete(k)
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
+  }
+}, 60_000)
+
+function memoryLimit(key: string, limit: number, windowMs: number): boolean {
+  const now = Date.now()
+  const rec = store.get(key)
+  if (!rec || now > rec.reset) {
+    store.set(key, { count: 1, reset: now + windowMs })
+    return false
   }
 }, 60_000)
 

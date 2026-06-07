@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic'
 
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../../_components/PageHeader'
-import AdminCard from '../../_components/AdminCard'
-import StatPill from '../../_components/StatPill'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
 
 function fmtDate(value?: Date | null) {
   if (!value) return '—'

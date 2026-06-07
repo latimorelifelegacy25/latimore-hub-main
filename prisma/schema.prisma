@@ -68,6 +68,7 @@ model Contact {
   systemEvents         SystemEvent[]
   tasks                Task[]
 
+  @@index([createdAt])
   @@index([county])
   @@index([phone])
   @@index([leadScore])
@@ -109,6 +110,7 @@ model Inquiry {
   systemEvents    SystemEvent[]
   tasks           Task[]
 
+  @@index([createdAt])
   @@index([stage])
   @@index([productInterest])
   @@index([source, medium, campaign])
@@ -139,6 +141,7 @@ model Appointment {
   inquiry         Inquiry?        @relation(fields: [inquiryId], references: [id])
   calendarEvents  CalendarEvent[]
 
+  @@index([createdAt])
   @@index([scheduledFor])
   @@index([status])
 }
@@ -180,6 +183,7 @@ model Event {
   inquiry         Inquiry?         @relation(fields: [inquiryId], references: [id])
   leadSession     LeadSession?     @relation(fields: [leadSessionId], references: [id])
 
+  @@index([occurredAt])
   @@index([eventType, occurredAt])
   @@index([source, medium, campaign])
   @@index([county])
