@@ -40,7 +40,7 @@ export async function getConversionFunnel() {
           END
         ) as stage_order
       FROM "Contact"
-      WHERE created_at >= ${thirtyDaysAgo}
+      WHERE "createdAt" >= ${thirtyDaysAgo}
       GROUP BY status
     )
     SELECT

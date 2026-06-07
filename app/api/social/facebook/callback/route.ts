@@ -60,36 +60,6 @@ export async function GET(req: Request) {
   const instagramBusinessId = igData.instagram_business_account?.id
 
   if (instagramBusinessId) {
-    const existingIg = await prisma.socialConnection.findFirst({ where: { provider: 'instagram' } })
-    await prisma.socialConnection.upsert({
-      where: { id: existingIg?.id ?? '' },
-      update: {
-        accountName: page.name,
-        externalId: page.id,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-    })
-  } else {
-    await sc.create({
-      data: {
-        provider: 'facebook',
-        accountName: page.name,
-        externalId: page.id,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-    })
-  }
-
-  // Also save the linked Instagram business account if present
-  const igRes = await fetch(
-    `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`
-  )
-  const igData = await igRes.json()
-  const instagramBusinessId = igData.instagram_business_account?.id
-
-  if (instagramBusinessId) {
     const igConn = await sc.findFirst({ where: { provider: 'instagram' } })
     if (igConn) {
       await prisma.socialConnection.update({

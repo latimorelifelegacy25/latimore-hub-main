@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireCronAuth, createSystemAiEvent } from '@/lib/ai/shared'
+import { createSystemAiEvent, requireCronAuth } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { publishSocialPost } from '@/lib/social'
 
