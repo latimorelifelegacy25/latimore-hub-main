@@ -133,7 +133,7 @@ export default function BlogIndexClient({ articles }: BlogIndexClientProps) {
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.25rem', fontWeight: 700, color: C.white }}>Jackson M. Latimore Sr.</div>
               <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.gold, margin: '4px 0 10px' }}>Founder &amp; CEO — Latimore Life &amp; Legacy LLC · Independent Insurance Broker · PA DOI #1268820</div>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, maxWidth: 600 }}>In December 2010, I collapsed on the basketball court at East Stroudsburg University's Koehler Fieldhouse. My heart stopped. An AED funded by the Gregory W. Moyer Defibrillator Fund brought me back. That question — what would have happened to the people who depended on me if I had not survived — drives everything I do.</p>
+              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, maxWidth: 600 }}>In December 2010, I collapsed on the basketball court at East Stroudsburg University's Koehler Fieldhouse. My heart stopped. An AED placed through the Gregory W. Moyer Defibrillator Fund helped bring me back. That question — what would have happened to the people who depended on me if I had not survived — drives everything I do.</p>
               <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: C.gold, marginTop: 8, display: 'block', letterSpacing: '0.08em' }}>#TheBeatGoesOn · Affiliated with Global Financial Impact (GFI)</span>
             </div>
           </div>
