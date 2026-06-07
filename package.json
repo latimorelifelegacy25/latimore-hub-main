@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:safe": "prisma generate && NODE_OPTIONS=--max-old-space-size=2048 NEXT_TELEMETRY_DISABLED=1 next build",
+    "build:clean": "rm -rf .next node_modules/.cache .turbo && npm run build:safe",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "validate": "npm run lint && npm run build",
@@ -12,7 +14,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "build:fresh-db": "prisma generate && prisma db push && next build",
-    "db:seed": "prisma db seed",
+    "db:seed": "tsx prisma/seed.ts",
     "check": "tsx scripts/verify-workspace.ts",
     "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts"
   },
