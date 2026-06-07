@@ -39,14 +39,21 @@ export default function AnalyticsPage() {
     recentEvents.loading ||
     opportunities.loading
 
-  function refresh() {
-    overview.run()
-    funnel.run()
-    timeSeries.run()
-    breakdowns.run()
-    recentEvents.run()
-    opportunities.run()
-  }
+  const runOverview = overview.run
+  const runFunnel = funnel.run
+  const runTimeSeries = timeSeries.run
+  const runBreakdowns = breakdowns.run
+  const runRecentEvents = recentEvents.run
+  const runOpportunities = opportunities.run
+
+  const refresh = useCallback(() => {
+    runOverview()
+    runFunnel()
+    runTimeSeries()
+    runBreakdowns()
+    runRecentEvents()
+    runOpportunities()
+  }, [runOverview, runFunnel, runTimeSeries, runBreakdowns, runRecentEvents, runOpportunities])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { refresh() }, [qs])
