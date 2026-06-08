@@ -67,33 +67,4 @@ function generateInsights({
   return insights
 }
 
-export async function getCrmAnalytics() {
-  return cached('crm-analytics', 60_000, async () => {
-    const [pipeline, leadScores, tasks, funnel, recentActivity, aiTasks] = await Promise.all([
-      getPipelineDistribution(),
-      getLeadScoreDistribution(),
-      getTaskMetrics(),
-      getConversionFunnel(),
-      getRecentActivity(10),
-      getAiTaskStats(),
-    ])
-
-    const insights = generateInsights({
-      pipeline,
-      leadScores,
-      funnel,
-      recentActivity,
-      aiTasks,
-    })
-
-    return {
-      pipeline,
-      leadScores,
-      tasks,
-      funnel,
-      recentActivity,
-      aiTasks,
-      insights,
-    }
-  })
-}
+export { getCrmEvents } from './events'

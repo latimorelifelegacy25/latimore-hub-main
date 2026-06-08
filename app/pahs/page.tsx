@@ -99,14 +99,10 @@ export default function PAHSPage() {
           <div className="pahs-section-kicker">Campaign Video</div>
           <h1>Watch the Campaign</h1>
 
-          <video
-            className="pahs-campaign-video"
-            src="/pahs-campaign-video.mp4"
-            controls
-            playsInline
-            preload="metadata"
-            poster="/pahs-protect-go-card.png"
-          />
+          <video className="pahs-campaign-video" controls playsInline preload="metadata">
+            <source src="/pahs-campaign-video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </section>
       </section>
 
@@ -114,9 +110,9 @@ export default function PAHSPage() {
       <section className="pahs-football-section">
         <div className="pahs-section-wrap narrow">
           <img
-            src="/pahs-protect-go-card.png"
-            alt="PAHS Protect & Go football sponsorship card"
             className="pahs-football-card"
+            src="/pahs-protect-go-card.png"
+            alt="Protect & Go campaign card"
           />
 
           <div className="pahs-partner-line">
@@ -224,9 +220,6 @@ export default function PAHSPage() {
             </a>
           </section>
 
-          <a href="#intakeFormSection" className="pahs-main-cta">
-            Start My Free Protection Review
-          </a>
         </div>
       </section>
 
