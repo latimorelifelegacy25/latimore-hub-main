@@ -48,6 +48,6 @@ export const POST = withCors(async (req: NextRequest) => {
     return NextResponse.json({ ok: true, eventId: event.id, sessionId: event.leadSessionId ?? null })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Event ingest error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 })
   }
 })
