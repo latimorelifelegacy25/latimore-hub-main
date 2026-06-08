@@ -10,7 +10,7 @@ export default function TermsPage() {
         <p className="text-[#A9B1BE] text-sm mb-8">Last updated: {new Date().toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
         <div className="space-y-6 text-[#A9B1BE] text-sm leading-relaxed">
           <p>By accessing this website, you agree to these terms. This site is for informational and educational purposes only and does not constitute an offer or solicitation for any specific insurance product.</p>
-          <p>Content is provided as-is without warranty of any kind. {BRAND.fullName} LLC reserves the right to update or remove content at any time.</p>
+          <p>Content is provided as-is without warranty of any kind. {BRAND.fullName} reserves the right to update or remove content at any time.</p>
           <p>Questions? <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a></p>
         </div>
       </div>

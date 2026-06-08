@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BRAND, COLORS } from '@/lib/brand'
@@ -8,6 +9,13 @@ import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
 const gold     = COLORS.gold       // #C9A25F  --color-gold-500
 const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
+
+export const metadata: Metadata = {
+  title: 'Latimore Life & Legacy | Education-First Insurance Protection',
+  description:
+    'Clear, education-first life insurance, annuity, and legacy planning guidance for Schuylkill, Luzerne, and Northumberland County families.',
+  alternates: { canonical: '/' },
+}
 
 
 
@@ -40,7 +48,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents Served'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents in Our Service Area'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>

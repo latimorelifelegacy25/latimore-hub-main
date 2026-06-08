@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface DailyBriefReport {
   summary: string
@@ -57,7 +57,6 @@ export default function DailyBrief() {
       })
   }, [])
 
-  useEffect(() => { void loadSaved() }, [loadSaved])
 
   const regenerate = async () => {
     setRegenerating(true)

@@ -18,6 +18,8 @@ type LeadBody = {
   page?: string;
 };
 
+type ValidatedLead = Required<LeadBody>;
+
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max);
 }
