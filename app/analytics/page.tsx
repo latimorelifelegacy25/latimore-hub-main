@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import FilterBar from './components/FilterBar'
 import KpiSection from './components/KpiSection'
 import TrendChart from './components/TrendChart'
@@ -16,48 +16,17 @@ export default function AnalyticsPage() {
   const [range, setRange] = useState<Range>('30d')
 
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
-
-  const overviewFetcher = () => analyticsApi.overview(qs)
-  const funnelFetcher = () => analyticsApi.funnel(qs)
-  const timeSeriesFetcher = () => analyticsApi.timeSeries(qs)
-  const breakdownsFetcher = () => analyticsApi.breakdowns(qs)
-  const recentEventsFetcher = () => analyticsApi.recentEvents()
-  const opportunitiesFetcher = () => analyticsApi.opportunities()
-
-  const overview = useApi(overviewFetcher)
-  const funnel = useApi(funnelFetcher)
-  const timeSeries = useApi(timeSeriesFetcher)
-  const breakdowns = useApi(breakdownsFetcher)
-  const recentEvents = useApi(recentEventsFetcher)
-  const opportunities = useApi(opportunitiesFetcher)
-
-  const loading =
-    overview.loading ||
-    funnel.loading ||
-    timeSeries.loading ||
-    breakdowns.loading ||
-    recentEvents.loading ||
-    opportunities.loading
-
-  const runOverview = overview.run
-  const runFunnel = funnel.run
-  const runTimeSeries = timeSeries.run
-  const runBreakdowns = breakdowns.run
-  const runRecentEvents = recentEvents.run
-  const runOpportunities = opportunities.run
+  const dashboardFetcher = useCallback(() => analyticsApi.dashboard(qs), [qs])
+  const dashboard = useApi(dashboardFetcher)
+  const { run: runDashboard } = dashboard
 
   const refresh = useCallback(() => {
-    overview.run()
-    funnel.run()
-    timeSeries.run()
-    breakdowns.run()
-    recentEvents.run()
-    opportunities.run()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [overview, funnel, timeSeries, breakdowns, recentEvents, opportunities])
+    void runDashboard()
+  }, [runDashboard])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { refresh() }, [qs])
+  useEffect(() => {
+    void runDashboard()
+  }, [runDashboard])
 
   return (
     <main className="min-h-screen bg-[#0B0F17] px-4 py-8 text-white md:px-8">

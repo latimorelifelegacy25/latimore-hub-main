@@ -25,12 +25,13 @@ const BodySchema = z.object({
 )
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
 
   // Cron or admin auth
   const cronSecret = process.env.CRON_SECRET
-  const isCron = cronSecret && req.headers.get('x-cron-secret') === cronSecret
+  const isCron = Boolean(cronSecret && req.headers.get('x-cron-secret') === cronSecret)
 
   if (!isCron) {
     const auth = await requireAdminSession()
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
     // Complete AI run
     await completeAiRun({
       aiRunId,
-      output: result,
+      output: result as Record<string, unknown>,
       model: 'rules-engine',
       latencyMs: Date.now() - startedAt,
     })
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       type: 'ai.lead_score.completed',
       contactId: contactId ?? result.contactId,
       inquiryId: inquiryId ?? result.inquiryId,
-      payload: result,
+      payload: result as Record<string, unknown>,
     })
 
     return NextResponse.json({ ok: true, ...result })

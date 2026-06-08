@@ -8,7 +8,6 @@ import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { applyAiRateLimit, completeAiRun, createAiRun, createSystemAiEvent, failAiRun, requireAdminSession } from '@/lib/ai/shared'
 import { countAll } from '@/lib/prisma-helpers'
 
-
 const BodySchema = z.object({ limit: z.number().int().min(3).max(25).default(10).optional() })
 
 const schema = {
@@ -45,10 +44,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now()
   const limited = await applyAiRateLimit(req)
   if (limited) return limited
+
   const cronSecret = process.env.CRON_SECRET
-  const isCron = cronSecret && req.headers.get("x-cron-secret") === cronSecret
+  const isCron = Boolean(cronSecret && req.headers.get('x-cron-secret') === cronSecret)
   if (!isCron) {
     const auth = await requireAdminSession()
     if (!auth.ok) return auth.response
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
         status: task.status,
         contactName: task.contact ? displayName(task.contact) : null,
       })),
-      stageCounts: stageCounts.map((row) => ({ stage: row.stage, count: countAll(row._count)})),
+      stageCounts: stageCounts.map((row) => ({ stage: row.stage, count: countAll(row._count) })),
     }
 
     const aiRun = await createAiRun({ type: AiRunType.daily_brief, input: context as unknown as Record<string, unknown> })
@@ -112,7 +113,14 @@ export async function POST(req: NextRequest) {
     })
 
     const output = { generatedAt: now.toISOString(), brief: completion.output }
-    await completeAiRun({ aiRunId, output: output as Record<string, unknown>, model: completion.model, tokensInput: completion.usage?.input_tokens, tokensOutput: completion.usage?.output_tokens, latencyMs: Date.now() - startedAt })
+    await completeAiRun({
+      aiRunId,
+      output: output as Record<string, unknown>,
+      model: completion.model,
+      tokensInput: completion.usage?.input_tokens,
+      tokensOutput: completion.usage?.output_tokens,
+      latencyMs: Date.now() - startedAt,
+    })
     await createSystemAiEvent({ type: 'ai.daily_brief.completed', payload: output as Record<string, unknown> })
     return NextResponse.json({ ok: true, ...output })
   } catch (error) {
