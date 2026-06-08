@@ -8,7 +8,10 @@ import { recordAppointment } from '@/lib/hub/record-appointment'
 
 function verifyWebhookSecret(req: NextRequest): boolean {
   const secret = process.env.BOOKING_WEBHOOK_SECRET
-  if (!secret) return true
+  if (!secret) {
+    logger.warn({}, '[booking-webhook] BOOKING_WEBHOOK_SECRET not configured — rejecting request')
+    return false
+  }
   const provided = req.headers.get('x-webhook-secret') ?? ''
   try {
     const a = Buffer.from(provided)
@@ -21,7 +24,7 @@ function verifyWebhookSecret(req: NextRequest): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'booking')
+  const limited = await rateLimit(req, 'booking')
   if (limited) return limited
 
   if (!verifyWebhookSecret(req)) {

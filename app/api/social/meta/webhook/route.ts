@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       if (!leadgenId) continue
 
       try {
-        const rawLead = await fetchMetaLead(leadgenId)
+        const rawLead = await fetchMetaLead(leadgenId, undefined, change.value?.page_id)
         const normalized = normalizeMetaLead(rawLead, 'facebook')
         await upsertSocialLead(normalized)
         results.push({ leadgenId, status: 'ok' })

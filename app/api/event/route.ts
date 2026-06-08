@@ -12,7 +12,7 @@ const VALID_EVENT_TYPES = new Set(Object.values(EventType))
 const VALID_PRODUCTS = new Set(Object.values(ProductInterest))
 
 export const POST = withCors(async (req: NextRequest) => {
-  const limited = rateLimit(req, 'event')
+  const limited = await rateLimit(req, 'event')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)

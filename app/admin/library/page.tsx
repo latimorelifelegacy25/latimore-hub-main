@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import PageHeader from '../_components/PageHeader'
-import { LIBRARY_TEMPLATES } from '../_lib/templates'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import { LIBRARY_TEMPLATES } from '@/app/admin/_lib/templates'
 
 type Template = typeof LIBRARY_TEMPLATES[number]
 

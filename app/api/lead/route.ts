@@ -8,7 +8,7 @@ import { LeadIngestSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 export const POST = withCors(async (req: NextRequest) => {
-  const limited = rateLimit(req, 'lead')
+  const limited = await rateLimit(req, 'lead')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)

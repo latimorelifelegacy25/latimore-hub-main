@@ -5,9 +5,9 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
-const BRAND_VOICE = `You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
+const BRAND_VOICE = withAdminAiGuardrails(`You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
 
 NON-NEGOTIABLES:
 1. Brand Voice: Authentic, personal, community-focused (Central PA: Schuylkill, Luzerne, Northumberland Counties), educational, and urgent but NOT fear-based.
@@ -16,7 +16,7 @@ NON-NEGOTIABLES:
 4. Include hashtag: #TheBeatGoesOn
 5. Plain language (8th-grade reading level).
 6. Founder story (cardiac arrest survival, AED, Greg Moyer legacy) used ONLY when relevant, always with dignity — never for shock or manipulation.
-7. Education-first: explain benefits before asking for anything.`
+7. Education-first: explain benefits before asking for anything.`)
 
 const POSTS_SCHEMA = {
   type: 'array' as const,
@@ -40,6 +40,7 @@ const POSTS_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { topic, platform = 'LinkedIn', count = 3 } = body

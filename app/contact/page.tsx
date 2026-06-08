@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { BRAND } from '@/lib/brand'
 import { Calendar, Phone, Mail, Quote, Facebook, QrCode } from 'lucide-react'
@@ -8,6 +9,13 @@ import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/sit
 const navy = '#0E1A2B'
 const gold = '#C9A24D'
 const goldLight = '#E5C882'
+
+export const metadata: Metadata = {
+  title: 'Contact Latimore Life & Legacy',
+  description:
+    'Contact Jackson M. Latimore Sr. for clear, no-pressure guidance on life insurance, annuities, and family protection in Central Pennsylvania.',
+  alternates: { canonical: '/contact' },
+}
 
 
 

@@ -1,13 +1,13 @@
 
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { BadgeCheck, GraduationCap, FileText } from 'lucide-react'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
-
-const navy = '#0E1A2B'
-//const gold = '#C9A24D'
-//const goldLight = '#E5C882'
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy      = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold      = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight  // #E5C882  --color-gold-300
 
 
 
@@ -64,7 +64,7 @@ export default function AboutPage() {
             I was 22 years old, playing basketball at East Stroudsburg University, when I went into sudden cardiac arrest on the court. I collapsed. My heart stopped. Everything went dark.
           </p>
           <p style={{ fontSize: '1.15rem', lineHeight: 1.9, color: '#333', marginBottom: '1.5rem' }}>
-            I'm alive today because athletic trainers had immediate access to an AED — a defibrillator placed at ESU by the Gregory W. Moyer Defibrillator Fund, established after 15-year-old Greg Moyer died of cardiac arrest in 2000. Someone else's tragedy funded my second chance.
+            I'm alive today because athletic trainers had immediate access to an AED — a defibrillator placed at ESU through the Gregory W. Moyer Defibrillator Fund, established after 15-year-old Greg Moyer died of sudden cardiac arrest in 2000. The Moyer family's preparedness work helped make my second chance possible.
           </p>
           <p style={{ fontSize: '1.15rem', lineHeight: 1.9, color: '#333', marginBottom: '2rem' }}>
             That experience rewired how I see everything. Preparedness isn't a luxury — it's the difference between a family that survives a crisis and one that's destroyed by it. When I sit across from a client, I'm not thinking about commission. I'm thinking about the version of them that needs protection when life does what life does.

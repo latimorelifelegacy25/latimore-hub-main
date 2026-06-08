@@ -4,6 +4,12 @@ import { useEffect, useRef } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { getEventContext, getCurrentPageUrl, hydrateLeadContext } from '@/lib/lead'
 
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void
+  }
+}
+
 type EventPayload = ReturnType<typeof getEventContext> & {
   eventType: string
   metadata?: Record<string, unknown>
@@ -17,6 +23,8 @@ const CTA_TEXT_PATTERN =
 const SKIP_TEXT_PATTERN = /^(home|about|products|services|education|contact|menu|close|back to home)$/i
 const BOOKING_HREF_PATTERN = /(\/book(?:$|[/?#])|fillout\.com|calendly\.com|schedule|consult)/i
 const DOWNLOAD_HREF_PATTERN = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip)(\?|#|$)/i
+
+const META_ALLOWED_HOSTS = new Set(['latimorelifelegacy.com', 'www.latimorelifelegacy.com'])
 
 const PRODUCT_PATTERNS: Array<[RegExp, string]> = [
   [/mortgage/i, 'Mortgage_Protection'],
@@ -37,6 +45,53 @@ const COUNTY_PATTERNS: Array<[RegExp, string]> = [
   [/luzerne/i, 'Luzerne'],
   [/northumberland/i, 'Northumberland'],
 ]
+
+function shouldSendMetaEvents(): boolean {
+  if (typeof window === 'undefined') return false
+  return META_ALLOWED_HOSTS.has(window.location.hostname)
+}
+
+function createMetaEventId(prefix: string): string {
+  const randomPart =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2)
+
+  return `${prefix}_${Date.now()}_${randomPart}`
+}
+
+async function sendMetaViewContentEvent(input: {
+  eventId: string
+  eventSourceUrl: string
+  contentName: string
+  contentCategory: string
+}) {
+  if (!shouldSendMetaEvents()) return
+
+  window.fbq?.(
+    'track',
+    'ViewContent',
+    {
+      content_name: input.contentName,
+      content_category: input.contentCategory,
+    },
+    {
+      eventID: input.eventId,
+    }
+  )
+
+  try {
+    await fetch('/api/meta/view-content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+      keepalive: true,
+      cache: 'no-store',
+    })
+  } catch {
+    // Swallow Meta tracking failures so UX is never blocked by analytics.
+  }
+}
 
 function getElementText(element: HTMLElement): string {
   return (element.getAttribute('aria-label') || element.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 140)
@@ -162,25 +217,34 @@ export default function PublicTracker() {
     lastPageRef.current = pageUrl
 
     const context = hydrateLeadContext({ pageUrl })
+    const metaEventId = createMetaEventId('viewcontent')
+    const contentName = typeof document !== 'undefined' ? document.title || 'Latimore Life & Legacy' : 'Latimore Life & Legacy'
+    const contentCategory = pathname.startsWith('/pahs') ? 'PAHS Campaign' : 'Insurance Education'
 
     void sendEvent({
-  leadSessionId: context.leadSessionId,
-  pageUrl: context.pageUrl,
-  referrer: context.referrer,
-  source: context.source,
-  medium: context.medium,
-  campaign: context.campaign,
-  term: context.term,
-  content: context.content,
-  county: null,
-  productInterest: null,
-  eventType: 'page_view',
-  metadata: {
-    title: typeof document !== 'undefined' ? document.title : '',
-  },
+      leadSessionId: context.leadSessionId,
+      pageUrl: context.pageUrl,
+      referrer: context.referrer,
+      source: context.source,
+      medium: context.medium,
+      campaign: context.campaign,
+      term: context.term,
+      content: context.content,
+      county: null,
+      productInterest: null,
+      eventType: 'page_view',
+      metadata: {
+        title: contentName,
+        metaEventId,
+      },
     })
 
-
+    void sendMetaViewContentEvent({
+      eventId: metaEventId,
+      eventSourceUrl: typeof window !== 'undefined' ? window.location.href : context.pageUrl,
+      contentName,
+      contentCategory,
+    })
   }, [pathname, searchParams])
 
   useEffect(() => {

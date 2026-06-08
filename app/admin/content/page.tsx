@@ -2,10 +2,10 @@ export const dynamic = 'force-dynamic'
 
 import { FileText } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import EmptyState from '../_components/EmptyState'
-import StatPill from '../_components/StatPill'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import EmptyState from '@/app/admin/_components/EmptyState'
+import StatPill from '@/app/admin/_components/StatPill'
 import { countAll } from '@/lib/prisma-helpers'
 
 
