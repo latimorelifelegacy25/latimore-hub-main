@@ -639,7 +639,7 @@ function TrendsView({ history, setHistory }: { history: MonthData[]; setHistory:
 
 function ChecklistView() {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
-  const toggle = (key: number) => setChecked(prev => ({ ...prev, !prev[key] }))
+  const toggle = (key: number) => setChecked(prev => ({ ...prev, [key]: !prev[key] }))
 
   const allItems = Object.values(CHECKLIST).flat()
   const doneCount = allItems.filter((_, i) => checked[i]).length
