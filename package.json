@@ -8,7 +8,7 @@
     "build:safe": "prisma generate && NODE_OPTIONS=--max-old-space-size=2048 NEXT_TELEMETRY_DISABLED=1 next build",
     "build:clean": "rm -rf .next node_modules/.cache .turbo && npm run build:safe",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint": "eslint app components lib middleware.ts next.config.js postcss.config.js tailwind.config.ts --ext .js,.jsx,.ts,.tsx --no-error-on-unmatched-pattern",
     "validate": "npm run lint && npm run build",
     "postinstall": "prisma generate",
     "db:deploy": "prisma migrate deploy",
