@@ -223,6 +223,24 @@
   50% { transform: rotate(45deg) translateY(5px); }
 }
 
+.pv2-video {
+  background: var(--pv2-navy);
+  padding: 4rem 1.5rem;
+}
+
+.pv2-video-el {
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 2px solid rgba(196,154,108,.42);
+  border-radius: 4px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.48);
+  background: #000;
+}
+
 .pv2-spgfx {
   background: #0d1821;
 }
