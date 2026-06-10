@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const DEFAULT_STATUS = 'draft'
 const DEFAULT_TYPE = 'post'
@@ -9,6 +10,9 @@ function optionalString(value: unknown) {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const data = await req.json()
     const title = optionalString(data?.title)

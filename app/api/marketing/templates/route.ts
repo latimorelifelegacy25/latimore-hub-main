@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const CreateSchema = z.object({
   title: z.string().min(1).max(200),
@@ -115,6 +116,9 @@ const STARTER_TEMPLATES = [
 ]
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
@@ -143,6 +147,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const data = await req.json()
 
   const job = await prisma.socialPublishJob.create({
@@ -17,6 +21,9 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const jobs = await prisma.socialPublishJob.findMany({
     orderBy: { createdAt: 'desc' },
     take: 50,

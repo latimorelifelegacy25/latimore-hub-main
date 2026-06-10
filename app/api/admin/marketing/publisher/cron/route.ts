@@ -1,8 +1,12 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { publishToPlatform } from '@/lib/marketing/social/meta'
+import { requireCronAuth } from '@/lib/ai/shared'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const unauthorized = requireCronAuth(req)
+  if (unauthorized) return unauthorized
+
   const now = new Date()
 
   const jobs = await prisma.socialPublishJob.findMany({
