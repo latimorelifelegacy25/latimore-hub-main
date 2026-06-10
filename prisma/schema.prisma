@@ -498,6 +498,7 @@ enum AiRunType {
   lead_score
   content_generation
   crm_assistant
+  agent_workflow
 }
 
 enum ContentType {
