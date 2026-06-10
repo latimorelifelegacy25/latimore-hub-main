@@ -8,6 +8,23 @@ import { getTaskMetrics } from './tasks'
 
 export { getCrmEvents } from './events'
 
+export async function getCrmAnalytics() {
+  return cached('crm-analytics', 5 * 60 * 1000, async () => {
+    const [pipeline, leadScores, tasks, funnel, recentActivity, aiTasks] = await Promise.all([
+      getPipelineDistribution(),
+      getLeadScoreDistribution(),
+      getTaskMetrics(),
+      getConversionFunnel(),
+      getRecentActivity(),
+      getAiTaskStats(),
+    ])
+
+    const insights = generateInsights({ pipeline, leadScores, funnel, recentActivity, aiTasks })
+
+    return { pipeline, leadScores, tasks, funnel, recentActivity, aiTasks, insights }
+  })
+}
+
 function generateInsights({
   pipeline,
   leadScores,
@@ -66,5 +83,3 @@ function generateInsights({
 
   return insights
 }
-
-export { getCrmEvents } from './events'
