@@ -51,6 +51,17 @@ export default function PahsV2Page() {
         </div>
       </section>
 
+      <section className="pv2-video">
+        <div className="pv2-sechdr">
+          <div className="pv2-seclab">Campaign Video</div>
+          <h2 className="pv2-sect">Watch the Campaign</h2>
+        </div>
+        <video className="pv2-video-el" controls playsInline preload="metadata">
+          <source src="/pahs-v2/campaign-video.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </section>
+
       <section className="pv2-spgfx">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/pahs-v2/sponsor-flyer.jpg" alt="Proud All-Star Sponsor of Pottsville Area High School '26 - Crimson Tide and Latimore Life & Legacy LLC" />
