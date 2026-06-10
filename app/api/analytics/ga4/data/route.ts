@@ -52,8 +52,8 @@ function formatDate(value: string) {
 }
 
 export async function GET() {
-  const authResult = await requireAdminSession()
-  if (authResult instanceof Response) return authResult
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   try {
     const event = await prisma.systemEvent.findFirst({

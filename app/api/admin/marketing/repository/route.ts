@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function GET() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const items = await prisma.contentResource.findMany({
     orderBy: { createdAt: 'desc' },
     take: 50,
@@ -11,6 +15,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const data = await req.json()
 
   const created = await prisma.contentResource.create({

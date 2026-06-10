@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { publishSocialPostById } from '@/lib/social/publisher'
+import { requireAdminSession } from '@/lib/ai/shared'
 import type { CreateSocialPostInput, SocialPlatform } from '@/lib/social/types'
 
 const PLATFORMS: SocialPlatform[] = ['facebook', 'instagram', 'linkedin']
@@ -49,6 +50,9 @@ function parseInput(value: unknown): CreateSocialPostInput {
 }
 
 export async function GET() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const posts = await prisma.socialPost.findMany({
     orderBy: {
       createdAt: 'desc',
@@ -71,6 +75,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const input = parseInput(await request.json())
     const scheduledAt = input.scheduledAt ? new Date(input.scheduledAt) : null

@@ -9,7 +9,12 @@ import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
 export async function requireAdminSession() {
-  if (process.env.DISABLE_ADMIN_AUTH === 'true') return { ok: true as const, session: null }
+  if (process.env.DISABLE_ADMIN_AUTH === 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
+    }
+    return { ok: true as const, session: null }
+  }
   const session = await getServerSession(authOptions)
   if (!session) {
     return {

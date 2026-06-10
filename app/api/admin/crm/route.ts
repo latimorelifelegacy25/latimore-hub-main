@@ -1,8 +1,12 @@
 import { LeadStatus } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function GET() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const contacts = await prisma.contact.findMany({
     orderBy: { createdAt: 'desc' },
   })
@@ -11,6 +15,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const data = await req.json()
   const name = typeof data.name === 'string' ? data.name.trim() : ''
 
