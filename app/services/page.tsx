@@ -50,7 +50,7 @@ const services: Service[] = [
     title: 'Tax-Advantaged Wealth Accumulation',
     who: 'Working professionals, self-employed individuals, high earners',
     summary:
-      'Build wealth using vehicles that grow tax-deferred or tax-free — reducing what you pay the IRS over your lifetime.',
+      'Build wealth using vehicles that may grow tax-deferred or provide generally income-tax-advantaged access when properly structured — reducing avoidable tax drag over your lifetime.',
     points: [
       'Indexed and fixed strategies that grow without market risk',
       'Tax-deferred accumulation inside annuities and permanent life policies',
@@ -65,7 +65,7 @@ const services: Service[] = [
     title: 'Asset Protection & Plan Rollovers',
     who: 'Job changers, retirees, anyone with a 401(k), 403(b), or pension',
     summary:
-      'When you leave a job or retire, your retirement funds need a safe destination. A strategic rollover protects your principal.',
+      'When you leave a job or retire, your retirement funds need a destination aligned with your income, liquidity, and risk goals. A strategic rollover can help protect principal when an insurance product is suitable.',
     points: [
       'Tax-free, penalty-free 401(k) and 403(b) rollover guidance',
       'Pension lump-sum vs. annuity analysis',
@@ -80,7 +80,7 @@ const services: Service[] = [
     title: 'College Education Funding',
     who: "Parents and grandparents planning ahead for a child's education",
     summary:
-      'Fund higher education without putting your retirement at risk — using strategies that grow tax-free.',
+      'Fund higher education without putting your retirement at risk — using strategies that may grow tax-deferred and provide flexible access.',
     points: [
       'Cash-value life insurance as a flexible education savings vehicle',
       'No restrictions on how funds are used — not just tuition',
@@ -127,7 +127,7 @@ const services: Service[] = [
     summary:
       'A proper estate strategy ensures your assets go to who you intend without being eroded by taxes or probate.',
     points: [
-      'Life insurance as a tax-free wealth transfer vehicle',
+      'Life insurance as a generally income-tax-advantaged wealth transfer vehicle',
       'Beneficiary designation review and optimization',
       'Strategies to minimize estate tax exposure',
       'Funding for buy-sell agreements between business partners',
@@ -140,7 +140,7 @@ const services: Service[] = [
     title: 'Indexed Growth Strategies',
     who: 'Savers and pre-retirees who want market-linked growth without market risk',
     summary:
-      'Indexed products track market performance while protecting your principal with a floor.',
+      'Indexed products credit interest from market-index formulas while offering protection from direct index losses, subject to product terms and charges.',
     points: [
       'Cash value linked to indexes like the S&P 500',
       'Zero-loss floor — market drops cannot reduce your balance',
@@ -173,7 +173,7 @@ const services: Service[] = [
       'The sudden loss of a key employee can devastate a business. Key-person insurance provides capital to survive.',
     points: [
       'Policy owned by the business on a critical employee',
-      'Tax-free death benefit received directly by the business',
+      'Generally income-tax-free death benefit received directly by the business',
       'Funds buy-sell agreements between partners',
       'Covers revenue loss, loan obligations, and recruitment costs',
       'Can be used to attract and retain key talent as a benefit',
@@ -187,7 +187,7 @@ const services: Service[] = [
     summary:
       'Running out of money in retirement is one of the greatest financial risks. Guaranteed income removes that fear.',
     points: [
-      'Fixed and fixed-indexed annuities for principal-protected accumulation',
+      'Fixed and fixed-indexed annuities for principal-protection strategies, subject to product terms',
       'Guaranteed lifetime income riders — payments you cannot outlive',
       'Structured to complement Social Security and other income',
       'Eliminate sequence-of-returns risk in your portfolio',

@@ -1,14 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { MobileNav } from './mobile-nav'
 
 export type NavLink = readonly [href: string, label: string]
 
+/**
+ * SITE_COLORS — convenience re-export of canonical brand tokens for
+ * components that use inline styles. Add new values from COLORS as needed.
+ * For CSS classes, use var(--color-*) tokens directly.
+ */
 export const SITE_COLORS = {
-  navy: '#0E1A2B',
-  gold: '#C9A24D',
-  goldLight: '#E5C882',
+  navy:      COLORS.navy,
+  gold:      COLORS.gold,
+  goldLight: COLORS.goldLight,
 } as const
 
 export const DEFAULT_NAV_LINKS = [
@@ -17,6 +22,7 @@ export const DEFAULT_NAV_LINKS = [
   ['/products', 'Products'],
   ['/services', 'Services'],
   ['/education', 'Education'],
+  ['/blog', 'Blog'],
   ['/join', 'Join Our Team'],
   ['/contact', 'Contact'],
 ] as const satisfies readonly NavLink[]
@@ -113,20 +119,6 @@ export function SiteHeader({
             )
           })}
           <a
-            href="/pahs"
-            style={{
-              border: `1px solid ${SITE_COLORS.goldLight}`,
-              color: SITE_COLORS.goldLight,
-              padding: '0.5rem 0.95rem',
-              borderRadius: 8,
-              fontWeight: 700,
-              textDecoration: 'none',
-              fontSize: '0.85rem',
-            }}
-          >
-            PAHS FOOTBALL 2026
-          </a>
-          <a
             href={BRAND.bookingUrl}
             style={{
               background: SITE_COLORS.gold,
@@ -166,7 +158,7 @@ export function SiteFooter({ navLinks = DEFAULT_NAV_LINKS }: { navLinks?: readon
         >
           <div>
             <h4 style={{ color: SITE_COLORS.goldLight, marginBottom: '1rem' }}>
-              {BRAND.fullName} LLC
+              {BRAND.fullName}
             </h4>
             <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '0.9rem', lineHeight: 1.7 }}>
               Independent Insurance Advisor

@@ -1,21 +1,8 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 
-interface SocialPost {
-  id: string
-  content: string
-  platform: 'facebook' | 'linkedin' | 'instagram' | 'twitter'
-  status: 'draft' | 'scheduled' | 'published'
-  scheduledDate?: string
-  publishedDate?: string
-  engagement?: {
-    likes: number
-    shares: number
-    comments: number
-    clicks: number
-  }
-}
 
 export async function GET(req: NextRequest) {
   try {

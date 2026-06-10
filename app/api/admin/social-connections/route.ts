@@ -1,8 +1,10 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { encryptToken } from '@/lib/crypto'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
@@ -42,8 +44,8 @@ export async function POST(req: NextRequest) {
     provider,
     accountName: accountName || undefined,
     externalId: externalId || undefined,
-    accessToken: accessToken || undefined,
-    refreshToken: refreshToken || undefined,
+    accessToken: accessToken ? encryptToken(accessToken) : undefined,
+    refreshToken: refreshToken ? encryptToken(refreshToken) : undefined,
     metadata: metadata || undefined,
     status: status || undefined,
   }

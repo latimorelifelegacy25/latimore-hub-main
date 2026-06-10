@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type DocCategory = 'All' | 'Brochure' | 'Product Guide' | 'Presentation' | 'Script' | 'Compliance' | 'Other'
 
@@ -18,14 +18,14 @@ interface DocItem {
 const now = new Date().toISOString()
 
 const DEFAULT_DOCS: DocItem[] = [
-  { id: 'd1', title: 'North American Builder Plus 4 — IUL Brochure', category: 'Brochure', carrier: 'North American', url: 'https://www.northamericancompany.com/', tags: ['iul', 'builder plus', 'north american'], notes: 'Key IUL product brochure. Emphasize tax-free growth bucket, 0% floor, living benefits.', createdAt: now },
+  { id: 'd1', title: 'North American Builder Plus 4 — IUL Brochure', category: 'Brochure', carrier: 'North American', url: 'https://www.northamericancompany.com/', tags: ['iul', 'builder plus', 'north american'], notes: 'Key IUL product brochure. Emphasize tax-advantaged policy design, downside protection from direct index losses, policy charges, lapse risk, and living benefits only when available by rider.', createdAt: now },
   { id: 'd2', title: 'F&G Safe Income Advantage — FIA Brochure', category: 'Brochure', carrier: 'F&G', url: 'https://www.fglife.com/', tags: ['fia', 'annuity', 'safe income', 'rule of 72'], notes: '7.2% roll-up rate. Market-proof income. Ideal for retirees 60+.', createdAt: now },
   { id: 'd3', title: 'Ethos Velocity Term — Spec Sheet', category: 'Product Guide', carrier: 'Ethos', url: 'https://www.ethoslife.com/', tags: ['term', 'velocity', 'instant decision'], notes: '10-minute online application. No medical exam for many. Instant decisions.', createdAt: now },
   { id: 'd4', title: 'Foresters Final Expense — Product Overview', category: 'Product Guide', carrier: 'Foresters', url: 'https://www.foresters.com/', tags: ['final expense', 'foresters', 'seniors'], notes: 'Soft and empathetic positioning for seniors. Remove burden from children.', createdAt: now },
   { id: 'd5', title: 'Latimore Life & Legacy — Main Website', category: 'Other', carrier: '', url: 'https://www.latimorelifelegacy.com', tags: ['website', 'main', 'brand'], notes: 'Public-facing site. Brand assets, hero copy, services.', createdAt: now },
   { id: 'd6', title: 'The 3-Bucket Strategy — Education Script', category: 'Script', carrier: '', tags: ['script', 'education', '3 buckets', 'discovery'], notes: 'Taxable, Tax-Deferred, Tax-Free buckets. Core discovery call framework.', createdAt: now },
   { id: 'd7', title: 'Mortgage Protection Discovery Script', category: 'Script', carrier: '', tags: ['script', 'mortgage protection', 'homeowners'], notes: '"What is your biggest monthly expense?" → risk of income loss → term policy as mortgage safety net.', createdAt: now },
-  { id: 'd8', title: 'IRS Codes Reference — 7702A, 72E, 101A', category: 'Compliance', carrier: '', tags: ['compliance', 'irs', 'iul', '7702a'], notes: 'Key codes for IUL tax-free positioning. 7702A: MEC test. 101A: Death benefit exclusion.', createdAt: now },
+  { id: 'd8', title: 'IRC Reference — 7702, 72(e), 101(a)', category: 'Compliance', carrier: '', tags: ['compliance', 'irs', 'iul', '7702'], notes: 'Key code sections for life insurance tax treatment. 7702: life insurance definition. 72(e): policy loan/distribution rules. 101(a): death benefit exclusion. 7702A: MEC testing.', createdAt: now },
   { id: 'd9', title: 'PAHS Football 2026 — Sponsorship Proposal', category: 'Presentation', carrier: '', url: 'https://pahs.latimorelifelegacy.com', tags: ['pahs', 'sponsorship', 'community'], notes: 'CampusBox/SpiritStop sponsorship. $1,700 total, $1,240 paid, $460 due 05/18/2026.', createdAt: now },
   { id: 'd10', title: 'Key Person Insurance — School Districts Pitch', category: 'Presentation', carrier: '', tags: ['key person', 'school districts', 'b2b'], notes: 'Targeting superintendents and district administrators in Schuylkill, Luzerne, Northumberland.', createdAt: now },
   { id: 'd11', title: 'American Equity — FIA Overview', category: 'Product Guide', carrier: 'American Equity', url: 'https://www.american-equity.com/', tags: ['fia', 'annuity', 'american equity'], notes: 'Asset preservation & FIA portfolio for risk-averse clients.', createdAt: now },
@@ -48,14 +48,26 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Presentation': '📊', 'Script': '📝', 'Compliance': '⚖️', 'Other': '📎'
 }
 
+const LS_KEY = 'latimore_docs_v2'
+
+function loadDocs(): DocItem[] {
+  if (typeof window === 'undefined') return DEFAULT_DOCS
+  try {
+    const saved = localStorage.getItem(LS_KEY)
+    return saved ? JSON.parse(saved) : DEFAULT_DOCS
+  } catch { return DEFAULT_DOCS }
+}
+
 export default function DocsPage() {
-  const [docs, setDocs] = useState<DocItem[]>(DEFAULT_DOCS)
+  const [docs, setDocs] = useState<DocItem[]>(() => loadDocs())
   const [query, setQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<DocCategory>('All')
   const [showModal, setShowModal] = useState(false)
   const [editingDoc, setEditingDoc] = useState<DocItem | null>(null)
   const [newDoc, setNewDoc] = useState<Partial<DocItem>>({ category: 'Other', tags: [] })
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(docs)) } catch {} }, [docs])
 
   const filtered = docs.filter(d => {
     const matchCat = activeCategory === 'All' || d.category === activeCategory
@@ -202,9 +214,10 @@ export default function DocsPage() {
                       href={doc.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#C49A6C] transition-all"
+                      className="bg-slate-900 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#C49A6C] transition-all flex items-center gap-1.5"
                     >
-                      Open →
+                      <i className={`fa-solid ${doc.url.startsWith('blob:') ? 'fa-file-pdf' : 'fa-external-link'} text-[9px]`}></i>
+                      {doc.url.startsWith('blob:') ? 'View File' : 'Open Site →'}
                     </a>
                   )}
                   <button
@@ -247,7 +260,20 @@ export default function DocsPage() {
                 {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
               </select>
               <input placeholder="Carrier (optional)" value={newDoc.carrier || ''} onChange={e => setNewDoc(p => ({ ...p, carrier: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
-              <input placeholder="URL (optional)" value={newDoc.url || ''} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Upload File or Enter URL</p>
+                <label className="flex items-center gap-3 cursor-pointer border border-dashed border-slate-300 rounded-xl px-4 py-3 text-sm text-slate-500 hover:border-[#C49A6C] hover:text-[#C49A6C] transition-all mb-2">
+                  <i className="fa-solid fa-file-arrow-up text-[#C49A6C]"></i>
+                  <span>{newDoc.url?.startsWith('blob:') || newDoc.url?.startsWith('data:') ? '✓ File attached' : 'Choose PDF or image...'}</span>
+                  <input type="file" accept=".pdf,image/*" className="hidden" onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const url = URL.createObjectURL(file)
+                    setNewDoc(p => ({ ...p, url, title: p.title || file.name }))
+                  }} />
+                </label>
+                <input placeholder="— or paste a URL —" value={(newDoc.url?.startsWith('blob:') || newDoc.url?.startsWith('data:')) ? '' : (newDoc.url || '')} onChange={e => setNewDoc(p => ({ ...p, url: e.target.value }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
+              </div>
               <input placeholder="Tags (comma separated)" value={Array.isArray(newDoc.tags) ? newDoc.tags.join(', ') : (newDoc.tags || '')} onChange={e => setNewDoc(p => ({ ...p, tags: e.target.value as any }))} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C]" />
               <textarea placeholder="Notes (optional)" value={newDoc.notes || ''} onChange={e => setNewDoc(p => ({ ...p, notes: e.target.value }))} rows={3} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#C49A6C] resize-none" />
             </div>

@@ -49,15 +49,15 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
           const metrics = await res.json();
           return { ...post, realMetrics: metrics };
         }
-      } catch (e) {}
+      } catch { }
       return post;
     }));
     setRealTimeMetrics(results.filter(r => r.realMetrics));
   };
 
   useEffect(() => {
-    fetchRealTimeMetrics();
-  }, [scheduledPosts]);
+    void fetchRealTimeMetrics()
+  }, [scheduledPosts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Ensure Recharts doesn't render until the container is ready
   useEffect(() => {

@@ -4,6 +4,8 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
   type: 'object' as const,
@@ -29,7 +31,7 @@ const CONTENT_SCHEMA = {
   required: ['title', 'draft', 'platform', 'hashtags'],
 }
 
-const BRAND_VOICE = `You are the content strategist for Latimore Life & Legacy LLC.
+const BRAND_VOICE = withAdminAiGuardrails(`You are the content strategist for Latimore Life & Legacy LLC.
 Brand Voice:
 - Authentic, personal, community-focused (Central PA: Schuylkill, Luzerne, Northumberland Counties)
 - Educational, urgent but NOT fear-based
@@ -43,15 +45,13 @@ Non-Negotiables:
 - Plain language (8th grade level)
 - Focus on legacy, not death
 - Solutions-oriented
-- Warm and community-focused`
+- Warm and community-focused`)
 
 export async function POST(req: Request) {
-  try {
-    console.log('Environment check:')
-    console.log('GEMINI_API_KEY exists:', !!process.env.GEMINI_API_KEY)
-    console.log('OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY)
-    console.log('AI_PROVIDER:', process.env.AI_PROVIDER || 'default(gemini)')
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
+  try {
     const body = await req.json()
     const { topic, platform = 'linkedin', count = 1 } = body
 
@@ -72,11 +72,11 @@ export async function POST(req: Request) {
         schema: CONTENT_SCHEMA,
         temperature: 0.8,
       })
-      console.log('AI result for post', i, ':', result)
+      logger.debug({ index: i, result }, 'AI result for post')
       results.push(result.output)
     }
 
-    console.log('Final results:', results)
+    logger.debug({ count: results.length }, 'Final content generation results')
 
     return Response.json({
       success: true,
