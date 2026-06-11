@@ -207,7 +207,7 @@ export default function PahsProtectForm() {
           {/* Sponsor card */}
           <div className="pwyp-flyer-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="Free Consultation — Sponsored by Latimore Life & Legacy" src="/pahs-v2/sponsor-flyer.jpg" />
+            <img alt="Free Consultation — Sponsored by Latimore Life & Legacy" src="/pahs-v2/sponsor-flyer.png" />
           </div>
 
           {/* Hero headline */}
