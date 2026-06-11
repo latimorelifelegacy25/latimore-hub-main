@@ -104,9 +104,11 @@ export default function PahsLeadsClient({ leads }: { leads: PahsLead[] }) {
       if (l.county) countyMap[l.county] = (countyMap[l.county] ?? 0) + 1
     })
 
-    const today = new Date().toDateString()
+    // eslint-disable-next-line react-hooks/purity -- "today" is a stable reference point for the leads snapshot, not used for rendering time
+    const now = Date.now()
+    const today = new Date(now).toDateString()
     const todayCount = leads.filter((l) => new Date(l.createdAt).toDateString() === today).length
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000)
     const weekCount = leads.filter((l) => new Date(l.createdAt) >= weekAgo).length
 
     return {
