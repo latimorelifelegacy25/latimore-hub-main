@@ -4,17 +4,17 @@ import { useEffect } from 'react'
 
 export default function ScrollReveal() {
   useEffect(() => {
-    const els = document.querySelectorAll('.pv2-fu2')
+    const els = document.querySelectorAll('.pwyp-fade-in')
     const obs = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry, i) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setTimeout(() => entry.target.classList.add('pv2-vis'), i * 80)
+            entry.target.classList.add('pwyp-visible')
             obs.unobserve(entry.target)
           }
         })
       },
-      { threshold: 0.1 }
+      { threshold: 0.08 }
     )
     els.forEach((el) => obs.observe(el))
     return () => obs.disconnect()

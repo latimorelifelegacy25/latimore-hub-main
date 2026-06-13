@@ -24,6 +24,7 @@ const navItems = [
   { href: '/admin/content/schedule', label: 'Schedule', icon: 'fa-calendar-check' },
   { href: '/admin/content/campaigns', label: 'Campaigns', icon: 'fa-calendar-days' },
   { href: '/admin/pahs-campaign', label: 'PAHS Campaign', icon: 'fa-football' },
+  { href: '/admin/pahs', label: 'PAHS Leads', icon: 'fa-list-check' },
   { href: '/admin/connectors', label: 'Integrations', icon: 'fa-plug' },
   { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
   { href: '/admin/messages', label: 'Messages', icon: 'fa-message' },
