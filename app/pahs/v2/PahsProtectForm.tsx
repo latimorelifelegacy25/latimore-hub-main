@@ -191,7 +191,7 @@ export default function PahsProtectForm() {
       <section className="pwyp-hero" id="top">
         <div className="pwyp-flyer-bg">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="PAHS Crimson Tide Football 2026" src="/pahs-v2/season-kickoff.jpg" />
+          <img alt="PAHS Crimson Tide Football 2026" src="/pahs-v2/sponsor-flyer.png" />
         </div>
         <div className="pwyp-content">
           {/* Logo */}
@@ -207,15 +207,11 @@ export default function PahsProtectForm() {
           {/* Sponsor card */}
           <div className="pwyp-flyer-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="Free Consultation — Sponsored by Latimore Life & Legacy" src="/pahs-v2/sponsor-flyer.jpg" />
+            <img alt="2005 Coal Region All-Area Football — Where the Journey Began" src="/pahs-v2/throwback-thursday.jpg" />
           </div>
 
           {/* Hero headline */}
           <div className="pwyp-hero-headline">
-            <h1>
-              Protect What
-              <span>You Play For</span>
-            </h1>
             <p className="pwyp-sub">
               <strong>Jackson Latimore</strong> is a Pottsville local, a Crimson Tide supporter, and a licensed
               protection specialist. Your free review takes 60 seconds.
