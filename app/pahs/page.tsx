@@ -26,7 +26,7 @@ export default function PAHSPage() {
   const formRef = useRef<HTMLFormElement>(null)
 
   function updateLead<K extends keyof LeadForm>(field: K, value: LeadForm[K]) {
-    setLead((current) => ({ ...current, value }))
+    setLead((current) => ({ ...current, [field]: value }))
   }
 
   function normalizeLead(data: LeadForm): LeadForm {
@@ -99,14 +99,21 @@ export default function PAHSPage() {
           <div className="pahs-section-kicker">Campaign Video</div>
           <h1>Watch the Campaign</h1>
 
-          /pahs-campaign-video.mp4
+          <video className="pahs-campaign-video" controls playsInline preload="metadata">
+            <source src="/pahs-campaign-video.mp4" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </section>
       </section>
 
       {/* ---------- FORM SECTION ---------- */}
       <section className="pahs-football-section">
         <div className="pahs-section-wrap narrow">
-          /pahs-protect-go-card.png
+          <img
+            className="pahs-football-card"
+            src="/pahs-protect-go-card.png"
+            alt="Protect & Go campaign card"
+          />
 
           <div className="pahs-partner-line">
             Official Protection Partner · Crimson Tide ’26
@@ -213,16 +220,13 @@ export default function PAHSPage() {
             </a>
           </section>
 
-          #intakeFormSection
-            Start My Free Protection Review
-          </a>
         </div>
       </section>
 
       {/* ---------- MOBILE CTA ---------- */}
       <div className="pahs-mobile-cta">
         <span>Free Protection Review</span>
-        #intakeFormSectionStart Now</a>
+        <a href="#intakeFormSection">Start Now</a>
       </div>
     </main>
   )

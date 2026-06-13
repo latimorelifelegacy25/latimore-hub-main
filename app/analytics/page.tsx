@@ -18,14 +18,15 @@ export default function AnalyticsPage() {
   const qs = useMemo(() => new URLSearchParams({ range }).toString(), [range])
   const dashboardFetcher = useCallback(() => analyticsApi.dashboard(qs), [qs])
   const dashboard = useApi(dashboardFetcher)
+  const { run: runDashboard } = dashboard
 
   const refresh = useCallback(() => {
-    void dashboard.run()
-  }, [dashboard.run])
+    void runDashboard()
+  }, [runDashboard])
 
   useEffect(() => {
-    void dashboard.run()
-  }, [dashboard.run])
+    void runDashboard()
+  }, [runDashboard])
 
   return (
     <main className="min-h-screen bg-[#0B0F17] px-4 py-8 text-white md:px-8">

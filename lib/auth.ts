@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import { logger } from '@/lib/logger'
+import '@/lib/env'
 
 function parseList(v?: string | null): string[] {
   return (v ?? '')

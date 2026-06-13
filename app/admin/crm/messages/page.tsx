@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import MessagesPage from '@/app/admin/messages/page'
 
 type CRMMessagePageProps = {

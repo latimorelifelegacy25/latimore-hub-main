@@ -497,6 +497,8 @@ enum AiRunType {
   contact_brief
   lead_score
   content_generation
+  crm_assistant
+  agent_workflow
 }
 
 enum ContentType {
@@ -904,6 +906,43 @@ enum LeadStatus {
   NURTURE
   ON_HOLD
   DORMANT
+}
+
+
+model ContentResource {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  status      String   @default("draft")
+  bodyHtml    String?
+  campaign    String?
+  destination String?
+  utmSource   String?
+  publishAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  socialPublishJobs SocialPublishJob[]
+
+  @@index([status, createdAt])
+  @@index([campaign])
+  @@index([publishAt])
+}
+
+model SocialPublishJob {
+  id           String   @id @default(cuid())
+  platform     String
+  status       String   @default("queued")
+  scheduledFor DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contentId String
+  content   ContentResource @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([platform])
+  @@index([status, scheduledFor])
+  @@index([contentId])
 }
 
 // ─── Blog / Content Posts ─────────────────────────────────────────────────────

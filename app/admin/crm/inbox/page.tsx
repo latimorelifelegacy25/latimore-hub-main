@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import InboxPage from '@/app/admin/inbox/page'
 
 export const metadata = {

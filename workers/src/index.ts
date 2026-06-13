@@ -108,7 +108,7 @@ function toUpsert(c: ContactRow) {
 	const props: Record<string, unknown> = {
 		Name: Builder.title(displayName),
 		"CRM ID": Builder.richText(c.id),
-		Status: Builder.status(
+		Status: Builder.select(
 			c.inquiry ? stageToStatus(c.inquiry.stage) : "Lead",
 		),
 	};
@@ -144,7 +144,12 @@ const contacts = worker.database("contacts", {
 			"CRM ID": Schema.richText(),
 			"Email Address": Schema.email(),
 			"Phone Number": Schema.phoneNumber(),
-			Status: Schema.status(),
+			Status: Schema.select([
+				{ name: "Lead" },
+				{ name: "Negotiating" },
+				{ name: "Active" },
+				{ name: "Lost" },
+			]),
 			"Lead Source": Schema.select([
 				{ name: "🌐 Website Form" },
 				{ name: "🎯 Google Ad" },
@@ -195,7 +200,7 @@ worker.sync("contactsBackfill", {
 		const { contacts: rows, hasMore } = await fetchContacts(page);
 
 		return {
-			changes: rows.map(toUpsert),
+			changes: rows.map(toUpsert) as any,
 			hasMore,
 			nextState: hasMore ? { page: page + 1 } : undefined,
 		};
@@ -227,7 +232,7 @@ worker.sync("contactsDelta", {
 			: cursor;
 
 		return {
-			changes: rows.map(toUpsert),
+			changes: rows.map(toUpsert) as any,
 			hasMore,
 			nextState: { cursor: nextCursor },
 		};

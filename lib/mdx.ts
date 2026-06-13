@@ -78,6 +78,3 @@ export function getPostsByCategory(category: string): Post[] {
 export { CATEGORIES } from './blog-constants'
 export type { Category } from './blog-constants'
 
-// Aliases for legacy components that predated this module
-export type Track = 'A' | 'B' | 'C'
-export type ArticleMeta = Post

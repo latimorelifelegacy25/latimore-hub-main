@@ -20,6 +20,6 @@ export const POST = withCors(async (req: NextRequest) => {
     return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Lead ingest error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 })
   }
 })

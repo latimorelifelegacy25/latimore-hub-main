@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import ContactsPage from '@/app/admin/contacts/page'
 
 export const metadata = {

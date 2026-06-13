@@ -1,10 +1,7 @@
-import PublisherClient from './PublisherClient'
+import { SocialPublisherPanel } from './SocialPublisherPanel'
 
-export const metadata = {
-  title: 'Publisher | Latimore OS',
-  description: 'Publish Latimore Life & Legacy marketing content from the content repository.',
-}
+export const dynamic = 'force-dynamic'
 
 export default function PublisherPage() {
-  return <PublisherClient />
+  return <SocialPublisherPanel />
 }

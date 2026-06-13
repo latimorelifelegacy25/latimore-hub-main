@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function publishMarketingContent(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const { id } = await req.json()
 

@@ -17,9 +17,10 @@ export async function syncContactToNotion(
   if (!notion || !dbId) return
 
   const properties = buildProperties(contact, inquiry)
+  const notionAny = notion as any
 
   // Look up existing page by CRM ID (stable key — survives email changes)
-  const { results } = await notion.databases.query({
+  const { results } = await notionAny.databases.query({
     database_id: dbId,
     filter: { property: 'CRM ID', rich_text: { equals: contact.id } },
     page_size: 1,
@@ -28,9 +29,9 @@ export async function syncContactToNotion(
   const existingPageId = results[0]?.id ?? null
 
   if (existingPageId) {
-    await notion.pages.update({ page_id: existingPageId, properties } as never)
+    await notionAny.pages.update({ page_id: existingPageId, properties } as never)
   } else {
-    await notion.pages.create({
+    await notionAny.pages.create({
       parent: { database_id: dbId },
       properties,
     } as never)

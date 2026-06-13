@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { MessageDirection, MessageStatus, ThreadChannel } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 function optionalString(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null
@@ -12,6 +13,9 @@ function displayName(contact?: { fullName?: string | null; firstName?: string | 
 }
 
 export async function GET() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const messages = await prisma.conversationMessage.findMany({
     orderBy: { createdAt: 'desc' },
     take: 100,
@@ -33,6 +37,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   try {
     const data = await req.json()
     const body = optionalString(data?.body) ?? optionalString(data?.bodyText)
