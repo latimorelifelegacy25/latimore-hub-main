@@ -1,5 +1,9 @@
 import Link from 'next/link'
+import { getServerSession } from 'next-auth'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { isAdminEmail } from '@/lib/admin-access'
+import { authOptions } from '@/lib/auth'
 import AdminMobileNav from './_components/AdminMobileNav'
 import NotificationCenter from './_components/NotificationCenter'
 
@@ -32,7 +36,18 @@ const navItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: 'fa-chart-bar' },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions)
+  const email = session?.user?.email
+
+  if (!email) {
+    redirect('/api/auth/signin?callbackUrl=/admin')
+  }
+
+  if (!isAdminEmail(email)) {
+    notFound()
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0B0F17] text-[#F7F7F5]">
 
