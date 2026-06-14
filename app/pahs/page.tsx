@@ -156,11 +156,24 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="pahs-proof" aria-labelledby="pahs-proof-title">
-        <div className="pahs-shell pahs-proof__grid">
-          <div>
-            <p className="pahs-kicker pahs-kicker--dark">Community authority</p>
-            <h2 id="pahs-proof-title">This is not just an ad. It is a local protection checkpoint.</h2>
+      <section className="spgfx">
+        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
+      </section>
+
+      <section className="campaign-videos">
+        <div className="campaign-videos-inner">
+          <div className="section-label gold-label">Campaign Videos</div>
+          <h2 className="campaign-videos-title">Watch the Campaign</h2>
+          <div className="videos-grid single">
+            <div className="video-wrap">
+              <iframe
+                loading="lazy"
+                src="https://www.canva.com/design/DAHLhNdroHQ/DSj1SN6LGJKvtoSIqk8hmQ/watch?embed"
+                allowFullScreen
+                allow="fullscreen"
+                title="PAHS Campaign Video"
+              />
+            </div>
           </div>
           <p>
             The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
