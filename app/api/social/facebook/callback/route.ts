@@ -33,22 +33,18 @@ export async function GET(req: Request) {
   const page = pages.data[0]
 
   // Save Facebook connection
-  await prisma.socialConnection.upsert({
-    where: { provider: 'facebook' },
-    update: {
-      accountName: page.name,
-      externalId: page.id,
-      accessToken: encryptToken(page.access_token),
-      status: 'connected',
-    },
-    create: {
-      provider: 'facebook',
-      accountName: page.name,
-      externalId: page.id,
-      accessToken: encryptToken(page.access_token),
-      status: 'connected',
-    },
-  })
+  const existingFacebook = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })
+  const facebookData = {
+    accountName: page.name,
+    externalId: page.id,
+    accessToken: encryptToken(page.access_token),
+    status: 'connected',
+  }
+  if (existingFacebook) {
+    await prisma.socialConnection.update({ where: { id: existingFacebook.id }, data: facebookData })
+  } else {
+    await prisma.socialConnection.create({ data: { provider: 'facebook', ...facebookData } })
+  }
 
   // Also save the linked Instagram business account if present
   const igRes = await fetch(
@@ -58,22 +54,18 @@ export async function GET(req: Request) {
   const instagramBusinessId = igData.instagram_business_account?.id
 
   if (instagramBusinessId) {
-    await prisma.socialConnection.upsert({
-      where: { provider: 'instagram' },
-      update: {
-        accountName: page.name,
-        externalId: instagramBusinessId,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-      create: {
-        provider: 'instagram',
-        accountName: page.name,
-        externalId: instagramBusinessId,
-        accessToken: encryptToken(page.access_token),
-        status: 'connected',
-      },
-    })
+    const existingInstagram = await prisma.socialConnection.findFirst({ where: { provider: 'instagram' } })
+    const instagramData = {
+      accountName: page.name,
+      externalId: instagramBusinessId,
+      accessToken: encryptToken(page.access_token),
+      status: 'connected',
+    }
+    if (existingInstagram) {
+      await prisma.socialConnection.update({ where: { id: existingInstagram.id }, data: instagramData })
+    } else {
+      await prisma.socialConnection.create({ data: { provider: 'instagram', ...instagramData } })
+    }
   }
 
   return NextResponse.redirect('/admin/social?fb_success=1')
