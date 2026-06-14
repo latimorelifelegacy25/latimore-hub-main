@@ -67,6 +67,9 @@ export default async function LegacyPulsePage() {
             <Link href="/admin/crm/hub" className="inline-flex items-center gap-2 rounded-xl border border-[#C9A25F]/25 bg-[#C9A25F]/10 px-4 py-2 text-sm font-medium text-[#F4E6C5] transition hover:bg-[#C9A25F]/15">
               <i className="fa-solid fa-users-gear" /> CRM Hub
             </Link>
+            <Link href="/admin/tasks" className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200 transition hover:bg-emerald-400/15">
+              <i className="fa-solid fa-list-check" /> Tasks
+            </Link>
             <Link href="/admin/content/creator" className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10">
               <i className="fa-solid fa-pen-nib" /> Create Content
             </Link>
@@ -91,11 +94,12 @@ export default async function LegacyPulsePage() {
       </div>
 
       {/* Quick Actions Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
           { id: 'links', label: 'Portals', icon: 'fa-link', href: '/admin/links' },
           { id: 'docs', label: 'Docs', icon: 'fa-folder-open', href: '/admin/docs' },
           { id: 'crm', label: 'CRM', icon: 'fa-users-gear', href: '/admin/crm/hub' },
+          { id: 'tasks', label: 'Tasks', icon: 'fa-list-check', href: '/admin/tasks' },
           { id: 'creator', label: 'Create', icon: 'fa-pen-nib', href: '/admin/content/creator' },
         ].map((a) => (
           <Link

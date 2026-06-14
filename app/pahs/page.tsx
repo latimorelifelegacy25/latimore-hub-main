@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useRef, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import './pahs.css'
 
 type LeadForm = {
@@ -9,6 +9,13 @@ type LeadForm = {
   email: string
   promo: string
   interest: string
+  bestTime: string
+}
+
+type Tracking = {
+  utmSource: string
+  utmMedium: string
+  utmCampaign: string
 }
 
 const initialLead: LeadForm = {
@@ -17,25 +24,56 @@ const initialLead: LeadForm = {
   email: '',
   promo: '',
   interest: '',
+  bestTime: '',
 }
+
+const defaultTracking: Tracking = {
+  utmSource: 'pahs_qr',
+  utmMedium: 'qr_code',
+  utmCampaign: 'pahs_protect',
+}
+
+const reviewItems = [
+  'Income replacement',
+  'Mortgage and debt protection',
+  'Life insurance and living benefits',
+  'Retirement income and annuity questions',
+]
 
 export default function PAHSPage() {
   const [lead, setLead] = useState<LeadForm>(initialLead)
+  const [tracking, setTracking] = useState<Tracking>(defaultTracking)
   const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [leadError, setLeadError] = useState('')
-  const formRef = useRef<HTMLFormElement>(null)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const sectionRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    setTracking({
+      utmSource: params.get('utm_source') || defaultTracking.utmSource,
+      utmMedium: params.get('utm_medium') || defaultTracking.utmMedium,
+      utmCampaign: params.get('utm_campaign') || defaultTracking.utmCampaign,
+    })
+  }, [])
 
   function updateLead<K extends keyof LeadForm>(field: K, value: LeadForm[K]) {
     setLead((current) => ({ ...current, [field]: value }))
   }
 
+  function scrollToReview() {
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   function normalizeLead(data: LeadForm): LeadForm {
     return {
       name: data.name.trim(),
-      phone: data.phone.replace(/\D/g, ''), // keep digits only
+      phone: data.phone.replace(/\D/g, ''),
       email: data.email.trim().toLowerCase(),
       promo: data.promo.trim(),
       interest: data.interest,
+      bestTime: data.bestTime,
     }
   }
 
@@ -53,8 +91,12 @@ export default function PAHSPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...cleanLead,
-          source: 'PAHS Protect & Go Football Landing Page',
-          page: 'app/pahs',
+          source: 'PAHS_QR',
+          page: '/pahs',
+          bestTime: cleanLead.bestTime,
+          utmSource: tracking.utmSource,
+          utmMedium: tracking.utmMedium,
+          utmCampaign: tracking.utmCampaign,
         }),
       })
 
@@ -71,77 +113,105 @@ export default function PAHSPage() {
 
       setLead(initialLead)
       setLeadStatus('success')
-
-      // scroll to success state (mobile UX win)
-      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     } catch (error) {
       setLeadStatus('error')
       setLeadError(error instanceof Error ? error.message : 'Lead submission failed.')
-
-      // bring error into view
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
   return (
-    <main className="pahs-v2 pahs-protect-flow">
-      {/* ---------- VIDEO SECTION ---------- */}
-      <section className="pahs-open" id="top">
-        <div className="pahs-open-bg" />
-
-        <div className="pahs-brand-pill">
-          <strong>LATIMORE</strong>
-          <span>LIFE &amp; LEGACY LLC</span>
-        </div>
-
-        <section className="pahs-video-stage">
-          <div className="pahs-section-kicker">Campaign Video</div>
-          <h1>Watch the Campaign</h1>
-
-          <video className="pahs-campaign-video" controls playsInline preload="metadata">
-            <source src="/pahs-campaign-video.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </section>
-      </section>
-
-      {/* ---------- FORM SECTION ---------- */}
-      <section className="pahs-football-section">
-        <div className="pahs-section-wrap narrow">
-          <img
-            className="pahs-football-card"
-            src="/pahs-protect-go-card.png"
-            alt="Protect & Go campaign card"
-          />
-
-          <div className="pahs-partner-line">
-            Official Protection Partner · Crimson Tide ’26
-          </div>
-
-          <section
-            ref={formRef}
-            className="pahs-lead-card"
-            id="intakeFormSection"
-          >
-            <h2>Protect Your Family Today</h2>
-            <p>
-              Get a free protection review — income, debt &amp; family security. Takes 2 minutes.
+    <main className="pahs-page" id="top">
+      <section className="pahs-hero" aria-labelledby="pahs-hero-title">
+        <div className="pahs-hero__bg" />
+        <div className="pahs-shell pahs-hero__grid">
+          <div className="pahs-hero__copy">
+            <p className="pahs-kicker">PAHS Protect · Pottsville Football 2026</p>
+            <h1 id="pahs-hero-title">Protect What You Play For</h1>
+            <p className="pahs-hero__lead">
+              Latimore Life &amp; Legacy LLC is proud to support PAHS Football and help Coal Region families review protection before life forces the conversation.
             </p>
 
+            <div className="pahs-hero__actions" aria-label="Primary actions">
+              <button type="button" onClick={scrollToReview} className="pahs-button pahs-button--primary">
+                Start Free Protection Review
+              </button>
+              <a className="pahs-button pahs-button--ghost" href="tel:17176152613">
+                Call 717-615-2613
+              </a>
+            </div>
+
+            <div className="pahs-trust-strip" aria-label="Campaign details">
+              <span>Scan QR</span>
+              <span>2-minute request</span>
+              <span>Local follow-up</span>
+            </div>
+          </div>
+
+          <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
+            <img src="/pahs-protect-go-card.png" alt="PAHS Protect and Go football campaign card" />
+            <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section className="pahs-proof" aria-labelledby="pahs-proof-title">
+        <div className="pahs-shell pahs-proof__grid">
+          <div>
+            <p className="pahs-kicker pahs-kicker--dark">Community authority</p>
+            <h2 id="pahs-proof-title">This is not just an ad. It is a local protection checkpoint.</h2>
+          </div>
+          <p>
+            The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
+          </p>
+        </div>
+      </section>
+
+      <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">
+        <div className="pahs-shell pahs-review__grid">
+          <div className="pahs-review__content">
+            <p className="pahs-kicker">Free protection review</p>
+            <h2 id="pahs-review-title">Know where your family stands.</h2>
+            <p>
+              Use this page after scanning the PAHS QR code. The form creates a New lead for follow-up and keeps the source tied to the PAHS Protect campaign.
+            </p>
+
+            <div className="pahs-checklist" aria-label="Review topics">
+              {reviewItems.map((item) => (
+                <div className="pahs-check" key={item}>
+                  <span aria-hidden="true">✓</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+
+            <div className="pahs-source-card">
+              <strong>Tracking path</strong>
+              <span>PAHS_QR · {tracking.utmSource} · {tracking.utmMedium} · {tracking.utmCampaign}</span>
+            </div>
+          </div>
+
+          <div className="pahs-lead-card">
             {leadStatus === 'success' ? (
-              <div className="pahs-success-box">
+              <div className="pahs-success-box" role="status">
                 <strong>Request received.</strong>
-                <span>Jackson will follow up soon.</span>
+                <span>Jackson will follow up directly. Your PAHS Protect review is now in the pipeline.</span>
+                <a href="tel:17176152613">Need faster help? Call 717-615-2613.</a>
               </div>
             ) : (
-              <form className="pahs-lead-form" onSubmit={submitLead}>
+              <form ref={formRef} className="pahs-lead-form" onSubmit={submitLead}>
+                <div className="pahs-form-header">
+                  <h3>Request My Free Review</h3>
+                  <p>No pressure. Just a clear review of your protection gaps and next best steps.</p>
+                </div>
+
                 <label>
                   Full Name *
                   <input
                     value={lead.name}
                     onChange={(e) => updateLead('name', e.target.value)}
-                    placeholder="John Doe"
+                    placeholder="Your name"
                     autoComplete="name"
                     required
                   />
@@ -154,7 +224,7 @@ export default function PAHSPage() {
                     inputMode="tel"
                     value={lead.phone}
                     onChange={(e) => updateLead('phone', e.target.value)}
-                    placeholder="(555) 555-5555"
+                    placeholder="(717) 615-2613"
                     autoComplete="tel"
                     required
                   />
@@ -166,9 +236,38 @@ export default function PAHSPage() {
                     type="email"
                     value={lead.email}
                     onChange={(e) => updateLead('email', e.target.value)}
-                    placeholder="john@example.com"
+                    placeholder="you@example.com"
                     autoComplete="email"
                   />
+                </label>
+
+                <label>
+                  Main Concern *
+                  <select
+                    value={lead.interest}
+                    onChange={(e) => updateLead('interest', e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>Select one...</option>
+                    <option>Income Protection</option>
+                    <option>Mortgage Protection</option>
+                    <option>Family Security</option>
+                    <option>Life Insurance &amp; Living Benefits</option>
+                    <option>Retirement &amp; Annuities</option>
+                    <option>Final Expense</option>
+                    <option>General Protection Review</option>
+                  </select>
+                </label>
+
+                <label>
+                  Best Time To Contact
+                  <select value={lead.bestTime} onChange={(e) => updateLead('bestTime', e.target.value)}>
+                    <option value="">No preference</option>
+                    <option>Morning</option>
+                    <option>Afternoon</option>
+                    <option>Evening</option>
+                    <option>Text first</option>
+                  </select>
                 </label>
 
                 <label>
@@ -176,37 +275,23 @@ export default function PAHSPage() {
                   <input
                     value={lead.promo}
                     onChange={(e) => updateLead('promo', e.target.value)}
-                    placeholder="e.g. ID#2777749"
+                    placeholder="ID#2777749"
                   />
                 </label>
 
-                <label>
-                  What are you most interested in? *
-                  <select
-                    value={lead.interest}
-                    onChange={(e) => updateLead('interest', e.target.value)}
-                    required
-                  >
-                    <option value="" disabled>Select an option...</option>
-                    <option>Income Protection</option>
-                    <option>Debt Protection</option>
-                    <option>Family Security</option>
-                    <option>Life Insurance &amp; Living Benefits</option>
-                    <option>Retirement &amp; Annuities</option>
-                    <option>Mortgage Protection</option>
-                    <option>General Financial Review</option>
-                  </select>
-                </label>
-
                 <button type="submit" disabled={leadStatus === 'submitting'}>
-                  {leadStatus === 'submitting' ? 'Submitting…' : 'Request My Free Review'}
+                  {leadStatus === 'submitting' ? 'Submitting…' : 'Submit Free Review Request'}
                 </button>
 
                 {leadStatus === 'error' && (
-                  <div className="pahs-error-box">
+                  <div className="pahs-error-box" role="alert">
                     {leadError}
                   </div>
                 )}
+
+                <p className="pahs-disclaimer">
+                  Insurance products are subject to eligibility and underwriting. This review is educational and needs-based.
+                </p>
               </form>
             )}
 
@@ -216,17 +301,28 @@ export default function PAHSPage() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              Prefer our detailed intake questionnaire? Click here.
+              Prefer the detailed intake questionnaire?
             </a>
-          </section>
-
+          </div>
         </div>
       </section>
 
-      {/* ---------- MOBILE CTA ---------- */}
+      <footer className="pahs-footer">
+        <div className="pahs-shell pahs-footer__grid">
+          <div>
+            <strong>Latimore Life &amp; Legacy LLC</strong>
+            <span>Protecting Today. Securing Tomorrow.</span>
+          </div>
+          <div>
+            <a href="tel:17176152613">717-615-2613</a>
+            <a href="https://www.latimorelifelegacy.com">latimorelifelegacy.com</a>
+          </div>
+        </div>
+      </footer>
+
       <div className="pahs-mobile-cta">
-        <span>Free Protection Review</span>
-        <a href="#intakeFormSection">Start Now</a>
+        <span>PAHS Protect Review</span>
+        <button type="button" onClick={scrollToReview}>Start Now</button>
       </div>
     </main>
   )
