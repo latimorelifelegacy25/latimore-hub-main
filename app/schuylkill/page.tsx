@@ -42,9 +42,9 @@ With Living Benefits, your term life policy lets you access your death benefit w
     border: '#fde68a',
     body: `If you want your money to work harder without risking it all in a volatile stock market, an IUL might be the answer. It provides a death benefit and builds cash value tied to a market index like the S&P 500.
 
-The best part? The 0% floor. When the market goes up, your cash value grows. When the market dips, you never lose your principal due to market crashes.`,
+A key feature is downside protection from direct index losses. When the credited index performs well, cash value may grow according to the policy formula; when the index declines, interest credits may be floored, but policy charges and product terms still matter.`,
     local:
-      "With the rising cost of living, relying solely on a traditional savings account or a volatile 401(k) can feel risky. An IUL offers Schuylkill residents a reliable way to build tax-free retirement income with a built-in safety net.",
+      "With the rising cost of living, relying solely on a traditional savings account or a volatile 401(k) can feel risky. An IUL can offer Schuylkill residents a way to build supplemental retirement income that may be accessed through generally income-tax-free policy loans when properly structured, with a built-in life insurance safety net.",
   },
   {
     num: '03',
@@ -55,7 +55,7 @@ The best part? The 0% floor. When the market goes up, your cash value grows. Whe
     border: '#bbf7d0',
     body: `A Juvenile IUL is a policy taken out on a child or grandchild that pulls double duty — it secures incredibly low insurance rates for life while maximizing the time the cash value has to compound and grow.`,
     local:
-      "By the time your child graduates from Pottsville, North Schuylkill, or Schuylkill Haven, this policy can have accumulated significant cash value. They can borrow against it tax-free to pay for college, buy their first home in the county, or start a local business — all while keeping their life insurance protection intact.",
+      "By the time your child graduates from Pottsville, North Schuylkill, or Schuylkill Haven, this policy can have accumulated significant cash value. They can borrow against it through generally income-tax-free policy loans to pay for college, buy their first home in the county, or start a local business — all while keeping their life insurance protection intact.",
   },
   {
     num: '04',
@@ -194,7 +194,7 @@ export default function SchuylkillPage() {
           <p style={{ fontSize: '1.12rem', color: '#374151', lineHeight: 1.85, margin: '0 0 1.5rem' }}>
             Many &ldquo;Skook&rdquo; residents think life insurance is just a payout for when
             you&apos;re gone. The truth is, modern financial tools do so much more — whether
-            you&apos;re trying to protect your mortgage, build a tax-free retirement, or give your kids
+            you&apos;re trying to protect your mortgage, build tax-advantaged retirement income, or give your kids
             a head start.
           </p>
 

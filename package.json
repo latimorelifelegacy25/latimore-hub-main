@@ -3,18 +3,23 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "env:init": "node scripts/init-env.mjs",
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "build:safe": "prisma generate && NODE_OPTIONS=--max-old-space-size=2048 NEXT_TELEMETRY_DISABLED=1 next build",
+    "build:clean": "rm -rf .next node_modules/.cache .turbo && npm run build:safe",
     "start": "next start",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "validate": "npm run lint && npm run build",
+    "lint": "eslint app components lib middleware.ts next.config.js postcss.config.js tailwind.config.ts --ext .js,.jsx,.ts,.tsx --no-error-on-unmatched-pattern",
+    "validate": "npm run preflight && npm run lint && npm run build",
     "postinstall": "prisma generate",
     "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "build:fresh-db": "prisma generate && prisma db push && next build",
-    "db:seed": "prisma db seed",
+    "db:seed": "tsx prisma/seed.ts",
     "check": "tsx scripts/verify-workspace.ts",
-    "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts"
+    "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts",
+    "preflight": "node scripts/preflight.mjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

@@ -1,10 +1,14 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build:safe",
   "crons": [
-    { "path": "/api/cron/daily", "schedule": "0 13 * * *" }
-  ],
-  "rewrites": [
-    { "source": "/webhooks/notion", "destination": "/api/webhooks/notion" }
+    {
+      "path": "/api/cron/daily-brief",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/appointment-reminders",
+      "schedule": "0 9 * * *"
+    }
   ]
 }

@@ -31,6 +31,7 @@ export async function GET(req: Request) {
   }
 
   const page = pages.data[0]
+  const sc = (prisma as any).socialConnection
 
   // Save Facebook connection
   const existingFacebook = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })

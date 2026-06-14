@@ -3,6 +3,7 @@ import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeProductInterest } from './normalizers'
 import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { logger } from '@/lib/logger'
+import { updateLeadScores } from '@/lib/hub/lead-score'
 
 export type LeadUpsertInput = {
   firstName?: string | null
@@ -156,8 +157,8 @@ export async function upsertLead(input: LeadUpsertInput) {
     },
   })
 
-  await ingestEvent({
-    eventType: 'lead_created',
+  const event = await ingestEvent({
+    eventType: 'form_submit',
     leadSessionId,
     contactId: contact.id,
     inquiryId: inquiry.id,
@@ -178,10 +179,29 @@ export async function upsertLead(input: LeadUpsertInput) {
     },
   })
 
+  const score = await updateLeadScores({ contact, inquiry, eventCount: 1, prisma })
+
+  await prisma.systemEvent.create({
+    data: {
+      type: 'lead.audit.created',
+      contactId: contact.id,
+      inquiryId: inquiry.id,
+      source,
+      medium,
+      campaign,
+      payload: {
+        action: 'lead.created',
+        score,
+        eventId: event.id,
+        landingPage,
+      },
+    },
+  })
+
   // Fire-and-forget — Notion sync must not block or break lead capture
   syncContactToNotion(contact, inquiry).catch(err =>
     logger.error({ err, contactId: contact.id }, 'Notion sync failed'),
   )
 
-  return { contact, inquiry }
+  return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score }, score }
 }

@@ -46,11 +46,13 @@ export default async function CalendarPage() {
         title="Calendar"
         description="Synced events, appointment workflow state, and contact-linked meeting activity."
       />
+
       <div className="mb-4 flex flex-wrap gap-2">
         {counts.map((row) => (
           <StatPill key={row.status} label={row.status} value={countAll(row._count)} />
         ))}
       </div>
+
       <AdminCard title="Upcoming and recent calendar events">
         {events.length === 0 ? (
           <EmptyState
@@ -69,7 +71,8 @@ export default async function CalendarPage() {
                   <div>
                     <p className="text-sm font-semibold text-white">{event.title}</p>
                     <p className="mt-1 text-xs text-[#A9B1BE]">
-                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} · {event.provider}
+                      {event.contact ? displayName(event.contact) : 'Unlinked contact'} ·{' '}
+                      {event.provider}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">

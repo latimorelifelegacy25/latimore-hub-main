@@ -18,20 +18,65 @@ const RE = '#B03030'
 
 // ── TYPES ─────────────────────────────────────────────────────────────────────
 type Metric = {
-  id: number; name: string; baseline: number; target: number
-  current: number; unit: string; kpi: string; tool: string
+  id: number
+  name: string
+  baseline: number
+  target: number
+  current: number
+  unit: string
+  kpi: string
+  tool: string
 }
+
 type PipelineStage = {
-  id: number; stage: string; count: number; color: string; desc: string; kpi: string
+  id: number
+  stage: string
+  count: number
+  color: string
+  desc: string
+  kpi: string
 }
-type MonthData = { month: string; views: number; scans: number; leads: number; bookings: number }
-type ScriptStep = { label: string; color: string; text: string }
-type DmScript = { id: number; title: string; trigger: string; badge: string; color: string; steps: ScriptStep[] }
-type TrendForm = { month: string; views: string; scans: string; leads: string; bookings: string }
+
+type MonthData = {
+  month: string
+  views: number
+  scans: number
+  leads: number
+  bookings: number
+}
+
+type ScriptStep = {
+  label: string
+  color: string
+  text: string
+}
+
+type DmScript = {
+  id: number
+  title: string
+  trigger: string
+  badge: string
+  color: string
+  steps: ScriptStep[]
+}
+
+type TrendForm = {
+  month: string
+  views: string
+  scans: string
+  leads: string
+  bookings: string
+}
 
 type RecentLead = {
-  id: string; name: string; email: string; phone: string
-  stage: string; source: string; productInterest: string; createdAt: string
+  id: string
+  name: string
+  email: string
+  phone: string
+  stage: string
+  source: string
+  productInterest: string
+  createdAt: string
 }
 
 type Stats = {
@@ -45,14 +90,114 @@ type Stats = {
 
 // ── INITIAL DATA ──────────────────────────────────────────────────────────────
 function buildMetrics(stats: Stats): Metric[] {
+  const newLeads = stats.pipelineMap['New'] ?? 0
+  const contacted = stats.pipelineMap['Attempted_Contact'] ?? 0
+  const booked = stats.pipelineMap['Booked'] ?? 0
+  const qualified = stats.pipelineMap['Qualified'] ?? 0
+  const sold = stats.pipelineMap['Sold'] ?? 0
+
+  const leadsTotal = stats.leadsTotal ?? 0
+
+  const contactRate =
+    leadsTotal > 0 ? Math.round((contacted / leadsTotal) * 100) : 0
+
+  const bookingRate =
+    leadsTotal > 0 ? Math.round((booked / leadsTotal) * 100) : 0
+
+  const closeRate =
+    leadsTotal > 0 ? Math.round((sold / leadsTotal) * 100) : 0
+
   return [
-    { id:1, name:'Post Reach / Views',   baseline:274, target:1000, current:274,                       unit:'views',    kpi:'Brand Awareness',         tool:'Native Analytics (manual)' },
-    { id:2, name:'QR Code Scans',        baseline:169, target:50,   current:stats.qrSessions,          unit:'scans',    kpi:'Physical-Digital Bridge',  tool:'Supabase · Live' },
-    { id:3, name:'Landing Page Visits',  baseline:0,   target:100,  current:stats.pageVisits,          unit:'visits',   kpi:'Gateway Effectiveness',   tool:'GA4 · Live' },
-    { id:4, name:'Leads Captured',       baseline:0,   target:10,   current:stats.leadsTotal,          unit:'leads',    kpi:'Pipeline Fill Rate',       tool:'CRM · Live' },
-    { id:5, name:'Assessments Booked',   baseline:0,   target:5,    current:stats.appointmentsTotal,   unit:'bookings', kpi:'Monthly App Volume',       tool:'CRM · Live' },
-    { id:6, name:'Referral Rate',        baseline:0,   target:25,   current:0,                         unit:'%',        kpi:'Referral Growth',          tool:'Manual + Supabase' },
-    { id:7, name:'District Contacts',    baseline:0,   target:2,    current:0,                         unit:'meetings', kpi:'District Penetration',     tool:'CRM (manual)' },
+    {
+      id: 1,
+      name: 'Page Visits',
+      baseline: 0,
+      target: 1000,
+      current: stats.pageVisits ?? 0,
+      unit: 'visits',
+      kpi: 'Traffic volume to PAHS landing page',
+      tool: 'Live · GA4 / Web',
+    },
+    {
+      id: 2,
+      name: 'QR Sessions',
+      baseline: 0,
+      target: 250,
+      current: stats.qrSessions ?? 0,
+      unit: 'sessions',
+      kpi: 'QR engagement from print and social assets',
+      tool: 'Live · QR Tracking',
+    },
+    {
+      id: 3,
+      name: 'Leads Captured',
+      baseline: 0,
+      target: 25,
+      current: leadsTotal,
+      unit: 'leads',
+      kpi: 'Total leads submitted through funnel',
+      tool: 'Live · CRM',
+    },
+    {
+      id: 4,
+      name: 'Assessments Booked',
+      baseline: 0,
+      target: 10,
+      current: stats.appointmentsTotal ?? 0,
+      unit: 'bookings',
+      kpi: 'Appointments scheduled from PAHS campaign leads',
+      tool: 'Live · Google Calendar',
+    },
+    {
+      id: 5,
+      name: 'Contact Rate',
+      baseline: 0,
+      target: 80,
+      current: contactRate,
+      unit: '%',
+      kpi: 'Percent of total leads that received outreach',
+      tool: 'Live · CRM Pipeline',
+    },
+    {
+      id: 6,
+      name: 'Booking Rate',
+      baseline: 0,
+      target: 40,
+      current: bookingRate,
+      unit: '%',
+      kpi: 'Percent of leads that booked an assessment',
+      tool: 'Live · CRM Pipeline',
+    },
+    {
+      id: 7,
+      name: 'Qualified Prospects',
+      baseline: 0,
+      target: 12,
+      current: qualified,
+      unit: 'prospects',
+      kpi: 'Leads advanced to proposal-ready stage',
+      tool: 'Live · CRM Pipeline',
+    },
+    {
+      id: 8,
+      name: 'Close Rate',
+      baseline: 0,
+      target: 30,
+      current: closeRate,
+      unit: '%',
+      kpi: 'Percent of leads moved to Sold stage',
+      tool: 'Live · CRM Pipeline',
+    },
+    {
+      id: 9,
+      name: 'New Leads',
+      baseline: 0,
+      target: 25,
+      current: newLeads,
+      unit: 'leads',
+      kpi: 'Fresh inbound leads awaiting engagement',
+      tool: 'Live · CRM Pipeline',
+    },
   ]
 }
 
@@ -147,10 +292,22 @@ function NavBar({ tab, setTab }: { tab: string; setTab: (t: string) => void }) {
   return (
     <div style={{ background:'#fff', borderBottom:'1px solid #e8e8e8', display:'flex', overflowX:'auto', gap:0 }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => setTab(t.id)}
-          style={{ padding:'12px 18px', border:'none', borderBottom: tab===t.id ? `3px solid ${CRIMSON}` : '3px solid transparent',
-            background:'none', color: tab===t.id ? CRIMSON : '#888', fontWeight: tab===t.id ? 700 : 400,
-            cursor:'pointer', fontSize:13, whiteSpace:'nowrap', fontFamily:'Arial, sans-serif' }}>
+        <button
+          key={t.id}
+          onClick={() => setTab(t.id)}
+          style={{
+            padding:'12px 18px',
+            border:'none',
+            borderBottom: tab===t.id ? `3px solid ${CRIMSON}` : '3px solid transparent',
+            background:'none',
+            color: tab===t.id ? CRIMSON : '#888',
+            fontWeight: tab===t.id ? 700 : 400,
+            cursor:'pointer',
+            fontSize:13,
+            whiteSpace:'nowrap',
+            fontFamily:'Arial, sans-serif'
+          }}
+        >
           {t.label}
         </button>
       ))}
@@ -161,7 +318,11 @@ function NavBar({ tab, setTab }: { tab: string; setTab: (t: string) => void }) {
 function StatCard({ metric, onUpdate }: { metric: Metric; onUpdate: (id: number, val: number) => void }) {
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(String(metric.current))
-  const pct = Math.min(100, Math.round((metric.current / metric.target) * 100))
+
+  const pct = metric.target > 0
+    ? Math.min(100, Math.round((metric.current / metric.target) * 100))
+    : 0
+
   const status = pct >= 100 ? 'ON TARGET' : pct >= 60 ? 'PROGRESSING' : pct >= 20 ? 'BUILDING' : 'START'
   const sc = pct >= 100 ? GR : pct >= 60 ? WA : pct >= 20 ? G : '#999'
   const isLive = metric.tool.includes('Live')
@@ -178,31 +339,53 @@ function StatCard({ metric, onUpdate }: { metric: Metric; onUpdate: (id: number,
         </div>
         <span style={{ background:sc+'22', color:sc, fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:10, fontFamily:'Arial', whiteSpace:'nowrap' }}>{status}</span>
       </div>
+
       <div style={{ display:'flex', alignItems:'baseline', gap:6, margin:'10px 0 6px' }}>
         {editing ? (
           <div style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
-            <input type="number" value={val} onChange={e => setVal(e.target.value)}
-              style={{ width:70, fontSize:20, fontWeight:700, color:N, border:`1px solid ${G}`, borderRadius:4, padding:'2px 6px', fontFamily:'Arial' }} />
+            <input
+              type="number"
+              value={val}
+              onChange={e => setVal(e.target.value)}
+              style={{ width:70, fontSize:20, fontWeight:700, color:N, border:`1px solid ${G}`, borderRadius:4, padding:'2px 6px', fontFamily:'Arial' }}
+            />
             <span style={{ fontSize:12, color:'#999', fontFamily:'Arial' }}>{metric.unit}</span>
-            <button onClick={() => { onUpdate(metric.id, Number(val)); setEditing(false) }}
-              style={{ background:GR, color:'#fff', border:'none', borderRadius:5, padding:'4px 10px', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:'Arial' }}>Save</button>
-            <button onClick={() => setEditing(false)}
-              style={{ background:'#eee', color:'#555', border:'none', borderRadius:5, padding:'4px 8px', cursor:'pointer', fontSize:12, fontFamily:'Arial' }}>✕</button>
+            <button
+              onClick={() => {
+                onUpdate(metric.id, Number(val))
+                setEditing(false)
+              }}
+              style={{ background:GR, color:'#fff', border:'none', borderRadius:5, padding:'4px 10px', cursor:'pointer', fontSize:12, fontWeight:600, fontFamily:'Arial' }}
+            >
+              Save
+            </button>
+            <button
+              onClick={() => setEditing(false)}
+              style={{ background:'#eee', color:'#555', border:'none', borderRadius:5, padding:'4px 8px', cursor:'pointer', fontSize:12, fontFamily:'Arial' }}
+            >
+              ✕
+            </button>
           </div>
         ) : (
           <>
             <span style={{ fontSize:26, fontWeight:800, color:N, fontFamily:'Arial' }}>{metric.current}</span>
             <span style={{ fontSize:12, color:'#bbb', fontFamily:'Arial' }}>/ {metric.target} {metric.unit}</span>
             {!isLive && (
-              <button onClick={() => setEditing(true)}
-                style={{ background:'none', border:`1px solid ${G}`, borderRadius:5, color:G, padding:'2px 8px', cursor:'pointer', fontSize:11, marginLeft:'auto', fontFamily:'Arial' }}>Update</button>
+              <button
+                onClick={() => setEditing(true)}
+                style={{ background:'none', border:`1px solid ${G}`, borderRadius:5, color:G, padding:'2px 8px', cursor:'pointer', fontSize:11, marginLeft:'auto', fontFamily:'Arial' }}
+              >
+                Update
+              </button>
             )}
           </>
         )}
       </div>
+
       <div style={{ background:'#eee', borderRadius:6, height:8, overflow:'hidden' }}>
         <div style={{ width:`${pct}%`, background: pct>=100 ? GR : pct>=60 ? G : pct>=20 ? G+'99' : '#ddd', height:'100%', borderRadius:6, transition:'width 0.4s' }} />
       </div>
+
       <div style={{ display:'flex', justifyContent:'space-between', marginTop:5 }}>
         <span style={{ fontSize:11, color:'#aaa', fontFamily:'Arial' }}>Baseline: {metric.baseline}</span>
         <span style={{ fontSize:11, fontWeight:700, color:sc, fontFamily:'Arial' }}>{pct}%</span>
@@ -213,8 +396,9 @@ function StatCard({ metric, onUpdate }: { metric: Metric; onUpdate: (id: number,
 
 function PipelineView({ pipeline, setPipeline }: { pipeline: PipelineStage[]; setPipeline: React.Dispatch<React.SetStateAction<PipelineStage[]>> }) {
   const total = pipeline.reduce((a, s) => a + s.count, 0) || 1
+
   const updateCount = (id: number, v: number) =>
-    setPipeline(prev => prev.map(s => s.id===id ? {...s, count:Math.max(0,v)} : s))
+    setPipeline(prev => prev.map(s => s.id===id ? { ...s, count: Math.max(0, v) } : s))
 
   return (
     <div>
@@ -224,11 +408,19 @@ function PipelineView({ pipeline, setPipeline }: { pipeline: PipelineStage[]; se
             <div style={{ fontSize:11, color:'#999', fontWeight:700, marginBottom:4, fontFamily:'Arial', textTransform:'uppercase' }}>Stage {s.id}</div>
             <div style={{ fontWeight:700, color:N, fontSize:13, marginBottom:8, fontFamily:'Arial' }}>{s.stage}</div>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
-              <button onClick={() => updateCount(s.id, s.count-1)}
-                style={{ width:26, height:26, border:'1px solid #ddd', borderRadius:5, background:'#f5f5f5', cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+              <button
+                onClick={() => updateCount(s.id, s.count-1)}
+                style={{ width:26, height:26, border:'1px solid #ddd', borderRadius:5, background:'#f5f5f5', cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}
+              >
+                −
+              </button>
               <span style={{ fontSize:28, fontWeight:800, color:s.color, fontFamily:'Arial', minWidth:32, textAlign:'center' }}>{s.count}</span>
-              <button onClick={() => updateCount(s.id, s.count+1)}
-                style={{ width:26, height:26, border:'1px solid #ddd', borderRadius:5, background:'#f5f5f5', cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+              <button
+                onClick={() => updateCount(s.id, s.count+1)}
+                style={{ width:26, height:26, border:'1px solid #ddd', borderRadius:5, background:'#f5f5f5', cursor:'pointer', fontSize:14, display:'flex', alignItems:'center', justifyContent:'center' }}
+              >
+                +
+              </button>
             </div>
             <div style={{ background:'#eee', borderRadius:4, height:5, overflow:'hidden', marginBottom:8 }}>
               <div style={{ width:`${Math.min(100,(s.count/total)*100*5)}%`, background:s.color, height:'100%', borderRadius:4 }} />
@@ -237,12 +429,16 @@ function PipelineView({ pipeline, setPipeline }: { pipeline: PipelineStage[]; se
           </div>
         ))}
       </div>
+
       <div style={{ background:'#fff', border:'1px solid #e8e8e8', borderRadius:10, padding:20 }}>
-        <div style={{ fontWeight:700, color:N, fontSize:14, marginBottom:16, fontFamily:'Arial', borderBottom:`2px solid ${CRIMSON}`, paddingBottom:8 }}>Funnel Conversion Analysis</div>
+        <div style={{ fontWeight:700, color:N, fontSize:14, marginBottom:16, fontFamily:'Arial', borderBottom:`2px solid ${CRIMSON}`, paddingBottom:8 }}>
+          Funnel Conversion Analysis
+        </div>
         {pipeline.slice(0,-1).map((s, i) => {
           const next = pipeline[i+1]
           const rate = s.count > 0 ? Math.round((next.count / s.count) * 100) : 0
           const color = rate >= 60 ? GR : rate >= 30 ? WA : '#ccc'
+
           return (
             <div key={s.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'8px 0', borderBottom:'1px solid #f0f0f0' }}>
               <span style={{ fontSize:12, color:N, fontFamily:'Arial', fontWeight:700, minWidth:180 }}>{s.stage}</span>
@@ -251,7 +447,9 @@ function PipelineView({ pipeline, setPipeline }: { pipeline: PipelineStage[]; se
               <div style={{ flex:1, background:'#eee', borderRadius:4, height:8, overflow:'hidden' }}>
                 <div style={{ width:`${rate}%`, background:color, height:'100%', borderRadius:4, transition:'width 0.4s' }} />
               </div>
-              <span style={{ fontSize:13, fontWeight:700, color, fontFamily:'Arial', minWidth:50, textAlign:'right' }}>{s.count > 0 ? `${rate}%` : '—'}</span>
+              <span style={{ fontSize:13, fontWeight:700, color, fontFamily:'Arial', minWidth:50, textAlign:'right' }}>
+                {s.count > 0 ? `${rate}%` : '—'}
+              </span>
             </div>
           )
         })}
@@ -262,9 +460,15 @@ function PipelineView({ pipeline, setPipeline }: { pipeline: PipelineStage[]; se
 
 function LeadsView({ leads }: { leads: RecentLead[] }) {
   const stageColor: Record<string, string> = {
-    New: G, Attempted_Contact: '#4A90C4', Booked: '#7B68EE',
-    Qualified: WA, Sold: GR, Follow_Up: '#f97316', Lost: '#6b7280',
+    New: G,
+    Attempted_Contact: '#4A90C4',
+    Booked: '#7B68EE',
+    Qualified: WA,
+    Sold: GR,
+    Follow_Up: '#f97316',
+    Lost: '#6b7280',
   }
+
   return (
     <div style={{ background:'#fff', border:'1px solid #e8e8e8', borderRadius:10, overflow:'hidden' }}>
       <div style={{ padding:'16px 20px', borderBottom:'1px solid #e8e8e8', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -274,6 +478,7 @@ function LeadsView({ leads }: { leads: RecentLead[] }) {
           <span style={{ fontSize:12, color:GR, fontFamily:'Arial', fontWeight:600 }}>Live from CRM</span>
         </div>
       </div>
+
       {leads.length === 0 ? (
         <div style={{ padding:'40px 20px', textAlign:'center', color:'#999', fontFamily:'Arial', fontSize:14 }}>
           No PAHS leads yet. QR scans and form submissions will appear here automatically.
@@ -284,7 +489,21 @@ function LeadsView({ leads }: { leads: RecentLead[] }) {
             <thead>
               <tr style={{ background:'#f9f9f9' }}>
                 {['Name', 'Contact', 'Interest', 'Stage', 'Source', 'Date'].map(h => (
-                  <th key={h} style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:700, color:'#888', textTransform:'uppercase', letterSpacing:'0.08em', borderBottom:'1px solid #e8e8e8' }}>{h}</th>
+                  <th
+                    key={h}
+                    style={{
+                      padding:'10px 16px',
+                      textAlign:'left',
+                      fontSize:11,
+                      fontWeight:700,
+                      color:'#888',
+                      textTransform:'uppercase',
+                      letterSpacing:'0.08em',
+                      borderBottom:'1px solid #e8e8e8'
+                    }}
+                  >
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -297,10 +516,14 @@ function LeadsView({ leads }: { leads: RecentLead[] }) {
                     {lead.email && <div style={{ color:'#999' }}>{lead.email}</div>}
                   </td>
                   <td style={{ padding:'12px 16px' }}>
-                    <span style={{ background:G+'22', color:WA, fontSize:11, fontWeight:600, padding:'3px 8px', borderRadius:8, fontFamily:'Arial' }}>{lead.productInterest}</span>
+                    <span style={{ background:G+'22', color:WA, fontSize:11, fontWeight:600, padding:'3px 8px', borderRadius:8, fontFamily:'Arial' }}>
+                      {lead.productInterest}
+                    </span>
                   </td>
                   <td style={{ padding:'12px 16px' }}>
-                    <span style={{ background:(stageColor[lead.stage] ?? '#999')+'22', color:stageColor[lead.stage] ?? '#999', fontSize:11, fontWeight:700, padding:'3px 8px', borderRadius:8 }}>{lead.stage.replace(/_/g,' ')}</span>
+                    <span style={{ background:(stageColor[lead.stage] ?? '#999')+'22', color:stageColor[lead.stage] ?? '#999', fontSize:11, fontWeight:700, padding:'3px 8px', borderRadius:8 }}>
+                      {lead.stage.replace(/_/g,' ')}
+                    </span>
                   </td>
                   <td style={{ padding:'12px 16px', fontSize:11, color:'#aaa' }}>{lead.source || 'PAHS'}</td>
                   <td style={{ padding:'12px 16px', fontSize:11, color:'#aaa' }}>{new Date(lead.createdAt).toLocaleDateString()}</td>
@@ -316,11 +539,22 @@ function LeadsView({ leads }: { leads: RecentLead[] }) {
 
 function TrendsView({ history, setHistory }: { history: MonthData[]; setHistory: React.Dispatch<React.SetStateAction<MonthData[]>> }) {
   const [form, setForm] = useState<TrendForm>({ month:'', views:'', scans:'', leads:'', bookings:'' })
+
   const addMonth = () => {
     if (!form.month) return
-    setHistory(prev => [...prev, { month:form.month, views:+form.views||0, scans:+form.scans||0, leads:+form.leads||0, bookings:+form.bookings||0 }])
+    setHistory(prev => [
+      ...prev,
+      {
+        month: form.month,
+        views: +form.views || 0,
+        scans: +form.scans || 0,
+        leads: +form.leads || 0,
+        bookings: +form.bookings || 0,
+      }
+    ])
     setForm({ month:'', views:'', scans:'', leads:'', bookings:'' })
   }
+
   const fields: Array<[keyof TrendForm, string, string]> = [
     ['month', "Month (e.g. May '26)", "May '26"],
     ['views', 'Views', '0'],
@@ -381,13 +615,21 @@ function TrendsView({ history, setHistory }: { history: MonthData[]; setHistory:
           {fields.map(([k, l, p]) => (
             <div key={k} style={{ display:'flex', flexDirection:'column', gap:4 }}>
               <label style={{ fontSize:11, color:'#888', fontFamily:'Arial' }}>{l}</label>
-              <input value={form[k]} onChange={e => setForm(prev => ({ ...prev, [k]: e.target.value }))} placeholder={p}
-                style={{ padding:'6px 10px', border:'1px solid #ddd', borderRadius:5, fontSize:13, width:k==='month'?120:80, fontFamily:'Arial' }} />
+              <input
+                value={form[k]}
+                onChange={e => setForm(prev => ({ ...prev, [k]: e.target.value }))}
+                placeholder={p}
+                style={{ padding:'6px 10px', border:'1px solid #ddd', borderRadius:5, fontSize:13, width:k==='month' ? 120 : 80, fontFamily:'Arial' }}
+              />
             </div>
           ))}
           <div style={{ display:'flex', alignItems:'flex-end' }}>
-            <button onClick={addMonth}
-              style={{ background:CRIMSON, color:'#fff', border:'none', borderRadius:6, padding:'8px 18px', cursor:'pointer', fontWeight:700, fontSize:13, fontFamily:'Arial' }}>Add Month</button>
+            <button
+              onClick={addMonth}
+              style={{ background:CRIMSON, color:'#fff', border:'none', borderRadius:6, padding:'8px 18px', cursor:'pointer', fontWeight:700, fontSize:13, fontFamily:'Arial' }}
+            >
+              Add Month
+            </button>
           </div>
         </div>
       </div>
@@ -415,14 +657,17 @@ function ChecklistView() {
             <div style={{ fontSize:11, color:'#999', fontFamily:'Arial' }}>complete</div>
           </div>
         </div>
+
         <div style={{ background:'#eee', borderRadius:6, height:10, overflow:'hidden' }}>
           <div style={{ width:`${(doneCount/allItems.length)*100}%`, background: doneCount===allItems.length ? GR : CRIMSON, height:'100%', borderRadius:6, transition:'width 0.3s' }} />
         </div>
+
         {doneCount < allItems.length && (
           <div style={{ marginTop:10, padding:'8px 12px', background:'#fff8ee', borderRadius:6, border:`1px solid ${G}`, fontSize:12, color:'#7a5c20', fontFamily:'Arial' }}>
             ⚠️ DO NOT distribute assets until all {allItems.length} items are confirmed.
           </div>
         )}
+
         {doneCount === allItems.length && (
           <div style={{ marginTop:10, padding:'8px 12px', background:'#f0fff4', borderRadius:6, border:`1px solid ${GR}`, fontSize:12, color:GR, fontWeight:700, fontFamily:'Arial' }}>
             ✅ GO — All pre-launch criteria met. Clear for distribution.
@@ -433,21 +678,49 @@ function ChecklistView() {
       {sections.map(([section, items]) => {
         const offset = globalOffset
         globalOffset += items.length
+
         return (
           <div key={section} style={{ background:'#fff', border:'1px solid #e8e8e8', borderRadius:10, padding:20, marginBottom:12 }}>
-            <div style={{ fontWeight:700, color:N, fontSize:13, marginBottom:12, paddingBottom:8, borderBottom:`2px solid ${CRIMSON}`, fontFamily:'Arial' }}>{section}</div>
+            <div style={{ fontWeight:700, color:N, fontSize:13, marginBottom:12, paddingBottom:8, borderBottom:`2px solid ${CRIMSON}`, fontFamily:'Arial' }}>
+              {section}
+            </div>
+
             {items.map((item, i) => {
               const key = offset + i
               return (
-                <div key={i} onClick={() => toggle(key)}
-                  style={{ display:'flex', gap:12, padding:'10px 8px', cursor:'pointer', borderRadius:6,
+                <div
+                  key={i}
+                  onClick={() => toggle(key)}
+                  style={{
+                    display:'flex',
+                    gap:12,
+                    padding:'10px 8px',
+                    cursor:'pointer',
+                    borderRadius:6,
                     background: checked[key] ? '#f0fff4' : 'transparent',
-                    borderBottom: i < items.length-1 ? '1px solid #f5f5f5' : 'none', transition:'background 0.2s' }}>
-                  <div style={{ width:22, height:22, border:`2px solid ${checked[key] ? GR : '#ccc'}`, borderRadius:5, flexShrink:0,
-                    background: checked[key] ? GR : 'transparent', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.2s' }}>
+                    borderBottom: i < items.length-1 ? '1px solid #f5f5f5' : 'none',
+                    transition:'background 0.2s'
+                  }}
+                >
+                  <div
+                    style={{
+                      width:22,
+                      height:22,
+                      border:`2px solid ${checked[key] ? GR : '#ccc'}`,
+                      borderRadius:5,
+                      flexShrink:0,
+                      background: checked[key] ? GR : 'transparent',
+                      display:'flex',
+                      alignItems:'center',
+                      justifyContent:'center',
+                      transition:'all 0.2s'
+                    }}
+                  >
                     {checked[key] && <span style={{ color:'#fff', fontSize:13, fontWeight:700 }}>✓</span>}
                   </div>
-                  <span style={{ fontSize:13, color: checked[key] ? '#888' : '#333', textDecoration: checked[key] ? 'line-through' : 'none', fontFamily:'Arial', lineHeight:1.4 }}>{item}</span>
+                  <span style={{ fontSize:13, color: checked[key] ? '#888' : '#333', textDecoration: checked[key] ? 'line-through' : 'none', fontFamily:'Arial', lineHeight:1.4 }}>
+                    {item}
+                  </span>
                 </div>
               )
             })}
@@ -460,6 +733,7 @@ function ChecklistView() {
 
 function ScriptCard({ script }: { script: DmScript }) {
   const [copied, setCopied] = useState<string | null>(null)
+
   const copyText = (text: string, id: string) => {
     navigator.clipboard.writeText(text).catch(() => { /* noop */ })
     setCopied(id)
@@ -473,17 +747,38 @@ function ScriptCard({ script }: { script: DmScript }) {
           <div style={{ fontWeight:700, color:N, fontSize:15, fontFamily:'Arial' }}>{script.title}</div>
           <div style={{ fontSize:12, color:'#999', marginTop:3, fontFamily:'Arial' }}>{script.trigger}</div>
         </div>
-        <span style={{ background:script.color+'18', color:script.color, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:10, fontFamily:'Arial', whiteSpace:'nowrap' }}>{script.badge}</span>
+        <span style={{ background:script.color+'18', color:script.color, fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:10, fontFamily:'Arial', whiteSpace:'nowrap' }}>
+          {script.badge}
+        </span>
       </div>
+
       {script.steps.map((step, i) => (
         <div key={i} style={{ marginTop:14 }}>
-          <div style={{ fontSize:11, fontWeight:700, color:step.color, fontFamily:'Arial', marginBottom:6, letterSpacing:'0.05em' }}>{step.label}</div>
+          <div style={{ fontSize:11, fontWeight:700, color:step.color, fontFamily:'Arial', marginBottom:6, letterSpacing:'0.05em' }}>
+            {step.label}
+          </div>
           <div style={{ background:'#f9f9f9', border:`1px solid ${step.color}33`, borderLeft:`4px solid ${step.color}`, borderRadius:6, padding:'12px 16px', position:'relative' }}>
-            <p style={{ margin:0, fontSize:14, color:'#333', fontFamily:'Arial', lineHeight:1.6, whiteSpace:'pre-line' }}>{step.text}</p>
-            <button onClick={() => copyText(step.text, `${script.id}-${i}`)}
-              style={{ position:'absolute', top:8, right:8, background: copied===`${script.id}-${i}` ? GR : '#eee',
-                color: copied===`${script.id}-${i}` ? '#fff' : '#666', border:'none', borderRadius:5, padding:'3px 10px',
-                cursor:'pointer', fontSize:11, fontWeight:600, fontFamily:'Arial', transition:'all 0.2s' }}>
+            <p style={{ margin:0, fontSize:14, color:'#333', fontFamily:'Arial', lineHeight:1.6, whiteSpace:'pre-line' }}>
+              {step.text}
+            </p>
+            <button
+              onClick={() => copyText(step.text, `${script.id}-${i}`)}
+              style={{
+                position:'absolute',
+                top:8,
+                right:8,
+                background: copied===`${script.id}-${i}` ? GR : '#eee',
+                color: copied===`${script.id}-${i}` ? '#fff' : '#666',
+                border:'none',
+                borderRadius:5,
+                padding:'3px 10px',
+                cursor:'pointer',
+                fontSize:11,
+                fontWeight:600,
+                fontFamily:'Arial',
+                transition:'all 0.2s'
+              }}
+            >
               {copied===`${script.id}-${i}` ? '✓ Copied' : 'Copy'}
             </button>
           </div>
@@ -495,13 +790,14 @@ function ScriptCard({ script }: { script: DmScript }) {
 
 function ComplianceView() {
   const items = [
-    { area:'Voice & Tone',          status:'PASS',          evidence:'Urgent but legacy-forward throughout. No fear-based language.',                                       action:"Maintain. Reinforce 'preparedness' framing in all marketing adaptations." },
-    { area:'ICP Alignment',         status:'PASS',          evidence:'Content speaks directly to Schuylkill County families, Pre-Retirees, and community members.',          action:'Add Pre-Retiree-specific hook to DM follow-up sequences.' },
-    { area:'Founder Story Protocol',status:'ACTION NEEDED', evidence:'AED legacy and #TheBeatGoesOn not yet woven into PAHS section or game-day assets.',                    action:'Integrate cardiac survival narrative into PAHS content — dignity-first, preparedness-focused.' },
-    { area:'Compliance Language',   status:'PASS',          evidence:'No definitive insurance outcome claims or guarantees stated.',                                          action:"Apply 'may' / 'can' qualifiers to all marketing adaptations of any outcome statements." },
-    { area:'KPI Alignment',         status:'PASS',          evidence:'Baselines set; monthly targets defined; optimization triggers established.',                             action:'Referral rate target (20–30%) now added to KPI matrix.' },
-    { area:'Visual Brand Lock',     status:'ACTION NEEDED', evidence:'Navy #1B2D4A and Gold #C49A6C not yet confirmed on all print asset files.',                              action:'Confirm exact hex values applied to all print assets before production print run.' },
+    { area:'Voice & Tone',           status:'PASS',          evidence:'Urgent but legacy-forward throughout. No fear-based language.',                                       action:"Maintain. Reinforce 'preparedness' framing in all marketing adaptations." },
+    { area:'ICP Alignment',          status:'PASS',          evidence:'Content speaks directly to Schuylkill County families, Pre-Retirees, and community members.',          action:'Add Pre-Retiree-specific hook to DM follow-up sequences.' },
+    { area:'Founder Story Protocol', status:'ACTION NEEDED', evidence:'AED legacy and #TheBeatGoesOn not yet woven into PAHS section or game-day assets.',                    action:'Integrate cardiac survival narrative into PAHS content — dignity-first, preparedness-focused.' },
+    { area:'Compliance Language',    status:'PASS',          evidence:'No definitive insurance outcome claims or guarantees stated.',                                          action:"Apply 'may' / 'can' qualifiers to all marketing adaptations of any outcome statements." },
+    { area:'KPI Alignment',          status:'PASS',          evidence:'Baselines set; monthly targets defined; optimization triggers established.',                             action:'Referral rate target (20–30%) now added to KPI matrix.' },
+    { area:'Visual Brand Lock',      status:'ACTION NEEDED', evidence:'Navy #1B2D4A and Gold #C49A6C not yet confirmed on all print asset files.',                              action:'Confirm exact hex values applied to all print assets before production print run.' },
   ]
+
   const actions = [
     'Integrate AED/cardiac survival narrative into PAHS content and game-day assets — dignity-first.',
     'Confirm all print assets use Navy #1B2D4A and Gold #C49A6C as exact hex values.',
@@ -515,19 +811,35 @@ function ComplianceView() {
       <div style={{ background:'#fff', border:'1px solid #e8e8e8', borderRadius:10, padding:20, marginBottom:16 }}>
         <div style={{ fontWeight:700, color:N, fontSize:15, marginBottom:4, fontFamily:'Arial' }}>Brand Guardrail Scorecard</div>
         <div style={{ fontSize:12, color:'#999', marginBottom:16, fontFamily:'Arial' }}>Latimore OS Master Playbook — All Three Source Documents Reviewed</div>
+
         {items.map((r, i) => {
           const sc = r.status === 'PASS' ? GR : r.status === 'ACTION NEEDED' ? RE : WA
+
           return (
-            <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 110px 1fr 1fr', gap:12, padding:'14px 0',
-              borderBottom: i < items.length-1 ? '1px solid #f0f0f0' : 'none', alignItems:'start' }}>
+            <div
+              key={i}
+              style={{
+                display:'grid',
+                gridTemplateColumns:'1fr 110px 1fr 1fr',
+                gap:12,
+                padding:'14px 0',
+                borderBottom: i < items.length-1 ? '1px solid #f0f0f0' : 'none',
+                alignItems:'start'
+              }}
+            >
               <div style={{ fontWeight:700, color:N, fontSize:13, fontFamily:'Arial' }}>{r.area}</div>
-              <div><span style={{ background:sc+'18', color:sc, fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:10, fontFamily:'Arial' }}>{r.status}</span></div>
+              <div>
+                <span style={{ background:sc+'18', color:sc, fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:10, fontFamily:'Arial' }}>
+                  {r.status}
+                </span>
+              </div>
               <div style={{ fontSize:12, color:'#555', fontFamily:'Arial', lineHeight:1.5 }}>{r.evidence}</div>
               <div style={{ fontSize:12, color:'#444', fontFamily:'Arial', lineHeight:1.5, fontStyle:'italic' }}>{r.action}</div>
             </div>
           )
         })}
       </div>
+
       <div style={{ background:LG, border:`1px solid ${G}`, borderRadius:10, padding:20 }}>
         <div style={{ fontWeight:700, color:N, fontSize:14, marginBottom:12, fontFamily:'Arial' }}>Priority Actions Before First Distribution</div>
         {actions.map((a, i) => (
@@ -549,14 +861,21 @@ export default function PAHSCampaignClient({ stats }: { stats: Stats }) {
   const [history, setHistory] = useState<MonthData[]>(MONTHLY_HISTORY)
 
   const handleUpdateMetric = (id: number, val: number) =>
-    setMetrics(prev => prev.map(m => m.id===id ? {...m, current:val} : m))
+    setMetrics(prev => prev.map(m => m.id===id ? { ...m, current: val } : m))
 
-  const totalPct = Math.round(metrics.reduce((a, m) => a + Math.min(100, (m.current/m.target)*100), 0) / metrics.length)
+  const totalPct = metrics.length
+    ? Math.round(
+        metrics.reduce((a, m) => {
+          const metricPct = m.target > 0 ? Math.min(100, (m.current / m.target) * 100) : 0
+          return a + metricPct
+        }, 0) / metrics.length
+      )
+    : 0
+
   const totalLeads = pipeline.reduce((a, s) => a + s.count, 0)
 
   return (
     <div style={{ fontFamily:'Arial, sans-serif', background:'#f6f6f6', minHeight:'100vh', display:'flex', flexDirection:'column' }}>
-
       {/* ── HEADER ── */}
       <div style={{ background: `linear-gradient(135deg, ${CRIMSON} 0%, ${CRIMSON_LIGHT} 40%, ${N} 100%)`, padding:'20px 24px' }}>
         {/* Sponsor badge */}
@@ -625,16 +944,16 @@ export default function PAHSCampaignClient({ stats }: { stats: Stats }) {
             {metrics.map(m => <StatCard key={m.id} metric={m} onUpdate={handleUpdateMetric} />)}
           </div>
         )}
-        {tab === 'pipeline'    && <PipelineView pipeline={pipeline} setPipeline={setPipeline} />}
-        {tab === 'leads'       && <LeadsView leads={stats.recentLeads} />}
-        {tab === 'trends'      && <TrendsView history={history} setHistory={setHistory} />}
-        {tab === 'checklist'   && <ChecklistView />}
-        {tab === 'scripts'     && (
+        {tab === 'pipeline'   && <PipelineView pipeline={pipeline} setPipeline={setPipeline} />}
+        {tab === 'leads'      && <LeadsView leads={stats.recentLeads} />}
+        {tab === 'trends'     && <TrendsView history={history} setHistory={setHistory} />}
+        {tab === 'checklist'  && <ChecklistView />}
+        {tab === 'scripts'    && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {DM_SCRIPTS.map(s => <ScriptCard key={s.id} script={s} />)}
           </div>
         )}
-        {tab === 'compliance'  && <ComplianceView />}
+        {tab === 'compliance' && <ComplianceView />}
       </div>
 
       <div style={{ background:N, color:G, textAlign:'center', padding:'10px 20px', fontSize:12, fontStyle:'italic', fontFamily:'Arial' }}>

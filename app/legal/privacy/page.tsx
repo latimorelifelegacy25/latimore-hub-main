@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         <p className="text-[#A9B1BE] text-sm mb-8">Last updated: {new Date().toLocaleDateString('en-US', { dateStyle: 'long' })}</p>
 
         <div className="prose prose-invert text-[#A9B1BE] space-y-6 text-sm leading-relaxed">
-          <p><strong className="text-[#F7F7F5]">{BRAND.fullName} LLC</strong> ("we," "us," or "our") is committed to protecting your privacy. This policy describes what we collect, how we use it, and your choices.</p>
+          <p><strong className="text-[#F7F7F5]">{BRAND.fullName}</strong> ("we," "us," or "our") is committed to protecting your privacy. This policy describes what we collect, how we use it, and your choices.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Information We Collect</h2>
           <p>When you contact us, submit a consultation request, or engage with our website, we may collect your name, email address, phone number, county, service interests, appointment preferences, and message details. We also collect technical and usage data such as page views, clicks, referrer data, and session identifiers used for analytics and lead attribution.</p>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <p>You may request access, correction, deletion, or limitation of your personal information by contacting us at <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a>. You may also disable cookies in your browser, though some site features may be affected.</p>
 
           <h2 className="text-[#F7F7F5] text-lg font-semibold mt-6">Contact</h2>
-          <p>{BRAND.fullName} LLC · PA License #{BRAND.paLicense} · <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a></p>
+          <p>{BRAND.fullName} · PA License #{BRAND.paLicense} · <a href={`mailto:${BRAND.email}`} className="text-[#C9A25F]">{BRAND.email}</a></p>
         </div>
       </div>
     </div>

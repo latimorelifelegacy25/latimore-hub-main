@@ -229,23 +229,34 @@ npx prisma migrate deploy
 
 ### **Setup**
 ```bash
-# Install dependencies
+# 1. From the project root, install dependencies
 npm install
 
-# Generate Prisma client
+# 2. Create your local env file from the committed template
+npm run env:init
+
+# 3. Edit .env.local and set real Supabase values:
+#    DATABASE_URL = pooled Supabase URL, usually port 6543
+#    DIRECT_URL   = direct Supabase URL, usually port 5432
+
+# 4. Generate Prisma client
 npx prisma generate
 
-# Run migrations (if fresh database)
-npx prisma migrate deploy
+# 5. Push the schema to a fresh development database
+npm run db:push
 
-# Seed test data (optional)
-npx prisma db seed
+# 6. Seed test data (optional)
+npm run db:seed
 
-# Start development server
+# 7. Start development server
 npm run dev
 ```
 
 **Development server**: http://localhost:3000
+
+> If `cp .env.example .env.local` fails, you are probably not in the project root.
+> Run `pwd`, `cd` into the folder that contains `package.json`, then use `npm run env:init`.
+> Use `npm run db:seed` instead of `npx ts-node ...`; the project seed command uses the already-declared `tsx` dev dependency.
 
 ### **Available Scripts**
 ```bash

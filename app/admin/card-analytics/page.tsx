@@ -3,40 +3,24 @@
 import { useEffect, useState } from 'react'
 import { Eye, MousePointerClick, Link2 } from 'lucide-react'
 
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import StatPill from '../_components/StatPill'
-import EmptyState from '../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
+import EmptyState from '@/app/admin/_components/EmptyState'
 
-type ClickStat = { label: string | null; _count: { label: number } }
-type CardEventRow = {
-  id: string
-  event: string
-  label: string | null
-  referrer: string | null
-  timestamp: string
-}
 type DayStat = { day: string; count: number }
-
+type LinkStat = { slug: string; title?: string | null; visits: number; clicks: number; lastVisitedAt?: string | null }
 type AnalyticsData = {
-  totalVisits: number
-  totalClicks: number
-  clicks: ClickStat[]
-  recent: CardEventRow[]
-  visitsByDay: DayStat[]
+  totals: { visits: number; clicks: number; links: number }
+  daily: DayStat[]
+  links: LinkStat[]
 }
 
 const gold = '#C9A25F'
-const navy = '#0D1117'
-
-function getReferrerHost(ref: string | null): string {
-  if (!ref) return 'Direct'
-  try { return new URL(ref).hostname } catch { return ref }
-}
 
 function MiniBarChart({ data }: { data: DayStat[] }) {
   if (!data.length) {
-    return <p className="text-sm text-[#A9B1BE]">No data yet.</p>
+    return <EmptyState title="No daily activity yet" description="Share your digital card link to start collecting visit and click data." />
   }
 
   const max = Math.max(...data.map(d => d.count), 1)
@@ -68,165 +52,80 @@ export default function CardAnalyticsPage() {
 
   const refresh = () => {
     setLoading(true)
-    fetch('/api/card-events')
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
-      .catch(() => { setError(true); setLoading(false) })
+    setError(false)
+    fetch('/api/admin/card-analytics')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text())
+        return res.json()
+      })
+      .then(setData)
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => {
     refresh()
   }, [])
 
-  if (loading) {
-    return (
-      <div className="p-8 text-center text-[#A9B1BE]">
-        Loading analytics…
-      </div>
-    )
-  }
-
-  if (error || !data) {
-    return (
-      <div className="p-8 text-center text-red-400">
-        Failed to load. Check database connection.
-      </div>
-    )
-  }
-
-  const conversionRate = data.totalVisits > 0
-    ? (
-        ((data.clicks.find(c => c.label === 'Book' || c.label === 'Free Legacy Strategy Review')?._count.label ?? 0)
-        / data.totalVisits) * 100
-      ).toFixed(1)
-    : '0.0'
+  const totals = data?.totals ?? { visits: 0, clicks: 0, links: 0 }
 
   return (
     <div className="p-6 md:p-8">
       <PageHeader
-        eyebrow="Analytics OS"
-        title="Digital Card Analytics"
-        description="Live tracking for legacylandingpage.vercel.app"
+        eyebrow="Digital Card Analytics"
+        title="Card Performance"
+        description="Track traffic and CTA clicks from your Latimore Life & Legacy digital business card links."
       />
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <AdminCard>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Total Visits</span>
-            <Eye size={18} className="text-[#C9A25F]" />
-          </div>
-          <p className="text-3xl font-bold text-white">{data.totalVisits.toLocaleString()}</p>
-        </AdminCard>
-
-        <AdminCard>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Total Clicks</span>
-            <MousePointerClick size={18} className="text-[#C9A25F]" />
-          </div>
-          <p className="text-3xl font-bold text-white">{data.totalClicks.toLocaleString()}</p>
-        </AdminCard>
-
-        <AdminCard>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs uppercase tracking-wider text-[#A9B1BE]">Actions Tracked</span>
-            <Link2 size={18} className="text-[#C9A25F]" />
-          </div>
-          <p className="text-3xl font-bold text-white">{data.clicks.length}</p>
-        </AdminCard>
-
-        <AdminCard>
-          <div className="text-xs uppercase tracking-wider text-[#A9B1BE] mb-2">Booking CVR</div>
-          <p className="text-3xl font-bold text-white">{conversionRate}%</p>
-        </AdminCard>
+      <div className="mb-6 grid gap-3 md:grid-cols-3">
+        <StatPill label="Total visits" value={totals.visits} />
+        <StatPill label="CTA clicks" value={totals.clicks} />
+        <StatPill label="Tracked links" value={totals.links} />
       </div>
 
-      {/* Two Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <AdminCard title="Visits — Last 30 Days">
-          <MiniBarChart data={data.visitsByDay} />
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+        <AdminCard title="Last 14 days">
+          {loading ? <p className="text-sm text-[#A9B1BE]">Loading…</p> : <MiniBarChart data={data?.daily ?? []} />}
         </AdminCard>
 
-        <AdminCard title="Clicks by Button">
-          {data.clicks.length === 0 ? (
-            <p className="text-sm text-[#A9B1BE]">No clicks recorded yet.</p>
+        <AdminCard title="Top links">
+          {error ? (
+            <EmptyState title="Unable to load analytics" description="Check the API route or database connection." />
+          ) : loading ? (
+            <p className="text-sm text-[#A9B1BE]">Loading…</p>
+          ) : !data?.links.length ? (
+            <EmptyState title="No links tracked yet" description="Create or share tracked card links to populate this table." />
           ) : (
-            <div className="flex flex-col gap-3">
-              {data.clicks.map((c, i) => {
-                const pct = data.totalClicks > 0
-                  ? Math.round((c._count.label / data.totalClicks) * 100)
-                  : 0
-
-                return (
-                  <div key={i}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-white font-semibold">{c.label ?? '(unknown)'}</span>
-                      <span className="text-[#A9B1BE] text-sm">{c._count.label} ({pct}%)</span>
-                    </div>
-                    <div className="h-2 bg-white/10 rounded">
-                      <div
-                        className="h-full rounded bg-[#C9A25F] transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-left text-xs uppercase tracking-[0.16em] text-[#A9B1BE]">
+                    <th className="py-2 pr-4">Link</th>
+                    <th className="py-2 pr-4">Visits</th>
+                    <th className="py-2 pr-4">Clicks</th>
+                    <th className="py-2">Last Visit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.links.map((link) => (
+                    <tr key={link.slug} className="border-b border-white/6 text-[#D7DCE5]">
+                      <td className="py-3 pr-4">
+                        <div className="font-semibold text-white">{link.title || link.slug}</div>
+                        <div className="text-xs text-[#A9B1BE]">/{link.slug}</div>
+                      </td>
+                      <td className="py-3 pr-4">{link.visits}</td>
+                      <td className="py-3 pr-4">{link.clicks}</td>
+                      <td className="py-3 text-xs text-[#A9B1BE]">
+                        {link.lastVisitedAt ? new Date(link.lastVisitedAt).toLocaleString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </AdminCard>
       </div>
-
-      {/* Recent Activity */}
-      <AdminCard title="Recent Activity">
-        {data.recent.length === 0 ? (
-          <EmptyState
-            title="No activity yet"
-            description="Deploy the card update to start tracking."
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-white/10">
-                  {['Time', 'Event', 'Label / Action', 'Referrer'].map(h => (
-                    <th
-                      key={h}
-                      className="text-left py-2 px-3 text-[#A9B1BE] uppercase text-xs tracking-wider"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.recent.map((e) => (
-                  <tr key={e.id} className="border-b border-white/5">
-                    <td className="py-2 px-3 text-[#A9B1BE] whitespace-nowrap">
-                      {new Date(e.timestamp).toLocaleString()}
-                    </td>
-                    <td className="py-2 px-3">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${
-                          e.event === 'visit'
-                            ? 'bg-white/10 text-white'
-                            : 'bg-[#C9A25F]/20 text-[#C9A25F]'
-                        }`}
-                      >
-                        {e.event}
-                      </span>
-                    </td>
-                    <td className="py-2 px-3 text-white">{e.label ?? '—'}</td>
-                    <td className="py-2 px-3 text-[#A9B1BE]">
-                      {getReferrerHost(e.referrer)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </AdminCard>
     </div>
   )
 }

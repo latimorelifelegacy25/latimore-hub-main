@@ -84,22 +84,6 @@ export function MobileNav({
           })}
 
           <a
-            href="/pahs"
-            onClick={() => setOpen(false)}
-            style={{
-              border: `1px solid ${SITE_COLORS.goldLight}`,
-              color: SITE_COLORS.goldLight,
-              padding: '0.75rem',
-              borderRadius: 8,
-              fontWeight: 700,
-              textDecoration: 'none',
-              textAlign: 'center',
-            }}
-          >
-            PAHS FOOTBALL 2026
-          </a>
-
-          <a
             href={BRAND.bookingUrl}
             onClick={() => setOpen(false)}
             style={{

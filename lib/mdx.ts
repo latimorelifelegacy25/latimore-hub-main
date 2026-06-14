@@ -25,6 +25,15 @@ export interface PostFrontmatter {
   num?: string
 }
 
+
+export type Track = NonNullable<PostFrontmatter['track']>
+export type ArticleMeta = Post & {
+  track: Track
+  trackLabel?: string
+  num?: string
+  format?: string
+}
+
 export interface Post extends PostFrontmatter {
   slug: string
   readingTime: string
@@ -69,6 +78,3 @@ export function getPostsByCategory(category: string): Post[] {
 export { CATEGORIES } from './blog-constants'
 export type { Category } from './blog-constants'
 
-// Aliases for legacy components that predated this module
-export type Track = 'A' | 'B' | 'C'
-export type ArticleMeta = Post
