@@ -257,5 +257,6 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .campaign-videos-title { font-family: 'Bebas Neue', 'Oswald', sans-serif; font-size: clamp(2rem, 6vw, 3.2rem); color: #fff; letter-spacing: .03em; margin-bottom: 2rem; }
 .videos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 @media (max-width: 640px) { .videos-grid { grid-template-columns: 1fr; } }
+.videos-grid.single { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
 .video-wrap { position: relative; width: 100%; height: 0; padding-top: 56.25%; border: 2px solid rgba(196,154,108,.25); box-shadow: 0 8px 32px rgba(0,0,0,.5); }
 .video-wrap iframe { position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; }

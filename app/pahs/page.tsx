@@ -287,23 +287,14 @@ export default function PAHSPage() {
         <div className="campaign-videos-inner">
           <div className="section-label gold-label">Campaign Videos</div>
           <h2 className="campaign-videos-title">Watch the Campaign</h2>
-          <div className="videos-grid">
-            <div className="video-wrap">
-              <iframe
-                loading="lazy"
-                src="https://www.canva.com/design/DAHLhIdBi1g/XrwK0tvOGXRX57S6xQtgdA/watch?embed"
-                allowFullScreen
-                allow="fullscreen"
-                title="PAHS Campaign Video 1"
-              />
-            </div>
+          <div className="videos-grid single">
             <div className="video-wrap">
               <iframe
                 loading="lazy"
                 src="https://www.canva.com/design/DAHLhNdroHQ/DSj1SN6LGJKvtoSIqk8hmQ/watch?embed"
                 allowFullScreen
                 allow="fullscreen"
-                title="PAHS Campaign Video 2"
+                title="PAHS Campaign Video"
               />
             </div>
           </div>
