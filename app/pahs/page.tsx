@@ -199,10 +199,6 @@ export default function PAHSPage() {
               ))}
             </div>
 
-            <div className="pahs-source-card">
-              <strong>Tracking path</strong>
-              <span>PAHS_QR · {tracking.utmSource} · {tracking.utmMedium} · {tracking.utmCampaign}</span>
-            </div>
           </div>
 
           <div className="pahs-lead-card">
