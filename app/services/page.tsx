@@ -312,16 +312,18 @@ function ServiceCard({ service }: { service: Service }) {
           ))}
         </ul>
 
-        {service.learnMoreHref && (
+      </div>
+
+      {service.learnMoreHref && (
+        <div className="px-6 pb-6">
           <Link
             href={service.learnMoreHref}
-            className="inline-block mt-4 text-sm font-semibold no-underline"
-            style={{ color: GOLD }}
+            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
           >
             Learn more →
           </Link>
-        )}
-      </div>
+        </div>
+      )}
     </article>
   )
 }

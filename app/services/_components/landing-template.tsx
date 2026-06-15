@@ -79,7 +79,7 @@ function ComparisonCard({ column, variant }: { column: ComparisonColumn; variant
             <Icon
               size={16}
               className="flex-shrink-0 mt-0.5"
-              style={{ color: variant === 'risk' ? '#b91c1c' : GOLD }}
+              style={{ color: variant === 'risk' ? '#94a3b8' : GOLD }}
               aria-hidden="true"
             />
             <span>{item}</span>
