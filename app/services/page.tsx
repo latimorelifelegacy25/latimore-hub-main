@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { BRAND } from '@/lib/brand'
 import {
   TrendingUp,
@@ -30,6 +31,7 @@ interface Service {
   who: string
   summary: string
   points: string[]
+  learnMoreHref?: string
 }
 
 interface ClientSegment {
@@ -103,6 +105,7 @@ const services: Service[] = [
       'Build a foundation that does not collapse under unexpected expenses',
       'Coordination with life insurance and living benefit strategies',
     ],
+    learnMoreHref: '/services/debt-strategy',
   },
   {
     number: '05',
@@ -133,6 +136,7 @@ const services: Service[] = [
       'Funding for buy-sell agreements between business partners',
       'Coordination with your attorney for wills and trusts',
     ],
+    learnMoreHref: '/services/estate-planning',
   },
   {
     number: '07',
@@ -178,6 +182,7 @@ const services: Service[] = [
       'Covers revenue loss, loan obligations, and recruitment costs',
       'Can be used to attract and retain key talent as a benefit',
     ],
+    learnMoreHref: '/services/business-continuity',
   },
   {
     number: '10',
@@ -306,6 +311,16 @@ function ServiceCard({ service }: { service: Service }) {
             </li>
           ))}
         </ul>
+
+        {service.learnMoreHref && (
+          <Link
+            href={service.learnMoreHref}
+            className="inline-block mt-4 text-sm font-semibold no-underline"
+            style={{ color: GOLD }}
+          >
+            Learn more →
+          </Link>
+        )}
       </div>
     </article>
   )
