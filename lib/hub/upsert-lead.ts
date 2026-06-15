@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { ingestEvent } from './ingest-event'
+import { ingestEvent, upsertLeadSession } from './ingest-event'
 import { cleanString, normalizeProductInterest } from './normalizers'
 import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { logger } from '@/lib/logger'
@@ -102,9 +102,9 @@ export async function upsertLead(input: LeadUpsertInput) {
   }
 
   if (leadSessionId) {
-    await prisma.leadSession.upsert({
-      where: { id: leadSessionId },
-      update: {
+    await upsertLeadSession(
+      leadSessionId,
+      {
         lastSeenAt: new Date(),
         contactId: contact.id,
         landingPage: landingPage ?? undefined,
@@ -117,7 +117,7 @@ export async function upsertLead(input: LeadUpsertInput) {
         county: county ?? undefined,
         productInterest,
       },
-      create: {
+      {
         id: leadSessionId,
         contactId: contact.id,
         landingPage: landingPage ?? undefined,
@@ -130,7 +130,7 @@ export async function upsertLead(input: LeadUpsertInput) {
         county: county ?? undefined,
         productInterest,
       },
-    })
+    )
   }
 
   const inquiry = await prisma.inquiry.create({

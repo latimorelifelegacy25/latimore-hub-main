@@ -21,7 +21,9 @@ import {
   Wrench,
   Check,
 } from 'lucide-react'
+import Link from 'next/link'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
+import { SERVICE_PAGES } from '@/lib/services-content'
 
 interface Service {
   number: string
@@ -370,6 +372,37 @@ export default function ServicesPage() {
             <div className="grid md:grid-cols-2 gap-8">
               {services.map((service) => (
                 <ServiceCard key={service.number} service={service} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 bg-gray-100" aria-labelledby="learn-more-heading">
+          <div className="max-w-6xl mx-auto px-5">
+            <div className="text-center mb-10">
+              <p
+                className="text-sm font-semibold tracking-widest uppercase mb-3"
+                style={{ color: '#9C7B2E' }}
+              >
+                Learn More
+              </p>
+              <h2 id="learn-more-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+                Explore Each Strategy in Detail
+              </h2>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {SERVICE_PAGES.map((page) => (
+                <Link
+                  key={page.slug}
+                  href={`/services/${page.slug}`}
+                  className="bg-white rounded-xl shadow-md border border-black/5 p-5 flex items-center gap-4 no-underline transition-all hover:border-[#C9A24D]/50"
+                >
+                  <span className="font-extrabold text-lg" style={{ color: GOLD }}>
+                    {page.serviceNumber}
+                  </span>
+                  <span className="text-gray-900 font-semibold text-sm">{page.serviceLabel}</span>
+                </Link>
               ))}
             </div>
           </div>
