@@ -22,7 +22,6 @@ import {
   Wrench,
   Check,
 } from 'lucide-react'
-import Link from 'next/link'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 import { SERVICE_PAGES } from '@/lib/services-content'
 
@@ -217,56 +216,56 @@ const strategies: Strategy[] = [
     icon: <Shield size={24} aria-hidden="true" />,
     title: 'Life Insurance',
     blurb: 'Term, whole life, and indexed universal life — protection that fits your budget and your goals.',
-    href: '/blog/term-vs-whole-life-vs-iul',
+    href: '/services/life-insurance',
   },
   {
     number: '02',
     icon: <Home size={24} aria-hidden="true" />,
     title: 'Mortgage Protection',
     blurb: 'Make sure your family can keep the home if something happens to you.',
-    href: '/blog/mortgage-protection-home-security',
+    href: '/services/mortgage-protection',
   },
   {
     number: '03',
     icon: <Target size={24} aria-hidden="true" />,
     title: 'Retirement Income',
     blurb: 'Turn savings into income that lasts — without running out of money.',
-    href: '/blog/will-you-outlive-your-money',
+    href: '/services/retirement-income',
   },
   {
     number: '04',
     icon: <Landmark size={24} aria-hidden="true" />,
     title: '401(k) Rollover',
     blurb: 'Roll over an old 401(k) or 403(b) into a strategy with principal protection.',
-    href: '/blog/401k-retirement-risk-asset-protection',
+    href: '/services/401k-rollover',
   },
   {
     number: '05',
     icon: <HeartPulse size={24} aria-hidden="true" />,
     title: 'Final Expense',
     blurb: 'Cover end-of-life costs so your family is not left with the bill.',
-    href: '/blog/final-expense-insurance-senior-planning',
+    href: '/services/final-expense',
   },
   {
     number: '06',
     icon: <Baby size={24} aria-hidden="true" />,
     title: 'College Funding',
     blurb: 'Save for education with flexibility that 529 plans cannot match.',
-    href: '/blog/college-funding-iul-million-dollar-baby',
+    href: '/services/college-funding',
   },
   {
     number: '07',
     icon: <Briefcase size={24} aria-hidden="true" />,
     title: 'Business Protection',
     blurb: 'Key-person coverage and buy-sell funding to keep your business running.',
-    href: '/services/business-continuity',
+    href: '/services/business-protection',
   },
   {
     number: '08',
     icon: <Wrench size={24} aria-hidden="true" />,
     title: 'Legacy Checkup',
     blurb: 'A free, guided review to see exactly where you stand today.',
-    href: '/education',
+    href: '/services/legacy-checkup',
   },
   {
     number: '09',
@@ -280,7 +279,7 @@ const strategies: Strategy[] = [
     icon: <LineChart size={24} aria-hidden="true" />,
     title: 'IUL Strategy',
     blurb: 'Tax-advantaged growth with downside protection, built around your goals.',
-    href: '/blog/infinite-banking-concept-whole-life',
+    href: '/services/iul-strategy',
   },
 ]
 
