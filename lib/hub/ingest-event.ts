@@ -25,33 +25,38 @@ export async function ingestEvent(input: EventIngestInput) {
   const occurredAt = parsedAt && !Number.isNaN(parsedAt.getTime()) ? parsedAt : new Date()
 
   if (leadSessionId) {
-    await prisma.leadSession.upsert({
-      where: { id: leadSessionId },
-      update: {
-        lastSeenAt: occurredAt,
-        landingPage: cleanString(input.pageUrl, 500) ?? undefined,
-        referrer: cleanString(input.referrer, 500) ?? undefined,
-        source: cleanString(input.source, 100) ?? undefined,
-        medium: cleanString(input.medium, 100) ?? undefined,
-        campaign: cleanString(input.campaign, 150) ?? undefined,
-        county: cleanString(input.county, 100) ?? undefined,
-        productInterest: input.productInterest ? normalizeProductInterest(input.productInterest) : undefined,
-        contactId: cleanString(input.contactId, 191) ?? undefined,
-      },
-      create: {
-        id: leadSessionId,
-        firstSeenAt: occurredAt,
-        lastSeenAt: occurredAt,
-        landingPage: cleanString(input.pageUrl, 500) ?? undefined,
-        referrer: cleanString(input.referrer, 500) ?? undefined,
-        source: cleanString(input.source, 100) ?? undefined,
-        medium: cleanString(input.medium, 100) ?? undefined,
-        campaign: cleanString(input.campaign, 150) ?? undefined,
-        county: cleanString(input.county, 100) ?? undefined,
-        productInterest: input.productInterest ? normalizeProductInterest(input.productInterest) : undefined,
-        contactId: cleanString(input.contactId, 191) ?? undefined,
-      },
-    })
+    try {
+      await prisma.leadSession.upsert({
+        where: { id: leadSessionId },
+        update: {
+          lastSeenAt: occurredAt,
+          landingPage: cleanString(input.pageUrl, 500) ?? undefined,
+          referrer: cleanString(input.referrer, 500) ?? undefined,
+          source: cleanString(input.source, 100) ?? undefined,
+          medium: cleanString(input.medium, 100) ?? undefined,
+          campaign: cleanString(input.campaign, 150) ?? undefined,
+          county: cleanString(input.county, 100) ?? undefined,
+          productInterest: input.productInterest ? normalizeProductInterest(input.productInterest) : undefined,
+          contactId: cleanString(input.contactId, 191) ?? undefined,
+        },
+        create: {
+          id: leadSessionId,
+          firstSeenAt: occurredAt,
+          lastSeenAt: occurredAt,
+          landingPage: cleanString(input.pageUrl, 500) ?? undefined,
+          referrer: cleanString(input.referrer, 500) ?? undefined,
+          source: cleanString(input.source, 100) ?? undefined,
+          medium: cleanString(input.medium, 100) ?? undefined,
+          campaign: cleanString(input.campaign, 150) ?? undefined,
+          county: cleanString(input.county, 100) ?? undefined,
+          productInterest: input.productInterest ? normalizeProductInterest(input.productInterest) : undefined,
+          contactId: cleanString(input.contactId, 191) ?? undefined,
+        },
+      })
+    } catch (err: any) {
+      console.error('INGEST_LS_ERR', JSON.stringify({ name: err?.name, code: err?.code, message: String(err?.message ?? '').slice(0, 400) }))
+      throw err
+    }
   }
 
   return prisma.event.create({
