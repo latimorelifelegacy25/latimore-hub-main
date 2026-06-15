@@ -22,7 +22,9 @@ import {
   Wrench,
   Check,
 } from 'lucide-react'
+import Link from 'next/link'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
+import { SERVICE_PAGES } from '@/lib/services-content'
 
 interface Service {
   number: string
