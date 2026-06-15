@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { BRAND } from '@/lib/brand'
 import {
   TrendingUp,
@@ -32,12 +33,21 @@ interface Service {
   who: string
   summary: string
   points: string[]
+  learnMoreHref?: string
 }
 
 interface ClientSegment {
   icon: ReactNode
   title: string
   description: string
+}
+
+interface Strategy {
+  number: string
+  icon: ReactNode
+  title: string
+  blurb: string
+  href: string
 }
 
 const NAVY = '#0E1A2B'
@@ -105,6 +115,7 @@ const services: Service[] = [
       'Build a foundation that does not collapse under unexpected expenses',
       'Coordination with life insurance and living benefit strategies',
     ],
+    learnMoreHref: '/services/debt-strategy',
   },
   {
     number: '05',
@@ -135,6 +146,7 @@ const services: Service[] = [
       'Funding for buy-sell agreements between business partners',
       'Coordination with your attorney for wills and trusts',
     ],
+    learnMoreHref: '/services/estate-planning',
   },
   {
     number: '07',
@@ -180,6 +192,7 @@ const services: Service[] = [
       'Covers revenue loss, loan obligations, and recruitment costs',
       'Can be used to attract and retain key talent as a benefit',
     ],
+    learnMoreHref: '/services/business-continuity',
   },
   {
     number: '10',
@@ -195,6 +208,79 @@ const services: Service[] = [
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
     ],
+  },
+]
+
+const strategies: Strategy[] = [
+  {
+    number: '01',
+    icon: <Shield size={24} aria-hidden="true" />,
+    title: 'Life Insurance',
+    blurb: 'Term, whole life, and indexed universal life — protection that fits your budget and your goals.',
+    href: '/blog/term-vs-whole-life-vs-iul',
+  },
+  {
+    number: '02',
+    icon: <Home size={24} aria-hidden="true" />,
+    title: 'Mortgage Protection',
+    blurb: 'Make sure your family can keep the home if something happens to you.',
+    href: '/blog/mortgage-protection-home-security',
+  },
+  {
+    number: '03',
+    icon: <Target size={24} aria-hidden="true" />,
+    title: 'Retirement Income',
+    blurb: 'Turn savings into income that lasts — without running out of money.',
+    href: '/blog/will-you-outlive-your-money',
+  },
+  {
+    number: '04',
+    icon: <Landmark size={24} aria-hidden="true" />,
+    title: '401(k) Rollover',
+    blurb: 'Roll over an old 401(k) or 403(b) into a strategy with principal protection.',
+    href: '/blog/401k-retirement-risk-asset-protection',
+  },
+  {
+    number: '05',
+    icon: <HeartPulse size={24} aria-hidden="true" />,
+    title: 'Final Expense',
+    blurb: 'Cover end-of-life costs so your family is not left with the bill.',
+    href: '/blog/final-expense-insurance-senior-planning',
+  },
+  {
+    number: '06',
+    icon: <Baby size={24} aria-hidden="true" />,
+    title: 'College Funding',
+    blurb: 'Save for education with flexibility that 529 plans cannot match.',
+    href: '/blog/college-funding-iul-million-dollar-baby',
+  },
+  {
+    number: '07',
+    icon: <Briefcase size={24} aria-hidden="true" />,
+    title: 'Business Protection',
+    blurb: 'Key-person coverage and buy-sell funding to keep your business running.',
+    href: '/services/business-continuity',
+  },
+  {
+    number: '08',
+    icon: <Wrench size={24} aria-hidden="true" />,
+    title: 'Legacy Checkup',
+    blurb: 'A free, guided review to see exactly where you stand today.',
+    href: '/education',
+  },
+  {
+    number: '09',
+    icon: <Building2 size={24} aria-hidden="true" />,
+    title: 'Estate Planning',
+    blurb: 'Pass on more of what you have built, with less left to chance.',
+    href: '/services/estate-planning',
+  },
+  {
+    number: '10',
+    icon: <LineChart size={24} aria-hidden="true" />,
+    title: 'IUL Strategy',
+    blurb: 'Tax-advantaged growth with downside protection, built around your goals.',
+    href: '/blog/infinite-banking-concept-whole-life',
   },
 ]
 
@@ -308,8 +394,40 @@ function ServiceCard({ service }: { service: Service }) {
             </li>
           ))}
         </ul>
+
       </div>
+
+      {service.learnMoreHref && (
+        <div className="px-6 pb-6">
+          <Link
+            href={service.learnMoreHref}
+            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+          >
+            Learn more →
+          </Link>
+        </div>
+      )}
     </article>
+  )
+}
+
+function StrategyCard({ strategy }: { strategy: Strategy }) {
+  return (
+    <Link
+      href={strategy.href}
+      className="block bg-white rounded-xl shadow-md border border-black/5 p-5 no-underline transition-all hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <span className="font-extrabold text-sm" style={{ color: GOLD }}>
+          {strategy.number}
+        </span>
+        <span style={{ color: NAVY }} aria-hidden="true">
+          {strategy.icon}
+        </span>
+      </div>
+      <h3 className="text-gray-900 font-semibold mb-1">{strategy.title}</h3>
+      <p className="text-gray-600 text-sm leading-relaxed">{strategy.blurb}</p>
+    </Link>
   )
 }
 
@@ -377,32 +495,23 @@ export default function ServicesPage() {
           </div>
         </section>
 
-        <section className="py-16 bg-gray-100" aria-labelledby="learn-more-heading">
+        <section className="py-16 bg-white" aria-labelledby="strategies-heading">
           <div className="max-w-6xl mx-auto px-5">
             <div className="text-center mb-10">
               <p
                 className="text-sm font-semibold tracking-widest uppercase mb-3"
-                style={{ color: '#9C7B2E' }}
+                style={{ color: GOLD }}
               >
-                Learn More
+                Go Deeper
               </p>
-              <h2 id="learn-more-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h2 id="strategies-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
                 Explore Each Strategy in Detail
               </h2>
             </div>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {SERVICE_PAGES.map((page) => (
-                <Link
-                  key={page.slug}
-                  href={`/services/${page.slug}`}
-                  className="bg-white rounded-xl shadow-md border border-black/5 p-5 flex items-center gap-4 no-underline transition-all hover:border-[#C9A24D]/50"
-                >
-                  <span className="font-extrabold text-lg" style={{ color: GOLD }}>
-                    {page.serviceNumber}
-                  </span>
-                  <span className="text-gray-900 font-semibold text-sm">{page.serviceLabel}</span>
-                </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5">
+              {strategies.map((strategy) => (
+                <StrategyCard key={strategy.number} strategy={strategy} />
               ))}
             </div>
           </div>

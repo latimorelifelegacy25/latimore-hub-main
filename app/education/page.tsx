@@ -566,11 +566,23 @@ export default function EducationPage() {
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full rounded-3xl bg-white p-6 shadow-2xl transition-all duration-300 md:p-10" style={{ color: navy }}>
               {currentStep === 'welcome' && (
-                <Screen
-                  eyebrow="Welcome"
-                  title="Protect Your Family. Build Your Legacy."
-                  body="Most people know they need a plan. The problem is knowing where to start. This quick education experience will help you see where you stand, what matters most, and what next step fits your family, business, or retirement goals."
-                />
+                <div className="grid items-center gap-6 md:grid-cols-2">
+                  <div className="overflow-hidden rounded-2xl">
+                    <Image
+                      src="/hero_family_home.jpg"
+                      alt="Family at home"
+                      width={800}
+                      height={800}
+                      priority
+                      className="h-64 w-full object-cover md:h-full"
+                    />
+                  </div>
+                  <Screen
+                    eyebrow="Welcome"
+                    title="Protect Your Family. Build Your Legacy."
+                    body="Most people know they need a plan. The problem is knowing where to start. This quick education experience will help you see where you stand, what matters most, and what next step fits your family, business, or retirement goals."
+                  />
+                </div>
               )}
 
               {currentStep === 'contact' && (
