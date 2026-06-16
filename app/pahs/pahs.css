@@ -633,6 +633,11 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .spgfx { background: #0d1821; line-height: 0; }
 .spgfx img { width: 100%; display: block; max-height: 540px; object-fit: cover; object-position: center top; }
 
+/* PAHS Then throwback section */
+.pahs-then { background: #0d1821; padding: 3rem 1.5rem; text-align: center; }
+.pahs-then-inner { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+.pahs-then-inner img { display: block; }
+
 /* Retro newspaper card for story image */
 .retro-card { transform: rotate(-1.5deg); transition: transform .3s; margin: 0 auto; max-width: 380px; }
 .retro-card:hover { transform: rotate(0deg) scale(1.02); }
@@ -661,6 +666,24 @@ select.form-control { appearance: none; background-image: url("data:image/svg+xm
 .footer-socials a { font-size: .85rem; color: rgba(255,255,255,.45); text-decoration: none; transition: color .2s; }
 .footer-socials a:hover { color: var(--gold); }
 .footer-home-link { text-decoration: none; }
+
+/* Footer */
+.pahs-footer { background: var(--pahs-deep-2); border-top: 1px solid rgba(196,154,108,.2); padding: 2rem 0; }
+.pahs-footer__grid { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
+.pahs-footer__grid > div { display: flex; flex-direction: column; gap: .35rem; }
+.pahs-footer__grid strong { font-family: 'Oswald', sans-serif; letter-spacing: .04em; }
+.pahs-footer__grid span { color: rgba(255,255,255,.55); font-size: .85rem; }
+.pahs-footer__grid a { text-decoration: none; font-size: .9rem; color: rgba(255,255,255,.75); }
+.pahs-footer__grid a:hover { color: var(--pahs-gold); }
+.pahs-footer__grid > div:last-child { align-items: flex-start; }
+@media (min-width: 640px) { .pahs-footer__grid > div:last-child { align-items: flex-end; text-align: right; } }
+
+/* Mobile sticky CTA */
+.pahs-mobile-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem 1rem; background: linear-gradient(135deg, var(--pahs-deep-2), var(--pahs-navy)); border-top: 2px solid var(--pahs-gold); box-shadow: 0 -8px 32px rgba(0,0,0,.4); }
+.pahs-mobile-cta span { font-family: 'Oswald', sans-serif; font-size: .85rem; font-weight: 600; letter-spacing: .04em; color: var(--pahs-white); }
+.pahs-mobile-cta button { border-radius: 10px; padding: .7rem 1.1rem; font-size: .82rem; background: linear-gradient(135deg, var(--pahs-gold-light), var(--pahs-gold), var(--pahs-gold-dark)); color: var(--pahs-navy); white-space: nowrap; flex-shrink: 0; }
+@supports (padding-bottom: env(safe-area-inset-bottom)) { .pahs-mobile-cta { padding-bottom: calc(.8rem + env(safe-area-inset-bottom)); } }
+@media (min-width: 900px) { .pahs-mobile-cta { display: none; } }
 
 /* Campaign videos section */
 .campaign-videos { background: #0d1821; padding: 3.5rem 1.5rem; }

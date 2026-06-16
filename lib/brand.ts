@@ -73,11 +73,11 @@ export const BRAND = {
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
   // Social
-  instagram: 'https://www.instagram.com/jacksonlatimore.global',
+  instagram: 'https://www.instagram.com/latimorelifelegacy25/',
   linkedin: 'https://www.linkedin.com/in/startwithjacksongfi',
   facebook: 'https://www.facebook.com/LatimoreLegacyLLC/',
 
-  instagramUrl: 'https://www.instagram.com/jacksonlatimore.global',
+  instagramUrl: 'https://www.instagram.com/latimorelifelegacy25/',
   linkedinUrl: 'https://www.linkedin.com/in/startwithjacksongfi',
   facebookUrl: 'https://www.facebook.com/LatimoreLegacyLLC/',
 
