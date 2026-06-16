@@ -160,6 +160,17 @@ export default function PAHSPage() {
         <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
       </section>
 
+      <section className="pahs-then">
+        <div className="pahs-then-inner">
+          <div className="section-label gold-label">PAHS Then</div>
+          <img
+            src="/pahs-2005-allarea.png"
+            alt="2005 Coal Region All-Area Football — Throwback Tide Thursday: Where the Journey Began"
+            style={{ width: '100%', maxWidth: '640px', borderRadius: '8px' }}
+          />
+        </div>
+      </section>
+
       <section className="campaign-videos">
         <div className="campaign-videos-inner">
           <div className="section-label gold-label">Campaign Videos</div>
