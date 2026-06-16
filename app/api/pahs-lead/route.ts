@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { upsertLead } from '@/lib/hub/upsert-lead';
+import { createGoogleCalendarEvent } from '@/lib/calendar/events';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { requiredEnv } from '@/lib/required-env';
@@ -42,6 +43,38 @@ function splitName(full: string): { firstName: string | null; lastName: string |
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function leadSummary(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+  return [
+    `Name: ${lead.name}`,
+    `Phone: ${lead.phone}`,
+    `Email: ${lead.email || 'Not provided'}`,
+    `Interest: ${lead.interest}`,
+    `Best time: ${lead.bestTime || 'No preference'}`,
+    `Promo/Coupon: ${lead.promo || 'None'}`,
+    `Source: ${lead.source}`,
+    `Page: ${lead.page}`,
+    crm?.contact ? `CRM Contact: ${crm.contact}` : null,
+    crm?.inquiry ? `CRM Inquiry: ${crm.inquiry}` : null,
+  ].filter(Boolean).join('\n');
+}
+
+function followUpWindow(bestTime: string) {
+  const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const pref = bestTime.toLowerCase();
+  if (start.getDay() === 0) start.setDate(start.getDate() + 1);
+  if (start.getDay() === 6) start.setDate(start.getDate() + 2);
+  if (pref.includes('morning')) start.setHours(9, 0, 0, 0);
+  else if (pref.includes('afternoon')) start.setHours(14, 0, 0, 0);
+  else if (pref.includes('evening')) start.setHours(17, 0, 0, 0);
+  else start.setHours(9, 30, 0, 0);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
 async function saveToCRM(lead: ValidatedLead) {
   const { firstName, lastName } = splitName(lead.name);
   const notes = [
@@ -60,14 +93,7 @@ async function saveToCRM(lead: ValidatedLead) {
     campaign: lead.utmCampaign || null,
     landingPage: lead.page,
     notes,
-    metadata: {
-      form: 'pahs-lead',
-      promo: lead.promo || null,
-      bestTime: lead.bestTime || null,
-      utmSource: lead.utmSource || null,
-      utmMedium: lead.utmMedium || null,
-      utmCampaign: lead.utmCampaign || null,
-    },
+    metadata: { form: 'pahs-lead', promo: lead.promo || null, bestTime: lead.bestTime || null },
   });
   return { contact: contact.id, inquiry: inquiry.id };
 }
@@ -121,13 +147,24 @@ Notify: ${emailTo}`
   return { skipped: false, channel: 'google_chat' }
 }
 
+async function createCalendarReminder(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+  const window = followUpWindow(lead.bestTime);
+  const event = await createGoogleCalendarEvent({
+    summary: `Follow up: PAHS Protect - ${lead.name}`,
+    description: leadSummary(lead, crm),
+    start: window.start,
+    end: window.end,
+    location: 'Phone/Text follow-up',
+  });
+  return { skipped: false, eventId: event.id, htmlLink: event.htmlLink ?? null };
+}
+
 export async function POST(req: NextRequest) {
-  const limited = await rateLimit(req, 'lead')
-  if (limited) return limited
+  const limited = await rateLimit(req, 'lead');
+  if (limited) return limited;
 
   try {
-    const body = (await req.json()) as LeadBody
-
+    const body = (await req.json()) as LeadBody;
     const lead: ValidatedLead = {
       name: clean(body.name, 150),
       phone: clean(body.phone, 50),
@@ -142,7 +179,7 @@ export async function POST(req: NextRequest) {
       utmSource: clean(body.utmSource, 100),
       utmMedium: clean(body.utmMedium, 100),
       utmCampaign: clean(body.utmCampaign, 150),
-    }
+    };
 
     if (!lead.name || !lead.email || !lead.phone || !lead.state || !lead.priority || !lead.source || !lead.interest) {
       return NextResponse.json(
@@ -151,7 +188,9 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const target = process.env.PAHS_LEAD_TARGET ?? 'crm';
+    const save = process.env.PAHS_LEAD_TARGET === 'supabase' ? await saveToSupabase(lead) : await saveToCRM(lead);
+    const crm = 'contact' in save && 'inquiry' in save ? save : undefined;
+    const [email, calendar] = await Promise.allSettled([sendNotification(lead, crm), createCalendarReminder(lead, crm)]);
 
     const [saveResult, emailResult] = await Promise.allSettled([
       target === 'crm' ? saveToCRM(lead) : saveToSupabase(lead),
