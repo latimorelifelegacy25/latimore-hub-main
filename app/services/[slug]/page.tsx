@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { Fragment } from 'react'
 import { BRAND } from '@/lib/brand'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
@@ -66,20 +67,30 @@ function renderBody(text: string) {
   )
 }
 
-function CtaButtons({ centered = false, large = false, label }: { centered?: boolean; large?: boolean; label: string }) {
+function serviceEducationUrl(serviceLabel: string) {
+  const params = new URLSearchParams({
+    utm_source: 'google_business_profile',
+    utm_medium: 'service_page',
+    utm_campaign: 'latimore_services',
+    source: 'GBP_SERVICE_PAGE',
+    service: serviceLabel,
+  })
+
+  return `/education?${params.toString()}`
+}
+
+function CtaButtons({ centered = false, large = false, label, serviceLabel }: { centered?: boolean; large?: boolean; label: string; serviceLabel: string }) {
   const paddingClass = large ? 'px-8 py-3' : 'px-4 py-2'
   const textClass = large ? 'text-base' : 'text-sm'
 
   return (
     <div className={`flex flex-wrap gap-4 ${centered ? 'justify-center' : ''}`}>
-      <a
-        href={BRAND.bookingUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href={serviceEducationUrl(serviceLabel)}
         className={`rounded-md font-bold no-underline transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#C9A24D] focus-visible:ring-offset-[#0E1A2B] bg-[#C9A24D] text-[#0E1A2B] ${paddingClass} ${textClass}`}
       >
         {label}
-      </a>
+      </Link>
       <a
         href={`tel:+1${BRAND.phoneRaw}`}
         className={`rounded-md font-bold no-underline transition-all hover:bg-[#C9A24D]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#C9A24D] focus-visible:ring-offset-[#0E1A2B] bg-transparent text-white border-2 border-[#C9A24D] ${paddingClass} ${textClass}`}
@@ -128,7 +139,7 @@ export default async function ServiceDetailPage({
 
             <p className="text-white/85 text-lg leading-relaxed mb-8">{page.heroTagline}</p>
 
-            <CtaButtons centered large label={page.heroCtaLabel} />
+            <CtaButtons centered large label={page.heroCtaLabel} serviceLabel={page.serviceLabel} />
           </div>
         </section>
 
@@ -300,7 +311,7 @@ export default async function ServiceDetailPage({
 
             <p className="text-white/85 text-lg mb-8 leading-relaxed">{page.ctaSubtext}</p>
 
-            <CtaButtons centered large label={page.heroCtaLabel} />
+            <CtaButtons centered large label={page.heroCtaLabel} serviceLabel={page.serviceLabel} />
           </div>
         </section>
       </main>

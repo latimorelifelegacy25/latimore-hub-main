@@ -50,6 +50,7 @@ export const FilloutSchema = z.object({
   lead_session_id: z.string().max(191).optional().nullable(),
   page_url: z.string().max(500).optional().nullable(),
   landing_page: z.string().max(500).optional().nullable(),
+  source: z.string().max(100).optional().nullable(),
   utm_source: z.string().max(100).optional().nullable(),
   utm_medium: z.string().max(100).optional().nullable(),
   utm_campaign: z.string().max(150).optional().nullable(),

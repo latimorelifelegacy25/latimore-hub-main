@@ -57,7 +57,7 @@ export default async function MessagesPage({
       {threads.length === 0 ? (
         <EmptyState
           title="No message threads yet"
-          description="Once Twilio SMS or email integrations are connected, conversation threads will appear here."
+          description="Once Google Chat or email integrations are connected, conversation threads will appear here."
           icon={<MessageSquareText size={18} />}
         />
       ) : (

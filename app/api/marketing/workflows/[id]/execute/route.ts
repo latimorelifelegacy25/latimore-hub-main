@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
             break
           case 'sms':
-            results.push({ step: step.label, status: 'queued', message: 'SMS queued via Twilio' })
+            results.push({ step: step.label, status: 'queued', message: 'SMS queued via notification provider' })
             break
           case 'social_post':
             results.push({ step: step.label, status: 'queued', message: 'Post queued for social publish' })

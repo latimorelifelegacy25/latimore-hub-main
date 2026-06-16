@@ -67,7 +67,7 @@ async function runAction(action: AutomationRuleDefinition['actions'][0], ctx: Ev
       break
 
     case 'send_notification':
-      // Extend with Twilio / Resend when ready
+      // Extend with Google Chat / Resend when ready
       logger.info({ payload: action.payload, ctx }, 'automation_rules: send_notification')
       break
 

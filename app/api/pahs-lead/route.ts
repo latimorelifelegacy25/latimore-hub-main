@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
+import { requiredEnv } from '@/lib/required-env';
+import { sendGoogleChatMessage } from '@/lib/google-chat';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -17,6 +18,8 @@ type LeadBody = {
   source?: string;
   page?: string;
   bestTime?: string;
+  state?: string;
+  priority?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -70,48 +73,52 @@ async function saveToCRM(lead: ValidatedLead) {
 }
 
 async function saveToSupabase(lead: ValidatedLead) {
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return { skipped: true, reason: 'Supabase env vars not configured.' };
+  const url = requiredEnv('NEXT_PUBLIC_SUPABASE_URL')
+  const serviceKey = requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
 
   const table = process.env.PAHS_LEADS_TABLE || 'pahs_leads';
   const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { error } = await supabase.from(table).insert({
+  const { data, error } = await supabase.from(table).insert({
     full_name: lead.name,
     phone: lead.phone,
-    email: lead.email || null,
+    email: lead.email,
     promo_code: lead.promo || null,
     product_interest: lead.interest,
-    lead_source: lead.source,
+    lead_source: lead.utmSource || lead.source,
     page_source: lead.page,
+    state: lead.state,
+    priority: lead.priority,
+    utm_source: lead.utmSource || null,
+    utm_medium: lead.utmMedium || null,
+    utm_campaign: lead.utmCampaign || null,
     status: 'New',
     county: null,
     notes: 'PAHS sponsorship landing page consultation request.',
-  });
+  }).select('id').single();
 
   if (error) throw new Error(`Supabase insert failed: ${error.message}`);
-  return { skipped: false };
+  return { skipped: false, leadId: data?.id };
 }
 
 async function sendNotification(lead: ValidatedLead) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { skipped: true, reason: 'RESEND_API_KEY not configured.' };
+  const emailTo = requiredEnv('LEAD_NOTIFY_EMAIL')
+  const text = `New PAHS consultation request
 
-  const resend = new Resend(apiKey);
-  const to = process.env.LEAD_NOTIFY_TO || process.env.NOTIFY_TO || 'Jackson1989@latimorelegacy.com';
-  const from = process.env.LEAD_NOTIFY_FROM || process.env.THANKYOU_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
+Name: ${lead.name}
+Phone: ${lead.phone}
+Email: ${lead.email}
+State: ${lead.state}
+Priority: ${lead.priority}
+Promo/Coupon: ${lead.promo || 'None'}
+Interest: ${lead.interest}
+Source: ${lead.utmSource || lead.source}
+Medium: ${lead.utmMedium || 'Not provided'}
+Campaign: ${lead.utmCampaign || 'Not provided'}
+Page: ${lead.page}
+Notify: ${emailTo}`
 
-  const text = `New PAHS consultation request\n\nName: ${lead.name}\nPhone: ${lead.phone}\nEmail: ${lead.email || 'Not provided'}\nPromo/Coupon: ${lead.promo || 'None'}\nInterest: ${lead.interest}\nSource: ${lead.source}\nPage: ${lead.page}`;
-
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject: `New PAHS Consultation Request: ${lead.name}`,
-    text,
-  });
-
-  if (error) throw new Error(`Resend notification failed: ${error.message}`);
-  return { skipped: false };
+  await sendGoogleChatMessage(text)
+  return { skipped: false, channel: 'google_chat' }
 }
 
 export async function POST(req: NextRequest) {
@@ -130,14 +137,16 @@ export async function POST(req: NextRequest) {
       source: clean(body.source || 'PAHS Sponsorship Page', 100),
       page: clean(body.page || 'app/pahs', 200),
       bestTime: clean(body.bestTime, 50),
+      state: clean(body.state || 'PA', 50),
+      priority: clean(body.priority || 'standard', 50),
       utmSource: clean(body.utmSource, 100),
       utmMedium: clean(body.utmMedium, 100),
       utmCampaign: clean(body.utmCampaign, 150),
     }
 
-    if (!lead.name || !lead.phone || !lead.interest) {
+    if (!lead.name || !lead.email || !lead.phone || !lead.state || !lead.priority || !lead.source || !lead.interest) {
       return NextResponse.json(
-        { ok: false, error: 'Name, phone, and interest are required.' },
+        { ok: false, error: 'Name, email, phone, state, priority, source, and interest are required.' },
         { status: 400 }
       )
     }
@@ -149,10 +158,11 @@ export async function POST(req: NextRequest) {
       sendNotification(lead),
     ])
 
-    const response: Record<string, unknown> = { ok: true }
+    const response: Record<string, unknown> = { ok: true, leadId: undefined }
 
     if (saveResult.status === 'fulfilled') {
       response.save = saveResult.value;
+      response.leadId = 'inquiry' in saveResult.value ? saveResult.value.inquiry : saveResult.value.leadId;
     } else {
       logger.error({ err: saveResult.reason }, '[pahs-lead] CRM/Supabase save failed');
       response.save = { ok: false, error: String(saveResult.reason) };
@@ -165,14 +175,21 @@ export async function POST(req: NextRequest) {
       response.email = { ok: false, error: String(emailResult.reason) };
     }
 
-    return NextResponse.json(response)
+    if (saveResult.status === 'rejected') {
+      return NextResponse.json(
+        { ok: false, error: 'Lead capture failed', detail: saveResult.reason instanceof Error ? saveResult.reason.message : String(saveResult.reason) },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(response, { status: 200 })
   } catch (error) {
     logger.error(
       { err: error instanceof Error ? error.message : String(error) },
       '[pahs-lead] submission error'
     )
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : 'Lead submission failed.' },
+      { ok: false, error: 'Lead capture failed', detail: error instanceof Error ? error.message : 'Lead submission failed.' },
       { status: 500 }
     )
   }
