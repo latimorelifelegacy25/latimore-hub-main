@@ -106,6 +106,7 @@ export const InquiryPatchSchema = z.object({
   stage: stageEnum,
   notes: z.string().max(2000).optional().nullable(),
   actor: z.string().max(100).optional().nullable(),
+  force: z.boolean().optional(),
 })
 
 export const BookingNotifySchema = z.object({

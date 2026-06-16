@@ -5,6 +5,8 @@ import { rateLimit } from '@/lib/rate-limit'
 import { BookingNotifySchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { recordAppointment } from '@/lib/hub/record-appointment'
+import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
+import { captureException } from '@/lib/error-tracking'
 
 function verifyWebhookSecret(req: NextRequest): boolean {
   const secret = process.env.BOOKING_WEBHOOK_SECRET
@@ -36,6 +38,17 @@ export async function POST(req: NextRequest) {
   const parse = BookingNotifySchema.safeParse(body)
   if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
 
+  const eventId =
+    parse.data.gcal_id ??
+    crypto
+      .createHash('sha256')
+      .update(`${parse.data.inquiryId ?? ''}:${parse.data.lead_session_id ?? ''}:${parse.data.scheduled_for ?? parse.data.start_at ?? ''}`)
+      .digest('hex')
+
+  if (!(await claimWebhookEvent('booking', eventId))) {
+    return NextResponse.json({ ok: true, deduped: true }, { status: 200 })
+  }
+
   try {
     const result = await recordAppointment({
       inquiryId: parse.data.inquiryId ?? null,
@@ -52,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, inquiryId: result.inquiry.id, appointmentId: result.appointment.id })
   } catch (err: any) {
-    logger.error({ err: err.message }, 'Booking webhook error')
+    await captureException(err, { source: 'booking', provider: 'booking-webhook' })
     const status = /No matching inquiry/i.test(err.message) ? 404 : 500
     return NextResponse.json({ ok: false, error: status === 404 ? 'no matching inquiry' : 'server error' }, { status })
   }

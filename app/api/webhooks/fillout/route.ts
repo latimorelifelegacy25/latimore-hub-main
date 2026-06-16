@@ -10,6 +10,8 @@ import { upsertLead } from '@/lib/hub/upsert-lead'
 import { ingestEvent } from '@/lib/hub/ingest-event'
 import { requiredEnv } from '@/lib/required-env'
 import { sendGoogleChatMessage } from '@/lib/google-chat'
+import { captureException } from '@/lib/error-tracking'
+import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
 
 // Fillout can post either a flat key-value payload or its native
 // { questions: [{name, value}], urlParameters: [{id, value}] } format.
@@ -135,6 +137,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
   }
 
+  const submissionId =
+    body && typeof body === 'object' && typeof (body as Record<string, unknown>).submissionId === 'string'
+      ? ((body as Record<string, unknown>).submissionId as string)
+      : null
+  const eventId = submissionId ?? crypto.createHash('sha256').update(raw).digest('hex')
+
+  if (!(await claimWebhookEvent('fillout', eventId))) {
+    return NextResponse.json({ ok: true, deduped: true }, { status: 200 })
+  }
+
   const normalized = normalizeFilloutPayload(body)
   const parse = FilloutSchema.safeParse(normalized)
   if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
@@ -200,7 +212,10 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    await sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${source}\nCampaign: ${campaign}`)
+    // Notification delivery must not fail an otherwise-successful lead capture.
+    sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${source}\nCampaign: ${campaign}`).catch((err) =>
+      captureException(err, { source: 'notification', inquiryId: inquiry.id, contactId: contact.id }),
+    )
 
     if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
       const subject = `New ${productInterest} lead — ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || inquiry.id}`
@@ -234,7 +249,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
-    logger.error({ err: err.message }, 'Fillout webhook error')
+    await captureException(err, { source: 'webhook', provider: 'fillout' })
     return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
   }
 }
