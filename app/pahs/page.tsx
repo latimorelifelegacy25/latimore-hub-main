@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import './pahs.css'
+import './pahs-override.css'
 
 type LeadForm = {
   name: string
@@ -123,7 +124,7 @@ export default function PAHSPage() {
 
   return (
     <main className="pahs-page" id="top">
-      <section className="pahs-hero" aria-labelledby="pahs-hero-title">
+      <section className="pahs-hero pahs-hero--sponsor-bg" aria-labelledby="pahs-hero-title">
         <div className="pahs-hero__bg" />
         <div className="pahs-shell pahs-hero__grid">
           <div className="pahs-hero__copy">
@@ -156,17 +157,17 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="spgfx">
-        <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
-      </section>
-
-      <section className="pahs-then">
+      <section className="pahs-then pahs-then--priority" id="story">
         <div className="pahs-then-inner">
           <div className="section-label gold-label">PAHS Then</div>
+          <h2 className="pahs-story-title">Where the Journey Began</h2>
+          <p className="pahs-story-copy">
+            From Cardinal Brennan football to serving Coal Region families today, this campaign is full circle: protect the people, homes, income, and future behind every jersey.
+          </p>
           <img
             src="/pahs-2005-allarea.png"
             alt="2005 Coal Region All-Area Football — Throwback Tide Thursday: Where the Journey Began"
-            style={{ width: '100%', maxWidth: '640px', borderRadius: '8px' }}
+            className="pahs-then-image"
           />
         </div>
       </section>
@@ -179,6 +180,7 @@ export default function PAHSPage() {
             <div className="video-wrap">
               <video
                 src="/pahs-campaign-video.mp4"
+                poster="/pahs-protect-go-card.png"
                 controls
                 playsInline
                 preload="metadata"
@@ -190,6 +192,10 @@ export default function PAHSPage() {
             The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
           </p>
         </div>
+      </section>
+
+      <section className="spgfx">
+        <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
       </section>
 
       <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">
@@ -209,7 +215,6 @@ export default function PAHSPage() {
                 </div>
               ))}
             </div>
-
           </div>
 
           <div className="pahs-lead-card">
