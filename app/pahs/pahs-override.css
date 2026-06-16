@@ -14,6 +14,31 @@
     linear-gradient(180deg, rgba(7, 18, 26, .04), rgba(7, 18, 26, .78));
 }
 
+.pahs-hero__card img[src='/pahs-protect-go-card.png'],
+.spgfx {
+  display: none !important;
+}
+
+.pahs-hero__card {
+  min-height: 86px;
+}
+
+.pahs-hero__card::before {
+  content: 'PAHS Protect Funnel';
+  display: block;
+  margin-bottom: .4rem;
+  color: #C49A6C;
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(1.1rem, 3.5vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.pahs-hero__card p {
+  margin: 0;
+}
+
 .pahs-then--priority {
   padding: 4rem 1rem 4.5rem;
   background:
