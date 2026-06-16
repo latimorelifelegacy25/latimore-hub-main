@@ -1,7 +1,13 @@
+/**
+ * Admin Overview
+ * Redirects to the new Legacy Pulse dashboard from the Vite project integration
+ */
+
 export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { getDashboardOverview } from '@/lib/hub/reporting'
 import PageHeader from '@/app/admin/_components/PageHeader'
 import { BRAND_STORY } from '@/app/admin/_lib/templates'
 import DailyBrief from './DailyBrief'
@@ -26,18 +32,34 @@ export default async function LegacyPulsePage() {
   let contactCount = 0
   let inquiryCount = 0
   let appointmentCount = 0
+  let duplicateLeads7Days = 0
+  let duplicateLeads30Days = 0
+  let duplicateLeadRows: Array<{
+    id: string
+    contact: string
+    source: string | null
+    campaign: string | null
+    originalInquiry: string | null
+    duplicateDate: string
+  }> = []
   let recentContacts: any[] = []
   let isDbConnected = true
 
   try {
-    const counts = await Promise.all([
-      prisma.contact.count(),
-      prisma.inquiry.count(),
-      prisma.appointment.count(),
+    const [counts, overview] = await Promise.all([
+      Promise.all([
+        prisma.contact.count(),
+        prisma.inquiry.count(),
+        prisma.appointment.count(),
+      ]),
+      getDashboardOverview(),
     ])
     contactCount = counts[0]
     inquiryCount = counts[1]
     appointmentCount = counts[2]
+    duplicateLeads7Days = overview.kpis.duplicateLeads7Days
+    duplicateLeads30Days = overview.kpis.duplicateLeads30Days
+    duplicateLeadRows = overview.duplicateLeads
 
     recentContacts = await prisma.contact.findMany({
       take: 6,
@@ -87,10 +109,12 @@ export default async function LegacyPulsePage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
         <StatCard title="Total Contacts" value={contactCount} trend={12} icon="fa-address-book" color="text-blue-400 bg-blue-500" />
         <StatCard title="Active Inquiries" value={inquiryCount} trend={5} icon="fa-comment-dots" color="text-[#C9A25F] bg-[#C9A25F]" />
         <StatCard title="Appointments" value={appointmentCount} trend={-2} icon="fa-calendar-check" color="text-purple-400 bg-purple-500" />
+        <StatCard title="Duplicate Leads (7 Days)" value={duplicateLeads7Days} trend={0} icon="fa-copy" color="text-amber-400 bg-amber-500" />
+        <StatCard title="Duplicate Leads (30 Days)" value={duplicateLeads30Days} trend={0} icon="fa-clone" color="text-cyan-400 bg-cyan-500" />
       </div>
 
       {/* Quick Actions Grid */}
@@ -136,6 +160,40 @@ export default async function LegacyPulsePage() {
 
         {/* Daily Brief */}
         <DailyBrief />
+      </div>
+
+      {/* Duplicate Leads */}
+      <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-white/10">
+          <h3 className="text-xl font-black text-white">Duplicate Leads</h3>
+        </div>
+        <div className="overflow-x-auto">
+          {duplicateLeadRows.length === 0 ? (
+            <p className="p-8 text-center text-slate-400 text-sm">No duplicate leads recorded yet.</p>
+          ) : null}
+          <table className={`w-full text-sm${duplicateLeadRows.length === 0 ? ' hidden' : ''}`}>
+            <thead>
+              <tr className="border-b border-white/10">
+                <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Contact</th>
+                <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Source</th>
+                <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Campaign</th>
+                <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Original Inquiry</th>
+                <th className="px-6 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400">Duplicate Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {duplicateLeadRows.map((row) => (
+                <tr key={row.id} className="border-b border-white/5 hover:bg-white/5 transition">
+                  <td className="px-6 py-3 text-white">{row.contact}</td>
+                  <td className="px-6 py-3 text-slate-400">{row.source || 'Not provided'}</td>
+                  <td className="px-6 py-3 text-slate-400">{row.campaign || 'Not provided'}</td>
+                  <td className="px-6 py-3 text-slate-400">{row.originalInquiry || 'Not provided'}</td>
+                  <td className="px-6 py-3 text-slate-400">{new Date(row.duplicateDate).toLocaleString('en-US')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Recent Contacts */}
