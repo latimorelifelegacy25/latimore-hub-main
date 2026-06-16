@@ -1,10 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { createClient } from '@supabase/supabase-js'
-import { authOptions } from '@/lib/auth'
-import { rateLimit } from '@/lib/rate-limit'
+import { requireAdmin } from '@/lib/require-admin'
 import { logger } from '@/lib/logger'
 
 type JsonRecord = Record<string, unknown>
@@ -94,21 +92,9 @@ function toTaskItem(row: CrmTaskRow) {
   }
 }
 
-async function requireAdmin(req: NextRequest) {
-  const limited = await rateLimit(req, 'default')
-  if (limited) return { limited }
-
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return { limited: NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 }) }
-  }
-
-  return { limited: null }
-}
-
 export async function GET(req: NextRequest) {
-  const { limited } = await requireAdmin(req)
-  if (limited) return limited
+  const authError = await requireAdmin(req, 'default')
+  if (authError) return authError
 
   try {
     const supabase = getSupabaseAdmin()
@@ -131,8 +117,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { limited } = await requireAdmin(req)
-  if (limited) return limited
+  const authError = await requireAdmin(req, 'default')
+  if (authError) return authError
 
   try {
     const body = await req.json()
@@ -169,8 +155,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { limited } = await requireAdmin(req)
-  if (limited) return limited
+  const authError = await requireAdmin(req, 'default')
+  if (authError) return authError
 
   try {
     const body = await req.json()
