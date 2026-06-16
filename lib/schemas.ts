@@ -55,7 +55,9 @@ export const FilloutSchema = z.object({
   utm_medium: z.string().max(100).optional().nullable(),
   utm_campaign: z.string().max(150).optional().nullable(),
   utm_term: z.string().max(100).optional().nullable(),
+  utmTerm: z.string().max(100).optional().nullable(),
   utm_content: z.string().max(100).optional().nullable(),
+  utmContent: z.string().max(100).optional().nullable(),
   referrer: z.string().max(500).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
 }).passthrough()
@@ -89,6 +91,8 @@ export const LeadIngestSchema = z.object({
   campaign: z.string().max(150).optional().nullable(),
   term: z.string().max(100).optional().nullable(),
   content: z.string().max(100).optional().nullable(),
+  utmTerm: z.string().max(100).optional().nullable(),
+  utmContent: z.string().max(100).optional().nullable(),
   referrer: z.string().max(500).optional().nullable(),
   landingPage: z.string().max(500).optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
