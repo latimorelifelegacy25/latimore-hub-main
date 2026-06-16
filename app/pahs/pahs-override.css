@@ -1,0 +1,81 @@
+.pahs-hero--sponsor-bg .pahs-hero__bg {
+  background:
+    linear-gradient(100deg, rgba(7, 18, 26, .86) 0%, rgba(7, 18, 26, .72) 44%, rgba(107, 26, 42, .58) 100%),
+    url('/pahs-sponsor-flyer.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.08) contrast(1.05);
+}
+
+.pahs-hero--sponsor-bg::after {
+  background:
+    radial-gradient(circle at 76% 18%, rgba(196, 154, 108, .28), transparent 32%),
+    linear-gradient(180deg, rgba(7, 18, 26, .04), rgba(7, 18, 26, .78));
+}
+
+.pahs-then--priority {
+  padding: 4rem 1rem 4.5rem;
+  background:
+    linear-gradient(180deg, rgba(7, 18, 26, .98), rgba(9, 20, 29, .96)),
+    radial-gradient(circle at 50% 0%, rgba(196, 154, 108, .18), transparent 38%);
+  border-top: 1px solid rgba(196, 154, 108, .32);
+  border-bottom: 1px solid rgba(196, 154, 108, .22);
+}
+
+.pahs-story-title {
+  margin: .25rem auto .75rem;
+  max-width: 760px;
+  color: var(--pahs-white);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(2.1rem, 8vw, 4.5rem);
+  font-weight: 800;
+  line-height: .98;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pahs-story-copy {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  color: rgba(255, 255, 255, .78);
+  font-size: clamp(1rem, 2.8vw, 1.18rem);
+  line-height: 1.65;
+  text-align: center;
+}
+
+.pahs-then-image {
+  display: block;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  border: 1px solid rgba(196, 154, 108, .44);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .48);
+}
+
+.campaign-videos {
+  padding-top: 3rem;
+}
+
+.video-wrap video {
+  display: block;
+  background: rgba(255, 255, 255, .04);
+}
+
+@media (max-width: 680px) {
+  .pahs-hero {
+    min-height: 92svh;
+    padding: 4rem 0 2rem;
+  }
+
+  .pahs-hero--sponsor-bg .pahs-hero__bg {
+    background-position: center top;
+  }
+
+  .pahs-hero__card {
+    margin-top: .75rem;
+  }
+
+  .pahs-then--priority {
+    padding: 2.75rem 1rem 3rem;
+  }
+}
