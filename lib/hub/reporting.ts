@@ -1,6 +1,12 @@
 import { prisma } from '@/lib/prisma'
 import { countAll } from '@/lib/prisma-helpers'
 
+function readPayloadString(payload: unknown, key: string): string | null {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  const value = (payload as Record<string, unknown>)[key]
+  return typeof value === 'string' && value.trim() ? value : null
+}
+
 export async function getDashboardOverview() {
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
@@ -110,7 +116,7 @@ export async function getDashboardOverview() {
       contact: [row.contact?.firstName, row.contact?.lastName].filter(Boolean).join(' ') || row.contact?.email || row.contact?.phone || 'Unknown contact',
       source: row.source ?? row.inquiry?.source ?? null,
       campaign: row.campaign ?? row.inquiry?.campaign ?? null,
-      originalInquiry: row.inquiryId ?? row.inquiry?.id ?? null,
+      originalInquiry: readPayloadString(row.payload, 'originalInquiryId'),
       duplicateDate: row.occurredAt.toISOString(),
     })),
   }
