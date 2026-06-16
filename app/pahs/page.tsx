@@ -157,7 +157,18 @@ export default function PAHSPage() {
       </section>
 
       <section className="spgfx">
-        <img src="/pahs-sponsor-flyer.png" alt="Proud All-Star Sponsor — Pottsville Area High School ‘26" />
+        <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
+      </section>
+
+      <section className="pahs-then">
+        <div className="pahs-then-inner">
+          <div className="section-label gold-label">PAHS Then</div>
+          <img
+            src="/pahs-2005-allarea.png"
+            alt="2005 Coal Region All-Area Football — Throwback Tide Thursday: Where the Journey Began"
+            style={{ width: '100%', maxWidth: '640px', borderRadius: '8px' }}
+          />
+        </div>
       </section>
 
       <section className="campaign-videos">
@@ -166,12 +177,12 @@ export default function PAHSPage() {
           <h2 className="campaign-videos-title">Watch the Campaign</h2>
           <div className="videos-grid single">
             <div className="video-wrap">
-              <iframe
-                loading="lazy"
-                src="https://www.canva.com/design/DAHLhNdroHQ/DSj1SN6LGJKvtoSIqk8hmQ/watch?embed"
-                allowFullScreen
-                allow="fullscreen"
-                title="PAHS Campaign Video"
+              <video
+                src="/pahs-campaign-video.mp4"
+                controls
+                playsInline
+                preload="metadata"
+                style={{ width: '100%', borderRadius: '8px' }}
               />
             </div>
           </div>
