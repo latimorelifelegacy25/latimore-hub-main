@@ -1,18 +1,13 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { rateLimit } from '@/lib/rate-limit'
+import { requireAdmin } from '@/lib/require-admin'
 import { normalizeStage } from '@/lib/hub/normalizers'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
-  const limited = await rateLimit(req, 'inquiries')
-  if (limited) return limited
-
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  const authError = await requireAdmin(req, 'inquiries')
+  if (authError) return authError
 
   const { searchParams } = new URL(req.url)
   const stage = normalizeStage(searchParams.get('stage') ?? searchParams.get('status') ?? 'New')
