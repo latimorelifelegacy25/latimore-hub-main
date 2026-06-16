@@ -158,7 +158,6 @@ Status legend:
 | `/api/webhooks/booking` | POST | webhook | signature/HMAC | yes | yes | ok |
 | `/api/webhooks/card` | GET,POST | webhook | raw session check | yes | yes | ok |
 | `/api/webhooks/fillout` | GET,POST | webhook | signature/HMAC | yes | yes | ok |
-| `/api/webhooks/twilio` | POST | webhook | signature/HMAC | no | yes | ok |
 
 ## Fixed in this milestone
 

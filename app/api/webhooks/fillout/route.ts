@@ -8,6 +8,8 @@ import { FilloutSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { ingestEvent } from '@/lib/hub/ingest-event'
+import { requiredEnv } from '@/lib/required-env'
+import { sendGoogleChatMessage } from '@/lib/google-chat'
 
 // Fillout can post either a flat key-value payload or its native
 // { questions: [{name, value}], urlParameters: [{id, value}] } format.
@@ -144,6 +146,9 @@ export async function POST(req: NextRequest) {
     'General'
 
   try {
+    requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
+    requiredEnv('LEAD_NOTIFY_EMAIL')
+
     const { contact, inquiry } = await upsertLead({
       firstName: payload.first_name ?? payload.firstName ?? null,
       lastName: payload.last_name ?? payload.lastName ?? null,
@@ -152,7 +157,7 @@ export async function POST(req: NextRequest) {
       county: payload.county ?? null,
       productInterest,
       leadSessionId: payload.lead_session_id ?? null,
-      source: payload.utm_source ?? 'fillout',
+      source: payload.source ?? payload.utm_source ?? 'fillout',
       medium: payload.utm_medium ?? 'form',
       campaign: payload.utm_campaign ?? 'fillout',
       term: payload.utm_term ?? null,
@@ -170,7 +175,7 @@ export async function POST(req: NextRequest) {
       inquiryId: inquiry.id,
       pageUrl: payload.page_url ?? payload.landing_page ?? null,
       referrer: payload.referrer ?? null,
-      source: payload.utm_source ?? 'fillout',
+      source: payload.source ?? payload.utm_source ?? 'fillout',
       medium: payload.utm_medium ?? 'form',
       campaign: payload.utm_campaign ?? 'fillout',
       county: payload.county ?? null,
@@ -182,6 +187,8 @@ export async function POST(req: NextRequest) {
         ...(payload.gclid ? { gclid: payload.gclid } : {}),
       },
     })
+
+    await sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${payload.source ?? payload.utm_source ?? 'fillout'}\nCampaign: ${payload.utm_campaign ?? 'Not provided'}`)
 
     if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
       const subject = `New ${productInterest} lead — ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || inquiry.id}`
@@ -198,7 +205,7 @@ export async function POST(req: NextRequest) {
           productInterest,
           county: contact.county ?? undefined,
           leadSessionId: payload.lead_session_id ?? undefined,
-          source: payload.utm_source ?? 'fillout',
+          source: payload.source ?? payload.utm_source ?? 'fillout',
           campaign: payload.utm_campaign ?? undefined,
         }),
       })
@@ -213,10 +220,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id })
+    return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Fillout webhook error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
   }
 }
 
