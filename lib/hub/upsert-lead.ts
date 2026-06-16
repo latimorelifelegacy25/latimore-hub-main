@@ -51,7 +51,16 @@ export async function upsertLead(input: LeadUpsertInput) {
   if (!existing && phone) {
     existing = await prisma.contact.findFirst({ where: { phone } })
   }
-  const deduped = Boolean(existing)
+  let deduped = Boolean(existing)
+  let originalInquiryId: string | null = null
+  if (existing) {
+    const originalInquiry = await prisma.inquiry.findFirst({
+      where: { contactId: existing.id },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true },
+    })
+    originalInquiryId = originalInquiry?.id ?? null
+  }
 
   let contact: Awaited<ReturnType<typeof prisma.contact.update>>
   if (existing) {
@@ -87,6 +96,13 @@ export async function upsertLead(input: LeadUpsertInput) {
       if (err.code === 'P2002' && email) {
         const found = await prisma.contact.findUnique({ where: { email } })
         if (!found) throw err
+        deduped = true
+        const originalInquiry = await prisma.inquiry.findFirst({
+          where: { contactId: found.id },
+          orderBy: { createdAt: 'asc' },
+          select: { id: true },
+        })
+        originalInquiryId = originalInquiry?.id ?? null
         contact = await prisma.contact.update({
           where: { id: found.id },
           data: {
@@ -185,6 +201,7 @@ export async function upsertLead(input: LeadUpsertInput) {
       landingPage,
       rawProductInterest,
       deduped,
+      originalInquiryId,
       ...(input.metadata ?? {}),
     },
   })
@@ -210,6 +227,7 @@ export async function upsertLead(input: LeadUpsertInput) {
         referrer,
         landingPage,
         deduped,
+        originalInquiryId,
         score,
         eventId: event.id,
       },
@@ -227,6 +245,7 @@ export async function upsertLead(input: LeadUpsertInput) {
         campaign,
         payload: {
           originalContactId: contact.id,
+          originalInquiryId,
           duplicateInquiryId: inquiry.id,
           productInterest,
           rawProductInterest,
