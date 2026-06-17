@@ -16,7 +16,10 @@ export const authOptions: NextAuthOptions = {
     async signIn({ profile }) {
       const email = (profile?.email ?? '').toLowerCase()
       const allowed = isAdminEmail(email)
-      logger.info({ email, allowed }, '[auth] signIn attempt')
+      // Keyed `attemptedEmail` (not `email`) so the logger's PII redaction
+      // doesn't strip it — this is the access-control audit trail and the
+      // operator allowlist, not customer PII.
+      logger.info({ attemptedEmail: email, allowed }, '[auth] signIn attempt')
       return allowed
     },
   },

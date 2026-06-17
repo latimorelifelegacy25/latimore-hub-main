@@ -183,6 +183,8 @@ export default function PAHSPage() {
             src="/pahs-sponsor-flyer.png"
             alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
             className="pahs-flyer-image"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </section>
@@ -198,6 +200,8 @@ export default function PAHSPage() {
             src="/pahs-2005-allarea.png"
             alt="2005 Coal Region All-Area Football — Throwback Tide Thursday: Where the Journey Began"
             className="pahs-then-image"
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </section>
@@ -247,7 +251,12 @@ export default function PAHSPage() {
       </section>
 
       <section className="spgfx">
-        <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
+        <img
+          src="/pahs-free-consult.png"
+          alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide"
+          loading="lazy"
+          decoding="async"
+        />
       </section>
 
       <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">
