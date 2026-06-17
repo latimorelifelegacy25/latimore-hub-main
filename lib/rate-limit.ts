@@ -90,7 +90,7 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
 
   const limited = hasUpstashConfig()
     ? await upstashLimit(key, limit, windowSec)
-    : isProduction() || memoryLimit(key, limit, windowSec * 1000)
+    : memoryLimit(key, limit, windowSec * 1000)
 
   if (!limited) return null
   return NextResponse.json(
