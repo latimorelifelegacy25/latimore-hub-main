@@ -133,6 +133,30 @@ export function normalizeEventType(value?: string | null): EventType {
   return EVENT_MAP[normalizeKey(value)] ?? 'page_view'
 }
 
+const CAMPAIGN_MAP: Record<string, string> = {
+  pahs: 'PAHS_2026',
+  pahs2026: 'PAHS_2026',
+  pahsfootball: 'PAHS_2026',
+  pahs_protect: 'PAHS_2026',
+  pahsprotect: 'PAHS_2026',
+  chamber: 'CHAMBER',
+  gbp: 'GBP_SERVICES',
+  gbp_services: 'GBP_SERVICES',
+  gbpservices: 'GBP_SERVICES',
+  google_business_profile: 'GBP_SERVICES',
+  website: 'WEBSITE_DIRECT',
+  website_direct: 'WEBSITE_DIRECT',
+  direct: 'WEBSITE_DIRECT',
+  referral: 'REFERRAL',
+  referrals: 'REFERRAL',
+}
+
+export function normalizeCampaign(value?: string | null): string {
+  const key = normalizeKey(value)
+  if (!key) return 'UNKNOWN'
+  return CAMPAIGN_MAP[key] ?? key.toUpperCase()
+}
+
 export function cleanString(value?: string | null, max = 255): string | null {
   if (typeof value !== 'string') return null
   const trimmed = value.trim()

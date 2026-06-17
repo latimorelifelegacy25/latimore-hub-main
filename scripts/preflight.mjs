@@ -17,6 +17,12 @@ const recommended = [
   'BOOKING_WEBHOOK_SECRET',
   'UPSTASH_REDIS_REST_URL',
   'UPSTASH_REDIS_REST_TOKEN',
+  'NEXT_PUBLIC_SUPABASE_URL',
+  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'GOOGLE_CHAT_WEBHOOK_URL',
+  'NEXT_PUBLIC_GA_ID',
+  'NEXT_PUBLIC_GTM_ID',
 ];
 
 const missingRequired = required.filter((key) => !process.env[key]);

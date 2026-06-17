@@ -14,9 +14,137 @@
     linear-gradient(180deg, rgba(7, 18, 26, .04), rgba(7, 18, 26, .78));
 }
 
-.pahs-hero__card img[src='/pahs-protect-go-card.png'],
+.pahs-hero__card img[src='/pahs-protect-go.png'],
 .spgfx {
   display: none !important;
+}
+
+.pahs-flyer {
+  background: var(--pahs-deep-2);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.pahs-flyer-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.pahs-flyer-image {
+  display: block;
+  width: 100%;
+  margin: 1rem auto 0;
+  border: 1px solid rgba(196, 154, 108, .44);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .48);
+}
+
+.pahs-schedule {
+  background: var(--pahs-deep);
+  padding: 3.5rem 1.5rem;
+  border-top: 1px solid rgba(196, 154, 108, .22);
+}
+
+.pahs-schedule-title {
+  margin: .25rem 0 1.75rem;
+  color: var(--pahs-white);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pahs-schedule-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.pahs-schedule-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: .35rem 1rem;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 12px;
+  padding: .9rem 1.1rem;
+  background: rgba(255, 255, 255, .05);
+}
+
+.pahs-schedule-date {
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--pahs-gold-light);
+  min-width: 58px;
+}
+
+.pahs-schedule-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+
+.pahs-schedule-opponent {
+  color: var(--pahs-white);
+  font-weight: 600;
+}
+
+.pahs-schedule-tag {
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+}
+
+.pahs-schedule-tag--home {
+  background: var(--pahs-gold);
+  color: var(--pahs-navy);
+}
+
+.pahs-schedule-tag--away {
+  background: rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+
+.pahs-schedule-location {
+  grid-column: 2;
+  color: rgba(255, 255, 255, .6);
+  font-size: .85rem;
+}
+
+.pahs-schedule-time {
+  color: var(--pahs-gold-light);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: .85rem;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .pahs-schedule-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pahs-schedule-date {
+    grid-row: 1;
+  }
+
+  .pahs-schedule-time {
+    grid-row: 1;
+  }
+
+  .pahs-schedule-info {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .pahs-schedule-location {
+    grid-column: 1 / -1;
+  }
 }
 
 .pahs-hero__card {

@@ -66,6 +66,8 @@ type FunnelStage = {
   stageOrder: number
   count: number
   conversionRate: number
+  dropOffRate: number
+  avgHoursFromPrevStage: number | null
 }
 
 type TimeSeriesPoint = {
@@ -450,6 +452,17 @@ export default function AnalyticsPage() {
             <EmptyState title="Funnel unavailable" description={funnelErr} />
           ) : funnel && funnel.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {(() => {
+                const worst = funnel.reduce(
+                  (max, s) => (s.dropOffRate > max.dropOffRate ? s : max),
+                  funnel[0],
+                )
+                return worst.dropOffRate > 0 ? (
+                  <div style={{ fontSize: '11px', color: MUTED }}>
+                    Biggest drop-off: <span style={{ color: G, fontWeight: 600 }}>{worst.stageKey}</span> ({worst.dropOffRate.toFixed(1)}% lost)
+                  </div>
+                ) : null
+              })()}
               {funnel.map((stage, i) => {
                 const maxCount = funnel[0]?.count || 1
                 const pct = Math.round((stage.count / maxCount) * 100)
@@ -481,6 +494,16 @@ export default function AnalyticsPage() {
                         }}
                       />
                     </div>
+                    {i > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                        <span style={{ fontSize: '10px', color: MUTED }}>
+                          {stage.dropOffRate > 0 ? `${stage.dropOffRate.toFixed(1)}% drop-off` : ''}
+                        </span>
+                        <span style={{ fontSize: '10px', color: MUTED }}>
+                          {stage.avgHoursFromPrevStage != null ? `~${fmt(stage.avgHoursFromPrevStage, 1)}h avg` : ''}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )
               })}

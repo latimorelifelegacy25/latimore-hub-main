@@ -3,6 +3,7 @@ import { type AnalyticsFiltersInput, parseAnalyticsDateRange } from './contracts
 import { calculateStaleLeadCount, calculateOverdueTaskCount } from './metrics'
 import { calculateEngagement } from './engagement'
 import { logger } from '@/lib/logger'
+import { normalizeCampaign } from '@/lib/hub/normalizers'
 
 export function isOperationalAnalyticsFallbackEnabled() {
   return process.env.NODE_ENV !== 'production' || process.env.ENABLE_OPERATIONAL_ANALYTICS_FALLBACK === 'true'
@@ -42,6 +43,8 @@ export type AnalyticsFunnelStage = {
   stageOrder: number
   count: number
   conversionRate: number
+  dropOffRate: number
+  avgHoursFromPrevStage: number | null
 }
 
 export type AnalyticsTimeSeriesPoint = {
@@ -317,32 +320,38 @@ export async function getAnalyticsFunnel(filters: AnalyticsFiltersInput): Promis
 
   const martRows = await prisma.analyticsFunnelDaily.findMany({
     where: { funnelKey: 'lead_funnel', metricDate: { gte: from, lte: to } },
-    select: { stageKey: true, stageOrder: true, count: true, conversionRate: true },
+    select: { stageKey: true, stageOrder: true, count: true, conversionRate: true, metadata: true },
     orderBy: { stageOrder: 'asc' },
   })
 
   if (martRows.length > 0) {
     // Aggregate across days
-    const aggregated: Record<string, { stageKey: string; stageOrder: number; count: number; rateSum: number; days: number }> = {}
+    const aggregated: Record<string, { stageKey: string; stageOrder: number; count: number; rateSum: number; days: number; hoursSum: number; hoursDays: number }> = {}
     for (const row of martRows) {
       if (!aggregated[row.stageKey]) {
-        aggregated[row.stageKey] = { stageKey: row.stageKey, stageOrder: row.stageOrder, count: 0, rateSum: 0, days: 0 }
+        aggregated[row.stageKey] = { stageKey: row.stageKey, stageOrder: row.stageOrder, count: 0, rateSum: 0, days: 0, hoursSum: 0, hoursDays: 0 }
       }
       aggregated[row.stageKey].count += row.count
       aggregated[row.stageKey].rateSum += row.conversionRate ? row.conversionRate.toNumber() : 0
       aggregated[row.stageKey].days++
+      const meta = row.metadata as { avgHoursFromPrevStage?: number | null } | null
+      if (meta?.avgHoursFromPrevStage != null) {
+        aggregated[row.stageKey].hoursSum += meta.avgHoursFromPrevStage
+        aggregated[row.stageKey].hoursDays++
+      }
     }
 
-    const topCount = Object.values(aggregated).reduce((max, s) => s.stageOrder === 1 ? s.count : max, 0) || 1
+    const sorted = Object.values(aggregated).sort((a, b) => a.stageOrder - b.stageOrder)
+    const topCount = sorted.find(s => s.stageOrder === 1)?.count ?? 0
 
-    const data = Object.values(aggregated)
-      .sort((a, b) => a.stageOrder - b.stageOrder)
-      .map(s => ({
-        stageKey: s.stageKey,
-        stageOrder: s.stageOrder,
-        count: s.count,
-        conversionRate: topCount > 0 ? (s.count / topCount) * 100 : 0,
-      }))
+    const data = sorted.map((s, i) => ({
+      stageKey: s.stageKey,
+      stageOrder: s.stageOrder,
+      count: s.count,
+      conversionRate: topCount > 0 ? (s.count / topCount) * 100 : 0,
+      dropOffRate: i === 0 || sorted[i - 1].count === 0 ? 0 : Math.max(0, 100 - (s.count / sorted[i - 1].count) * 100),
+      avgHoursFromPrevStage: s.hoursDays > 0 ? s.hoursSum / s.hoursDays : null,
+    }))
 
     return { data, source: 'analytics_mart' }
   }
@@ -494,6 +503,21 @@ export async function getAnalyticsBreakdowns(
     })
     for (const row of grouped) {
       data.push({ metricKey: 'lead_count', dimension, dimensionValue: String(row.productInterest), value: row._count._all, unit: 'count' })
+    }
+  } else if (dimension === 'campaign') {
+    const grouped = await prisma.inquiry.groupBy({
+      by: ['campaign'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    })
+    const campaignCounts = new Map<string, number>()
+    for (const row of grouped) {
+      if (!row.campaign) continue
+      const canonical = normalizeCampaign(row.campaign)
+      campaignCounts.set(canonical, (campaignCounts.get(canonical) ?? 0) + row._count._all)
+    }
+    for (const [campaign, value] of campaignCounts) {
+      data.push({ metricKey: 'lead_count', dimension, dimensionValue: campaign, value, unit: 'count' })
     }
   } else if (dimension === 'platform') {
     const grouped = await prisma.socialMetric.groupBy({

@@ -41,6 +41,25 @@ const reviewItems = [
   'Retirement income and annuity questions',
 ]
 
+type ScheduleGame = {
+  date: string
+  opponent: string
+  homeAway: 'HOME' | 'AWAY'
+  location: string
+  time: string
+}
+
+const scheduleGames: ScheduleGame[] = [
+  { date: 'Sep 5', opponent: 'Minersville', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Sep 12', opponent: 'Mahanoy Area Golden Bears', homeAway: 'AWAY', location: 'Mahanoy Area Stadium', time: '7:00 PM' },
+  { date: 'Sep 19', opponent: 'Tamaqua Blue Raiders', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Sep 26', opponent: 'North Schuylkill Spartans', homeAway: 'AWAY', location: 'Ghosh Orthodontics Field', time: '7:00 PM' },
+  { date: 'Oct 3', opponent: 'Jim Thorpe Olympians', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Oct 10', opponent: 'Shenandoah Valley Blue Devils', homeAway: 'AWAY', location: 'Shenandoah Stadium', time: '7:00 PM' },
+  { date: 'Oct 17', opponent: 'Nativity BVM Green Wave', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Oct 24', opponent: 'Tri-Valley Bulldogs', homeAway: 'AWAY', location: 'Tri-Valley Stadium', time: '7:00 PM' },
+]
+
 export default function PAHSPage() {
   const [lead, setLead] = useState<LeadForm>(initialLead)
   const [tracking, setTracking] = useState<Tracking>(defaultTracking)
@@ -151,9 +170,20 @@ export default function PAHSPage() {
           </div>
 
           <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
-            <img src="/pahs-protect-go-card.png" alt="PAHS Protect and Go football campaign card" />
+            <img src="/pahs-protect-go.png" alt="PAHS Protect and Go football campaign card" />
             <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
           </aside>
+        </div>
+      </section>
+
+      <section className="pahs-flyer" id="flyer">
+        <div className="pahs-flyer-inner">
+          <div className="section-label gold-label">Friday Night Lights</div>
+          <img
+            src="/pahs-sponsor-flyer.png"
+            alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
+            className="pahs-flyer-image"
+          />
         </div>
       </section>
 
@@ -180,7 +210,7 @@ export default function PAHSPage() {
             <div className="video-wrap">
               <video
                 src="/pahs-campaign-video.mp4"
-                poster="/pahs-protect-go-card.png"
+                poster="/pahs-protect-go.png"
                 controls
                 playsInline
                 preload="metadata"
@@ -191,6 +221,28 @@ export default function PAHSPage() {
           <p>
             The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
           </p>
+        </div>
+      </section>
+
+      <section className="pahs-schedule" id="schedule">
+        <div className="pahs-shell">
+          <div className="section-label gold-label">2026 Season</div>
+          <h2 className="pahs-schedule-title">Crimson Tide Schedule</h2>
+          <div className="pahs-schedule-list">
+            {scheduleGames.map((game) => (
+              <div className="pahs-schedule-row" key={`${game.date}-${game.opponent}`}>
+                <div className="pahs-schedule-date">{game.date}</div>
+                <div className="pahs-schedule-info">
+                  <span className="pahs-schedule-opponent">{game.opponent}</span>
+                  <span className={`pahs-schedule-tag pahs-schedule-tag--${game.homeAway.toLowerCase()}`}>
+                    {game.homeAway}
+                  </span>
+                </div>
+                <div className="pahs-schedule-location">{game.location}</div>
+                <div className="pahs-schedule-time">{game.time}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 

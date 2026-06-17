@@ -5,6 +5,9 @@ import { Resend } from 'resend';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { logger } from '@/lib/logger';
 import { rateLimit } from '@/lib/rate-limit';
+import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency';
+import { captureException } from '@/lib/error-tracking';
+import crypto from 'crypto';
 
 export const runtime = 'nodejs';
 
@@ -31,6 +34,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = (await req.json()) as FilloutPayload;
+
+    const eventId = body.submissionId ?? crypto.createHash('sha256').update(JSON.stringify(body)).digest('hex');
+    if (!(await claimWebhookEvent('fillout-pahs', eventId))) {
+      return NextResponse.json({ ok: true, deduped: true });
+    }
+
     const questions: FilloutQuestion[] = body.questions ?? [];
     const urlParams: FilloutUrlParam[] = body.urlParameters ?? [];
 
@@ -117,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    logger.error({ error }, 'Fillout webhook error');
+    await captureException(error, { source: 'webhook', provider: 'fillout-pahs' });
     return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
   }
 }
