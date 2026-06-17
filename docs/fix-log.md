@@ -63,3 +63,17 @@
   - **Deployment status**: N/A.
 
 - **Issue (P2-8) Fix-log governance** — This entry. Documents the full remediation set above per the audit's required Date/Issue/Root Cause/Fix/Verification Method/Deployment Status format.
+
+## 2026-06-16 Deployment Unblock
+
+- **Issue: CI typecheck failure in `/api/pahs-lead`** — `tsc --noEmit` failed with `TS2554` (extra argument to `sendNotification`) and `TS2304` (`target` is not defined), blocking the build/test GitHub Actions check on PR #186.
+  - **Root cause**: A merge of two divergent feature branches left duplicate, conflicting save/notify logic in `POST` — one block correctly called `saveToCRM`/`saveToSupabase` once and fanned out to `sendNotification`/`createCalendarReminder`, while a second leftover block re-ran the save a second time against an undefined `target` variable and called `sendNotification` with the old single-argument signature.
+  - **Fix**: Removed the dead duplicate block; the lead is now saved once, and `sendNotification`/`createCalendarReminder` results are reported independently via `Promise.allSettled` in the response body (`email`, `calendar` keys) instead of via the removed `saveResult`/`emailResult` pair.
+  - **Verification method**: `npx tsc --noEmit` passes with zero errors.
+  - **Deployment status**: Ready — no schema or infra changes required.
+
+- **Issue: Vercel deployment failure on PR #186** — Every deploy failed with "Hobby accounts are limited to daily cron jobs" because `vercel.json` scheduled `/api/cron/overdue-leads` hourly (`0 * * * *`).
+  - **Root cause**: Pre-existing `vercel.json` cron entry exceeded the Hobby plan's once-per-day cron limit; this predates this branch but blocks every deploy of it.
+  - **Fix**: Removed the `/api/cron/overdue-leads` entry from `vercel.json`'s `crons` array and added `.github/workflows/cron-overdue-leads.yml`, an hourly GitHub Actions workflow that calls the route directly with the `x-cron-secret` header — consistent with the "Supabase Cron primary, GitHub Actions backup" scheduling model already used for Latimore OS automation. Requires `PRODUCTION_URL` and `CRON_SECRET` repository secrets to be set in GitHub Actions settings.
+  - **Verification method**: `vercel.json` now only declares the two daily crons (`daily-brief`, `appointment-reminders`), which are within Hobby-plan limits.
+  - **Deployment status**: Requires adding `PRODUCTION_URL` and `CRON_SECRET` as GitHub Actions repository secrets for the new workflow to run; the deployment-blocking issue itself is resolved without any new secrets.

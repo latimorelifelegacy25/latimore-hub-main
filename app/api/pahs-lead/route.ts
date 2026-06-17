@@ -190,35 +190,29 @@ export async function POST(req: NextRequest) {
 
     const save = process.env.PAHS_LEAD_TARGET === 'supabase' ? await saveToSupabase(lead) : await saveToCRM(lead);
     const crm = 'contact' in save && 'inquiry' in save ? save : undefined;
-    const [email, calendar] = await Promise.allSettled([sendNotification(lead, crm), createCalendarReminder(lead, crm)]);
-
-    const [saveResult, emailResult] = await Promise.allSettled([
-      target === 'crm' ? saveToCRM(lead) : saveToSupabase(lead),
+    const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
-    ])
+      createCalendarReminder(lead, crm),
+    ]);
 
-    const response: Record<string, unknown> = { ok: true, leadId: undefined }
-
-    if (saveResult.status === 'fulfilled') {
-      response.save = saveResult.value;
-      response.leadId = 'inquiry' in saveResult.value ? saveResult.value.inquiry : saveResult.value.leadId;
-    } else {
-      logger.error({ err: saveResult.reason }, '[pahs-lead] CRM/Supabase save failed');
-      response.save = { ok: false, error: String(saveResult.reason) };
-    }
+    const response: Record<string, unknown> = {
+      ok: true,
+      leadId: 'inquiry' in save ? save.inquiry : save.leadId,
+      save,
+    };
 
     if (emailResult.status === 'fulfilled') {
-      response.email = { ok: true, result: emailResult.value }
+      response.email = { ok: true, result: emailResult.value };
     } else {
       logger.error({ err: emailResult.reason }, '[pahs-lead] Email notification failed');
-      response.email = { ok: false, error: String(emailResult.reason) };
+      response.email = { ok: false, error: errorMessage(emailResult.reason) };
     }
 
-    if (saveResult.status === 'rejected') {
-      return NextResponse.json(
-        { ok: false, error: 'Lead capture failed', detail: saveResult.reason instanceof Error ? saveResult.reason.message : String(saveResult.reason) },
-        { status: 500 }
-      )
+    if (calendarResult.status === 'fulfilled') {
+      response.calendar = { ok: true, result: calendarResult.value };
+    } else {
+      logger.error({ err: calendarResult.reason }, '[pahs-lead] Calendar reminder failed');
+      response.calendar = { ok: false, error: errorMessage(calendarResult.reason) };
     }
 
     return NextResponse.json(response, { status: 200 })
