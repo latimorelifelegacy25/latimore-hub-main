@@ -158,6 +158,87 @@ export async function upsertLead(input: LeadUpsertInput) {
     )
   }
 
+  const recentDuplicateInquiry = await prisma.inquiry.findFirst({
+    where: {
+      contactId: contact.id,
+      productInterest,
+      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      ...(source ? { source } : {}),
+      ...(medium ? { medium } : {}),
+      ...(campaign ? { campaign } : {}),
+      ...(landingPage ? { landingPage } : {}),
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  if (recentDuplicateInquiry) {
+    deduped = true
+    const event = await ingestEvent({
+      eventType: 'form_submit',
+      leadSessionId,
+      contactId: contact.id,
+      inquiryId: recentDuplicateInquiry.id,
+      pageUrl: landingPage,
+      referrer,
+      source,
+      medium,
+      campaign,
+      county,
+      productInterest,
+      metadata: {
+        form: 'lead',
+        duplicateSuppressed: true,
+        duplicateWindowHours: 24,
+        firstName,
+        lastName,
+        email,
+        phone,
+        rawPhone,
+        utmTerm,
+        utmContent,
+        referrer,
+        landingPage,
+        rawProductInterest,
+        rawCampaign,
+        originalInquiryId: originalInquiryId ?? recentDuplicateInquiry.id,
+        ...(input.metadata ?? {}),
+      },
+    })
+
+    await prisma.systemEvent.create({
+      data: {
+        type: 'lead.duplicate_suppressed',
+        contactId: contact.id,
+        inquiryId: recentDuplicateInquiry.id,
+        source,
+        medium,
+        campaign,
+        payload: {
+          action: 'lead.duplicate_suppressed',
+          originalContactId: contact.id,
+          originalInquiryId: originalInquiryId ?? recentDuplicateInquiry.id,
+          duplicateWindowHours: 24,
+          productInterest,
+          rawProductInterest,
+          rawCampaign,
+          utmTerm,
+          utmContent,
+          referrer,
+          landingPage,
+          eventId: event.id,
+        },
+      },
+    })
+
+    const score = contact.leadScore ?? 0
+    return {
+      contact: { ...contact, leadScore: score },
+      inquiry: { ...recentDuplicateInquiry, leadScore: score, deduped: true },
+      score,
+      deduped,
+    }
+  }
+
   const inquiry = await prisma.inquiry.create({
     data: {
       contactId: contact.id,
