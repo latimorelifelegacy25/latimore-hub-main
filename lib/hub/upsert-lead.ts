@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { ingestEvent, upsertLeadSession } from './ingest-event'
-import { cleanString, normalizeProductInterest } from './normalizers'
+import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
@@ -28,13 +28,15 @@ export type LeadUpsertInput = {
 
 export async function upsertLead(input: LeadUpsertInput) {
   const email = cleanString(input.email, 191)?.toLowerCase() ?? null
-  const phone = cleanString(input.phone, 40)
+  const rawPhone = cleanString(input.phone, 40)
+  const phone = normalizePhone(input.phone) ?? rawPhone
   const firstName = cleanString(input.firstName, 100)
   const lastName = cleanString(input.lastName, 100)
   const county = cleanString(input.county, 100)
   const source = cleanString(input.source, 100)
   const medium = cleanString(input.medium, 100)
-  const campaign = cleanString(input.campaign, 150)
+  const rawCampaign = cleanString(input.campaign, 150)
+  const campaign = rawCampaign ? normalizeCampaign(rawCampaign) : null
   const utmTerm = cleanString(input.utmTerm ?? input.term, 100)
   const utmContent = cleanString(input.utmContent ?? input.content, 100)
   const referrer = cleanString(input.referrer, 500)
@@ -49,7 +51,10 @@ export async function upsertLead(input: LeadUpsertInput) {
     existing = await prisma.contact.findUnique({ where: { email } })
   }
   if (!existing && phone) {
-    existing = await prisma.contact.findFirst({ where: { phone } })
+    const phoneMatches = [phone, rawPhone].filter(
+      (value, index, values): value is string => Boolean(value) && values.indexOf(value) === index,
+    )
+    existing = await prisma.contact.findFirst({ where: { OR: phoneMatches.map(value => ({ phone: value })) } })
   }
   let deduped = Boolean(existing)
   let originalInquiryId: string | null = null
@@ -195,11 +200,13 @@ export async function upsertLead(input: LeadUpsertInput) {
       lastName,
       email,
       phone,
+      rawPhone,
       utmTerm,
       utmContent,
       referrer,
       landingPage,
       rawProductInterest,
+      rawCampaign,
       deduped,
       originalInquiryId,
       ...(input.metadata ?? {}),
@@ -222,6 +229,7 @@ export async function upsertLead(input: LeadUpsertInput) {
         intent: inquiry.intent,
         productInterest,
         rawProductInterest,
+        rawCampaign,
         utmTerm,
         utmContent,
         referrer,
@@ -249,6 +257,7 @@ export async function upsertLead(input: LeadUpsertInput) {
           duplicateInquiryId: inquiry.id,
           productInterest,
           rawProductInterest,
+          rawCampaign,
           utmTerm,
           utmContent,
           referrer,
