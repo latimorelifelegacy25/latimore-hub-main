@@ -109,3 +109,29 @@
   - **Fix**: Moved the legacy Supabase mirror behind `FILLOUT_LEGACY_SUPABASE_SYNC=true`, changed the default path to CRM-only, added referrer/landing-page preservation, and returned contact/inquiry identifiers from the webhook.
   - **Verification method**: Code-level verification of `app/api/fillout-webhook/route.ts`; no schema change required.
   - **Deployment status**: Committed to `main` in `d6386112da248b8d1f004cd354ae9d8f09183700`.
+
+## 2026-06-17 Ingestion Closure Patch
+
+- **Issue: PAHS could bypass the canonical CRM ingestion service** — `/api/pahs-lead` could write directly to a PAHS Supabase table when `PAHS_LEAD_TARGET=supabase` was set.
+  - **Root cause**: Legacy campaign storage survived after `upsertLead()` became the authoritative CRM ingestion layer.
+  - **Fix**: Removed the Supabase client import and `saveToSupabase()` path. PAHS now always calls `saveToCRM()`/`upsertLead()`, returns `contactId` and `inquiryId`, and accepts either email or phone instead of requiring both.
+  - **Verification method**: Code-level verification of `app/api/pahs-lead/route.ts`.
+  - **Deployment status**: Committed to `main` in `24a3b37d5d39886416a44c08b996c12aaaf134f2`.
+
+- **Issue: Legacy Fillout route duplicated webhook ingestion logic** — `/api/fillout-webhook` still maintained a separate parser, dedupe call, optional mirror write, and Resend notification path.
+  - **Root cause**: The compatibility route was hardened but never reduced to an alias after `/api/webhooks/fillout` became canonical.
+  - **Fix**: Replaced the legacy route body with a thin import/export wrapper around the canonical signed Fillout webhook handler.
+  - **Verification method**: Code-level verification of `app/api/fillout-webhook/route.ts`.
+  - **Deployment status**: Committed to `main` in `d900350f41add5747941223e2a3ae48cf593afea`.
+
+- **Issue: Public rate limiting could fail open** — A missing or failing durable rate-limit backend could leave public intake/webhook routes relying on process memory or no effective protection.
+  - **Root cause**: `lib/rate-limit.ts` allowed an in-memory fallback and treated Upstash failures as not-limited.
+  - **Fix**: Production now fails closed when the durable backend is missing or unavailable; the in-memory fallback remains available outside production only.
+  - **Verification method**: Code-level verification of `lib/rate-limit.ts`.
+  - **Deployment status**: Committed to `main` in `813a3a49a1736e3da2982e9fdc3790b16cda7985`.
+
+- **Issue: Duplicate contact submissions created duplicate inquiries and follow-up tasks** — Contact dedupe existed, but repeat submits from the same person/source still created a new inquiry and task each time.
+  - **Root cause**: `upsertLead()` stopped deduplication at the contact level and always executed the inquiry/task creation block.
+  - **Fix**: Added a 24-hour duplicate-inquiry suppression guard keyed by contact, product interest, source/medium/campaign, and landing page. Replays are logged as `lead.duplicate_suppressed` without creating a new inquiry/task.
+  - **Verification method**: Code-level verification of `lib/hub/upsert-lead.ts`.
+  - **Deployment status**: Committed to `main` in `c7f1aaa5f841c1ac9339b82d6bf88153524f0de0`.
