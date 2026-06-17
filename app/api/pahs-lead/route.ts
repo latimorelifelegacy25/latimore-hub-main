@@ -24,13 +24,33 @@ type LeadBody = {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  referrer?: string;
 };
 
-type ValidatedLead = Required<Omit<LeadBody, 'bestTime' | 'utmSource' | 'utmMedium' | 'utmCampaign'>> & {
+type ValidatedLead = {
+  name: string;
+  phone: string;
+  email: string;
+  promo: string;
+  interest: string;
+  source: string;
+  page: string;
   bestTime: string;
+  state: string;
+  priority: string;
   utmSource: string;
   utmMedium: string;
   utmCampaign: string;
+  utmTerm: string;
+  utmContent: string;
+  referrer: string;
 };
 
 function clean(value: unknown, max = 500) {
@@ -55,7 +75,12 @@ function leadSummary(lead: ValidatedLead, crm?: { contact: string; inquiry: stri
     `Interest: ${lead.interest}`,
     `Best time: ${lead.bestTime || 'No preference'}`,
     `Promo/Coupon: ${lead.promo || 'None'}`,
-    `Source: ${lead.source}`,
+    `Source: ${lead.utmSource || lead.source}`,
+    `Medium: ${lead.utmMedium || 'Not provided'}`,
+    `Campaign: ${lead.utmCampaign || 'Not provided'}`,
+    lead.utmTerm ? `Term: ${lead.utmTerm}` : null,
+    lead.utmContent ? `Content: ${lead.utmContent}` : null,
+    lead.referrer ? `Referrer: ${lead.referrer}` : null,
     `Page: ${lead.page}`,
     crm?.contact ? `CRM Contact: ${crm.contact}` : null,
     crm?.inquiry ? `CRM Inquiry: ${crm.inquiry}` : null,
@@ -91,9 +116,19 @@ async function saveToCRM(lead: ValidatedLead) {
     source: lead.utmSource || lead.source,
     medium: lead.utmMedium || null,
     campaign: lead.utmCampaign || null,
+    term: lead.utmTerm || null,
+    content: lead.utmContent || null,
+    referrer: lead.referrer || null,
     landingPage: lead.page,
     notes,
-    metadata: { form: 'pahs-lead', promo: lead.promo || null, bestTime: lead.bestTime || null },
+    metadata: {
+      form: 'pahs-lead',
+      promo: lead.promo || null,
+      bestTime: lead.bestTime || null,
+      utmTerm: lead.utmTerm || null,
+      utmContent: lead.utmContent || null,
+      referrer: lead.referrer || null,
+    },
   });
   return { contact: contact.id, inquiry: inquiry.id };
 }
@@ -117,6 +152,8 @@ async function saveToSupabase(lead: ValidatedLead) {
     utm_source: lead.utmSource || null,
     utm_medium: lead.utmMedium || null,
     utm_campaign: lead.utmCampaign || null,
+    utm_term: lead.utmTerm || null,
+    utm_content: lead.utmContent || null,
     status: 'New',
     county: null,
     notes: 'PAHS sponsorship landing page consultation request.',
@@ -127,7 +164,7 @@ async function saveToSupabase(lead: ValidatedLead) {
 }
 
 async function sendNotification(lead: ValidatedLead) {
-  const emailTo = requiredEnv('LEAD_NOTIFY_EMAIL')
+  const notifyTo = process.env.LEAD_NOTIFY_EMAIL || process.env.NOTIFY_TO || 'jackson1989@latimorelegacy.com'
   const text = `New PAHS consultation request
 
 Name: ${lead.name}
@@ -140,8 +177,11 @@ Interest: ${lead.interest}
 Source: ${lead.utmSource || lead.source}
 Medium: ${lead.utmMedium || 'Not provided'}
 Campaign: ${lead.utmCampaign || 'Not provided'}
+Term: ${lead.utmTerm || 'Not provided'}
+Content: ${lead.utmContent || 'Not provided'}
+Referrer: ${lead.referrer || 'Not provided'}
 Page: ${lead.page}
-Notify: ${emailTo}`
+Notify: ${notifyTo}`
 
   await sendGoogleChatMessage(text)
   return { skipped: false, channel: 'google_chat' }
@@ -176,9 +216,12 @@ export async function POST(req: NextRequest) {
       bestTime: clean(body.bestTime, 50),
       state: clean(body.state || 'PA', 50),
       priority: clean(body.priority || 'standard', 50),
-      utmSource: clean(body.utmSource, 100),
-      utmMedium: clean(body.utmMedium, 100),
-      utmCampaign: clean(body.utmCampaign, 150),
+      utmSource: clean(body.utmSource || body.utm_source, 100),
+      utmMedium: clean(body.utmMedium || body.utm_medium, 100),
+      utmCampaign: clean(body.utmCampaign || body.utm_campaign, 150),
+      utmTerm: clean(body.utmTerm || body.utm_term, 100),
+      utmContent: clean(body.utmContent || body.utm_content, 100),
+      referrer: clean(body.referrer || req.headers.get('referer'), 500),
     };
 
     if (!lead.name || !lead.email || !lead.phone || !lead.state || !lead.priority || !lead.source || !lead.interest) {
@@ -204,7 +247,7 @@ export async function POST(req: NextRequest) {
     if (emailResult.status === 'fulfilled') {
       response.email = { ok: true, result: emailResult.value };
     } else {
-      logger.error({ err: emailResult.reason }, '[pahs-lead] Email notification failed');
+      logger.error({ err: emailResult.reason }, '[pahs-lead] Google Chat notification failed');
       response.email = { ok: false, error: errorMessage(emailResult.reason) };
     }
 
