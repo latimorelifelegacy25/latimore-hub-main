@@ -28,6 +28,46 @@ function param(urlParams: FilloutUrlParam[], id: string): string {
   return p?.value != null ? String(p.value).trim().slice(0, 150) : '';
 }
 
+async function legacySupabaseMirror(input: {
+  fullName: string;
+  phone: string;
+  email: string;
+  interest: string;
+  county: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  utmTerm?: string;
+  utmContent?: string;
+  landingPage: string;
+  notes: string;
+}) {
+  if (process.env.FILLOUT_LEGACY_SUPABASE_SYNC !== 'true') return
+
+  const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supaUrl || !supaKey) return
+
+  const supabase = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
+  const { error } = await supabase.from('leads').insert({
+    full_name: input.fullName || 'Unknown',
+    phone: input.phone || null,
+    email: input.email || null,
+    product_interest: input.interest || null,
+    lead_source: 'PAHS Fillout Form',
+    page_source: input.landingPage,
+    status: 'New',
+    county: input.county || null,
+    utm_source: input.utmSource,
+    utm_medium: input.utmMedium,
+    utm_campaign: input.utmCampaign,
+    utm_term: input.utmTerm || null,
+    utm_content: input.utmContent || null,
+    notes: input.notes,
+  });
+  if (error) logger.error({ error: error.message }, 'Legacy Supabase mirror insert error');
+}
+
 export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
@@ -63,6 +103,8 @@ export async function POST(req: NextRequest) {
     const utmCampaign = param(urlParams, 'utm_campaign') || param(urlParams, 'utmcampaign') || 'pahs';
     const utmTerm = param(urlParams, 'utm_term') || param(urlParams, 'utmterm') || undefined;
     const utmContent = param(urlParams, 'utm_content') || param(urlParams, 'utmcontent') || undefined;
+    const referrer = param(urlParams, 'referrer') || param(urlParams, 'referer') || req.headers.get('referer') || undefined;
+    const landingPage = param(urlParams, 'landing_page') || param(urlParams, 'landingpage') || 'latimorelifelegacy.fillout.com/pahs';
 
     const notes = [
       'Fillout PAHS form submission.',
@@ -71,30 +113,22 @@ export async function POST(req: NextRequest) {
       body.submissionId && `Fillout ID: ${body.submissionId}`,
     ].filter(Boolean).join(' ');
 
-    const supaUrl = process.env.SUPABASE_URL;
-    const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (supaUrl && supaKey) {
-      const supabase = createClient(supaUrl, supaKey, { auth: { persistSession: false } });
-      const { error } = await supabase.from('leads').insert({
-        full_name: fullName || 'Unknown',
-        phone: phone || null,
-        email: email || null,
-        product_interest: interest || null,
-        lead_source: 'PAHS Fillout Form',
-        page_source: 'latimorelifelegacy.fillout.com/pahs',
-        status: 'New',
-        county: county || null,
-        utm_source: utmSource,
-        utm_medium: utmMedium,
-        utm_campaign: utmCampaign,
-        utm_term: utmTerm || null,
-        utm_content: utmContent || null,
-        notes,
-      });
-      if (error) logger.error({ error: error.message }, 'Supabase insert error');
-    }
+    await legacySupabaseMirror({
+      fullName,
+      phone,
+      email,
+      interest,
+      county,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
+      landingPage,
+      notes,
+    })
 
-    await upsertLead({
+    const { contact, inquiry, deduped } = await upsertLead({
       firstName: firstName || undefined,
       lastName: lastName || undefined,
       email: email || null,
@@ -106,7 +140,8 @@ export async function POST(req: NextRequest) {
       campaign: utmCampaign,
       term: utmTerm || null,
       content: utmContent || null,
-      landingPage: 'latimorelifelegacy.fillout.com/pahs',
+      referrer: referrer || null,
+      landingPage,
       notes,
       metadata: { form: 'fillout-pahs', submissionId: body.submissionId ?? null },
     });
@@ -114,17 +149,17 @@ export async function POST(req: NextRequest) {
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
       const resend = new Resend(resendKey);
-      const to = process.env.LEAD_NOTIFY_TO || 'Jackson1989@latimorelegacy.com';
+      const to = process.env.LEAD_NOTIFY_TO || process.env.LEAD_NOTIFY_EMAIL || 'Jackson1989@latimorelegacy.com';
       const from = process.env.LEAD_NOTIFY_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
       await resend.emails.send({
         from,
         to,
         subject: `New PAHS Consultation: ${fullName || 'Unknown'}`,
-        text: `New PAHS Fillout form submission\n\nName: ${fullName}\nPhone: ${phone || 'Not provided'}\nEmail: ${email || 'Not provided'}\nCounty: ${county || 'Not provided'}\nInterest: ${interest || 'Not provided'}\n${address ? `Address: ${address}\n` : ''}${dob ? `DOB: ${dob}\n` : ''}\nFillout ID: ${body.submissionId || 'N/A'}`,
+        text: `New PAHS Fillout form submission\n\nName: ${fullName}\nPhone: ${phone || 'Not provided'}\nEmail: ${email || 'Not provided'}\nCounty: ${county || 'Not provided'}\nInterest: ${interest || 'Not provided'}\n${address ? `Address: ${address}\n` : ''}${dob ? `DOB: ${dob}\n` : ''}Fillout ID: ${body.submissionId || 'N/A'}`,
       });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id, deduped });
   } catch (error) {
     await captureException(error, { source: 'webhook', provider: 'fillout-pahs' });
     return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
