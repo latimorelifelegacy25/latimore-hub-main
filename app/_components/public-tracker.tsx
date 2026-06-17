@@ -21,7 +21,7 @@ const CTA_TEXT_PATTERN =
   /(book|schedule|consult|quote|get started|get quote|instant quote|call|text|email|download|facebook|instagram|linkedin|work with me|read full story|ready to explore)/i
 
 const SKIP_TEXT_PATTERN = /^(home|about|products|services|education|contact|menu|close|back to home)$/i
-const BOOKING_HREF_PATTERN = /(\/book(?:$|[/?#])|fillout\.com|calendly\.com|schedule|consult)/i
+const BOOKING_HREF_PATTERN = /(\/book(?:$|[/?#])|fillout\.com|calendar\.app\.google|schedule|consult)/i
 const DOWNLOAD_HREF_PATTERN = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|zip)(\?|#|$)/i
 
 const META_ALLOWED_HOSTS = new Set(['latimorelifelegacy.com', 'www.latimorelifelegacy.com'])

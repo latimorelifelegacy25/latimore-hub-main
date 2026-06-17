@@ -24,7 +24,7 @@ const DEFAULT_LINKS: LinkItem[] = [
   { id: 'carrier-foresters', name: 'Foresters Financial', url: 'https://www.foresters.com/', category: 'Carrier', tags: ['whole life', 'final expense'], notes: 'Whole life & final expense.' },
   { id: 'carrier-corebridge', name: 'Corebridge / AGL', url: 'https://www.corebridgefinancial.com/', category: 'Carrier', tags: ['corebridge', 'agl', 'term'], notes: 'Corebridge / American General Life.' },
   { id: 'carrier-trustage', name: 'TruStage / Ethos', url: 'https://www.trustage.com/', category: 'Carrier', tags: ['trustage', 'ethos'], notes: 'TruStage life products.' },
-  { id: 'portal-calendly', name: 'Google Calendar Booking', url: 'https://calendar.app.google/qsZrpBUF78SPnJ6y9', category: 'Portals', tags: ['booking', 'calendar'], notes: 'Public booking link — share with prospects.', isFavorite: true },
+  { id: 'portal-google-calendar', name: 'Google Calendar Booking', url: 'https://calendar.app.google/qsZrpBUF78SPnJ6y9', category: 'Portals', tags: ['booking', 'calendar'], notes: 'Public booking link — share with prospects.', isFavorite: true },
   { id: 'portal-nipr', name: 'NIPR License Portal', url: 'https://www.nipr.com/', category: 'Portals', tags: ['license', 'nipr'], notes: 'PA License #1268820 / NIPR #21638507.' },
   { id: 'portal-supabase', name: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Portals', tags: ['supabase', 'database'], notes: 'Hub database admin.' },
   { id: 'portal-vercel', name: 'Vercel Dashboard', url: 'https://vercel.com/jackson-latimore-s-projects', category: 'Portals', tags: ['vercel', 'deploy'], notes: 'Deployment & domain management.' },
