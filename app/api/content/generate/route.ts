@@ -30,7 +30,7 @@ const responseSchema = {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = applyAiRateLimit(req)
+  const limited = await applyAiRateLimit(req)
   if (limited) return limited
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response

@@ -2,10 +2,11 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../../_components/PageHeader'
-import AdminCard from '../../_components/AdminCard'
-import StatPill from '../../_components/StatPill'
-import EmptyState from '../../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
+import EmptyState from '@/app/admin/_components/EmptyState'
+import CrmAssistantPanel from './CrmAssistantPanel'
 
 function fmtDate(value?: Date | null) {
   if (!value) return '—'
@@ -102,6 +103,10 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
           {contact.aiRuns.length === 0 ? <EmptyState title="No AI insights yet" /> : <div className="space-y-2">{contact.aiRuns.map((run) => <div key={run.id} className="border border-white/8 rounded-xl p-3"><div className="flex justify-between gap-3"><p className="text-sm font-semibold text-white">{run.type}</p><StatPill label="Status" value={run.status} /></div><p className="text-xs text-[#A9B1BE] mt-1">{fmtDate(run.createdAt)}</p></div>)}</div>}
         </AdminCard>
       </div>
+
+      <AdminCard title="AI Assistant" subtitle="Ask questions, get summaries, and draft replies grounded in this contact's CRM history.">
+        <CrmAssistantPanel contactId={contact.id} inquiryId={contact.inquiries[0]?.id ?? null} />
+      </AdminCard>
 
       <AdminCard title="System Events">
         {contact.systemEvents.length === 0 ? <EmptyState title="No system events yet" /> : <div className="space-y-2">{contact.systemEvents.map((event) => <div key={event.id} className="border border-white/8 rounded-xl p-3"><div className="flex justify-between"><p className="text-sm text-white">{event.type}</p><p className="text-xs text-[#8F98A8]">{fmtDate(event.occurredAt)}</p></div><p className="text-xs text-[#A9B1BE] mt-1">{[event.source, event.medium, event.campaign].filter(Boolean).join(' · ') || 'No attribution'}</p></div>)}</div>}

@@ -5,7 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const CAMPAIGN_SCHEMA = {
   type: 'array' as const,
@@ -28,6 +28,7 @@ const CAMPAIGN_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { goal, persona } = body
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
     const targetPersona = persona?.trim() || 'Young Families in Central PA'
 
     const result = await createOpenAIJsonCompletion<unknown[]>({
-      system: `You are the Legacy Campaign Architect for Latimore Life & Legacy LLC.
+      system: withAdminAiGuardrails(`You are the Legacy Campaign Architect for Latimore Life & Legacy LLC.
 
 Brand rules (non-negotiable):
 - Education-first, NEVER fear-based
@@ -47,7 +48,7 @@ Brand rules (non-negotiable):
 - Include tagline "Protecting Today. Securing Tomorrow." in at least one post
 - Include #TheBeatGoesOn in all posts
 - Central PA community framing (Schuylkill, Luzerne, Northumberland Counties)
-- Plain language (8th-grade reading level)`,
+- Plain language (8th-grade reading level)`),
       user: `Architect a 4-post strategic "Legacy Campaign" sequence.
 
 Goal: ${goal}

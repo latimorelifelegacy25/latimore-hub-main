@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeStage } from './normalizers'
+import { assertTransition } from './pipeline-transitions'
+import { syncContactToNotion } from '@/lib/notion/sync-contact'
+import { logger } from '@/lib/logger'
 
 export async function changeInquiryStage(input: {
   inquiryId: string
@@ -8,6 +11,7 @@ export async function changeInquiryStage(input: {
   notes?: string | null
   actor?: string | null
   occurredAt?: Date | string | null
+  force?: boolean
 }) {
   const inquiry = await prisma.inquiry.findUnique({
     where: { id: input.inquiryId },
@@ -17,6 +21,11 @@ export async function changeInquiryStage(input: {
   if (!inquiry) throw new Error('Inquiry not found')
 
   const toStage = normalizeStage(input.stage)
+
+  if (!input.force) {
+    assertTransition(inquiry.stage, toStage)
+  }
+
   const note = cleanString(input.notes, 2000)
   const actor = cleanString(input.actor, 100) ?? 'system'
   const occurredAt = input.occurredAt ? new Date(input.occurredAt) : new Date()
@@ -59,6 +68,11 @@ export async function changeInquiryStage(input: {
       note,
     },
   })
+
+  // Fire-and-forget — Notion sync must not block or break stage changes
+  syncContactToNotion(inquiry.contact, updated).catch(err =>
+    logger.error({ err, contactId: inquiry.contact.id }, 'Notion sync failed'),
+  )
 
   return updated
 }

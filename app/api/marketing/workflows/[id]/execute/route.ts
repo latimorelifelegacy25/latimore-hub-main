@@ -2,20 +2,21 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { requireCronAuth } from '@/lib/ai/shared'
+import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
-    // For manual triggers from the UI, allow without cron secret
-    // In production, add session check here if needed
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
   }
 
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
 
@@ -32,9 +33,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
-    // Record the execution
     await prisma.workflowTemplate.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         runCount: { increment: 1 },
         lastRunAt: new Date(),
@@ -45,13 +45,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     for (const step of workflow.steps) {
       try {
-        // Execution stubs — wire to real services as features are built
         switch (step.type) {
           case 'email':
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
             break
           case 'sms':
-            results.push({ step: step.label, status: 'queued', message: 'SMS queued via Twilio' })
+            results.push({ step: step.label, status: 'queued', message: 'SMS queued via notification provider' })
             break
           case 'social_post':
             results.push({ step: step.label, status: 'queued', message: 'Post queued for social publish' })
@@ -74,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       }
     }
 
-    return NextResponse.json({ ok: true, workflowId: params.id, results })
+    return NextResponse.json({ ok: true, workflowId: id, results })
   } catch (err) {
     logger.error({ err }, '[workflow] execution failed')
     return NextResponse.json({ ok: false, error: 'Execution failed' }, { status: 500 })

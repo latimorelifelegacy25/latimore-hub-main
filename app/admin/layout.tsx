@@ -1,5 +1,9 @@
 import Link from 'next/link'
+import { getServerSession } from 'next-auth'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { isAdminEmail } from '@/lib/admin-access'
+import { authOptions } from '@/lib/auth'
 import AdminMobileNav from './_components/AdminMobileNav'
 import NotificationCenter from './_components/NotificationCenter'
 
@@ -7,19 +11,25 @@ const navItems = [
   { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
   { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
   { href: '/admin/nexus-agent', label: 'Nexus Agent', icon: 'fa-robot' },
+  { href: '/admin/workflow', label: 'Workflow Builder', icon: 'fa-diagram-project' },
+  { href: '/admin/autonomous-monitor', label: 'Auto Monitor', icon: 'fa-tower-broadcast' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
   { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },
+  { href: '/admin/documents', label: 'Document Builder', icon: 'fa-file-pen' },
   { href: '/admin/inbox', label: 'Inbox (Intake)', icon: 'fa-inbox' },
   { href: '/admin/crm/hub', label: 'Life Hub CRM', icon: 'fa-users-gear' },
   { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
+  { href: '/admin/annuity-platform', label: 'Annuity Platform', icon: 'fa-shield-halved' },
   { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
   { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
   { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
   { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
+  { href: '/admin/content/calendar', label: 'Content Calendar', icon: 'fa-calendar-week' },
   { href: '/admin/content/schedule', label: 'Schedule', icon: 'fa-calendar-check' },
   { href: '/admin/content/campaigns', label: 'Campaigns', icon: 'fa-calendar-days' },
   { href: '/admin/pahs-campaign', label: 'PAHS Campaign', icon: 'fa-football' },
+  { href: '/admin/pahs', label: 'PAHS Leads', icon: 'fa-list-check' },
   { href: '/admin/connectors', label: 'Integrations', icon: 'fa-plug' },
   { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
   { href: '/admin/messages', label: 'Messages', icon: 'fa-message' },
@@ -27,7 +37,18 @@ const navItems = [
   { href: '/admin/analytics', label: 'Analytics', icon: 'fa-chart-bar' },
 ]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions)
+  const email = session?.user?.email
+
+  if (!email) {
+    redirect('/api/auth/signin?callbackUrl=/admin')
+  }
+
+  if (!isAdminEmail(email)) {
+    notFound()
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0B0F17] text-[#F7F7F5]">
 

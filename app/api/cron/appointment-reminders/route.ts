@@ -1,22 +1,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import twilio from 'twilio'
 import { prisma } from '@/lib/prisma'
 import { requireCronAuth } from '@/lib/ai/shared'
-
-export const dynamic = 'force-dynamic'
-
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null
+import { sendGoogleChatMessage } from '@/lib/google-chat'
 
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)
   if (authError) return authError
-
-  if (!twilioClient || !process.env.TWILIO_PHONE_NUMBER) {
-    return NextResponse.json({ ok: false, error: 'Twilio is not configured' }, { status: 400 })
-  }
 
   const now = new Date()
   const inTwoHours = new Date(now.getTime() + 2 * 60 * 60 * 1000)
@@ -28,14 +18,18 @@ export async function GET(req: NextRequest) {
 
   let reminders = 0
   for (const event of events) {
-    if (!event.contact?.phone) continue
-    await twilioClient.messages.create({
-      body: `Reminder: You have a meeting scheduled at ${event.startAt.toLocaleString('en-US')}.`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: event.contact.phone,
-    })
+    const contactName = [event.contact?.firstName, event.contact?.lastName].filter(Boolean).join(' ') || event.contact?.email || event.contact?.phone || 'Unknown contact'
+    await sendGoogleChatMessage(
+      `Appointment reminder\n\nContact: ${contactName}\nScheduled: ${event.startAt.toLocaleString('en-US')}\nEvent ID: ${event.id}`,
+    )
     reminders += 1
-    await prisma.systemEvent.create({ data: { type: 'appointment.reminder.sent', contactId: event.contact.id, payload: { eventId: event.id } } })
+    await prisma.systemEvent.create({
+      data: {
+        type: 'appointment.reminder.sent',
+        contactId: event.contact?.id,
+        payload: { eventId: event.id, channel: 'google_chat' },
+      },
+    })
   }
 
   return NextResponse.json({ ok: true, reminders })

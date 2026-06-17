@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { BRAND } from '@/lib/brand'
 import {
   TrendingUp,
@@ -22,6 +23,7 @@ import {
   Check,
 } from 'lucide-react'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
+import { SERVICE_PAGES } from '@/lib/services-content'
 
 interface Service {
   number: string
@@ -30,12 +32,21 @@ interface Service {
   who: string
   summary: string
   points: string[]
+  learnMoreHref?: string
 }
 
 interface ClientSegment {
   icon: ReactNode
   title: string
   description: string
+}
+
+interface Strategy {
+  number: string
+  icon: ReactNode
+  title: string
+  blurb: string
+  href: string
 }
 
 const NAVY = '#0E1A2B'
@@ -50,7 +61,7 @@ const services: Service[] = [
     title: 'Tax-Advantaged Wealth Accumulation',
     who: 'Working professionals, self-employed individuals, high earners',
     summary:
-      'Build wealth using vehicles that grow tax-deferred or tax-free — reducing what you pay the IRS over your lifetime.',
+      'Build wealth using vehicles that may grow tax-deferred or provide generally income-tax-advantaged access when properly structured — reducing avoidable tax drag over your lifetime.',
     points: [
       'Indexed and fixed strategies that grow without market risk',
       'Tax-deferred accumulation inside annuities and permanent life policies',
@@ -65,7 +76,7 @@ const services: Service[] = [
     title: 'Asset Protection & Plan Rollovers',
     who: 'Job changers, retirees, anyone with a 401(k), 403(b), or pension',
     summary:
-      'When you leave a job or retire, your retirement funds need a safe destination. A strategic rollover protects your principal.',
+      'When you leave a job or retire, your retirement funds need a destination aligned with your income, liquidity, and risk goals. A strategic rollover can help protect principal when an insurance product is suitable.',
     points: [
       'Tax-free, penalty-free 401(k) and 403(b) rollover guidance',
       'Pension lump-sum vs. annuity analysis',
@@ -80,7 +91,7 @@ const services: Service[] = [
     title: 'College Education Funding',
     who: "Parents and grandparents planning ahead for a child's education",
     summary:
-      'Fund higher education without putting your retirement at risk — using strategies that grow tax-free.',
+      'Fund higher education without putting your retirement at risk — using strategies that may grow tax-deferred and provide flexible access.',
     points: [
       'Cash-value life insurance as a flexible education savings vehicle',
       'No restrictions on how funds are used — not just tuition',
@@ -103,6 +114,7 @@ const services: Service[] = [
       'Build a foundation that does not collapse under unexpected expenses',
       'Coordination with life insurance and living benefit strategies',
     ],
+    learnMoreHref: '/services/debt-strategy',
   },
   {
     number: '05',
@@ -127,12 +139,13 @@ const services: Service[] = [
     summary:
       'A proper estate strategy ensures your assets go to who you intend without being eroded by taxes or probate.',
     points: [
-      'Life insurance as a tax-free wealth transfer vehicle',
+      'Life insurance as a generally income-tax-advantaged wealth transfer vehicle',
       'Beneficiary designation review and optimization',
       'Strategies to minimize estate tax exposure',
       'Funding for buy-sell agreements between business partners',
       'Coordination with your attorney for wills and trusts',
     ],
+    learnMoreHref: '/services/estate-planning',
   },
   {
     number: '07',
@@ -140,7 +153,7 @@ const services: Service[] = [
     title: 'Indexed Growth Strategies',
     who: 'Savers and pre-retirees who want market-linked growth without market risk',
     summary:
-      'Indexed products track market performance while protecting your principal with a floor.',
+      'Indexed products credit interest from market-index formulas while offering protection from direct index losses, subject to product terms and charges.',
     points: [
       'Cash value linked to indexes like the S&P 500',
       'Zero-loss floor — market drops cannot reduce your balance',
@@ -173,11 +186,12 @@ const services: Service[] = [
       'The sudden loss of a key employee can devastate a business. Key-person insurance provides capital to survive.',
     points: [
       'Policy owned by the business on a critical employee',
-      'Tax-free death benefit received directly by the business',
+      'Generally income-tax-free death benefit received directly by the business',
       'Funds buy-sell agreements between partners',
       'Covers revenue loss, loan obligations, and recruitment costs',
       'Can be used to attract and retain key talent as a benefit',
     ],
+    learnMoreHref: '/services/business-continuity',
   },
   {
     number: '10',
@@ -187,12 +201,85 @@ const services: Service[] = [
     summary:
       'Running out of money in retirement is one of the greatest financial risks. Guaranteed income removes that fear.',
     points: [
-      'Fixed and fixed-indexed annuities for principal-protected accumulation',
+      'Fixed and fixed-indexed annuities for principal-protection strategies, subject to product terms',
       'Guaranteed lifetime income riders — payments you cannot outlive',
       'Structured to complement Social Security and other income',
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
     ],
+  },
+]
+
+const strategies: Strategy[] = [
+  {
+    number: '01',
+    icon: <Shield size={24} aria-hidden="true" />,
+    title: 'Life Insurance',
+    blurb: 'Term, whole life, and indexed universal life — protection that fits your budget and your goals.',
+    href: '/services/life-insurance',
+  },
+  {
+    number: '02',
+    icon: <Home size={24} aria-hidden="true" />,
+    title: 'Mortgage Protection',
+    blurb: 'Make sure your family can keep the home if something happens to you.',
+    href: '/services/mortgage-protection',
+  },
+  {
+    number: '03',
+    icon: <Target size={24} aria-hidden="true" />,
+    title: 'Retirement Income',
+    blurb: 'Turn savings into income that lasts — without running out of money.',
+    href: '/services/retirement-income',
+  },
+  {
+    number: '04',
+    icon: <Landmark size={24} aria-hidden="true" />,
+    title: '401(k) Rollover',
+    blurb: 'Roll over an old 401(k) or 403(b) into a strategy with principal protection.',
+    href: '/services/401k-rollover',
+  },
+  {
+    number: '05',
+    icon: <HeartPulse size={24} aria-hidden="true" />,
+    title: 'Final Expense',
+    blurb: 'Cover end-of-life costs so your family is not left with the bill.',
+    href: '/services/final-expense',
+  },
+  {
+    number: '06',
+    icon: <Baby size={24} aria-hidden="true" />,
+    title: 'College Funding',
+    blurb: 'Save for education with flexibility that 529 plans cannot match.',
+    href: '/services/college-funding',
+  },
+  {
+    number: '07',
+    icon: <Briefcase size={24} aria-hidden="true" />,
+    title: 'Business Protection',
+    blurb: 'Key-person coverage and buy-sell funding to keep your business running.',
+    href: '/services/business-protection',
+  },
+  {
+    number: '08',
+    icon: <Wrench size={24} aria-hidden="true" />,
+    title: 'Legacy Checkup',
+    blurb: 'A free, guided review to see exactly where you stand today.',
+    href: '/services/legacy-checkup',
+  },
+  {
+    number: '09',
+    icon: <Building2 size={24} aria-hidden="true" />,
+    title: 'Estate Planning',
+    blurb: 'Pass on more of what you have built, with less left to chance.',
+    href: '/services/estate-planning',
+  },
+  {
+    number: '10',
+    icon: <LineChart size={24} aria-hidden="true" />,
+    title: 'IUL Strategy',
+    blurb: 'Tax-advantaged growth with downside protection, built around your goals.',
+    href: '/services/iul-strategy',
   },
 ]
 
@@ -306,8 +393,40 @@ function ServiceCard({ service }: { service: Service }) {
             </li>
           ))}
         </ul>
+
       </div>
+
+      {service.learnMoreHref && (
+        <div className="px-6 pb-6">
+          <Link
+            href={service.learnMoreHref}
+            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+          >
+            Learn more →
+          </Link>
+        </div>
+      )}
     </article>
+  )
+}
+
+function StrategyCard({ strategy }: { strategy: Strategy }) {
+  return (
+    <Link
+      href={strategy.href}
+      className="block bg-white rounded-xl shadow-md border border-black/5 p-5 no-underline transition-all hover:-translate-y-1 hover:shadow-lg"
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <span className="font-extrabold text-sm" style={{ color: GOLD }}>
+          {strategy.number}
+        </span>
+        <span style={{ color: NAVY }} aria-hidden="true">
+          {strategy.icon}
+        </span>
+      </div>
+      <h3 className="text-gray-900 font-semibold mb-1">{strategy.title}</h3>
+      <p className="text-gray-600 text-sm leading-relaxed">{strategy.blurb}</p>
+    </Link>
   )
 }
 
@@ -370,6 +489,28 @@ export default function ServicesPage() {
             <div className="grid md:grid-cols-2 gap-8">
               {services.map((service) => (
                 <ServiceCard key={service.number} service={service} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="py-16 bg-white" aria-labelledby="strategies-heading">
+          <div className="max-w-6xl mx-auto px-5">
+            <div className="text-center mb-10">
+              <p
+                className="text-sm font-semibold tracking-widest uppercase mb-3"
+                style={{ color: GOLD }}
+              >
+                Go Deeper
+              </p>
+              <h2 id="strategies-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
+                Explore Each Strategy in Detail
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5">
+              {strategies.map((strategy) => (
+                <StrategyCard key={strategy.number} strategy={strategy} />
               ))}
             </div>
           </div>

@@ -8,6 +8,10 @@ import { FilloutSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { ingestEvent } from '@/lib/hub/ingest-event'
+import { requiredEnv } from '@/lib/required-env'
+import { sendGoogleChatMessage } from '@/lib/google-chat'
+import { captureException } from '@/lib/error-tracking'
+import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
 
 // Fillout can post either a flat key-value payload or its native
 // { questions: [{name, value}], urlParameters: [{id, value}] } format.
@@ -50,12 +54,15 @@ function normalizeFilloutPayload(raw: unknown): Record<string, unknown> {
     county: field('county', 'region'),
     product_interest: field('product', 'interest', 'insurance'),
     notes: field('message', 'notes', 'comments'),
-    page_url: field('page url', 'landing page') ?? (body.submissionId ? null : null),
-    utm_source: param('utmsource'),
-    utm_medium: param('utmmedium'),
-    utm_campaign: param('utmcampaign'),
-    utm_content: param('utmcontent'),
-    utm_term: param('utmterm'),
+    page_url: field('page url', 'landing page') ?? null,
+    referrer: field('referrer') ?? null,
+    utm_source: param('utmsource') ?? param('utm_source'),
+    utm_medium: param('utmmedium') ?? param('utm_medium'),
+    utm_campaign: param('utmcampaign') ?? param('utm_campaign'),
+    utm_content: param('utmcontent') ?? param('utm_content'),
+    utmContent: param('utmcontent') ?? param('utm_content'),
+    utm_term: param('utmterm') ?? param('utm_term'),
+    utmTerm: param('utmterm') ?? param('utm_term'),
     // click IDs — passed through to event metadata via .passthrough()
     fbclid: param('fbclid'),
     ttclid: param('ttclid'),
@@ -72,7 +79,7 @@ function normalizeSignature(sig: string): string {
 
 function verifySignature(rawBody: string, sig: string | null): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
   if (!sig) return false
   try {
     const normalized = normalizeSignature(sig)
@@ -86,7 +93,7 @@ function verifySignature(rawBody: string, sig: string | null): boolean {
 
 function verifyWebhook(req: NextRequest, rawBody: string): boolean {
   const secret = process.env.FILLOUT_SECRET
-  if (!secret) return true
+  if (!secret) return false
 
   const token =
     req.headers.get('x-webhook-token') ??
@@ -114,7 +121,7 @@ function verifyWebhook(req: NextRequest, rawBody: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const raw = await req.text()
@@ -124,11 +131,21 @@ export async function POST(req: NextRequest) {
   }
 
   let body: unknown
-   try {
+  try {
     body = raw ? JSON.parse(raw) : null
-   } catch {
-   return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
-   }
+  } catch {
+    return NextResponse.json({ ok: false, error: 'invalid json' }, { status: 400 })
+  }
+
+  const submissionId =
+    body && typeof body === 'object' && typeof (body as Record<string, unknown>).submissionId === 'string'
+      ? ((body as Record<string, unknown>).submissionId as string)
+      : null
+  const eventId = submissionId ?? crypto.createHash('sha256').update(raw).digest('hex')
+
+  if (!(await claimWebhookEvent('fillout', eventId))) {
+    return NextResponse.json({ ok: true, deduped: true }, { status: 200 })
+  }
 
   const normalized = normalizeFilloutPayload(body)
   const parse = FilloutSchema.safeParse(normalized)
@@ -142,8 +159,17 @@ export async function POST(req: NextRequest) {
     payload.interest_type ??
     payload.interestType ??
     'General'
+  const utmTerm = payload.utmTerm ?? payload.utm_term ?? null
+  const utmContent = payload.utmContent ?? payload.utm_content ?? null
+  const landingPage = payload.page_url ?? payload.landing_page ?? null
+  const source = payload.source ?? payload.utm_source ?? 'fillout'
+  const medium = payload.utm_medium ?? 'form'
+  const campaign = payload.utm_campaign ?? 'fillout'
 
   try {
+    requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
+    requiredEnv('LEAD_NOTIFY_EMAIL')
+
     const { contact, inquiry } = await upsertLead({
       firstName: payload.first_name ?? payload.firstName ?? null,
       lastName: payload.last_name ?? payload.lastName ?? null,
@@ -152,13 +178,13 @@ export async function POST(req: NextRequest) {
       county: payload.county ?? null,
       productInterest,
       leadSessionId: payload.lead_session_id ?? null,
-      source: payload.utm_source ?? 'fillout',
-      medium: payload.utm_medium ?? 'form',
-      campaign: payload.utm_campaign ?? 'fillout',
-      term: payload.utm_term ?? null,
-      content: payload.utm_content ?? null,
+      source,
+      medium,
+      campaign,
+      utmTerm,
+      utmContent,
       referrer: payload.referrer ?? null,
-      landingPage: payload.page_url ?? payload.landing_page ?? null,
+      landingPage,
       notes: payload.notes ?? null,
       metadata: payload,
     })
@@ -168,20 +194,28 @@ export async function POST(req: NextRequest) {
       leadSessionId: payload.lead_session_id ?? null,
       contactId: contact.id,
       inquiryId: inquiry.id,
-      pageUrl: payload.page_url ?? payload.landing_page ?? null,
+      pageUrl: landingPage,
       referrer: payload.referrer ?? null,
-      source: payload.utm_source ?? 'fillout',
-      medium: payload.utm_medium ?? 'form',
-      campaign: payload.utm_campaign ?? 'fillout',
+      source,
+      medium,
+      campaign,
       county: payload.county ?? null,
       productInterest,
       metadata: {
         provider: 'fillout',
+        utmTerm,
+        utmContent,
+        landingPage,
         ...(payload.fbclid ? { fbclid: payload.fbclid } : {}),
         ...(payload.ttclid ? { ttclid: payload.ttclid } : {}),
         ...(payload.gclid ? { gclid: payload.gclid } : {}),
       },
     })
+
+    // Notification delivery must not fail an otherwise-successful lead capture.
+    sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${source}\nCampaign: ${campaign}`).catch((err) =>
+      captureException(err, { source: 'notification', inquiryId: inquiry.id, contactId: contact.id }),
+    )
 
     if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
       const subject = `New ${productInterest} lead — ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || inquiry.id}`
@@ -198,8 +232,8 @@ export async function POST(req: NextRequest) {
           productInterest,
           county: contact.county ?? undefined,
           leadSessionId: payload.lead_session_id ?? undefined,
-          source: payload.utm_source ?? 'fillout',
-          campaign: payload.utm_campaign ?? undefined,
+          source,
+          campaign: campaign ?? undefined,
         }),
       })
 
@@ -213,10 +247,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id })
+    return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
-    logger.error({ err: err.message }, 'Fillout webhook error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    await captureException(err, { source: 'webhook', provider: 'fillout' })
+    return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
   }
 }
 

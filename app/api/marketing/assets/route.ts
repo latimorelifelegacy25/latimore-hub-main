@@ -5,11 +5,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024 // 500 MB
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'inquiries')
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
   try {
@@ -24,7 +28,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'fillout')
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'fillout')
   if (limited) return limited
 
   const contentType = req.headers.get('content-type') ?? ''
@@ -90,6 +97,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const { searchParams } = new URL(req.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ ok: false, error: 'id required' }, { status: 422 })

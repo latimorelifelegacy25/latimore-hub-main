@@ -2,10 +2,10 @@ export const dynamic = 'force-dynamic'
 
 import { MessageSquareText } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
-import PageHeader from '../_components/PageHeader'
-import AdminCard from '../_components/AdminCard'
-import StatPill from '../_components/StatPill'
-import EmptyState from '../_components/EmptyState'
+import PageHeader from '@/app/admin/_components/PageHeader'
+import AdminCard from '@/app/admin/_components/AdminCard'
+import StatPill from '@/app/admin/_components/StatPill'
+import EmptyState from '@/app/admin/_components/EmptyState'
 import ReplyComposer from './ReplyComposer'
 
 function fmtDate(value?: Date | null) {
@@ -57,7 +57,7 @@ export default async function MessagesPage({
       {threads.length === 0 ? (
         <EmptyState
           title="No message threads yet"
-          description="Once Twilio SMS or email integrations are connected, conversation threads will appear here."
+          description="Once Google Chat or email integrations are connected, conversation threads will appear here."
           icon={<MessageSquareText size={18} />}
         />
       ) : (

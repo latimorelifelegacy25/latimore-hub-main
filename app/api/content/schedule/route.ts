@@ -1,8 +1,12 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const body = await req.json().catch(() => null)
   if (!body?.assetId || !body?.scheduledFor) {
     return NextResponse.json({ ok: false, error: 'assetId and scheduledFor are required' }, { status: 422 })

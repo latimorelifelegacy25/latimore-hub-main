@@ -5,7 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const SCRIPT_SCHEMA = {
   type: 'object' as const,
@@ -35,6 +35,7 @@ const SCRIPT_SCHEMA = {
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
   try {
     const body = await req.json()
     const { clientData } = body
@@ -44,11 +45,11 @@ export async function POST(req: Request) {
     }
 
     const result = await createOpenAIJsonCompletion<typeof SCRIPT_SCHEMA>({
-      system: `You are the Latimore Legacy Strategic Review Engine. Jackson M. Latimore Sr. is preparing for an annual review call with a client in ${clientData.county || 'Schuylkill'} County, Pennsylvania.
+      system: withAdminAiGuardrails(`You are the Latimore Legacy Strategic Review Engine. Jackson M. Latimore Sr. is preparing for an annual review call with a client in ${clientData.county || 'Schuylkill'} County, Pennsylvania.
 
 Brand voice: warm, community-rooted, education-first. Never fear-based. Reference the Central PA Coal Region community where appropriate. Always close with dignity and the tagline "Protecting Today. Securing Tomorrow."
 
-Carrier context: Jackson is appointed with North American, F&G, American Equity, Corebridge Financial, Ethos Life, and Foresters Financial.`,
+Carrier context: Jackson is appointed with North American, F&G, American Equity, Corebridge Financial, Ethos Life, and Foresters Financial.`),
       user: `Generate a Legacy Review Script for this client:
 - Name: ${clientData.name}
 - County: ${clientData.county || 'Schuylkill'}

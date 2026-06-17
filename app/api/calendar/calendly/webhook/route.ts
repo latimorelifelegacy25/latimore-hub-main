@@ -1,7 +1,26 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+
+function verifyCalendlySignature(rawBody: string, header: string | null): boolean {
+  const secret = process.env.CALENDLY_WEBHOOK_SECRET
+  if (!secret || !header) return false
+  // Header format: t=<timestamp>,v1=<signature>
+  const parts = Object.fromEntries(header.split(',').map(p => p.split('=')))
+  const timestamp = parts['t']
+  const signature = parts['v1']
+  if (!timestamp || !signature) return false
+  const expected = createHmac('sha256', secret)
+    .update(`${timestamp}.${rawBody}`)
+    .digest('hex')
+  try {
+    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 function normalizePhone(phone?: string | null) {
   if (!phone) return null
@@ -36,7 +55,20 @@ function parseInvitee(payload: any) {
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null)
+  const rawBody = await req.text().catch(() => '')
+  if (!rawBody) return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
+
+  if (process.env.CALENDLY_WEBHOOK_SECRET) {
+    const sig = req.headers.get('calendly-webhook-signature')
+    if (!verifyCalendlySignature(rawBody, sig)) {
+      return NextResponse.json({ ok: false, error: 'Invalid signature' }, { status: 401 })
+    }
+  }
+
+  let body: unknown
+  try { body = JSON.parse(rawBody) } catch {
+    return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
+  }
   if (!body) return NextResponse.json({ ok: false, error: 'Invalid JSON body' }, { status: 400 })
 
   try {
