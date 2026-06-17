@@ -23,6 +23,10 @@ function hasUpstashConfig(): boolean {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
 }
 
+function isProduction(): boolean {
+  return process.env.NODE_ENV === 'production'
+}
+
 function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
@@ -43,7 +47,7 @@ function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
 
 async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
   const limiter = getUpstashLimiter(limit, windowSec)
-  if (!limiter) return process.env.NODE_ENV === 'production'
+  if (!limiter) return isProduction()
 
   try {
     const { success } = await limiter.limit(key)
@@ -52,7 +56,7 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
     // In production, a rate-limit backend failure should not silently disable
     // protection on public intake/webhook routes. Local/dev keeps the old
     // permissive behavior to avoid blocking work when Redis is unavailable.
-    return process.env.NODE_ENV === 'production'
+    return isProduction()
   }
 }
 
@@ -86,7 +90,7 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
 
   const limited = hasUpstashConfig()
     ? await upstashLimit(key, limit, windowSec)
-    : memoryLimit(key, limit, windowSec * 1000)
+    : isProduction() || memoryLimit(key, limit, windowSec * 1000)
 
   if (!limited) return null
   return NextResponse.json(
