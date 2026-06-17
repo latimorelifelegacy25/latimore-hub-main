@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { ingestEvent, upsertLeadSession } from './ingest-event'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
@@ -27,6 +28,9 @@ export type LeadUpsertInput = {
 }
 
 export async function upsertLead(input: LeadUpsertInput) {
+  const correlationId = crypto.randomUUID()
+  logger.info({ correlationId, stage: 'lead_received', source: input.source, medium: input.medium }, 'lead lifecycle')
+
   const email = cleanString(input.email, 191)?.toLowerCase() ?? null
   const rawPhone = cleanString(input.phone, 40)
   const phone = normalizePhone(input.phone) ?? rawPhone
@@ -126,6 +130,8 @@ export async function upsertLead(input: LeadUpsertInput) {
     }
   }
 
+  logger.info({ correlationId, stage: 'contact_upserted', contactId: contact.id, deduped }, 'lead lifecycle')
+
   if (leadSessionId) {
     await upsertLeadSession(
       leadSessionId,
@@ -173,6 +179,10 @@ export async function upsertLead(input: LeadUpsertInput) {
 
   if (recentDuplicateInquiry) {
     deduped = true
+    logger.info(
+      { correlationId, stage: 'duplicate_suppressed', contactId: contact.id, inquiryId: recentDuplicateInquiry.id },
+      'lead lifecycle',
+    )
     const event = await ingestEvent({
       eventType: 'form_submit',
       leadSessionId,
@@ -254,7 +264,9 @@ export async function upsertLead(input: LeadUpsertInput) {
     },
   })
 
-  await prisma.task.create({
+  logger.info({ correlationId, stage: 'inquiry_created', contactId: contact.id, inquiryId: inquiry.id }, 'lead lifecycle')
+
+  const task = await prisma.task.create({
     data: {
       title: `Follow up with ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'new lead'}`,
       dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -262,6 +274,8 @@ export async function upsertLead(input: LeadUpsertInput) {
       contactId: contact.id,
     },
   })
+
+  logger.info({ correlationId, stage: 'task_created', contactId: contact.id, inquiryId: inquiry.id, taskId: task.id }, 'lead lifecycle')
 
   const event = await ingestEvent({
     eventType: 'form_submit',
@@ -350,7 +364,7 @@ export async function upsertLead(input: LeadUpsertInput) {
 
   // Fire-and-forget — Notion sync must not block or break lead capture
   syncContactToNotion(contact, inquiry).catch(err =>
-    logger.error({ err, contactId: contact.id }, 'Notion sync failed'),
+    logger.error({ err, correlationId, contactId: contact.id }, 'Notion sync failed'),
   )
 
   return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score, deduped }, score, deduped }

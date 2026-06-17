@@ -135,3 +135,23 @@
   - **Fix**: Added a 24-hour duplicate-inquiry suppression guard keyed by contact, product interest, source/medium/campaign, and landing page. Replays are logged as `lead.duplicate_suppressed` without creating a new inquiry/task.
   - **Verification method**: Code-level verification of `lib/hub/upsert-lead.ts`.
   - **Deployment status**: Committed to `main` in `c7f1aaa5f841c1ac9339b82d6bf88153524f0de0`.
+
+## 2026-06-17 Incremental Audit Patch (Startup Validation & Observability)
+
+- **Issue (P1) Upstash rate-limit backend not validated at startup** — `lib/rate-limit.ts` already fails closed (returns 429) in production when `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` are missing or the backend errors, but a misconfigured deploy would only surface this as silent 429s on every public intake/webhook request instead of failing the deploy.
+  - **Root cause**: `lib/env.ts`'s `REQUIRED_IN_PRODUCTION` list predated the Upstash-backed rate limiter and never enforced those two vars at boot.
+  - **Fix**: Added `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to the `EnvSchema` and `REQUIRED_IN_PRODUCTION` in `lib/env.ts`, so `validateEnv()` (already wired into `instrumentation.ts`) throws on boot if either is missing in production.
+  - **Verification method**: `npm run check` passes; confirmed `lib/rate-limit.ts`'s existing fail-closed behavior is unchanged, this only moves the failure earlier (deploy time vs. first request).
+  - **Deployment status**: Ready — no schema changes required.
+
+- **Issue (P1) Lead ingestion lifecycle had no correlation ID** — `upsertLead()` writes span contact upsert, lead-session upsert, duplicate-suppression checks, inquiry creation, task creation, scoring, and a fire-and-forget Notion sync, but nothing tied those log lines together for a single submission, making production incident triage slow.
+  - **Root cause**: `lib/hub/upsert-lead.ts` logged failures (e.g. Notion sync errors) without any shared identifier linking them back to the originating request.
+  - **Fix**: Generate a `correlationId` (`crypto.randomUUID()`) at the start of `upsertLead()` and log it through each lifecycle stage (`lead_received`, `contact_upserted`, `duplicate_suppressed`, `inquiry_created`, `task_created`, and the Notion sync failure path) via the existing PII-redacting `logger`.
+  - **Verification method**: `npm run check` and `npm run build` pass; confirmed the function's return shape and call sites are unchanged.
+  - **Deployment status**: Ready — no schema or infra changes required.
+
+- **Issue: `/admin/engagement-dashboard` broke `next build`** — The page called `requireAdminSession()` (an API-route helper that returns a `NextResponse`) and returned `auth.response` directly from a Server Component, which doesn't satisfy Next.js's typed-route `ReactNode` page contract.
+  - **Root cause**: `middleware.ts` already gates every `/admin/*` route (including this one) via `next-auth` + `isAdminEmail()`, making the page-level check redundant dead code that also happened to be a type error.
+  - **Fix**: Removed the `requireAdminSession` import/call; the page now synchronously renders `<ExecutiveDashboardPage />`.
+  - **Verification method**: `npm run check` and `npm run build` pass.
+  - **Deployment status**: Ready — no schema changes required.
