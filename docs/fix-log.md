@@ -77,3 +77,35 @@
   - **Fix**: Removed the `/api/cron/overdue-leads` entry from `vercel.json`'s `crons` array and added `.github/workflows/cron-overdue-leads.yml`, an hourly GitHub Actions workflow that calls the route directly with the `x-cron-secret` header — consistent with the "Supabase Cron primary, GitHub Actions backup" scheduling model already used for Latimore OS automation. Requires `PRODUCTION_URL` and `CRON_SECRET` repository secrets to be set in GitHub Actions settings.
   - **Verification method**: `vercel.json` now only declares the two daily crons (`daily-brief`, `appointment-reminders`), which are within Hobby-plan limits.
   - **Deployment status**: Requires adding `PRODUCTION_URL` and `CRON_SECRET` as GitHub Actions repository secrets for the new workflow to run; the deployment-blocking issue itself is resolved without any new secrets.
+
+## 2026-06-17 Lead Pipeline Hardening Patch
+
+- **Issue: Cross-channel duplicate lead risk** — The CRM service compared raw phone strings, so `7176152613`, `(717) 615-2613`, and `1-717-615-2613` could become separate contacts.
+  - **Root cause**: `upsertLead()` trimmed phone numbers but did not canonicalize them before lookup or persistence.
+  - **Fix**: Added `normalizePhone()` and updated `upsertLead()` to dedupe on both normalized and legacy raw phone formats before creating a contact.
+  - **Verification method**: Code-level verification through the shared CRM ingestion path; latest Vercel status is pending.
+  - **Deployment status**: Committed to `main` in `544de8d5df62ed46a1be87b6c685179bff827d27`.
+
+- **Issue: Campaign reporting fragmentation** — PAHS, PAHS2026, PAHS Protect, GBP, Google Business Profile, and referral campaigns could report as separate buckets.
+  - **Root cause**: Campaign values were persisted directly from route payloads.
+  - **Fix**: Expanded `normalizeCampaign()` aliases and applied the normalizer inside `upsertLead()` before inquiry/event/system-event writes.
+  - **Verification method**: Code-level verification through `lib/hub/upsert-lead.ts` and `lib/hub/normalizers.ts`; no schema change required.
+  - **Deployment status**: Committed to `main` in `5782ab84670e14a35e23773ffeea1814caa7b099` and `544de8d5df62ed46a1be87b6c685179bff827d27`.
+
+- **Issue: PAHS source attribution loss** — `/api/pahs-lead` accepted only partial UTM fields and did not persist `utm_term`, `utm_content`, or referrer into the CRM path.
+  - **Root cause**: The route's payload model and `saveToCRM()` mapper only carried source, medium, and campaign.
+  - **Fix**: Added camelCase and snake_case UTM support, forwarded term/content/referrer to `upsertLead()`, and included those values in Google Calendar follow-up context and Google Chat notification text.
+  - **Verification method**: Code-level verification of `ValidatedLead`, `saveToCRM()`, `sendNotification()`, and response behavior.
+  - **Deployment status**: Committed to `main` in `895392c43e30d396a1383c045e57f1fd57b15386`.
+
+- **Issue: Google Chat notification reliability** — A single transient webhook failure could mark notification delivery failed.
+  - **Root cause**: `sendGoogleChatMessage()` had no retry loop and surfaced only the HTTP status.
+  - **Fix**: Added three-attempt retry handling with short backoff and clearer failure detail.
+  - **Verification method**: Code-level verification; route-level failures remain contained by `Promise.allSettled()` in `/api/pahs-lead`.
+  - **Deployment status**: Committed to `main` in `51ca55912f96895ffec8076ede1be613b9a61766`.
+
+- **Issue: Fillout ingestion still had a direct legacy Supabase write** — The Fillout webhook wrote to a `leads` table and then called `upsertLead()`, leaving the lead pipeline split.
+  - **Root cause**: Legacy mirror code stayed active inside the webhook after the CRM service became the authoritative ingestion path.
+  - **Fix**: Moved the legacy Supabase mirror behind `FILLOUT_LEGACY_SUPABASE_SYNC=true`, changed the default path to CRM-only, added referrer/landing-page preservation, and returned contact/inquiry identifiers from the webhook.
+  - **Verification method**: Code-level verification of `app/api/fillout-webhook/route.ts`; no schema change required.
+  - **Deployment status**: Committed to `main` in `d6386112da248b8d1f004cd354ae9d8f09183700`.
