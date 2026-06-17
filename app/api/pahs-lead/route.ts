@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { createGoogleCalendarEvent } from '@/lib/calendar/events';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
-import { requiredEnv } from '@/lib/required-env';
 import { sendGoogleChatMessage } from '@/lib/google-chat';
 
 export const dynamic = 'force-dynamic';
@@ -53,6 +51,8 @@ type ValidatedLead = {
   referrer: string;
 };
 
+type CrmSave = { contact: string; inquiry: string };
+
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max);
 }
@@ -67,10 +67,10 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function leadSummary(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+function leadSummary(lead: ValidatedLead, crm?: CrmSave) {
   return [
     `Name: ${lead.name}`,
-    `Phone: ${lead.phone}`,
+    `Phone: ${lead.phone || 'Not provided'}`,
     `Email: ${lead.email || 'Not provided'}`,
     `Interest: ${lead.interest}`,
     `Best time: ${lead.bestTime || 'No preference'}`,
@@ -100,18 +100,19 @@ function followUpWindow(bestTime: string) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-async function saveToCRM(lead: ValidatedLead) {
+async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
   const { firstName, lastName } = splitName(lead.name);
   const notes = [
     `Coverage interest: ${lead.interest}`,
     lead.bestTime ? `Best time to call: ${lead.bestTime}` : null,
     lead.promo ? `Promo/Coupon: ${lead.promo}` : null,
   ].filter(Boolean).join(' | ');
+
   const { contact, inquiry } = await upsertLead({
     firstName,
     lastName,
     email: lead.email || null,
-    phone: lead.phone,
+    phone: lead.phone || null,
     productInterest: lead.interest,
     source: lead.utmSource || lead.source,
     medium: lead.utmMedium || null,
@@ -130,37 +131,8 @@ async function saveToCRM(lead: ValidatedLead) {
       referrer: lead.referrer || null,
     },
   });
+
   return { contact: contact.id, inquiry: inquiry.id };
-}
-
-async function saveToSupabase(lead: ValidatedLead) {
-  const url = requiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-  const serviceKey = requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
-
-  const table = process.env.PAHS_LEADS_TABLE || 'pahs_leads';
-  const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data, error } = await supabase.from(table).insert({
-    full_name: lead.name,
-    phone: lead.phone,
-    email: lead.email,
-    promo_code: lead.promo || null,
-    product_interest: lead.interest,
-    lead_source: lead.utmSource || lead.source,
-    page_source: lead.page,
-    state: lead.state,
-    priority: lead.priority,
-    utm_source: lead.utmSource || null,
-    utm_medium: lead.utmMedium || null,
-    utm_campaign: lead.utmCampaign || null,
-    utm_term: lead.utmTerm || null,
-    utm_content: lead.utmContent || null,
-    status: 'New',
-    county: null,
-    notes: 'PAHS sponsorship landing page consultation request.',
-  }).select('id').single();
-
-  if (error) throw new Error(`Supabase insert failed: ${error.message}`);
-  return { skipped: false, leadId: data?.id };
 }
 
 async function sendNotification(lead: ValidatedLead) {
@@ -168,8 +140,8 @@ async function sendNotification(lead: ValidatedLead) {
   const text = `New PAHS consultation request
 
 Name: ${lead.name}
-Phone: ${lead.phone}
-Email: ${lead.email}
+Phone: ${lead.phone || 'Not provided'}
+Email: ${lead.email || 'Not provided'}
 State: ${lead.state}
 Priority: ${lead.priority}
 Promo/Coupon: ${lead.promo || 'None'}
@@ -187,7 +159,7 @@ Notify: ${notifyTo}`
   return { skipped: false, channel: 'google_chat' }
 }
 
-async function createCalendarReminder(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+async function createCalendarReminder(lead: ValidatedLead, crm?: CrmSave) {
   const window = followUpWindow(lead.bestTime);
   const event = await createGoogleCalendarEvent({
     summary: `Follow up: PAHS Protect - ${lead.name}`,
@@ -224,23 +196,24 @@ export async function POST(req: NextRequest) {
       referrer: clean(body.referrer || req.headers.get('referer'), 500),
     };
 
-    if (!lead.name || !lead.email || !lead.phone || !lead.state || !lead.priority || !lead.source || !lead.interest) {
+    if (!lead.name || !lead.state || !lead.priority || !lead.source || !lead.interest || (!lead.email && !lead.phone)) {
       return NextResponse.json(
-        { ok: false, error: 'Name, email, phone, state, priority, source, and interest are required.' },
+        { ok: false, error: 'Name, either email or phone, state, priority, source, and interest are required.' },
         { status: 400 }
       )
     }
 
-    const save = process.env.PAHS_LEAD_TARGET === 'supabase' ? await saveToSupabase(lead) : await saveToCRM(lead);
-    const crm = 'contact' in save && 'inquiry' in save ? save : undefined;
+    const save = await saveToCRM(lead);
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
-      createCalendarReminder(lead, crm),
+      createCalendarReminder(lead, save),
     ]);
 
     const response: Record<string, unknown> = {
       ok: true,
-      leadId: 'inquiry' in save ? save.inquiry : save.leadId,
+      leadId: save.inquiry,
+      contactId: save.contact,
+      inquiryId: save.inquiry,
       save,
     };
 
