@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
-import { AiRunStatus, AiRunType } from '@prisma/client'
+import { AgentStepStatus, AiRunStatus, AiRunType } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
@@ -119,6 +119,50 @@ export async function createSystemAiEvent(input: {
     })
   } catch (error) {
     logger.error({ error, input }, 'Failed creating system event')
+  }
+}
+
+export async function startAgentWorkflowStep(input: {
+  aiRunId: string
+  order: number
+  agentRole: string
+  task: string
+}) {
+  return prisma.agentWorkflowStep.create({
+    data: {
+      aiRunId: input.aiRunId,
+      order: input.order,
+      agentRole: input.agentRole,
+      task: input.task,
+      status: AgentStepStatus.running,
+      startedAt: new Date(),
+    },
+  })
+}
+
+export async function completeAgentWorkflowStep(input: {
+  stepId: string
+  output: Record<string, unknown>
+}) {
+  return prisma.agentWorkflowStep.update({
+    where: { id: input.stepId },
+    data: {
+      status: AgentStepStatus.succeeded,
+      output: input.output as Prisma.InputJsonValue,
+      completedAt: new Date(),
+    },
+  })
+}
+
+export async function failAgentWorkflowStep(input: { stepId: string; error: unknown }) {
+  const message = input.error instanceof Error ? input.error.message : String(input.error)
+  try {
+    await prisma.agentWorkflowStep.update({
+      where: { id: input.stepId },
+      data: { status: AgentStepStatus.failed, error: message, completedAt: new Date() },
+    })
+  } catch (error) {
+    logger.error({ error, stepId: input.stepId }, 'Failed updating agent workflow step')
   }
 }
 

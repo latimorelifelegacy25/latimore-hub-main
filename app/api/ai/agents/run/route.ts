@@ -5,7 +5,17 @@ import { z } from 'zod'
 import { AiRunType } from '@prisma/client'
 import { getContactAiContext } from '@/lib/ai/contact-context'
 import { runAgentWorkflow } from '@/lib/ai/agents'
-import { applyAiRateLimit, completeAiRun, createAiRun, createSystemAiEvent, failAiRun, requireAdminSession } from '@/lib/ai/shared'
+import {
+  applyAiRateLimit,
+  completeAgentWorkflowStep,
+  completeAiRun,
+  createAiRun,
+  createSystemAiEvent,
+  failAgentWorkflowStep,
+  failAiRun,
+  requireAdminSession,
+  startAgentWorkflowStep,
+} from '@/lib/ai/shared'
 
 const BodySchema = z.object({
   goal: z.string().min(3).max(2000),
@@ -42,11 +52,24 @@ export async function POST(req: NextRequest) {
     })
     aiRunId = aiRun.id
 
-    const { result, usage } = await runAgentWorkflow({
-      goal: parsed.data.goal,
-      context,
-      maxRetries: parsed.data.maxRetries,
-    })
+    const { result, usage } = await runAgentWorkflow(
+      {
+        goal: parsed.data.goal,
+        context,
+        maxRetries: parsed.data.maxRetries,
+      },
+      {
+        onStepStart: (step) => startAgentWorkflowStep({ aiRunId: aiRunId!, ...step }),
+        onStepSuccess: ({ handle, output }) => {
+          const stepId = (handle as { id: string }).id
+          return completeAgentWorkflowStep({ stepId, output: output as Record<string, unknown> })
+        },
+        onStepFailure: ({ handle, error }) => {
+          const stepId = (handle as { id: string }).id
+          return failAgentWorkflowStep({ stepId, error })
+        },
+      }
+    )
 
     const output = { contactId: context?.contact.id ?? null, inquiryId: context?.inquiry?.id ?? null, result }
     await completeAiRun({
