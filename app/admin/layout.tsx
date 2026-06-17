@@ -22,7 +22,7 @@ const navItems = [
   { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
   { href: '/admin/annuity-platform', label: 'Annuity Platform', icon: 'fa-shield-halved' },
   { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
-  { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
+  { href: '/admin/composer', label: 'Composer', icon: 'fa-pen-nib' },
   { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
   { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
   { href: '/admin/content/calendar', label: 'Content Calendar', icon: 'fa-calendar-week' },
