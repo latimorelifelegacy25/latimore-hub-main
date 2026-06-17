@@ -19,6 +19,10 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
 
 const upstashLimiters = new Map<string, Ratelimit>()
 
+function hasUpstashConfig(): boolean {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+}
+
 function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
   const url = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
@@ -39,17 +43,20 @@ function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
 
 async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
   const limiter = getUpstashLimiter(limit, windowSec)
-  if (!limiter) return false
+  if (!limiter) return process.env.NODE_ENV === 'production'
 
   try {
     const { success } = await limiter.limit(key)
     return !success
   } catch {
-    return false
+    // In production, a rate-limit backend failure should not silently disable
+    // protection on public intake/webhook routes. Local/dev keeps the old
+    // permissive behavior to avoid blocking work when Redis is unavailable.
+    return process.env.NODE_ENV === 'production'
   }
 }
 
-// In-memory fallback (single-instance only — used when Upstash is not configured).
+// In-memory fallback (single-instance only — used outside production when Upstash is not configured).
 const store = new Map<string, { count: number; reset: number }>()
 
 // Periodically evict expired entries to prevent unbounded memory growth.
@@ -77,7 +84,7 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   const key = `rl:${type}:${ip}`
 
-  const limited = process.env.UPSTASH_REDIS_REST_URL
+  const limited = hasUpstashConfig()
     ? await upstashLimit(key, limit, windowSec)
     : memoryLimit(key, limit, windowSec * 1000)
 
