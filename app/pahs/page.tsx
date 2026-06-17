@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import './pahs.css'
 import './pahs-override.css'
+import { PahsFreeReviewGraphic, PahsSponsorGraphic, PahsThrowbackGraphic } from './PahsCampaignGraphics'
 
 type LeadForm = {
   name: string
@@ -170,7 +171,7 @@ export default function PAHSPage() {
           </div>
 
           <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
-            <img src="/pahs-protect-go.png" alt="PAHS Protect and Go football campaign card" />
+            <PahsSponsorGraphic compact />
             <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
           </aside>
         </div>
@@ -179,13 +180,7 @@ export default function PAHSPage() {
       <section className="pahs-flyer" id="flyer">
         <div className="pahs-flyer-inner">
           <div className="section-label gold-label">Friday Night Lights</div>
-          <img
-            src="/pahs-sponsor-flyer.png"
-            alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
-            className="pahs-flyer-image"
-            loading="lazy"
-            decoding="async"
-          />
+          <PahsSponsorGraphic className="pahs-flyer-image" />
         </div>
       </section>
 
@@ -196,13 +191,7 @@ export default function PAHSPage() {
           <p className="pahs-story-copy">
             From Cardinal Brennan football to serving Coal Region families today, this campaign is full circle: protect the people, homes, income, and future behind every jersey.
           </p>
-          <img
-            src="/pahs-2005-allarea.png"
-            alt="2005 Coal Region All-Area Football — Throwback Tide Thursday: Where the Journey Began"
-            className="pahs-then-image"
-            loading="lazy"
-            decoding="async"
-          />
+          <PahsThrowbackGraphic className="pahs-then-image" />
         </div>
       </section>
 
@@ -214,7 +203,7 @@ export default function PAHSPage() {
             <div className="video-wrap">
               <video
                 src="/pahs-campaign-video.mp4"
-                poster="/pahs-protect-go.png"
+                poster="/pahs-latimore-logo.png"
                 controls
                 playsInline
                 preload="metadata"
@@ -250,13 +239,8 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="spgfx">
-        <img
-          src="/pahs-free-consult.png"
-          alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide"
-          loading="lazy"
-          decoding="async"
-        />
+      <section style={{ padding: '3rem 1rem', background: '#f7f3ec' }}>
+        <PahsFreeReviewGraphic />
       </section>
 
       <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">
