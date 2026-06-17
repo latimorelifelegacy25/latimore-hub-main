@@ -135,11 +135,14 @@ export function normalizeEventType(value?: string | null): EventType {
 
 const CAMPAIGN_MAP: Record<string, string> = {
   pahs: 'PAHS_2026',
+  pahs_2026: 'PAHS_2026',
   pahs2026: 'PAHS_2026',
+  pahs_football: 'PAHS_2026',
   pahsfootball: 'PAHS_2026',
   pahs_protect: 'PAHS_2026',
   pahsprotect: 'PAHS_2026',
   chamber: 'CHAMBER',
+  chamber_of_commerce: 'CHAMBER',
   gbp: 'GBP_SERVICES',
   gbp_services: 'GBP_SERVICES',
   gbpservices: 'GBP_SERVICES',
@@ -155,6 +158,16 @@ export function normalizeCampaign(value?: string | null): string {
   const key = normalizeKey(value)
   if (!key) return 'UNKNOWN'
   return CAMPAIGN_MAP[key] ?? key.toUpperCase()
+}
+
+export function normalizePhone(value?: string | null): string | null {
+  if (typeof value !== 'string') return null
+  const digits = value.replace(/\D/g, '')
+  if (!digits) return null
+
+  // Standardize US numbers for dedupe while allowing non-US numbers to remain searchable.
+  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1)
+  return digits.slice(0, 20)
 }
 
 export function cleanString(value?: string | null, max = 255): string | null {
