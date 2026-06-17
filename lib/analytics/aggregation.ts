@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger'
 import { AnalyticsJobStatus, EventType, PipelineStage, LeadStatus } from '@prisma/client'
 import type { Prisma } from '@prisma/client'
 import { calculateDailyMetrics, type DateWindow } from './metrics'
+import { normalizeCampaign } from '@/lib/hub/normalizers'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -38,6 +39,14 @@ export type CalculatedFunnelStage = {
   stageOrder: number
   count: number
   conversionRate: number
+  dropOffRate: number
+  avgHoursFromPrevStage: number | null
+}
+
+function avgHoursBetween(pairs: Array<{ from: Date; to: Date }>): number | null {
+  if (pairs.length === 0) return null
+  const totalHours = pairs.reduce((sum, p) => sum + (p.to.getTime() - p.from.getTime()) / 36e5, 0)
+  return totalHours / pairs.length
 }
 
 const FUNNEL_STAGES = [
@@ -162,11 +171,77 @@ export async function calculateDailyFunnel(
   const counts = [visitorCount, engagedCount, leadCount, qualifiedCount, bookedCount, soldCount]
   const topCount = counts[0]
 
+  // Each stage's "from" timestamp is the best available prior-stage marker for that
+  // entity (session first-seen, or inquiry creation), used to flag abandonment points.
+  const [engagedPairs, leadPairs, qualifiedPairs, bookedPairs, soldPairs] = await Promise.all([
+    prisma.leadSession
+      .findMany({
+        where: { events: { some: { occurredAt: { gte: from, lte: to }, eventType: { in: CTA_CLICK_TYPES } } } },
+        select: {
+          firstSeenAt: true,
+          events: {
+            where: { eventType: { in: CTA_CLICK_TYPES }, occurredAt: { gte: from, lte: to } },
+            orderBy: { occurredAt: 'asc' },
+            take: 1,
+            select: { occurredAt: true },
+          },
+        },
+      })
+      .then((rows) =>
+        rows.filter((r) => r.events.length > 0).map((r) => ({ from: r.firstSeenAt, to: r.events[0].occurredAt })),
+      ),
+
+    prisma.inquiry
+      .findMany({
+        where: { createdAt: { gte: from, lte: to }, leadSessionId: { not: null } },
+        select: { createdAt: true, leadSession: { select: { firstSeenAt: true } } },
+      })
+      .then((rows) =>
+        rows
+          .filter((r) => r.leadSession)
+          .map((r) => ({ from: r.leadSession!.firstSeenAt, to: r.createdAt })),
+      ),
+
+    prisma.inquiryStageHistory
+      .findMany({
+        where: { toStage: PipelineStage.Qualified, changedAt: { gte: from, lte: to } },
+        select: { changedAt: true, inquiry: { select: { createdAt: true } } },
+      })
+      .then((rows) => rows.map((r) => ({ from: r.inquiry.createdAt, to: r.changedAt }))),
+
+    prisma.appointment
+      .findMany({
+        where: { createdAt: { gte: from, lte: to }, inquiryId: { not: null } },
+        select: { createdAt: true, inquiry: { select: { createdAt: true } } },
+      })
+      .then((rows) =>
+        rows.filter((r) => r.inquiry).map((r) => ({ from: r.inquiry!.createdAt, to: r.createdAt })),
+      ),
+
+    prisma.inquiryStageHistory
+      .findMany({
+        where: { toStage: PipelineStage.Sold, changedAt: { gte: from, lte: to } },
+        select: { changedAt: true, inquiry: { select: { createdAt: true } } },
+      })
+      .then((rows) => rows.map((r) => ({ from: r.inquiry.createdAt, to: r.changedAt }))),
+  ])
+
+  const avgHours: Array<number | null> = [
+    null,
+    avgHoursBetween(engagedPairs),
+    avgHoursBetween(leadPairs),
+    avgHoursBetween(qualifiedPairs),
+    avgHoursBetween(bookedPairs),
+    avgHoursBetween(soldPairs),
+  ]
+
   return FUNNEL_STAGES.map((stage, i) => ({
     stageKey: stage.key,
     stageOrder: stage.order,
     count: counts[i],
     conversionRate: topCount > 0 ? (counts[i] / topCount) * 100 : 0,
+    dropOffRate: i === 0 || counts[i - 1] === 0 ? 0 : Math.max(0, 100 - (counts[i] / counts[i - 1]) * 100),
+    avgHoursFromPrevStage: avgHours[i],
   }))
 }
 
@@ -242,6 +317,28 @@ export async function calculateDailyBreakdowns(
       dimension: 'stage',
       dimensionValue: String(row.stage),
       value: row._count._all,
+      unit: 'count',
+    })
+  }
+
+  // Lead count by campaign (collapsed to canonical buckets via normalizeCampaign)
+  const leadsByCampaign = await prisma.inquiry.groupBy({
+    by: ['campaign'],
+    where: { createdAt: { gte: from, lte: to } },
+    _count: { _all: true },
+  })
+  const campaignCounts = new Map<string, number>()
+  for (const row of leadsByCampaign) {
+    if (!row.campaign) continue
+    const canonical = normalizeCampaign(row.campaign)
+    campaignCounts.set(canonical, (campaignCounts.get(canonical) ?? 0) + row._count._all)
+  }
+  for (const [campaign, value] of campaignCounts) {
+    results.push({
+      metricKey: 'lead_count',
+      dimension: 'campaign',
+      dimensionValue: campaign,
+      value,
       unit: 'count',
     })
   }
@@ -354,11 +451,12 @@ async function upsertFunnel(
   stages: CalculatedFunnelStage[],
 ): Promise<void> {
   for (const s of stages) {
-    const { stageKey, stageOrder, count, conversionRate } = s
+    const { stageKey, stageOrder, count, conversionRate, dropOffRate, avgHoursFromPrevStage } = s
+    const metadata = { dropOffRate, avgHoursFromPrevStage } as Prisma.InputJsonValue
     await prisma.analyticsFunnelDaily.upsert({
       where: { metricDate_funnelKey_stageKey: { metricDate, funnelKey: 'lead_funnel', stageKey } },
-      create: { metricDate, funnelKey: 'lead_funnel', stageKey, stageOrder, count, conversionRate },
-      update: { count, conversionRate },
+      create: { metricDate, funnelKey: 'lead_funnel', stageKey, stageOrder, count, conversionRate, metadata },
+      update: { count, conversionRate, metadata },
     })
   }
 }
