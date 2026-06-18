@@ -9,6 +9,27 @@ function required(name: string, value?: string | null) {
   return value
 }
 
+function getBaseUrl() {
+  return (
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}` ||
+    ''
+  ).replace(/\/$/, '')
+}
+
+export function getGoogleCalendarRedirectUri() {
+  const configured = process.env.GOOGLE_CALENDAR_REDIRECT_URI?.trim()
+  if (configured) return configured
+
+  const baseUrl = getBaseUrl()
+  if (!baseUrl) {
+    throw new Error('Missing GOOGLE_CALENDAR_REDIRECT_URI or NEXTAUTH_URL for Google Calendar OAuth')
+  }
+
+  return `${baseUrl}/api/calendar/google/callback`
+}
+
 export function getGoogleCalendarScopes() {
   return [
     'https://www.googleapis.com/auth/calendar.readonly',
@@ -19,7 +40,7 @@ export function getGoogleCalendarScopes() {
 
 export function buildGoogleCalendarAuthUrl(state: string) {
   const clientId = required('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID)
-  const redirectUri = required('GOOGLE_CALENDAR_REDIRECT_URI', process.env.GOOGLE_CALENDAR_REDIRECT_URI)
+  const redirectUri = getGoogleCalendarRedirectUri()
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -38,7 +59,7 @@ export function buildGoogleCalendarAuthUrl(state: string) {
 export async function exchangeGoogleCalendarCode(code: string) {
   const clientId = required('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID)
   const clientSecret = required('GOOGLE_CLIENT_SECRET', process.env.GOOGLE_CLIENT_SECRET)
-  const redirectUri = required('GOOGLE_CALENDAR_REDIRECT_URI', process.env.GOOGLE_CALENDAR_REDIRECT_URI)
+  const redirectUri = getGoogleCalendarRedirectUri()
 
   const body = new URLSearchParams({
     code,
