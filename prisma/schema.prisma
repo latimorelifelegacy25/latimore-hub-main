@@ -280,10 +280,30 @@ model AiRun {
   error        String?
   contact      Contact?    @relation(fields: [contactId], references: [id])
   inquiry      Inquiry?    @relation(fields: [inquiryId], references: [id])
+  agentSteps   AgentWorkflowStep[]
 
   @@index([type, createdAt])
   @@index([status])
   @@index([contactId])
+}
+
+model AgentWorkflowStep {
+  id          String           @id @default(uuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  aiRunId     String
+  order       Int
+  agentRole   String
+  task        String
+  status      AgentStepStatus  @default(pending)
+  output      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  aiRun       AiRun            @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+
+  @@index([aiRunId, order])
+  @@index([status])
 }
 
 model Note {
@@ -486,6 +506,13 @@ enum MessageStatus {
 
 enum AiRunStatus {
   queued
+  running
+  succeeded
+  failed
+}
+
+enum AgentStepStatus {
+  pending
   running
   succeeded
   failed
