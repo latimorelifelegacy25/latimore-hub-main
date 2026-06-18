@@ -138,11 +138,11 @@ Keep it concise, specific, and actionable. Return JSON with keys:
     });
 
     // Status distribution
-    const statusDist = contacts.reduce((acc, c) => {
+    const statusDist = contacts.reduce<Record<string, number>>((acc, c) => {
       const status = c.lead_status as string;
       acc[status] = (acc[status] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     return {
       success: true,
@@ -174,13 +174,13 @@ Keep it concise, specific, and actionable. Return JSON with keys:
     const leadList = Array.isArray(leads) ? leads as Record<string, unknown>[] : [];
 
     // Source breakdown
-    const sourceBreakdown = leadList.reduce((acc, l) => {
+    const sourceBreakdown = leadList.reduce<Record<string, { total: number; converted: number }>>((acc, l) => {
       const source = l.source as string || 'unknown';
       if (!acc[source]) acc[source] = { total: 0, converted: 0 };
       acc[source].total++;
       if (l.contact_id) acc[source].converted++;
       return acc;
-    }, {} as Record<string, { total: number; converted: number }>);
+    }, {});
 
     // Calculate conversion rates
     const sourceAnalysis = Object.entries(sourceBreakdown).map(([source, data]) => ({
