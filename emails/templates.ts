@@ -41,6 +41,28 @@ export function InquiryNotification(p: {
   </div>`
 }
 
+export function NoShowRecovery(p: { firstName?: string }) {
+  const first = p.firstName ? ` ${p.firstName}` : ''
+  return `
+  <div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#0B0F17">
+    <div style="background:#0B0F17;padding:24px 32px;border-radius:8px 8px 0 0">
+      <h2 style="color:#C9A25F;margin:0;font-size:18px;letter-spacing:0.1em">LATIMORE LIFE & LEGACY</h2>
+      <p style="color:#A9B1BE;margin:4px 0 0;font-size:12px">Protecting Today. Securing Tomorrow.</p>
+    </div>
+    <div style="background:#ffffff;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+      <p>Hi${first},</p>
+      <p>We missed you at your scheduled consultation — life happens, and we get it. Your spot is still open whenever you're ready.</p>
+      <p>Just pick a new time below and we'll take it from there.</p>
+      <div style="margin:24px 0">
+        <a href="${BOOKING_LINK}" style="background:#C9A25F;color:#0B0F17;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:700;font-size:14px">Reschedule Your Consultation →</a>
+      </div>
+      <p style="color:#6b7280;font-size:13px">No pressure. No jargon. Just a clear conversation about what matters to you.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
+      <p style="font-size:12px;color:#9ca3af">${'#TheBeatGoesOn'} — Jackson M. Latimore Sr.<br>Latimore Life & Legacy LLC | PA License #1268820</p>
+    </div>
+  </div>`
+}
+
 export function ThankYou(p: { firstName?: string }) {
   const first = p.firstName ? ` ${p.firstName}` : ''
   return `

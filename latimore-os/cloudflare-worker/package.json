@@ -1,0 +1,20 @@
+{
+  "name": "latimore-os-worker",
+  "version": "1.0.0",
+  "description": "Latimore OS — Cloudflare Worker edge layer",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "tail": "wrangler tail",
+    "secret:list": "wrangler secret list",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240725.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.65.0"
+  }
+}

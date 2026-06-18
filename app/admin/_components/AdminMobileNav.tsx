@@ -20,7 +20,7 @@ export default function AdminMobileNav({ navItems }: { navItems: NavItem[] }) {
       <div className="flex items-center justify-between border-b border-white/8 bg-[#0E1420] px-4 py-3">
         <div>
           <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
-          <p className="text-[10px] text-[#A9B1BE]">Hub OS Admin</p>
+          <p className="text-[10px] text-[#A9B1BE]">Latimore OS</p>
         </div>
         <div className="flex items-center gap-2">
           <NotificationCenter />

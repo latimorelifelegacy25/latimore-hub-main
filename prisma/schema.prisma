@@ -64,6 +64,7 @@ model Contact {
   events               Event[]
   inquiries            Inquiry[]
   leadSessions         LeadSession[]
+  legacyCheckups       LegacyCheckupAssessment[]
   notes                Note[]
   systemEvents         SystemEvent[]
   tasks                Task[]
@@ -106,6 +107,7 @@ model Inquiry {
   contact         Contact               @relation(fields: [contactId], references: [id])
   leadSession     LeadSession?          @relation(fields: [leadSessionId], references: [id])
   history         InquiryStageHistory[]
+  legacyCheckups  LegacyCheckupAssessment[]
   notesEntries    Note[]
   systemEvents    SystemEvent[]
   tasks           Task[]
@@ -161,6 +163,26 @@ model Task {
 
   @@index([status])
   @@index([dueAt])
+}
+
+model LegacyCheckupAssessment {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now())
+  contactId             String
+  inquiryId             String?
+  hasLifeInsurance      Boolean?
+  hasMortgageProtection Boolean?
+  hasFinalExpense       Boolean?
+  hasRetirementPlan     Boolean?
+  hasLegacyPlan         Boolean?
+  interestedIn          String[]
+  message               String?
+  contact               Contact  @relation(fields: [contactId], references: [id])
+  inquiry               Inquiry? @relation(fields: [inquiryId], references: [id])
+
+  @@index([contactId])
+  @@index([inquiryId])
+  @@index([createdAt])
 }
 
 model Event {
@@ -524,6 +546,7 @@ enum AiRunType {
   contact_brief
   lead_score
   content_generation
+  content_repurposing
   crm_assistant
   agent_workflow
 }
