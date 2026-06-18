@@ -2,7 +2,6 @@ import ExecutiveDashboardPage from './ExecutiveDashboardPage'
 
 export const dynamic = 'force-dynamic'
 
-export default async function EngagementDashboardPage() {
-  await requireAdminSession()
+export default function EngagementDashboardPage() {
   return <ExecutiveDashboardPage />
 }
