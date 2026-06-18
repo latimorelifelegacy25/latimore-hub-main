@@ -22,7 +22,7 @@ const navItems = [
   { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
   { href: '/admin/annuity-platform', label: 'Annuity Platform', icon: 'fa-shield-halved' },
   { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
-  { href: '/admin/content/creator', label: 'Content Architect', icon: 'fa-pen-nib' },
+  { href: '/admin/composer', label: 'Composer', icon: 'fa-pen-nib' },
   { href: '/admin/marketing', label: 'Marketing Tools', icon: 'fa-toolbox' },
   { href: '/admin/funnels', label: 'Legacy Hub', icon: 'fa-filter-circle-dollar' },
   { href: '/admin/content/calendar', label: 'Content Calendar', icon: 'fa-calendar-week' },
@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const email = session?.user?.email
 
   if (!email) {
-    redirect('/api/auth/signin?callbackUrl=/admin')
+    redirect('/api/auth/signin?callbackUrl=/os')
   }
 
   if (!isAdminEmail(email)) {
@@ -58,7 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-black tracking-[0.35em] text-[#C9A25F]">LATIMORE</p>
-              <p className="mt-1 text-xs text-[#A9B1BE]">Hub OS Admin</p>
+              <p className="mt-1 text-xs text-[#A9B1BE]">Latimore OS</p>
             </div>
             <NotificationCenter />
           </div>
