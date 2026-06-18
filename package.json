@@ -21,7 +21,13 @@
     "check": "tsx scripts/verify-workspace.ts",
     "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts",
     "preflight": "node scripts/preflight.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "worker:setup": "npm --prefix latimore-os/cloudflare-worker install",
+    "worker:typecheck": "npm --prefix latimore-os/cloudflare-worker run type-check",
+    "worker:deploy:dry": "npm --prefix latimore-os/cloudflare-worker run deploy -- --dry-run",
+    "worker:deploy": "npm --prefix latimore-os/cloudflare-worker run deploy",
+    "agent-harness:setup": "npm --prefix latimore-os/agent-harness install",
+    "agent-harness:typecheck": "npm --prefix latimore-os/agent-harness run type-check"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

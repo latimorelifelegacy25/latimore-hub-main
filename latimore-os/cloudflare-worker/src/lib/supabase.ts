@@ -21,7 +21,7 @@ export interface SupabaseError {
   details?: string;
 }
 
-interface QueryBuilder {
+interface QueryBuilder extends PromiseLike<SupabaseResponse> {
   select: (columns?: string) => QueryBuilder;
   insert: (data: Record<string, unknown> | Record<string, unknown>[]) => Promise<SupabaseResponse>;
   update: (data: Record<string, unknown>) => QueryBuilder;
@@ -30,7 +30,7 @@ interface QueryBuilder {
   single: () => Promise<SupabaseResponse>;
   limit: (n: number) => QueryBuilder;
   order: (column: string, opts?: { ascending?: boolean }) => QueryBuilder;
-  then: (resolve: (value: SupabaseResponse) => void) => Promise<void>;
+  execute: () => Promise<SupabaseResponse>;
 }
 
 export function createSupabaseClient(env: Env): SupabaseClient {
@@ -140,7 +140,7 @@ export function createSupabaseClient(env: Env): SupabaseClient {
         });
       },
       single() {
-        return buildQueryBuilder(table, { ...state, isSingle: true }).then(r => r) as Promise<SupabaseResponse>;
+        return buildQueryBuilder(table, { ...state, isSingle: true }).execute();
       },
       limit(n) {
         return buildQueryBuilder(table, { ...state, limitVal: n });
@@ -148,8 +148,9 @@ export function createSupabaseClient(env: Env): SupabaseClient {
       order(column, opts) {
         return buildQueryBuilder(table, { ...state, orderCol: column, orderAsc: opts?.ascending });
       },
-      then(resolve) {
-        return execute().then(resolve);
+      execute,
+      then(onfulfilled, onrejected) {
+        return execute().then(onfulfilled, onrejected);
       },
     };
 

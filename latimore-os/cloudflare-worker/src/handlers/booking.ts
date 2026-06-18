@@ -80,7 +80,7 @@ export async function handleBookingWebhook(
           db.from('contacts').update({
             lead_status: 'assessment_scheduled',
             next_follow_up_at: booking.startTime,
-          }).eq('id', contactId)
+          }).eq('id', contactId).execute()
         );
       }
     }
@@ -152,6 +152,7 @@ export async function handleBookingWebhook(
         db.from('appointments')
           .update({ status: 'cancelled' })
           .eq('google_event_id', booking.bookingId)
+          .execute()
       );
     }
 
@@ -161,7 +162,7 @@ export async function handleBookingWebhook(
         db.from('contacts').update({
           lead_status: 'contacted',
           next_follow_up_at: new Date(Date.now() + 2 * 3600000).toISOString(), // 2h follow-up
-        }).eq('id', contactId)
+        }).eq('id', contactId).execute()
       );
     }
 
