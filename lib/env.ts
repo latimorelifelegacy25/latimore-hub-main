@@ -18,6 +18,8 @@ const EnvSchema = z.object({
   GOOGLE_CHAT_WEBHOOK_URL: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 })
 
 export const env = EnvSchema.parse(process.env)
@@ -37,6 +39,11 @@ const REQUIRED_IN_PRODUCTION = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'RESEND_API_KEY',
   'GOOGLE_CHAT_WEBHOOK_URL',
+  // Without these, lib/rate-limit.ts falls back to failing closed (429s every
+  // request) on all public intake/webhook routes — better to fail the deploy
+  // than silently lock out real traffic.
+  'UPSTASH_REDIS_REST_URL',
+  'UPSTASH_REDIS_REST_TOKEN',
 ] as const
 
 /**
