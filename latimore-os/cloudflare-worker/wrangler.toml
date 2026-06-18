@@ -1,0 +1,48 @@
+name = "latimore-os-worker"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "production"
+APP_URL = "https://latimorelifelegacy.com"
+HUB_URL = "https://hub.latimorelifelegacy.com"
+
+# Queues
+[[queues.producers]]
+queue = "lead-intake"
+binding = "LEAD_QUEUE"
+
+[[queues.producers]]
+queue = "workflow-trigger"
+binding = "WORKFLOW_QUEUE"
+
+[[queues.consumers]]
+queue = "lead-intake"
+max_batch_size = 10
+max_batch_timeout = 5
+max_retries = 3
+
+[[queues.consumers]]
+queue = "workflow-trigger"
+max_batch_size = 5
+max_batch_timeout = 10
+max_retries = 3
+
+# Cron triggers
+[triggers]
+crons = [
+  "0 8 * * *",   # Daily brief — 8am ET
+  "0 9 * * 1",   # Weekly KPI report — Monday 9am ET
+  "0 0 1 * *"    # Monthly snapshot — 1st of month midnight
+]
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# SUPABASE_URL
+# SUPABASE_SERVICE_ROLE_KEY
+# RESEND_API_KEY
+# TWILIO_ACCOUNT_SID
+# TWILIO_AUTH_TOKEN
+# TWILIO_PHONE_NUMBER
+# WORKER_SECRET (for internal auth between Next.js and Worker)
+# OPENAI_API_KEY
