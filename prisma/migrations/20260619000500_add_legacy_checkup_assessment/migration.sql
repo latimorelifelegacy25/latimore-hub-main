@@ -10,7 +10,9 @@ CREATE TABLE IF NOT EXISTS "LegacyCheckupAssessment" (
   "hasLegacyPlan" BOOLEAN,
   "interestedIn" TEXT[] DEFAULT ARRAY[]::TEXT[],
   "message" TEXT,
-  CONSTRAINT "LegacyCheckupAssessment_pkey" PRIMARY KEY ("id")
+  CONSTRAINT "LegacyCheckupAssessment_pkey" PRIMARY KEY ("id"),
+  CONSTRAINT "LegacyCheckupAssessment_contactId_fkey" FOREIGN KEY ("contactId") REFERENCES "Contact"("id") ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT "LegacyCheckupAssessment_inquiryId_fkey" FOREIGN KEY ("inquiryId") REFERENCES "Inquiry"("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS "LegacyCheckupAssessment_contactId_idx"
