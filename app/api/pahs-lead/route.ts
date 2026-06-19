@@ -4,6 +4,7 @@ import { createGoogleCalendarEvent } from '@/lib/calendar/events';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { sendGoogleChatMessage } from '@/lib/google-chat';
+import { LeadSchema } from '@/lib/schemas';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -107,8 +108,7 @@ async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
     lead.bestTime ? `Best time to call: ${lead.bestTime}` : null,
     lead.promo ? `Promo/Coupon: ${lead.promo}` : null,
   ].filter(Boolean).join(' | ');
-
-  const { contact, inquiry } = await upsertLead({
+  const { contact, inquiry, deduped } = await upsertLead({
     firstName,
     lastName,
     email: lead.email || null,
@@ -131,8 +131,7 @@ async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
       referrer: lead.referrer || null,
     },
   });
-
-  return { contact: contact.id, inquiry: inquiry.id };
+  return { contact: contact.id, inquiry: inquiry.id, deduped };
 }
 
 async function sendNotification(lead: ValidatedLead) {
@@ -203,7 +202,27 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    const leadInput = {
+      ...splitName(lead.name),
+      email: lead.email || null,
+      phone: lead.phone,
+      productInterest: lead.interest,
+      source: lead.utmSource || lead.source,
+      medium: lead.utmMedium || null,
+      campaign: lead.utmCampaign || null,
+      term: lead.utmTerm || null,
+      content: lead.utmContent || null,
+      referrer: lead.referrer || null,
+      landingPage: lead.page,
+      notes: `Coverage interest: ${lead.interest}${lead.bestTime ? ` | Best time to call: ${lead.bestTime}` : ''}${lead.promo ? ` | Promo/Coupon: ${lead.promo}` : ''}`,
+    }
+    const parsedLead = LeadSchema.safeParse(leadInput)
+    if (!parsedLead.success) {
+      return NextResponse.json({ ok: false, error: parsedLead.error.flatten() }, { status: 422 })
+    }
+
     const save = await saveToCRM(lead);
+    const crm = save;
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
       createCalendarReminder(lead, save),
@@ -214,6 +233,7 @@ export async function POST(req: NextRequest) {
       leadId: save.inquiry,
       contactId: save.contact,
       inquiryId: save.inquiry,
+      deduped: save.deduped,
       save,
     };
 

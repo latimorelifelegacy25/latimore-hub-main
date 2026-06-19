@@ -34,9 +34,9 @@ const nextConfig = {
     return [
       {
         source: '/:path*',
+        has: [{ type: 'host', value: 'latimorelifelegacy.com' }],
         destination: 'https://www.latimorelifelegacy.com/:path*',
         permanent: true,
-        has: [{ type: 'host', value: 'latimorelifelegacy.com' }],
       },
       { source: '/home', destination: '/', permanent: true },
       {

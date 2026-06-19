@@ -1,10 +1,10 @@
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
-import { ingestEvent, upsertLeadSession } from './ingest-event'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
+import type { Prisma } from '@prisma/client'
 
 export type LeadUpsertInput = {
   firstName?: string | null
@@ -50,92 +50,58 @@ export async function upsertLead(input: LeadUpsertInput) {
   const productInterest = normalizeProductInterest(input.productInterest)
   const notes = cleanString(input.notes, 2000)
 
-  let existing = null as Awaited<ReturnType<typeof prisma.contact.findFirst>> | null
-  if (email) {
-    existing = await prisma.contact.findUnique({ where: { email } })
+  if (!email && !phone) {
+    throw new Error('Lead must include at least an email or phone number')
   }
-  if (!existing && phone) {
-    const phoneMatches = [phone, rawPhone].filter(
-      (value, index, values): value is string => Boolean(value) && values.indexOf(value) === index,
-    )
-    existing = await prisma.contact.findFirst({ where: { OR: phoneMatches.map(value => ({ phone: value })) } })
-  }
-  let deduped = Boolean(existing)
-  let originalInquiryId: string | null = null
-  if (existing) {
-    const originalInquiry = await prisma.inquiry.findFirst({
-      where: { contactId: existing.id },
+
+  async function writeLead() {
+    return prisma.$transaction(async (tx) => {
+    const [emailContact, phoneContact] = await Promise.all([
+      email ? tx.contact.findUnique({ where: { email } }) : Promise.resolve(null),
+      phone ? tx.contact.findUnique({ where: { phone } }) : Promise.resolve(null),
+    ])
+
+    const existing = emailContact ?? phoneContact
+    const deduped = Boolean(existing)
+    const canSetEmail = Boolean(email) && (!emailContact || emailContact.id === existing?.id)
+    const canSetPhone = Boolean(phone) && (!phoneContact || phoneContact.id === existing?.id)
+
+    const contact = existing
+      ? await tx.contact.update({
+          where: { id: existing.id },
+          data: {
+            firstName: firstName ?? existing.firstName ?? undefined,
+            lastName: lastName ?? existing.lastName ?? undefined,
+            email: canSetEmail ? email : undefined,
+            phone: canSetPhone ? phone : undefined,
+            county: county ?? existing.county ?? undefined,
+            primarySource: existing.primarySource ?? source ?? undefined,
+            primaryMedium: existing.primaryMedium ?? medium ?? undefined,
+            primaryCampaign: existing.primaryCampaign ?? campaign ?? undefined,
+          },
+        })
+      : await tx.contact.create({
+          data: {
+            email: email ?? undefined,
+            firstName: firstName ?? undefined,
+            lastName: lastName ?? undefined,
+            phone: phone ?? undefined,
+            county: county ?? undefined,
+            primarySource: source ?? undefined,
+            primaryMedium: medium ?? undefined,
+            primaryCampaign: campaign ?? undefined,
+          },
+        })
+
+    const originalInquiry = await tx.inquiry.findFirst({
+      where: { contactId: contact.id },
       orderBy: { createdAt: 'asc' },
       select: { id: true },
     })
-    originalInquiryId = originalInquiry?.id ?? null
-  }
+    const originalInquiryId = originalInquiry?.id ?? null
 
-  let contact: Awaited<ReturnType<typeof prisma.contact.update>>
-  if (existing) {
-    contact = await prisma.contact.update({
-      where: { id: existing.id },
-      data: {
-        firstName: firstName ?? existing.firstName ?? undefined,
-        lastName: lastName ?? existing.lastName ?? undefined,
-        email: email ?? existing.email ?? undefined,
-        phone: phone ?? existing.phone ?? undefined,
-        county: county ?? existing.county ?? undefined,
-        primarySource: existing.primarySource ?? source ?? undefined,
-        primaryMedium: existing.primaryMedium ?? medium ?? undefined,
-        primaryCampaign: existing.primaryCampaign ?? campaign ?? undefined,
-      },
-    })
-  } else {
-    try {
-      contact = await prisma.contact.create({
-        data: {
-          email: email ?? undefined,
-          firstName: firstName ?? undefined,
-          lastName: lastName ?? undefined,
-          phone: phone ?? undefined,
-          county: county ?? undefined,
-          primarySource: source ?? undefined,
-          primaryMedium: medium ?? undefined,
-          primaryCampaign: campaign ?? undefined,
-        },
-      })
-    } catch (err: any) {
-      // P2002 = unique constraint violation — a concurrent request created this contact first
-      if (err.code === 'P2002' && email) {
-        const found = await prisma.contact.findUnique({ where: { email } })
-        if (!found) throw err
-        deduped = true
-        const originalInquiry = await prisma.inquiry.findFirst({
-          where: { contactId: found.id },
-          orderBy: { createdAt: 'asc' },
-          select: { id: true },
-        })
-        originalInquiryId = originalInquiry?.id ?? null
-        contact = await prisma.contact.update({
-          where: { id: found.id },
-          data: {
-            firstName: firstName ?? found.firstName ?? undefined,
-            lastName: lastName ?? found.lastName ?? undefined,
-            phone: phone ?? found.phone ?? undefined,
-            county: county ?? found.county ?? undefined,
-            primarySource: found.primarySource ?? source ?? undefined,
-            primaryMedium: found.primaryMedium ?? medium ?? undefined,
-            primaryCampaign: found.primaryCampaign ?? campaign ?? undefined,
-          },
-        })
-      } else {
-        throw err
-      }
-    }
-  }
-
-  logger.info({ correlationId, stage: 'contact_upserted', contactId: contact.id, deduped }, 'lead lifecycle')
-
-  if (leadSessionId) {
-    await upsertLeadSession(
-      leadSessionId,
-      {
+    if (leadSessionId) {
+      const update: Prisma.LeadSessionUncheckedUpdateInput = {
         lastSeenAt: new Date(),
         contactId: contact.id,
         landingPage: landingPage ?? undefined,
@@ -147,8 +113,8 @@ export async function upsertLead(input: LeadUpsertInput) {
         content: utmContent ?? undefined,
         county: county ?? undefined,
         productInterest,
-      },
-      {
+      }
+      const create: Prisma.LeadSessionUncheckedCreateInput = {
         id: leadSessionId,
         contactId: contact.id,
         landingPage: landingPage ?? undefined,
@@ -160,196 +126,87 @@ export async function upsertLead(input: LeadUpsertInput) {
         content: utmContent ?? undefined,
         county: county ?? undefined,
         productInterest,
-      },
-    )
-  }
+      }
 
-  const recentDuplicateInquiry = await prisma.inquiry.findFirst({
-    where: {
-      contactId: contact.id,
-      productInterest,
-      createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-      ...(source ? { source } : {}),
-      ...(medium ? { medium } : {}),
-      ...(campaign ? { campaign } : {}),
-      ...(landingPage ? { landingPage } : {}),
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+      try {
+        await tx.leadSession.upsert({ where: { id: leadSessionId }, update, create })
+      } catch (err: any) {
+        if (err?.code !== 'P2002') throw err
+        await tx.leadSession.update({ where: { id: leadSessionId }, data: update })
+      }
+    }
 
-  if (recentDuplicateInquiry) {
-    deduped = true
-    logger.info(
-      { correlationId, stage: 'duplicate_suppressed', contactId: contact.id, inquiryId: recentDuplicateInquiry.id },
-      'lead lifecycle',
-    )
-    const event = await ingestEvent({
-      eventType: 'form_submit',
-      leadSessionId,
-      contactId: contact.id,
-      inquiryId: recentDuplicateInquiry.id,
-      pageUrl: landingPage,
-      referrer,
-      source,
-      medium,
-      campaign,
-      county,
-      productInterest,
-      metadata: {
-        form: 'lead',
-        duplicateSuppressed: true,
-        duplicateWindowHours: 24,
-        firstName,
-        lastName,
-        email,
-        phone,
-        rawPhone,
-        utmTerm,
-        utmContent,
-        referrer,
-        landingPage,
-        rawProductInterest,
-        rawCampaign,
-        originalInquiryId: originalInquiryId ?? recentDuplicateInquiry.id,
-        ...(input.metadata ?? {}),
+    const inquiry = await tx.inquiry.create({
+      data: {
+        contactId: contact.id,
+        leadSessionId: leadSessionId ?? undefined,
+        productInterest,
+        stage: 'New',
+        source: source ?? undefined,
+        medium: medium ?? undefined,
+        campaign: campaign ?? undefined,
+        landingPage: landingPage ?? undefined,
+        county: county ?? undefined,
+        notes: notes ?? undefined,
       },
     })
 
-    await prisma.systemEvent.create({
+    await tx.task.create({
       data: {
-        type: 'lead.duplicate_suppressed',
+        title: `Follow up with ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'new lead'}`,
+        dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        inquiryId: inquiry.id,
         contactId: contact.id,
-        inquiryId: recentDuplicateInquiry.id,
-        source,
-        medium,
-        campaign,
-        payload: {
-          action: 'lead.duplicate_suppressed',
-          originalContactId: contact.id,
-          originalInquiryId: originalInquiryId ?? recentDuplicateInquiry.id,
-          duplicateWindowHours: 24,
-          productInterest,
-          rawProductInterest,
-          rawCampaign,
+      },
+    })
+
+    const event = await tx.event.create({
+      data: {
+        eventType: 'form_submit',
+        leadSessionId: leadSessionId ?? undefined,
+        contactId: contact.id,
+        inquiryId: inquiry.id,
+        pageUrl: landingPage ?? undefined,
+        referrer: referrer ?? undefined,
+        source: source ?? undefined,
+        medium: medium ?? undefined,
+        campaign: campaign ?? undefined,
+        county: county ?? undefined,
+        productInterest,
+        metadata: {
+          form: 'lead',
+          firstName,
+          lastName,
+          email,
+          phone,
+          rawPhone,
           utmTerm,
           utmContent,
           referrer,
           landingPage,
-          eventId: event.id,
-        },
+          rawProductInterest,
+          rawCampaign,
+          deduped,
+          originalInquiryId,
+          ...(input.metadata ?? {}),
+        } as Prisma.InputJsonValue,
       },
     })
 
-    const score = contact.leadScore ?? 0
-    return {
-      contact: { ...contact, leadScore: score },
-      inquiry: { ...recentDuplicateInquiry, leadScore: score, deduped: true },
-      score,
-      deduped,
-    }
-  }
+    const score = await updateLeadScores({ contact, inquiry, eventCount: 1, prisma: tx })
 
-  const inquiry = await prisma.inquiry.create({
-    data: {
-      contactId: contact.id,
-      leadSessionId: leadSessionId ?? undefined,
-      productInterest,
-      stage: 'New',
-      source: source ?? undefined,
-      medium: medium ?? undefined,
-      campaign: campaign ?? undefined,
-      landingPage: landingPage ?? undefined,
-      county: county ?? undefined,
-      notes: notes ?? undefined,
-    },
-  })
-
-  logger.info({ correlationId, stage: 'inquiry_created', contactId: contact.id, inquiryId: inquiry.id }, 'lead lifecycle')
-
-  const task = await prisma.task.create({
-    data: {
-      title: `Follow up with ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || 'new lead'}`,
-      dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      inquiryId: inquiry.id,
-      contactId: contact.id,
-    },
-  })
-
-  logger.info({ correlationId, stage: 'task_created', contactId: contact.id, inquiryId: inquiry.id, taskId: task.id }, 'lead lifecycle')
-
-  const event = await ingestEvent({
-    eventType: 'form_submit',
-    leadSessionId,
-    contactId: contact.id,
-    inquiryId: inquiry.id,
-    pageUrl: landingPage,
-    referrer,
-    source,
-    medium,
-    campaign,
-    county,
-    productInterest,
-    metadata: {
-      form: 'lead',
-      firstName,
-      lastName,
-      email,
-      phone,
-      rawPhone,
-      utmTerm,
-      utmContent,
-      referrer,
-      landingPage,
-      rawProductInterest,
-      rawCampaign,
-      deduped,
-      originalInquiryId,
-      ...(input.metadata ?? {}),
-    },
-  })
-
-  const score = await updateLeadScores({ contact, inquiry, eventCount: 1, prisma })
-
-  await prisma.systemEvent.create({
-    data: {
-      type: 'lead.audit.created',
-      contactId: contact.id,
-      inquiryId: inquiry.id,
-      source,
-      medium,
-      campaign,
-      payload: {
-        action: 'lead.created',
-        sourceType: inquiry.sourceType,
-        intent: inquiry.intent,
-        productInterest,
-        rawProductInterest,
-        rawCampaign,
-        utmTerm,
-        utmContent,
-        referrer,
-        landingPage,
-        deduped,
-        originalInquiryId,
-        score,
-        eventId: event.id,
-      },
-    },
-  })
-
-  if (deduped) {
-    await prisma.systemEvent.create({
+    await tx.systemEvent.create({
       data: {
-        type: 'lead.deduped',
+        type: 'lead.audit.created',
         contactId: contact.id,
         inquiryId: inquiry.id,
         source,
         medium,
         campaign,
         payload: {
-          originalContactId: contact.id,
-          originalInquiryId,
-          duplicateInquiryId: inquiry.id,
+          action: 'lead.created',
+          sourceType: inquiry.sourceType,
+          intent: inquiry.intent,
           productInterest,
           rawProductInterest,
           rawCampaign,
@@ -357,15 +214,61 @@ export async function upsertLead(input: LeadUpsertInput) {
           utmContent,
           referrer,
           landingPage,
+          deduped,
+          originalInquiryId,
+          score,
+          eventId: event.id,
+          skippedConflictingEmail: Boolean(email && emailContact && emailContact.id !== contact.id),
+          skippedConflictingPhone: Boolean(phone && phoneContact && phoneContact.id !== contact.id),
         },
       },
     })
+
+    if (deduped) {
+      await tx.systemEvent.create({
+        data: {
+          type: 'lead.deduped',
+          contactId: contact.id,
+          inquiryId: inquiry.id,
+          source,
+          medium,
+          campaign,
+          payload: {
+            originalContactId: contact.id,
+            originalInquiryId,
+            duplicateInquiryId: inquiry.id,
+            productInterest,
+            rawProductInterest,
+            rawCampaign,
+            utmTerm,
+            utmContent,
+            referrer,
+            landingPage,
+          },
+        },
+      })
+    }
+
+    return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score, deduped }, score, deduped }
+    })
   }
 
+  let result: Awaited<ReturnType<typeof writeLead>> | null = null
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      result = await writeLead()
+      break
+    } catch (err: any) {
+      if (err?.code !== 'P2002' || attempt === 2) throw err
+    }
+  }
+
+  if (!result) throw new Error('Lead upsert failed')
+
   // Fire-and-forget — Notion sync must not block or break lead capture
-  syncContactToNotion(contact, inquiry).catch(err =>
-    logger.error({ err, correlationId, contactId: contact.id }, 'Notion sync failed'),
+  syncContactToNotion(result.contact, result.inquiry).catch(err =>
+    logger.error({ err, contactId: result.contact.id }, 'Notion sync failed'),
   )
 
-  return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score, deduped }, score, deduped }
+  return result
 }

@@ -23,8 +23,8 @@ export interface PostFrontmatter {
   publishedAt?: string
   format?: string
   num?: string
+  draft?: boolean
 }
-
 
 export type Track = NonNullable<PostFrontmatter['track']>
 export type ArticleMeta = Post & {
@@ -40,18 +40,48 @@ export interface Post extends PostFrontmatter {
   content: string
 }
 
+function isPublishablePost(slug: string, data: Partial<PostFrontmatter>) {
+  const normalizedSlug = slug.toLowerCase()
+  const title = typeof data.title === 'string' ? data.title.trim().toLowerCase() : ''
+
+  if (!normalizedSlug) return false
+  if (normalizedSlug.startsWith('_')) return false
+  if (normalizedSlug.includes('template')) return false
+  if (data.draft === true) return false
+  if (!title) return false
+  if (title.includes('your post title')) return false
+
+  return true
+}
+
 export function getPostSlugs(): string[] {
   if (!fs.existsSync(CONTENT_DIR)) return []
+
   return fs
     .readdirSync(CONTENT_DIR)
-    .filter((f) => f.endsWith('.mdx') && !f.startsWith('_'))
-    .map((f) => f.replace(/\.mdx$/, ''))
+    .filter((fileName) => fileName.endsWith('.mdx'))
+    .map((fileName) => fileName.replace(/\.mdx$/, ''))
+    .filter((slug) => {
+      try {
+        const fullPath = path.join(CONTENT_DIR, `${slug}.mdx`)
+        const raw = fs.readFileSync(fullPath, 'utf8')
+        const { data } = matter(raw)
+        return isPublishablePost(slug, data as Partial<PostFrontmatter>)
+      } catch {
+        return false
+      }
+    })
 }
 
 export function getPostBySlug(slug: string): Post {
   const fullPath = path.join(CONTENT_DIR, `${slug}.mdx`)
   const raw = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(raw)
+
+  if (!isPublishablePost(slug, data as Partial<PostFrontmatter>)) {
+    throw new Error(`Blog post is not publishable: ${slug}`)
+  }
+
   const stats = readingTime(content)
   return {
     slug,
@@ -77,4 +107,3 @@ export function getPostsByCategory(category: string): Post[] {
 
 export { CATEGORIES } from './blog-constants'
 export type { Category } from './blog-constants'
-

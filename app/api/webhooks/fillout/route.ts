@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendMail } from '@/lib/mailer'
 import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { rateLimit } from '@/lib/rate-limit'
-import { FilloutSchema } from '@/lib/schemas'
+import { LeadSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { ingestEvent } from '@/lib/hub/ingest-event'
@@ -15,7 +15,7 @@ import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
 
 // Fillout can post either a flat key-value payload or its native
 // { questions: [{name, value}], urlParameters: [{id, value}] } format.
-// This normalizer collapses both into the flat shape FilloutSchema expects.
+// This normalizer collapses both into the flat shape LeadSchema expects.
 function normalizeFilloutPayload(raw: unknown): Record<string, unknown> {
   if (!raw || typeof raw !== 'object') return {}
   const body = raw as Record<string, unknown>
@@ -148,36 +148,50 @@ export async function POST(req: NextRequest) {
   }
 
   const normalized = normalizeFilloutPayload(body)
-  const parse = FilloutSchema.safeParse(normalized)
+  const parse = LeadSchema.safeParse({
+    firstName: normalized.first_name ?? normalized.firstName,
+    lastName: normalized.last_name ?? normalized.lastName,
+    email: normalized.email,
+    phone: normalized.phone,
+    county: normalized.county,
+    productInterest: normalized.product_interest ?? normalized.productInterest ?? normalized.interest_type ?? normalized.interestType,
+    leadSessionId: normalized.lead_session_id,
+    source: normalized.source ?? normalized.utm_source,
+    medium: normalized.utm_medium,
+    campaign: normalized.utm_campaign,
+    term: normalized.utm_term,
+    content: normalized.utm_content,
+    utmTerm: normalized.utmTerm ?? normalized.utm_term,
+    utmContent: normalized.utmContent ?? normalized.utm_content,
+    referrer: normalized.referrer,
+    landingPage: normalized.page_url ?? normalized.landing_page,
+    notes: normalized.notes,
+    metadata: normalized,
+  })
   if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
 
   const payload = parse.data
   const email = payload.email ?? null
-  const productInterest =
-    payload.product_interest ??
-    payload.productInterest ??
-    payload.interest_type ??
-    payload.interestType ??
-    'General'
-  const utmTerm = payload.utmTerm ?? payload.utm_term ?? null
-  const utmContent = payload.utmContent ?? payload.utm_content ?? null
-  const landingPage = payload.page_url ?? payload.landing_page ?? null
-  const source = payload.source ?? payload.utm_source ?? 'fillout'
-  const medium = payload.utm_medium ?? 'form'
-  const campaign = payload.utm_campaign ?? 'fillout'
+  const productInterest = payload.productInterest ?? 'General'
+  const utmTerm = payload.utmTerm ?? payload.term ?? null
+  const utmContent = payload.utmContent ?? payload.content ?? null
+  const landingPage = payload.landingPage ?? null
+  const source = payload.source ?? 'fillout'
+  const medium = payload.medium ?? 'form'
+  const campaign = payload.campaign ?? 'fillout'
 
   try {
     requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
     requiredEnv('LEAD_NOTIFY_EMAIL')
 
     const { contact, inquiry } = await upsertLead({
-      firstName: payload.first_name ?? payload.firstName ?? null,
-      lastName: payload.last_name ?? payload.lastName ?? null,
+      firstName: payload.firstName ?? null,
+      lastName: payload.lastName ?? null,
       email,
       phone: payload.phone ?? null,
       county: payload.county ?? null,
       productInterest,
-      leadSessionId: payload.lead_session_id ?? null,
+      leadSessionId: payload.leadSessionId ?? null,
       source,
       medium,
       campaign,
@@ -191,7 +205,7 @@ export async function POST(req: NextRequest) {
 
     await ingestEvent({
       eventType: 'form_submit',
-      leadSessionId: payload.lead_session_id ?? null,
+      leadSessionId: payload.leadSessionId ?? null,
       contactId: contact.id,
       inquiryId: inquiry.id,
       pageUrl: landingPage,
@@ -206,9 +220,9 @@ export async function POST(req: NextRequest) {
         utmTerm,
         utmContent,
         landingPage,
-        ...(payload.fbclid ? { fbclid: payload.fbclid } : {}),
-        ...(payload.ttclid ? { ttclid: payload.ttclid } : {}),
-        ...(payload.gclid ? { gclid: payload.gclid } : {}),
+        ...((normalized.fbclid as string | undefined) ? { fbclid: normalized.fbclid } : {}),
+        ...((normalized.ttclid as string | undefined) ? { ttclid: normalized.ttclid } : {}),
+        ...((normalized.gclid as string | undefined) ? { gclid: normalized.gclid } : {}),
       },
     })
 
@@ -231,7 +245,7 @@ export async function POST(req: NextRequest) {
           phone: contact.phone ?? undefined,
           productInterest,
           county: contact.county ?? undefined,
-          leadSessionId: payload.lead_session_id ?? undefined,
+          leadSessionId: payload.leadSessionId ?? undefined,
           source,
           campaign: campaign ?? undefined,
         }),

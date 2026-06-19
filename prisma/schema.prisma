@@ -71,7 +71,7 @@ model Contact {
 
   @@index([createdAt])
   @@index([county])
-  @@index([phone])
+  @@unique([phone])
   @@index([leadScore])
   @@index([lastActivityAt])
   @@index([primarySourceType])
