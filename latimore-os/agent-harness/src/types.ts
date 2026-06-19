@@ -117,8 +117,7 @@ export abstract class BaseWorker {
 export interface WorkerEnv {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
-  OPENAI_API_KEY: string;
-  ANTHROPIC_API_KEY?: string;
+  ANTHROPIC_API_KEY: string;
   RESEND_API_KEY: string;
   TWILIO_ACCOUNT_SID: string;
   TWILIO_AUTH_TOKEN: string;
