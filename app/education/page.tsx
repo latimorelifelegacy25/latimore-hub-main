@@ -569,8 +569,8 @@ export default function EducationPage() {
                 <div className="grid items-center gap-6 md:grid-cols-2">
                   <div className="overflow-hidden rounded-2xl">
                     <Image
-                      src="/hero_family_home.jpg"
-                      alt="Family at home"
+                      src="/jackson-outdoor.jpg"
+                      alt="Jackson M. Latimore Sr. — Independent Insurance Consultant"
                       width={800}
                       height={800}
                       priority
