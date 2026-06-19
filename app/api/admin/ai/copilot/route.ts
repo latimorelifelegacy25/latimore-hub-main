@@ -5,14 +5,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const SYSTEM_PROMPT = `You are the Latimore Hub OS Copilot — a high-performance AI assistant for Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC.
+const SYSTEM_PROMPT = withAdminAiGuardrails(`You are the Latimore Hub OS Copilot — a high-performance AI assistant for Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC.
 
 CANONICAL CONTEXT:
 - Brand: Latimore Life & Legacy LLC
@@ -36,7 +36,7 @@ RESPONSE FORMAT — STRICT JSON ONLY:
   "actions": []
 }
 If no file system action is needed, return an empty array for actions.
-Brand voice: professional, strategic, education-first. Never use fear-based language.`
+Brand voice: professional, strategic, education-first. Never use fear-based language.`)
 
 const COPILOT_SCHEMA = {
   type: 'object' as const,
@@ -81,7 +81,7 @@ type HistoryMessage = {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const auth = await requireAdminSession()

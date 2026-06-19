@@ -12,7 +12,7 @@ const VALID_EVENT_TYPES = new Set(Object.values(EventType))
 const VALID_PRODUCTS = new Set(Object.values(ProductInterest))
 
 export const POST = withCors(async (req: NextRequest) => {
-  const limited = rateLimit(req, 'event')
+  const limited = await rateLimit(req, 'event')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
@@ -48,6 +48,6 @@ export const POST = withCors(async (req: NextRequest) => {
     return NextResponse.json({ ok: true, eventId: event.id, sessionId: event.leadSessionId ?? null })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Event ingest error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 })
   }
 })

@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { Resend } from 'resend';
+import { NextRequest, NextResponse } from 'next/server';
 import { upsertLead } from '@/lib/hub/upsert-lead';
+import { createGoogleCalendarEvent } from '@/lib/calendar/events';
+import { rateLimit } from '@/lib/rate-limit';
+import { logger } from '@/lib/logger';
+import { sendGoogleChatMessage } from '@/lib/google-chat';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -14,7 +16,42 @@ type LeadBody = {
   interest?: string;
   source?: string;
   page?: string;
+  bestTime?: string;
+  state?: string;
+  priority?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+  referrer?: string;
 };
+
+type ValidatedLead = {
+  name: string;
+  phone: string;
+  email: string;
+  promo: string;
+  interest: string;
+  source: string;
+  page: string;
+  bestTime: string;
+  state: string;
+  priority: string;
+  utmSource: string;
+  utmMedium: string;
+  utmCampaign: string;
+  utmTerm: string;
+  utmContent: string;
+  referrer: string;
+};
+
+type CrmSave = { contact: string; inquiry: string };
 
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max);
@@ -26,101 +63,183 @@ function splitName(full: string): { firstName: string | null; lastName: string |
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
 }
 
-async function saveToCRM(lead: Required<LeadBody>) {
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function leadSummary(lead: ValidatedLead, crm?: CrmSave) {
+  return [
+    `Name: ${lead.name}`,
+    `Phone: ${lead.phone || 'Not provided'}`,
+    `Email: ${lead.email || 'Not provided'}`,
+    `Interest: ${lead.interest}`,
+    `Best time: ${lead.bestTime || 'No preference'}`,
+    `Promo/Coupon: ${lead.promo || 'None'}`,
+    `Source: ${lead.utmSource || lead.source}`,
+    `Medium: ${lead.utmMedium || 'Not provided'}`,
+    `Campaign: ${lead.utmCampaign || 'Not provided'}`,
+    lead.utmTerm ? `Term: ${lead.utmTerm}` : null,
+    lead.utmContent ? `Content: ${lead.utmContent}` : null,
+    lead.referrer ? `Referrer: ${lead.referrer}` : null,
+    `Page: ${lead.page}`,
+    crm?.contact ? `CRM Contact: ${crm.contact}` : null,
+    crm?.inquiry ? `CRM Inquiry: ${crm.inquiry}` : null,
+  ].filter(Boolean).join('\n');
+}
+
+function followUpWindow(bestTime: string) {
+  const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  const pref = bestTime.toLowerCase();
+  if (start.getDay() === 0) start.setDate(start.getDate() + 1);
+  if (start.getDay() === 6) start.setDate(start.getDate() + 2);
+  if (pref.includes('morning')) start.setHours(9, 0, 0, 0);
+  else if (pref.includes('afternoon')) start.setHours(14, 0, 0, 0);
+  else if (pref.includes('evening')) start.setHours(17, 0, 0, 0);
+  else start.setHours(9, 30, 0, 0);
+  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
   const { firstName, lastName } = splitName(lead.name);
+  const notes = [
+    `Coverage interest: ${lead.interest}`,
+    lead.bestTime ? `Best time to call: ${lead.bestTime}` : null,
+    lead.promo ? `Promo/Coupon: ${lead.promo}` : null,
+  ].filter(Boolean).join(' | ');
+
   const { contact, inquiry } = await upsertLead({
     firstName,
     lastName,
     email: lead.email || null,
-    phone: lead.phone,
+    phone: lead.phone || null,
     productInterest: lead.interest,
-    source: lead.source,
+    source: lead.utmSource || lead.source,
+    medium: lead.utmMedium || null,
+    campaign: lead.utmCampaign || null,
+    term: lead.utmTerm || null,
+    content: lead.utmContent || null,
+    referrer: lead.referrer || null,
     landingPage: lead.page,
-    notes: lead.promo ? `Promo/Coupon: ${lead.promo}` : 'PAHS sponsorship landing page consultation request.',
-    metadata: { form: 'pahs-lead', promo: lead.promo || null },
+    notes,
+    metadata: {
+      form: 'pahs-lead',
+      promo: lead.promo || null,
+      bestTime: lead.bestTime || null,
+      utmTerm: lead.utmTerm || null,
+      utmContent: lead.utmContent || null,
+      referrer: lead.referrer || null,
+    },
   });
+
   return { contact: contact.id, inquiry: inquiry.id };
 }
 
-async function saveToSupabase(lead: Required<LeadBody>) {
-  const url = process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !serviceKey) return { skipped: true, reason: 'Supabase env vars not configured.' };
+async function sendNotification(lead: ValidatedLead) {
+  const notifyTo = process.env.LEAD_NOTIFY_EMAIL || process.env.NOTIFY_TO || 'jackson1989@latimorelegacy.com'
+  const text = `New PAHS consultation request
 
-  const table = process.env.PAHS_LEADS_TABLE || 'pahs_leads';
-  const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { error } = await supabase.from(table).insert({
-    full_name: lead.name,
-    phone: lead.phone,
-    email: lead.email || null,
-    promo_code: lead.promo || null,
-    product_interest: lead.interest,
-    lead_source: lead.source,
-    page_source: lead.page,
-    status: 'New',
-    county: null,
-    notes: 'PAHS sponsorship landing page consultation request.',
-  });
+Name: ${lead.name}
+Phone: ${lead.phone || 'Not provided'}
+Email: ${lead.email || 'Not provided'}
+State: ${lead.state}
+Priority: ${lead.priority}
+Promo/Coupon: ${lead.promo || 'None'}
+Interest: ${lead.interest}
+Source: ${lead.utmSource || lead.source}
+Medium: ${lead.utmMedium || 'Not provided'}
+Campaign: ${lead.utmCampaign || 'Not provided'}
+Term: ${lead.utmTerm || 'Not provided'}
+Content: ${lead.utmContent || 'Not provided'}
+Referrer: ${lead.referrer || 'Not provided'}
+Page: ${lead.page}
+Notify: ${notifyTo}`
 
-  if (error) throw new Error(`Supabase insert failed: ${error.message}`);
-  return { skipped: false };
+  await sendGoogleChatMessage(text)
+  return { skipped: false, channel: 'google_chat' }
 }
 
-async function sendNotification(lead: Required<LeadBody>) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return { skipped: true, reason: 'RESEND_API_KEY not configured.' };
-
-  const resend = new Resend(apiKey);
-  const to = process.env.LEAD_NOTIFY_TO || process.env.NOTIFY_TO || 'Jackson1989@latimorelegacy.com';
-  const from = process.env.LEAD_NOTIFY_FROM || process.env.THANKYOU_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
-
-  const text = `New PAHS consultation request\n\nName: ${lead.name}\nPhone: ${lead.phone}\nEmail: ${lead.email || 'Not provided'}\nPromo/Coupon: ${lead.promo || 'None'}\nInterest: ${lead.interest}\nSource: ${lead.source}\nPage: ${lead.page}`;
-
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject: `New PAHS Consultation Request: ${lead.name}`,
-    text,
+async function createCalendarReminder(lead: ValidatedLead, crm?: CrmSave) {
+  const window = followUpWindow(lead.bestTime);
+  const event = await createGoogleCalendarEvent({
+    summary: `Follow up: PAHS Protect - ${lead.name}`,
+    description: leadSummary(lead, crm),
+    start: window.start,
+    end: window.end,
+    location: 'Phone/Text follow-up',
   });
-
-  if (error) throw new Error(`Resend notification failed: ${error.message}`);
-  return { skipped: false };
+  return { skipped: false, eventId: event.id, htmlLink: event.htmlLink ?? null };
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const limited = await rateLimit(req, 'lead');
+  if (limited) return limited;
+
   try {
     const body = (await req.json()) as LeadBody;
-    const lead: Required<LeadBody> = {
+    const lead: ValidatedLead = {
       name: clean(body.name, 150),
       phone: clean(body.phone, 50),
       email: clean(body.email, 150),
       promo: clean(body.promo, 100),
       interest: clean(body.interest, 150),
       source: clean(body.source || 'PAHS Sponsorship Page', 100),
-      page: clean(body.page || 'pahs.latimorelifelegacy.com', 200),
+      page: clean(body.page || 'app/pahs', 200),
+      bestTime: clean(body.bestTime, 50),
+      state: clean(body.state || 'PA', 50),
+      priority: clean(body.priority || 'standard', 50),
+      utmSource: clean(body.utmSource || body.utm_source, 100),
+      utmMedium: clean(body.utmMedium || body.utm_medium, 100),
+      utmCampaign: clean(body.utmCampaign || body.utm_campaign, 150),
+      utmTerm: clean(body.utmTerm || body.utm_term, 100),
+      utmContent: clean(body.utmContent || body.utm_content, 100),
+      referrer: clean(body.referrer || req.headers.get('referer'), 500),
     };
 
-    if (!lead.name || !lead.phone || !lead.interest) {
-      return NextResponse.json({ ok: false, error: 'Name, phone, and interest are required.' }, { status: 400 });
+    if (!lead.name || !lead.state || !lead.priority || !lead.source || !lead.interest || (!lead.email && !lead.phone)) {
+      return NextResponse.json(
+        { ok: false, error: 'Name, either email or phone, state, priority, source, and interest are required.' },
+        { status: 400 }
+      )
     }
 
-    const target = process.env.PAHS_LEAD_TARGET ?? 'crm';
+    const save = await saveToCRM(lead);
+    const [emailResult, calendarResult] = await Promise.allSettled([
+      sendNotification(lead),
+      createCalendarReminder(lead, save),
+    ]);
 
-    let saveResult: Record<string, unknown>;
-    if (target === 'crm') {
-      saveResult = await saveToCRM(lead);
+    const response: Record<string, unknown> = {
+      ok: true,
+      leadId: save.inquiry,
+      contactId: save.contact,
+      inquiryId: save.inquiry,
+      save,
+    };
+
+    if (emailResult.status === 'fulfilled') {
+      response.email = { ok: true, result: emailResult.value };
     } else {
-      saveResult = await saveToSupabase(lead);
+      logger.error({ err: emailResult.reason }, '[pahs-lead] Google Chat notification failed');
+      response.email = { ok: false, error: errorMessage(emailResult.reason) };
     }
 
-    const emailResult = await sendNotification(lead);
+    if (calendarResult.status === 'fulfilled') {
+      response.calendar = { ok: true, result: calendarResult.value };
+    } else {
+      logger.error({ err: calendarResult.reason }, '[pahs-lead] Calendar reminder failed');
+      response.calendar = { ok: false, error: errorMessage(calendarResult.reason) };
+    }
 
-    return NextResponse.json({ ok: true, target, save: saveResult, email: emailResult });
+    return NextResponse.json(response, { status: 200 })
   } catch (error) {
-    console.error('[pahs-lead]', error);
+    logger.error(
+      { err: error instanceof Error ? error.message : String(error) },
+      '[pahs-lead] submission error'
+    )
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : 'Lead submission failed.' },
+      { ok: false, error: 'Lead capture failed', detail: error instanceof Error ? error.message : 'Lead submission failed.' },
       { status: 500 }
-    );
+    )
   }
 }

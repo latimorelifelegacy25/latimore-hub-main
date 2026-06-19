@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { captureException } from '@/lib/error-tracking'
 
 export async function sendMail({
   to,
@@ -20,7 +21,7 @@ export async function sendMail({
     const r = await resend.emails.send({ to, from, subject, html })
     return { ok: true, id: r.data?.id }
   } catch (err: any) {
-    console.error('sendMail error', err)
+    await captureException(err, { source: 'notification', channel: 'email', to: Array.isArray(to) ? to.join(',') : to })
     return { ok: false, error: err?.message ?? 'unknown' }
   }
 }

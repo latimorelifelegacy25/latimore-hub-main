@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { rateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 const BodySchema = z.object({
   prompt: z.string().min(5).max(2000),
@@ -93,7 +94,10 @@ const CAMPAIGN_SCHEMA = {
 } as const
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)

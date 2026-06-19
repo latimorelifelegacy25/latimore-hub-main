@@ -1,13 +1,21 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BRAND } from '@/lib/brand'
+import { BRAND, COLORS } from '@/lib/brand'
 import { SiteHeader, SiteFooter, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
 import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold     = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
-const navy = '#0E1A2B'
-const gold = '#C9A24D'
-const goldLight = '#E5C882'
+export const metadata: Metadata = {
+  title: 'Latimore Life & Legacy | Education-First Insurance Protection',
+  description:
+    'Clear, education-first life insurance, annuity, and legacy planning guidance for Schuylkill, Luzerne, and Northumberland County families.',
+  alternates: { canonical: '/' },
+}
 
 
 
@@ -40,7 +48,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents Served'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents in Our Service Area'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -218,7 +226,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
           <Image
-            src="/pahs-sponsor-flyer.jpg"
+            src="/pahs-sponsor-flyer.png"
             alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
             width={560}
             height={700}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyMetaSignature, fetchMetaLead, normalizeMetaLead } from '@/lib/social/meta'
 import { upsertSocialLead } from '@/lib/social/upsert-social-lead'
 import type { MetaWebhookEntry } from '@/lib/social/types'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -22,6 +23,9 @@ export async function GET(req: NextRequest) {
 
 // Meta webhook event handler (POST)
 export async function POST(req: NextRequest) {
+  const limited = await rateLimit(req, 'default')
+  if (limited) return limited
+
   const rawBody = await req.text()
   const signature = req.headers.get('x-hub-signature-256')
 
@@ -49,7 +53,7 @@ export async function POST(req: NextRequest) {
       if (!leadgenId) continue
 
       try {
-        const rawLead = await fetchMetaLead(leadgenId)
+        const rawLead = await fetchMetaLead(leadgenId, undefined, change.value?.page_id)
         const normalized = normalizeMetaLead(rawLead, 'facebook')
         await upsertSocialLead(normalized)
         results.push({ leadgenId, status: 'ok' })

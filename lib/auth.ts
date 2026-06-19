@@ -1,15 +1,8 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
+import { isAdminEmail } from '@/lib/admin-access'
 import { logger } from '@/lib/logger'
-
-function parseList(v?: string | null): string[] {
-  return (v ?? '')
-    .split(',')
-    .map(s => s.trim().toLowerCase())
-    .filter(Boolean)
-}
-
-const adminEmails = parseList(process.env.ADMIN_EMAILS)
+import '@/lib/env'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -22,8 +15,11 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ profile }) {
       const email = (profile?.email ?? '').toLowerCase()
-      const allowed = adminEmails.length > 0 && adminEmails.includes(email)
-      logger.info({ email, allowed }, '[auth] signIn attempt')
+      const allowed = isAdminEmail(email)
+      // Keyed `attemptedEmail` (not `email`) so the logger's PII redaction
+      // doesn't strip it — this is the access-control audit trail and the
+      // operator allowlist, not customer PII.
+      logger.info({ attemptedEmail: email, allowed }, '[auth] signIn attempt')
       return allowed
     },
   },

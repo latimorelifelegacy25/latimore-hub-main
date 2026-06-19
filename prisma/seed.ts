@@ -1,4 +1,48 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { PrismaClient } from '@prisma/client'
+
+function loadEnvFile(fileName: string) {
+  const filePath = resolve(process.cwd(), fileName)
+  if (!existsSync(filePath)) return
+
+  for (const line of readFileSync(filePath, 'utf8').split(/\r?\n/)) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+
+    const separator = trimmed.indexOf('=')
+    if (separator === -1) continue
+
+    const key = trimmed.slice(0, separator).trim()
+    let value = trimmed.slice(separator + 1).trim()
+
+    if ((value.startsWith('"') && value.includes('"', 1)) || (value.startsWith("'") && value.includes("'", 1))) {
+      const quote = value[0]
+      value = value.slice(1, value.indexOf(quote, 1))
+    } else {
+      value = value.split('#')[0].trim()
+    }
+
+    if (!process.env[key]) process.env[key] = value
+  }
+}
+
+loadEnvFile('.env.local')
+loadEnvFile('.env')
+
+const requiredDatabaseEnv = ['DATABASE_URL', 'DIRECT_URL'] as const
+const missingDatabaseEnv = requiredDatabaseEnv.filter((key) => !process.env[key])
+const placeholderDatabaseEnv = requiredDatabaseEnv.filter((key) => {
+  const value = process.env[key] ?? ''
+  return value.includes('USER:PASSWORD') || value.includes('[project-ref]') || value.includes('replace-with')
+})
+
+if (missingDatabaseEnv.length || placeholderDatabaseEnv.length) {
+  const invalidKeys = [...new Set([...missingDatabaseEnv, ...placeholderDatabaseEnv])]
+  console.error(`Cannot seed database until ${invalidKeys.join(', ')} ${invalidKeys.length === 1 ? 'is' : 'are'} set in .env.local.`)
+  console.error('Run npm run env:init, fill in real Supabase connection strings, then run npm run db:seed again.')
+  process.exit(1)
+}
 
 const prisma = new PrismaClient()
 
@@ -29,7 +73,7 @@ async function main() {
       email: 'john@example.com',
       phone: '+15555550102',
       county: 'Broward',
-      primarySource: 'Calendly',
+      primarySource: 'Google Calendar',
       primaryMedium: 'Scheduling',
       leadScore: 62,
       lastActivityAt: new Date(),
@@ -41,7 +85,7 @@ async function main() {
   })
 
   const johnInquiry = await prisma.inquiry.create({
-    data: { contactId: john.id, stage: 'Booked', productInterest: 'Final_Expense', source: 'Calendly', medium: 'Scheduling', county: john.county, leadScore: 62, notes: 'Booked a consultation call.' },
+    data: { contactId: john.id, stage: 'Booked', productInterest: 'Final_Expense', source: 'Google Calendar', medium: 'Scheduling', county: john.county, leadScore: 62, notes: 'Booked a consultation call.' },
   })
 
   await prisma.task.createMany({

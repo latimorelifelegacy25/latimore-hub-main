@@ -8,13 +8,29 @@ export default [
   {
     ignores: [
       '.next/**',
+      '.vercel/**',
       'node_modules/**',
+      'out/**',
       'dist/**',
       'build/**',
       'coverage/**',
+      '**/out/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/coverage/**',
+      'legacylandingpage/**',
       'public/**',
       'prisma/migrations/**',
       'next-env.d.ts',
+      '**/*.min.js',
+      '**/*.bundle.js',
+      '**/*.map',
+      '**/*vendor*.js',
+      '**/*vendor*.mjs',
+      '**/vendor/**',
+      '**/vendors/**',
+      '**/assets/**/react-vendor*.js',
+      '**/react-vendor*.js',
     ],
   },
 
@@ -44,13 +60,13 @@ export default [
       'no-empty': 'warn',
       'prefer-const': 'warn',
       'react-hooks/exhaustive-deps': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/set-state-in-effect': 'off',
       '@next/next/no-img-element': 'warn',
     },
   },
 
   {
-    files: ['next.config.js', 'postcss.config.js', '**/*.mjs'],
+    files: ['next.config.js', 'postcss.config.js', 'tailwind.config.ts', '**/*.mjs'],
     languageOptions: {
       globals: {
         ...globals.node,

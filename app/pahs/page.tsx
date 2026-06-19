@@ -1,802 +1,399 @@
-'use client';
+'use client'
 
-import { useEffect, useState, type FormEvent } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
-import './pahs.css';
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import './pahs.css'
+import './pahs-override.css'
+import { PahsFreeReviewGraphic, PahsSponsorGraphic, PahsThrowbackGraphic } from './PahsCampaignGraphics'
 
 type LeadForm = {
-  name: string;
-  phone: string;
-  email: string;
-  promo: string;
-  interest: string;
-};
-
-type ContactCard = {
-  href: string;
-  icon: string;
-  label: string;
-  value: string;
-  external?: boolean;
-};
-
-async function postJson<T>(url: string, body: unknown): Promise<T> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(err?.error ?? `HTTP ${res.status}`);
-  }
-
-  return res.json();
+  name: string
+  phone: string
+  email: string
+  promo: string
+  interest: string
+  bestTime: string
 }
 
-const PAGE_URL = 'https://latimorelifelegacy.fillout.com/pahs';
+type Tracking = {
+  utmSource: string
+  utmMedium: string
+  utmCampaign: string
+}
 
-const SERVICES = [
-  ['01', 'Life Insurance', 'Term and permanent coverage through Ethos Life, Foresters Financial, North American Company, and more. Affordable protection built for real budgets.'],
-  ['02', 'Living Benefits', "Policies that pay while you're still living — critical illness, chronic illness, and terminal illness riders that deliver cash when you need it most."],
-  ['03', 'Indexed Universal Life (IUL)', 'Tax-advantaged growth linked to market indices with downside protection. Powerful for income planning, legacy building, and supplemental retirement.'],
-  ['04', 'Fixed Index Annuities (FIA)', "Guaranteed income through F&G, American Equity, and Corebridge Financial. Sleep well knowing you won't outlive your money."],
-  ['05', 'Estate & Legacy Planning', 'Structure your assets so your family receives more of what you built — with clarity, dignity, and minimal friction.'],
-  ['06', 'Mortgage Protection Term', 'Keep your family in the home no matter what happens. Affordable term coverage tied to your mortgage payoff schedule.'],
-];
+const initialLead: LeadForm = {
+  name: '',
+  phone: '',
+  email: '',
+  promo: '',
+  interest: '',
+  bestTime: '',
+}
 
-const CONTACT_CARDS: ContactCard[] = [
-  {
-    href: '#intakeFormSection',
-    icon: '📋',
-    label: 'Free Protection Review',
-    value: 'Get Started — Takes 2 Min',
-  },
-  {
-    href: 'tel:+17176152613',
-    icon: '☎️',
-    label: 'Call Jackson Direct',
-    value: '(717) 615-2613',
-  },
-  {
-    href: 'mailto:leads@latimorelegacy.com',
-    icon: '✉️',
-    label: 'Email Jackson',
-    value: 'leads@latimorelegacy.com',
-  },
-  {
-    href: 'https://agents.ethoslife.com/invite/29ad1',
-    icon: '📝',
-    label: 'Get a Term Life Quote',
-    value: 'Apply Online via Ethos',
-    external: true,
-  },
-  {
-    href: 'https://www.instagram.com/jacksonlatimore.global?igsh=MTI5N25yNzR4emlieQ==',
-    icon: '📸',
-    label: 'Follow on Instagram',
-    value: '@jacksonlatimore.global',
-    external: true,
-  },
-  {
-    href: 'https://www.facebook.com/LatimoreLegacyLLC/',
-    icon: '📘',
-    label: 'Follow on Facebook',
-    value: '@LatimoreLegacyLLC',
-    external: true,
-  },
-  {
-    href: 'https://www.linkedin.com/in/startwithjacksongfi?trk=contact-info',
-    icon: '💼',
-    label: 'Connect on LinkedIn',
-    value: 'Jackson M. Latimore Sr.',
-    external: true,
-  },
-];
+const defaultTracking: Tracking = {
+  utmSource: 'pahs_qr',
+  utmMedium: 'qr_code',
+  utmCampaign: 'pahs_protect',
+}
+
+const reviewItems = [
+  'Income replacement',
+  'Mortgage and debt protection',
+  'Life insurance and living benefits',
+  'Retirement income and annuity questions',
+]
+
+type ScheduleGame = {
+  date: string
+  opponent: string
+  homeAway: 'HOME' | 'AWAY'
+  location: string
+  time: string
+}
+
+const scheduleGames: ScheduleGame[] = [
+  { date: 'Sep 5', opponent: 'Minersville', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Sep 12', opponent: 'Mahanoy Area Golden Bears', homeAway: 'AWAY', location: 'Mahanoy Area Stadium', time: '7:00 PM' },
+  { date: 'Sep 19', opponent: 'Tamaqua Blue Raiders', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Sep 26', opponent: 'North Schuylkill Spartans', homeAway: 'AWAY', location: 'Ghosh Orthodontics Field', time: '7:00 PM' },
+  { date: 'Oct 3', opponent: 'Jim Thorpe Olympians', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Oct 10', opponent: 'Shenandoah Valley Blue Devils', homeAway: 'AWAY', location: 'Shenandoah Stadium', time: '7:00 PM' },
+  { date: 'Oct 17', opponent: 'Nativity BVM Green Wave', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
+  { date: 'Oct 24', opponent: 'Tri-Valley Bulldogs', homeAway: 'AWAY', location: 'Tri-Valley Stadium', time: '7:00 PM' },
+]
 
 export default function PAHSPage() {
-  const [lead, setLead] = useState<LeadForm>({
-    name: '',
-    phone: '',
-    email: '',
-    promo: '',
-    interest: '',
-  });
-
-  const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
-  const [leadError, setLeadError] = useState('');
-
-  const [legacyRecipient, setLegacyRecipient] = useState('');
-  const [legacyMessage, setLegacyMessage] = useState('');
-  const [legacyTone, setLegacyTone] = useState('Heartfelt and loving');
-  const [legacyOutput, setLegacyOutput] = useState('');
-  const [legacyLoading, setLegacyLoading] = useState(false);
-  const [legacyError, setLegacyError] = useState('');
-
-  const [jargon, setJargon] = useState('');
-  const [jargonOutput, setJargonOutput] = useState('');
-  const [jargonLoading, setJargonLoading] = useState(false);
-  const [jargonError, setJargonError] = useState('');
-
-  const [showSticky, setShowSticky] = useState(false);
-  const [copyStatus, setCopyStatus] = useState('');
+  const [lead, setLead] = useState<LeadForm>(initialLead)
+  const [tracking, setTracking] = useState<Tracking>(defaultTracking)
+  const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+  const [leadError, setLeadError] = useState('')
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const sectionRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    const revealObserver = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.15 },
-    );
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    setTracking({
+      utmSource: params.get('utm_source') || defaultTracking.utmSource,
+      utmMedium: params.get('utm_medium') || defaultTracking.utmMedium,
+      utmCampaign: params.get('utm_campaign') || defaultTracking.utmCampaign,
+    })
+  }, [])
 
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  function updateLead<K extends keyof LeadForm>(field: K, value: LeadForm[K]) {
+    setLead((current) => ({ ...current, [field]: value }))
+  }
 
-    const onScroll = () => {
-      setShowSticky(window.scrollY > window.innerHeight * 0.6);
-    };
+  function scrollToReview() {
+    sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    return () => {
-      revealObserver.disconnect();
-      window.removeEventListener('scroll', onScroll);
-    };
-  }, []);
-
-  async function submitLead(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLeadStatus('submitting');
-    setLeadError('');
-
-    try {
-      await postJson<{ ok: boolean }>('/api/pahs-lead', {
-        ...lead,
-        source: 'PAHS Sponsorship Page',
-        page: 'www.latimorelifelegacy.com/pahs',
-      });
-
-      setLeadStatus('success');
-    } catch (err) {
-      setLeadStatus('error');
-      setLeadError(err instanceof Error ? err.message : 'Lead submission failed.');
+  function normalizeLead(data: LeadForm): LeadForm {
+    return {
+      name: data.name.trim(),
+      phone: data.phone.replace(/\D/g, ''),
+      email: data.email.trim().toLowerCase(),
+      promo: data.promo.trim(),
+      interest: data.interest,
+      bestTime: data.bestTime,
     }
   }
 
-  async function generateLegacyLetter() {
-    setLegacyLoading(true);
-    setLegacyError('');
-    setLegacyOutput('');
-    setCopyStatus('');
+  async function submitLead(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
+    setLeadStatus('submitting')
+    setLeadError('')
+
+    const cleanLead = normalizeLead(lead)
 
     try {
-      const data = await postJson<{ text: string }>('/api/gemini/legacy-letter', {
-        recipient: legacyRecipient || 'My Loved Ones',
-        message:
-          legacyMessage ||
-          'I want you to know how much I love you and that I will always be looking out for you.',
-        tone: legacyTone,
-      });
+      const response = await fetch('/api/pahs-lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...cleanLead,
+          source: 'PAHS_QR',
+          page: '/pahs',
+          bestTime: cleanLead.bestTime,
+          utmSource: tracking.utmSource,
+          utmMedium: tracking.utmMedium,
+          utmCampaign: tracking.utmCampaign,
+        }),
+      })
 
-      setLegacyOutput(data.text);
-    } catch (err) {
-      setLegacyError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setLegacyLoading(false);
-    }
-  }
+      let result: any = {}
+      try {
+        result = await response.json()
+      } catch {
+        result = {}
+      }
 
-  async function translateJargon() {
-    if (!jargon.trim()) return;
+      if (!response.ok || result?.ok === false) {
+        throw new Error(result?.error || 'Lead submission failed.')
+      }
 
-    setJargonLoading(true);
-    setJargonError('');
-    setJargonOutput('');
-
-    try {
-      const data = await postJson<{ text: string }>('/api/gemini/jargon', { jargon });
-      setJargonOutput(data.text);
-    } catch (err) {
-      setJargonError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setJargonLoading(false);
-    }
-  }
-
-  async function copyLegacyLetter() {
-    try {
-      await navigator.clipboard.writeText(legacyOutput);
-      setCopyStatus('Copied.');
-    } catch {
-      setCopyStatus('Copy failed.');
+      setLead(initialLead)
+      setLeadStatus('success')
+      sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } catch (error) {
+      setLeadStatus('error')
+      setLeadError(error instanceof Error ? error.message : 'Lead submission failed.')
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
   return (
-    <main>
-      <section className="hero">
-        <div className="hero-bg" />
+    <main className="pahs-page" id="top">
+      <section className="pahs-hero pahs-hero--sponsor-bg" aria-labelledby="pahs-hero-title">
+        <div className="pahs-hero__bg" />
+        <div className="pahs-shell pahs-hero__grid">
+          <div className="pahs-hero__copy">
+            <p className="pahs-kicker">PAHS Protect · Pottsville Football 2026</p>
+            <h1 id="pahs-hero-title">Protect What You Play For</h1>
+            <p className="pahs-hero__lead">
+              Latimore Life &amp; Legacy LLC is proud to support PAHS Football and help Coal Region families review protection before life forces the conversation.
+            </p>
 
-        <div className="stadium-lights">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div className="light-beam" key={i} />
-          ))}
-        </div>
-
-        <div className="field-bottom">
-          <div className="field-lines">
-            <div className="field-line" />
-            <div className="field-line" />
-            <div className="field-line" />
-            <span className="yard-number left">2</span>
-            <span className="yard-number center">5 0</span>
-            <span className="yard-number right">6</span>
-          </div>
-        </div>
-
-        <div className="hero-content">
-          <div className="sponsor-badge">Proud All-Star Sponsor</div>
-
-          <div className="hero-school-name">
-            POTTSVILLE AREA
-            <br />
-            HIGH SCHOOL
-          </div>
-
-          <div className="hero-year">FOOTBALL ’26</div>
-
-          <div className="pulse-badge">
-            <div className="pulse-dot" />
-            CRIMSON TIDE — GAME DAY
-          </div>
-
-          <div className="football-icon">🏈</div>
-
-          <div className="hero-profile">
-            <img src="/jackson-headshot.jpg" alt="Jackson M. Latimore Sr." className="hero-profile-img" />
-          </div>
-
-          <div className="logos-row">
-            <div className="tide-logo-container logo-card">
-              <img
-                src="/pahs-tide-logo.png"
-                alt="Pottsville Area High School Crimson Tide logo"
-                className="team-logo-image"
-              />
+            <div className="pahs-hero__actions" aria-label="Primary actions">
+              <button type="button" onClick={scrollToReview} className="pahs-button pahs-button--primary">
+                Start Free Protection Review
+              </button>
+              <a className="pahs-button pahs-button--ghost" href="tel:17176152613">
+                Call 717-615-2613
+              </a>
             </div>
 
-            <div className="logo-divider" />
-
-            <div className="latimore-logo-container logo-card">
-              <img
-                src="/pahs-latimore-logo.png"
-                alt="Latimore Life & Legacy logo"
-                className="business-logo-image"
-              />
+            <div className="pahs-trust-strip" aria-label="Campaign details">
+              <span>Scan QR</span>
+              <span>2-minute request</span>
+              <span>Local follow-up</span>
             </div>
           </div>
 
-          <div className="beat-img-wrap">
-            <div className="beat-banner">#TheBeatGoesOn</div>
-          </div>
-
-          <div className="qr-section">
-            <div className="qr-frame">
-              <QRCodeCanvas
-                value={PAGE_URL}
-                size={130}
-                fgColor="#2C3E50"
-                bgColor="#FFFFFF"
-                includeMargin
-              />
-            </div>
-            <span className="qr-url">www.latimorelifelegacy.com/pahs</span>
-          </div>
+          <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
+            <PahsSponsorGraphic compact />
+            <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
+          </aside>
         </div>
       </section>
 
-      <section className="cta-strip reveal">
-        <h2>GET YOUR FREE PROTECTION REVIEW</h2>
-        <p>No pressure. Just clarity. One conversation can change your family&apos;s future.</p>
-
-        <div className="cta-buttons">
-          <a href="#intakeFormSection" className="btn-primary">
-            📋 Start My Free Review
-          </a>
-          <a href="tel:+17176152613" className="btn-secondary">
-            ☎️ Call Jackson Direct
-          </a>
+      <section className="pahs-flyer" id="flyer">
+        <div className="pahs-flyer-inner">
+          <div className="section-label gold-label">Friday Night Lights</div>
+          <PahsSponsorGraphic className="pahs-flyer-image" />
         </div>
       </section>
 
-      <section className="intake-section" id="intakeFormSection">
-        <div className="intake-inner reveal">
-          <div className="section-label">Take Action</div>
-
-          <h2>Claim Your Free Consultation</h2>
-
-          <p>
-            Whether you&apos;re redeeming your Football Game Day Coupon or simply want to review your
-            protection, take the first step toward securing your family&apos;s future. Fill out the
-            form below.
+      <section className="pahs-then pahs-then--priority" id="story">
+        <div className="pahs-then-inner">
+          <div className="section-label gold-label">PAHS Then</div>
+          <h2 className="pahs-story-title">Where the Journey Began</h2>
+          <p className="pahs-story-copy">
+            From Cardinal Brennan football to serving Coal Region families today, this campaign is full circle: protect the people, homes, income, and future behind every jersey.
           </p>
+          <PahsThrowbackGraphic className="pahs-then-image" />
+        </div>
+      </section>
 
-          <div className="intake-box">
-            {leadStatus !== 'success' ? (
-              <form className="intake-form" onSubmit={submitLead}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="ifName">Full Name *</label>
-                    <input
-                      id="ifName"
-                      name="name"
-                      className="form-control"
-                      placeholder="John Doe"
-                      required
-                      value={lead.name}
-                      onChange={e => setLead({ ...lead, name: e.target.value })}
-                    />
-                  </div>
+      <section className="campaign-videos">
+        <div className="campaign-videos-inner">
+          <div className="section-label gold-label">Campaign Videos</div>
+          <h2 className="campaign-videos-title">Watch the Campaign</h2>
+          <div className="videos-grid single">
+            <div className="video-wrap">
+              <video
+                src="/pahs-campaign-video.mp4"
+                poster="/pahs-latimore-logo.png"
+                controls
+                playsInline
+                preload="metadata"
+                style={{ width: '100%', borderRadius: '8px' }}
+              />
+            </div>
+          </div>
+          <p>
+            The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
+          </p>
+        </div>
+      </section>
 
-                  <div className="form-group">
-                    <label htmlFor="ifPhone">Phone Number *</label>
-                    <input
-                      id="ifPhone"
-                      name="phone"
-                      className="form-control"
-                      placeholder="(555) 555-5555"
-                      required
-                      value={lead.phone}
-                      onChange={e => setLead({ ...lead, phone: e.target.value })}
-                    />
-                  </div>
+      <section className="pahs-schedule" id="schedule">
+        <div className="pahs-shell">
+          <div className="section-label gold-label">2026 Season</div>
+          <h2 className="pahs-schedule-title">Crimson Tide Schedule</h2>
+          <div className="pahs-schedule-list">
+            {scheduleGames.map((game) => (
+              <div className="pahs-schedule-row" key={`${game.date}-${game.opponent}`}>
+                <div className="pahs-schedule-date">{game.date}</div>
+                <div className="pahs-schedule-info">
+                  <span className="pahs-schedule-opponent">{game.opponent}</span>
+                  <span className={`pahs-schedule-tag pahs-schedule-tag--${game.homeAway.toLowerCase()}`}>
+                    {game.homeAway}
+                  </span>
+                </div>
+                <div className="pahs-schedule-location">{game.location}</div>
+                <div className="pahs-schedule-time">{game.time}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: '3rem 1rem', background: '#f7f3ec' }}>
+        <PahsFreeReviewGraphic />
+      </section>
+
+      <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">
+        <div className="pahs-shell pahs-review__grid">
+          <div className="pahs-review__content">
+            <p className="pahs-kicker">Free protection review</p>
+            <h2 id="pahs-review-title">Know where your family stands.</h2>
+            <p>
+              Use this page after scanning the PAHS QR code. The form creates a New lead for follow-up and keeps the source tied to the PAHS Protect campaign.
+            </p>
+
+            <div className="pahs-checklist" aria-label="Review topics">
+              {reviewItems.map((item) => (
+                <div className="pahs-check" key={item}>
+                  <span aria-hidden="true">✓</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pahs-lead-card">
+            {leadStatus === 'success' ? (
+              <div className="pahs-success-box" role="status">
+                <strong>Request received.</strong>
+                <span>Jackson will follow up directly. Your PAHS Protect review is now in the pipeline.</span>
+                <a href="tel:17176152613">Need faster help? Call 717-615-2613.</a>
+              </div>
+            ) : (
+              <form ref={formRef} className="pahs-lead-form" onSubmit={submitLead}>
+                <div className="pahs-form-header">
+                  <h3>Request My Free Review</h3>
+                  <p>No pressure. Just a clear review of your protection gaps and next best steps.</p>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label htmlFor="ifEmail">Email Address</label>
-                    <input
-                      id="ifEmail"
-                      name="email"
-                      type="email"
-                      className="form-control"
-                      placeholder="john@example.com"
-                      value={lead.email}
-                      onChange={e => setLead({ ...lead, email: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="ifPromo">Coupon / Promo Code</label>
-                    <input
-                      id="ifPromo"
-                      name="promo"
-                      className="form-control"
-                      placeholder="e.g. ID#2777749"
-                      value={lead.promo}
-                      onChange={e => setLead({ ...lead, promo: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="ifInterest">What are you most interested in? *</label>
-                  <select
-                    id="ifInterest"
-                    name="interest"
-                    className="form-control"
+                <label>
+                  Full Name *
+                  <input
+                    value={lead.name}
+                    onChange={(e) => updateLead('name', e.target.value)}
+                    placeholder="Your name"
+                    autoComplete="name"
                     required
-                    value={lead.interest}
-                    onChange={e => setLead({ ...lead, interest: e.target.value })}
-                  >
-                    <option value="" disabled>
-                      Select an option...
-                    </option>
-                    <option>Life Insurance & Living Benefits</option>
-                    <option>Retirement & Annuities</option>
-                    <option>Legacy & Estate Planning</option>
-                    <option>Mortgage Protection</option>
-                    <option>General Financial Review</option>
-                  </select>
-                </div>
+                  />
+                </label>
 
-                <button
-                  type="submit"
-                  disabled={leadStatus === 'submitting'}
-                  className="btn-primary full-width"
-                >
-                  {leadStatus === 'submitting' ? 'Submitting...' : '📨 Request My Free Review'}
+                <label>
+                  Phone Number *
+                  <input
+                    type="tel"
+                    inputMode="tel"
+                    value={lead.phone}
+                    onChange={(e) => updateLead('phone', e.target.value)}
+                    placeholder="(717) 615-2613"
+                    autoComplete="tel"
+                    required
+                  />
+                </label>
+
+                <label>
+                  Email Address
+                  <input
+                    type="email"
+                    value={lead.email}
+                    onChange={(e) => updateLead('email', e.target.value)}
+                    placeholder="you@example.com"
+                    autoComplete="email"
+                  />
+                </label>
+
+                <label>
+                  Main Concern *
+                  <select
+                    value={lead.interest}
+                    onChange={(e) => updateLead('interest', e.target.value)}
+                    required
+                  >
+                    <option value="" disabled>Select one...</option>
+                    <option>Income Protection</option>
+                    <option>Mortgage Protection</option>
+                    <option>Family Security</option>
+                    <option>Life Insurance &amp; Living Benefits</option>
+                    <option>Retirement &amp; Annuities</option>
+                    <option>Final Expense</option>
+                    <option>General Protection Review</option>
+                  </select>
+                </label>
+
+                <label>
+                  Best Time To Contact
+                  <select value={lead.bestTime} onChange={(e) => updateLead('bestTime', e.target.value)}>
+                    <option value="">No preference</option>
+                    <option>Morning</option>
+                    <option>Afternoon</option>
+                    <option>Evening</option>
+                    <option>Text first</option>
+                  </select>
+                </label>
+
+                <label>
+                  Coupon / Promo Code
+                  <input
+                    value={lead.promo}
+                    onChange={(e) => updateLead('promo', e.target.value)}
+                    placeholder="ID#2777749"
+                  />
+                </label>
+
+                <button type="submit" disabled={leadStatus === 'submitting'}>
+                  {leadStatus === 'submitting' ? 'Submitting…' : 'Submit Free Review Request'}
                 </button>
 
-                {leadStatus === 'error' && <div className="error-msg">{leadError}</div>}
+                {leadStatus === 'error' && (
+                  <div className="pahs-error-box" role="alert">
+                    {leadError}
+                  </div>
+                )}
+
+                <p className="pahs-disclaimer">
+                  Insurance products are subject to eligibility and underwriting. This review is educational and needs-based.
+                </p>
               </form>
-            ) : (
-              <div className="success-msg">
-                <span>✅</span>
-                <div>
-                  <strong>Thank you!</strong> Your request was received. Jackson will follow up
-                  soon.
-                </div>
-              </div>
             )}
 
             <a
-              href="https://latimorelifelegacy.fillout.com/pahs"
-              className="intake-external-link"
+              href="https://latimorelifelegacy.fillout.com/latimorelifelegacy"
+              className="pahs-detail-link"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Prefer our detailed intake questionnaire? Click here.
+              Prefer the detailed intake questionnaire?
             </a>
           </div>
         </div>
       </section>
 
-      <section className="story-section">
-        <div className="story-inner reveal">
-          <div className="section-label">The Full Circle Legacy</div>
-
-          <h2>
-            From the Field
-            <br />to the <em>Family</em>
-          </h2>
-
-          <div className="story-year-badge">2005 &rarr; 2026</div>
-
-          <p className="story-text">
-            Jackson M. Latimore Sr. wore <strong>#20 for Cardinal Brennan</strong>, earning
-            Republican &amp; Herald All-Area Offensive Player of the Year honors in 2005. He knows
-            what it means to compete in the Coal Region — the early mornings, the community that
-            shows up, the weight of a jersey.
-          </p>
-
-          <div className="date-callout">
-            <div className="date">December 7, 2010</div>
-            <p>
-              &ldquo;A cardiac arrest at ESU&apos;s Koehler Fieldhouse nearly ended my story. An
-              AED funded by the Gregory W. Moyer Defibrillator Fund saved my life.{' '}
-              <strong>#TheBeatGoesOn.</strong>&rdquo;
-            </p>
+      <footer className="pahs-footer">
+        <div className="pahs-shell pahs-footer__grid">
+          <div>
+            <strong>Latimore Life &amp; Legacy LLC</strong>
+            <span>Protecting Today. Securing Tomorrow.</span>
           </div>
-
-          <p className="story-text">
-            That moment — watching a prepared community save a life — is the heartbeat behind
-            everything we do at <strong>Latimore Life &amp; Legacy LLC.</strong>
-          </p>
-
-          <p className="story-text">
-            We don&apos;t sell fear. We help{' '}
-            <strong>families in Schuylkill, Luzerne, and Northumberland counties</strong> prepare
-            for life&apos;s uncertainties with clarity and confidence — because legacy isn&apos;t
-            just what you leave behind. It&apos;s how you show up today.
-          </p>
-
-          <p className="story-text">
-            Supporting PAHS football is one way we put our mission into action —{' '}
-            <strong>right here, in our community.</strong>
-          </p>
-
-          <div className="story-image-wrap">
-            <img
-              src="/pahs-2005-allarea.png"
-              alt="Local football newspaper clipping — 2005 Republican & Herald All-Area Football Team"
-              className="story-image"
-            />
-            <p className="story-image-caption">
-              Headlining the 2005 Republican &amp; Herald All-Area Football Team — Jackson Latimore
-              (#20, Cardinal Brennan) named Offensive Player of the Year alongside Pottsville&apos;s
-              finest. Photo: Jacqueline Dormer / Staff Photo.
-            </p>
+          <div>
+            <a href="tel:17176152613">717-615-2613</a>
+            <a href="https://www.latimorelifelegacy.com">latimorelifelegacy.com</a>
           </div>
-
-          <span className="hashtag">#TheBeatGoesOn 🏈 #LatimoreLifeAndLegacy</span>
-        </div>
-      </section>
-
-      <section className="why-section">
-        <div className="why-inner reveal">
-          <div className="section-label gold-label">Why Latimore Life &amp; Legacy</div>
-          <h2>Built for <em>Coal Region</em> Families</h2>
-          <div className="why-grid">
-            <div className="why-card">
-              <div className="why-title">Protecting Today</div>
-              <p className="why-body">
-                Life insurance and living-benefit solutions that safeguard your family&apos;s
-                financial foundation — starting now, not someday.
-              </p>
-            </div>
-            <div className="why-card">
-              <div className="why-title">Securing Tomorrow</div>
-              <p className="why-body">
-                Index-linked annuities and IUL strategies designed to grow your wealth — with
-                downside protection built in.
-              </p>
-            </div>
-            <div className="why-card">
-              <div className="why-title">Invested in Community</div>
-              <p className="why-body">
-                Proud All-Star sponsor of PAHS Crimson Tide football. Rooted in Schuylkill,
-                Luzerne, and Northumberland Counties.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="services-section">
-        <div className="services-inner reveal">
-          <div className="section-label">What We Do</div>
-
-          <h2>
-            Your Complete
-            <br />
-            Financial Protection Team
-          </h2>
-
-          <p className="services-subtitle">
-            From your first policy to your retirement paycheck — we&apos;ve got Central Pennsylvania
-            covered.
-          </p>
-
-          <div className="services-grid">
-            {SERVICES.map(([num, title, desc]) => (
-              <div className="service-card" key={title}>
-                <div className="service-num">{num}</div>
-                <div>
-                  <h3>{title}</h3>
-                  <p className="service-desc">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="territory-section">
-        <div className="territory-inner reveal">
-          <h3>Serving</h3>
-          <p>Schuylkill · Luzerne · Northumberland</p>
-          <p className="county-detail">560,000+ residents across Central Pennsylvania</p>
-          <div className="tide-pride">🏈 GO CRIMSON TIDE</div>
-        </div>
-      </section>
-
-      <section className="campaign-gallery">
-        <div className="gallery-inner reveal">
-          <div className="section-label">Campaign Assets</div>
-          <h2>Official PAHS Sponsorship Campaign</h2>
-
-          <div className="gallery-grid">
-            <img src="/pahs-sponsor-flyer.jpg" alt="Official sponsorship graphic" />
-            <img src="/pahs-protect-go.png" alt="Protect and Go campaign graphic" />
-            <img src="/pahs-free-consult.jpg" alt="PAHS QR campaign poster" />
-          </div>
-        </div>
-      </section>
-
-      <section className="legacy-section">
-        <div className="legacy-inner reveal">
-          <div className="section-label centered gold">Free Digital Tool</div>
-
-          <h2>Draft Your Legacy Letter</h2>
-
-          <p>
-            Financial protection is only half the equation. Leave behind your wisdom, values, and
-            love. Use our AI assistant to help you draft a meaningful letter to your loved ones.
-          </p>
-
-          <div className="legacy-box">
-            <div className="form-group">
-              <label htmlFor="llRecipient">To Who?</label>
-              <input
-                id="llRecipient"
-                className="form-control"
-                placeholder="e.g., My children, Sarah and Michael"
-                value={legacyRecipient}
-                onChange={e => setLegacyRecipient(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="llMessage">Core Values or Lesson</label>
-              <textarea
-                id="llMessage"
-                className="form-control"
-                placeholder="e.g., Always support each other, remember the importance of community, and never give up."
-                value={legacyMessage}
-                onChange={e => setLegacyMessage(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="llTone">Tone</label>
-              <select
-                id="llTone"
-                className="form-control"
-                value={legacyTone}
-                onChange={e => setLegacyTone(e.target.value)}
-              >
-                <option>Heartfelt and loving</option>
-                <option>Encouraging and inspiring</option>
-                <option>Wise and reflective</option>
-              </select>
-            </div>
-
-            <button
-              type="button"
-              className="btn-gemini"
-              disabled={legacyLoading}
-              onClick={generateLegacyLetter}
-            >
-              {legacyLoading ? 'Drafting...' : '✨ Draft My Legacy Letter ✨'}
-            </button>
-
-            {legacyError && <div className="error-msg">{legacyError}</div>}
-
-            {legacyOutput && (
-              <div className="letter-output-container quoted">
-                <div className="letter-content">{legacyOutput}</div>
-                <button type="button" className="copy-btn" onClick={copyLegacyLetter}>
-                  📋 Copy to Clipboard
-                </button>
-                {copyStatus && <p className="copy-status">{copyStatus}</p>}
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="legacy-section jargon-section">
-        <div className="legacy-inner reveal">
-          <div className="section-label centered gold">Free Digital Tool</div>
-
-          <h2>Insurance Jargon Translator</h2>
-
-          <p>
-            Insurance policies can be confusing. Paste a complicated term or phrase below, and our
-            AI assistant will explain it in simple, plain English.
-          </p>
-
-          <div className="legacy-box">
-            <div className="form-group">
-              <label htmlFor="jargonInput">Confusing Term or Phrase</label>
-              <textarea
-                id="jargonInput"
-                className="form-control short-textarea"
-                placeholder="e.g., Return of Premium Term or Accelerated Death Benefit Rider"
-                value={jargon}
-                onChange={e => setJargon(e.target.value)}
-              />
-            </div>
-
-            <button
-              type="button"
-              className="btn-gemini"
-              disabled={jargonLoading}
-              onClick={translateJargon}
-            >
-              {jargonLoading ? 'Translating...' : '✨ Translate to Plain English ✨'}
-            </button>
-
-            {jargonError && <div className="error-msg">{jargonError}</div>}
-
-            {jargonOutput && (
-              <div className="letter-output-container">
-                <div className="letter-content plain">{jargonOutput}</div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="contact-section">
-        <div className="contact-inner reveal">
-          <div className="section-label">Let&apos;s Connect</div>
-
-          <h2>Start the Conversation</h2>
-
-          <p>A 15-minute call is all it takes to know exactly where you stand.</p>
-
-          <div className="contact-cards">
-            {CONTACT_CARDS.map(card => (
-              <a
-                href={card.href}
-                className="contact-card"
-                key={card.label}
-                target={card.external ? '_blank' : undefined}
-                rel={card.external ? 'noopener noreferrer' : undefined}
-              >
-                <div className="contact-card-icon">{card.icon}</div>
-                <div className="contact-card-text">
-                  <div className="contact-card-label">{card.label}</div>
-                  <div className="contact-card-value">{card.value}</div>
-                </div>
-                <span className="contact-card-arrow">›</span>
-              </a>
-            ))}
-          </div>
-
-          <a href="#intakeFormSection" className="btn-primary contact-main-btn">
-            🛡️ Get My Free Protection Review
-          </a>
-        </div>
-      </section>
-
-      <footer className="footer">
-        <a
-          href="https://www.latimorelifelegacy.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="footer-home-link"
-        >
-          <div className="footer-logo">LATIMORE LIFE & LEGACY LLC</div>
-        </a>
-
-        <div className="footer-tagline">Protecting Today. Securing Tomorrow.</div>
-        <div className="footer-hashtag">#TheBeatGoesOn · #LifeHappensLegacyIsPlanned</div>
-
-        <div className="footer-socials">
-          <a href="tel:+17176152613">☎️</a>
-          <a href="mailto:jackson1989@latimorelegacy.com">✉️</a>
-          <a href="https://www.facebook.com/LatimoreLegacyLLC/" target="_blank" rel="noopener noreferrer">
-            Facebook
-          </a>
-          <a
-            href="https://www.instagram.com/jacksonlatimore.global?igsh=MTI5N25yNzR4emlieQ=="
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Instagram
-          </a>
-          <a
-            href="https://www.linkedin.com/in/startwithjacksongfi?trk=contact-info"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            LinkedIn
-          </a>
-          <a href="https://agents.ethoslife.com/invite/29ad1" target="_blank" rel="noopener noreferrer">
-            Ethos
-          </a>
-        </div>
-
-        <div className="footer-disclaimer">
-          Jackson M. Latimore Sr., MBA · Founder &amp; CEO · Latimore Life &amp; Legacy LLC · GFI
-          Affiliate
-          <br />
-          1544 Route 61 Hwy S, Suite 6104, Pottsville, PA 17901
-          <br />
-          Licensed in Pennsylvania · NIPR #21638507 · PA D.O.I. License #1268820
-          <br />
-          Schuylkill · Luzerne · Northumberland Counties ·{' '}
-          <a href="https://www.latimorelifelegacy.com" target="_blank" rel="noopener noreferrer">
-            www.latimorelifelegacy.com
-          </a>
-          <br />
-          <br />
-          Latimore Life &amp; Legacy LLC is an independent insurance brokerage licensed in the
-          Commonwealth of Pennsylvania. Products offered through licensed carrier appointments. Not
-          all products available in all areas. Affiliated with Global Financial Impact (GFI).
-          Insurance products are not FDIC insured, not bank guaranteed, and may lose value. This
-          page is intended for informational purposes and does not constitute financial, legal, or
-          tax advice. Proud All-Star sponsor of Pottsville Area High School Football 2026.
         </div>
       </footer>
 
-      <div className={`sticky-cta ${showSticky ? 'show' : ''}`}>
-        <div className="sticky-cta-text">
-          <span>Free</span> Protection Review
-        </div>
-        <a href="#intakeFormSection" className="sticky-btn">
-          Start Now
-        </a>
+      <div className="pahs-mobile-cta">
+        <span>PAHS Protect Review</span>
+        <button type="button" onClick={scrollToReview}>Start Now</button>
       </div>
     </main>
-  );
-                }
+  )
+}

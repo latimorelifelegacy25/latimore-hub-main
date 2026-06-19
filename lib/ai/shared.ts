@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
-import { AiRunStatus, AiRunType } from '@prisma/client'
+import { AgentStepStatus, AiRunStatus, AiRunType } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
@@ -9,7 +9,12 @@ import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
 export async function requireAdminSession() {
-  if (process.env.DISABLE_ADMIN_AUTH === 'true') return { ok: true as const, session: null }
+  if (process.env.DISABLE_ADMIN_AUTH === 'true') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
+    }
+    return { ok: true as const, session: null }
+  }
   const session = await getServerSession(authOptions)
   if (!session) {
     return {
@@ -20,7 +25,7 @@ export async function requireAdminSession() {
   return { ok: true as const, session }
 }
 
-export function applyAiRateLimit(req: NextRequest) {
+export async function applyAiRateLimit(req: NextRequest) {
   return rateLimit(req, 'reports')
 }
 
@@ -117,8 +122,75 @@ export async function createSystemAiEvent(input: {
   }
 }
 
+export async function startAgentWorkflowStep(input: {
+  aiRunId: string
+  order: number
+  agentRole: string
+  task: string
+}) {
+  return prisma.agentWorkflowStep.create({
+    data: {
+      aiRunId: input.aiRunId,
+      order: input.order,
+      agentRole: input.agentRole,
+      task: input.task,
+      status: AgentStepStatus.running,
+      startedAt: new Date(),
+    },
+  })
+}
+
+export async function completeAgentWorkflowStep(input: {
+  stepId: string
+  output: Record<string, unknown>
+}) {
+  return prisma.agentWorkflowStep.update({
+    where: { id: input.stepId },
+    data: {
+      status: AgentStepStatus.succeeded,
+      output: input.output as Prisma.InputJsonValue,
+      completedAt: new Date(),
+    },
+  })
+}
+
+export async function failAgentWorkflowStep(input: { stepId: string; error: unknown }) {
+  const message = input.error instanceof Error ? input.error.message : String(input.error)
+  try {
+    await prisma.agentWorkflowStep.update({
+      where: { id: input.stepId },
+      data: { status: AgentStepStatus.failed, error: message, completedAt: new Date() },
+    })
+  } catch (error) {
+    logger.error({ error, stepId: input.stepId }, 'Failed updating agent workflow step')
+  }
+}
+
 export function toIso(value?: Date | string | null): string | null {
   if (!value) return null
   const date = value instanceof Date ? value : new Date(value)
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+export const AI_CANONICAL_FOUNDER_STORY = `Founder story context:
+- Jackson M. Latimore Sr. survived sudden cardiac arrest on December 7, 2010, while playing basketball at East Stroudsburg University.
+- An AED placed through the Gregory W. Moyer Defibrillator Fund helped save his life.
+- Greg Moyer died of sudden cardiac arrest in 2000; Rachel Moyer and the fund helped expand AED preparedness afterward.
+- Use this story only when relevant, with dignity, and as a preparedness/legacy lesson — never as a shock hook or manipulation.`
+
+export const AI_INSURANCE_COMPLIANCE_GUARDRAILS = `Insurance and compliance guardrails:
+- Education only; do not present output as legal, tax, investment, or individualized insurance advice.
+- Avoid absolute claims such as "tax-free retirement," "never lose money," "no risk," "guaranteed approval," or guaranteed returns.
+- Life insurance death benefits are generally income-tax-free; policy loans are generally income-tax-free only when the policy is properly structured and kept in force. Loans and withdrawals can reduce cash value/death benefit and may cause taxes if a policy lapses or becomes a MEC.
+- IUL cash value is credited through index formulas, not direct market investment. Mention caps, participation rates, policy charges, lapse risk, and carrier/product terms when discussing growth or downside protection.
+- Fixed and fixed-indexed annuities may protect contract value from direct market-index losses, subject to product terms, fees, riders, surrender charges, and the issuing carrier's claims-paying ability. Lifetime income requires elected riders or annuitization and meeting contract conditions.
+- Key person life insurance addresses death-risk funding; disability risk requires separate disability coverage or eligible riders.
+- Do not cite statistics, current rates, carrier ratings, laws, tax code interpretations, or product features unless supplied in the prompt/context; otherwise say they must be verified with current carrier materials or a qualified advisor.`
+
+export function withAdminAiGuardrails(prompt: string): string {
+  return `${prompt.trim()}
+
+${AI_CANONICAL_FOUNDER_STORY}
+
+${AI_INSURANCE_COMPLIANCE_GUARDRAILS}`
 }

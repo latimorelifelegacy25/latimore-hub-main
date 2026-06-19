@@ -1,8 +1,14 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  // ESLint and TypeScript errors now fail the build — do not re-disable without fixing the root cause.
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
   output: 'standalone',
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   poweredByHeader: false,
   compress: true,
   images: {

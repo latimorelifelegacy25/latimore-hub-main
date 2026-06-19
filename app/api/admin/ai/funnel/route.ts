@@ -5,7 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const FUNNEL_SCHEMA = {
   type: 'array' as const,
@@ -44,9 +44,9 @@ export async function POST(req: Request) {
     const targetPersona = persona?.trim() || 'Young Families'
 
     const result = await createOpenAIJsonCompletion<unknown[]>({
-      system: `You are a legacy marketing strategist for Latimore Life & Legacy LLC — an independent insurance brokerage in Schuylkill, Luzerne, and Northumberland Counties, PA. 
-      
-Brand rules: Education-first (no fear), plain language (8th-grade), community-rooted (Central PA Coal Region), tagline "Protecting Today. Securing Tomorrow.", hashtag #TheBeatGoesOn.`,
+      system: withAdminAiGuardrails(`You are a legacy marketing strategist for Latimore Life & Legacy LLC — an independent insurance brokerage in Schuylkill, Luzerne, and Northumberland Counties, PA.
+
+Brand rules: Education-first (no fear), plain language (8th-grade), community-rooted (Central PA Coal Region), tagline "Protecting Today. Securing Tomorrow.", hashtag #TheBeatGoesOn.`),
       user: `Architect a 3-stage high-conversion "Legacy Funnel" with:
 
 Goal: ${goal}
@@ -60,7 +60,7 @@ STAGES (produce exactly 3):
    - Goal: Stop the scroll, educate broadly
    - No fear — curiosity and community focus
 
-2. ENGAGEMENT (Lead Magnet)  
+2. ENGAGEMENT (Lead Magnet)
    - Offer a specific valuable asset (checklist, PDF guide, calculator, mini-course)
    - Clear exchange: their contact info for real value
    - Low commitment ask

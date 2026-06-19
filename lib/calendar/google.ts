@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { encryptToken, decryptToken } from '@/lib/crypto'
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
@@ -6,6 +7,27 @@ const GOOGLE_USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
 function required(name: string, value?: string | null) {
   if (!value) throw new Error(`Missing required env var: ${name}`)
   return value
+}
+
+function getBaseUrl() {
+  return (
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}` ||
+    ''
+  ).replace(/\/$/, '')
+}
+
+export function getGoogleCalendarRedirectUri() {
+  const configured = process.env.GOOGLE_CALENDAR_REDIRECT_URI?.trim()
+  if (configured) return configured
+
+  const baseUrl = getBaseUrl()
+  if (!baseUrl) {
+    throw new Error('Missing GOOGLE_CALENDAR_REDIRECT_URI or NEXTAUTH_URL for Google Calendar OAuth')
+  }
+
+  return `${baseUrl}/api/calendar/google/callback`
 }
 
 export function getGoogleCalendarScopes() {
@@ -18,7 +40,7 @@ export function getGoogleCalendarScopes() {
 
 export function buildGoogleCalendarAuthUrl(state: string) {
   const clientId = required('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID)
-  const redirectUri = required('GOOGLE_CALENDAR_REDIRECT_URI', process.env.GOOGLE_CALENDAR_REDIRECT_URI)
+  const redirectUri = getGoogleCalendarRedirectUri()
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -37,7 +59,7 @@ export function buildGoogleCalendarAuthUrl(state: string) {
 export async function exchangeGoogleCalendarCode(code: string) {
   const clientId = required('GOOGLE_CLIENT_ID', process.env.GOOGLE_CLIENT_ID)
   const clientSecret = required('GOOGLE_CLIENT_SECRET', process.env.GOOGLE_CLIENT_SECRET)
-  const redirectUri = required('GOOGLE_CALENDAR_REDIRECT_URI', process.env.GOOGLE_CALENDAR_REDIRECT_URI)
+  const redirectUri = getGoogleCalendarRedirectUri()
 
   const body = new URLSearchParams({
     code,
@@ -108,8 +130,10 @@ export async function upsertGoogleCalendarConnection(input: {
       data: {
         accountEmail: input.accountEmail ?? existing.accountEmail,
         externalId: input.externalId ?? existing.externalId,
-        accessToken: input.accessToken,
-        refreshToken: input.refreshToken ?? existing.refreshToken,
+        accessToken: encryptToken(input.accessToken),
+        refreshToken: input.refreshToken != null
+          ? encryptToken(input.refreshToken)
+          : existing.refreshToken,
         tokenExpiresAt,
         metadata: {
           connectedAt: new Date().toISOString(),
@@ -123,8 +147,8 @@ export async function upsertGoogleCalendarConnection(input: {
       provider: 'google',
       accountEmail: input.accountEmail ?? undefined,
       externalId: input.externalId ?? undefined,
-      accessToken: input.accessToken,
-      refreshToken: input.refreshToken ?? undefined,
+      accessToken: encryptToken(input.accessToken),
+      refreshToken: input.refreshToken != null ? encryptToken(input.refreshToken) : undefined,
       tokenExpiresAt,
       metadata: {
         connectedAt: new Date().toISOString(),
@@ -179,11 +203,15 @@ export async function getValidGoogleAccessToken() {
   const expiresAt = connection.tokenExpiresAt?.getTime() ?? 0
   const stillValid = expiresAt > now + 60_000
 
-  if (stillValid) return connection.accessToken
+  const accessToken = decryptToken(connection.accessToken)
+  if (!accessToken) throw new Error('Google Calendar access token could not be decrypted')
 
-  if (!connection.refreshToken) throw new Error('Google Calendar refresh token is missing')
+  if (stillValid) return accessToken
 
-  const refreshed = await refreshGoogleAccessToken(connection.refreshToken)
+  const refreshToken = decryptToken(connection.refreshToken)
+  if (!refreshToken) throw new Error('Google Calendar refresh token is missing')
+
+  const refreshed = await refreshGoogleAccessToken(refreshToken)
   const tokenExpiresAt =
     refreshed.expires_in && Number.isFinite(refreshed.expires_in)
       ? new Date(Date.now() + refreshed.expires_in * 1000)
@@ -192,7 +220,7 @@ export async function getValidGoogleAccessToken() {
   await prisma.calendarConnection.update({
     where: { id: connection.id },
     data: {
-      accessToken: refreshed.access_token,
+      accessToken: encryptToken(refreshed.access_token),
       tokenExpiresAt,
     },
   })

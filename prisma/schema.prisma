@@ -64,10 +64,12 @@ model Contact {
   events               Event[]
   inquiries            Inquiry[]
   leadSessions         LeadSession[]
+  legacyCheckups       LegacyCheckupAssessment[]
   notes                Note[]
   systemEvents         SystemEvent[]
   tasks                Task[]
 
+  @@index([createdAt])
   @@index([county])
   @@index([phone])
   @@index([leadScore])
@@ -105,10 +107,12 @@ model Inquiry {
   contact         Contact               @relation(fields: [contactId], references: [id])
   leadSession     LeadSession?          @relation(fields: [leadSessionId], references: [id])
   history         InquiryStageHistory[]
+  legacyCheckups  LegacyCheckupAssessment[]
   notesEntries    Note[]
   systemEvents    SystemEvent[]
   tasks           Task[]
 
+  @@index([createdAt])
   @@index([stage])
   @@index([productInterest])
   @@index([source, medium, campaign])
@@ -139,6 +143,7 @@ model Appointment {
   inquiry         Inquiry?        @relation(fields: [inquiryId], references: [id])
   calendarEvents  CalendarEvent[]
 
+  @@index([createdAt])
   @@index([scheduledFor])
   @@index([status])
 }
@@ -158,6 +163,26 @@ model Task {
 
   @@index([status])
   @@index([dueAt])
+}
+
+model LegacyCheckupAssessment {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now())
+  contactId             String
+  inquiryId             String?
+  hasLifeInsurance      Boolean?
+  hasMortgageProtection Boolean?
+  hasFinalExpense       Boolean?
+  hasRetirementPlan     Boolean?
+  hasLegacyPlan         Boolean?
+  interestedIn          String[]
+  message               String?
+  contact               Contact  @relation(fields: [contactId], references: [id])
+  inquiry               Inquiry? @relation(fields: [inquiryId], references: [id])
+
+  @@index([contactId])
+  @@index([inquiryId])
+  @@index([createdAt])
 }
 
 model Event {
@@ -180,6 +205,7 @@ model Event {
   inquiry         Inquiry?         @relation(fields: [inquiryId], references: [id])
   leadSession     LeadSession?     @relation(fields: [leadSessionId], references: [id])
 
+  @@index([occurredAt])
   @@index([eventType, occurredAt])
   @@index([source, medium, campaign])
   @@index([county])
@@ -276,10 +302,30 @@ model AiRun {
   error        String?
   contact      Contact?    @relation(fields: [contactId], references: [id])
   inquiry      Inquiry?    @relation(fields: [inquiryId], references: [id])
+  agentSteps   AgentWorkflowStep[]
 
   @@index([type, createdAt])
   @@index([status])
   @@index([contactId])
+}
+
+model AgentWorkflowStep {
+  id          String           @id @default(uuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  aiRunId     String
+  order       Int
+  agentRole   String
+  task        String
+  status      AgentStepStatus  @default(pending)
+  output      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  aiRun       AiRun            @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+
+  @@index([aiRunId, order])
+  @@index([status])
 }
 
 model Note {
@@ -351,6 +397,24 @@ model ContentAsset {
   @@index([type, status])
   @@index([campaign])
   @@index([scheduledFor])
+}
+
+model MarketingContent {
+  id          String   @id @default(cuid())
+  title       String
+  bodyHtml    String
+  campaign    String?
+  destination String?
+  utmSource   String?
+  type        String   @default("post")
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status])
+  @@index([type])
+  @@index([campaign])
+  @@index([createdAt])
 }
 
 model CalendarConnection {
@@ -469,12 +533,22 @@ enum AiRunStatus {
   failed
 }
 
+enum AgentStepStatus {
+  pending
+  running
+  succeeded
+  failed
+}
+
 enum AiRunType {
   daily_brief
   draft_message
   contact_brief
   lead_score
   content_generation
+  content_repurposing
+  crm_assistant
+  agent_workflow
 }
 
 enum ContentType {
@@ -834,6 +908,17 @@ model AnalyticsTarget {
   @@index([active])
 }
 
+model ProcessedWebhook {
+  id          String   @id @default(uuid())
+  provider    String
+  eventId     String
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([processedAt])
+  @@map("processed_webhooks")
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum LeadSource {
@@ -882,6 +967,43 @@ enum LeadStatus {
   NURTURE
   ON_HOLD
   DORMANT
+}
+
+
+model ContentResource {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  status      String   @default("draft")
+  bodyHtml    String?
+  campaign    String?
+  destination String?
+  utmSource   String?
+  publishAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  socialPublishJobs SocialPublishJob[]
+
+  @@index([status, createdAt])
+  @@index([campaign])
+  @@index([publishAt])
+}
+
+model SocialPublishJob {
+  id           String   @id @default(cuid())
+  platform     String
+  status       String   @default("queued")
+  scheduledFor DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  contentId String
+  content   ContentResource @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([platform])
+  @@index([status, scheduledFor])
+  @@index([contentId])
 }
 
 // ─── Blog / Content Posts ─────────────────────────────────────────────────────

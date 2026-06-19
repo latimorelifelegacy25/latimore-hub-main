@@ -2,8 +2,12 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { publishSocialPost } from '@/lib/social'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export async function POST() {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const now = new Date()
   const assets = await prisma.contentAsset.findMany({ where: { status: 'scheduled', scheduledFor: { lte: now } } })
   let publishedCount = 0

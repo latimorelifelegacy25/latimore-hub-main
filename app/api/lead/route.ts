@@ -8,7 +8,7 @@ import { LeadIngestSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 export const POST = withCors(async (req: NextRequest) => {
-  const limited = rateLimit(req, 'lead')
+  const limited = await rateLimit(req, 'lead')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
@@ -20,6 +20,6 @@ export const POST = withCors(async (req: NextRequest) => {
     return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Lead ingest error')
-    return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 })
   }
 })

@@ -6,16 +6,17 @@ import { requireCronAuth, requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  // Allow both admin session (manual trigger via UI) and cron secret (scheduled trigger)
   const isCron = !requireCronAuth(req)
   if (!isCron) {
     const auth = await requireAdminSession()
     if (!auth.ok) return auth.response
   }
 
-  const { id } = await params
   try {
     const workflow = await prisma.workflowTemplate.findUnique({
-      where: { id },
+      where: { id: id },
       include: { steps: { orderBy: { order: 'asc' } } },
     })
 
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
 
     await prisma.workflowTemplate.update({
-      where: { id },
+      where: { id: id },
       data: {
         runCount: { increment: 1 },
         lastRunAt: new Date(),
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             results.push({ step: step.label, status: 'queued', message: 'Email queued via Resend' })
             break
           case 'sms':
-            results.push({ step: step.label, status: 'queued', message: 'SMS queued via Twilio' })
+            results.push({ step: step.label, status: 'queued', message: 'SMS queued via notification provider' })
             break
           case 'social_post':
             results.push({ step: step.label, status: 'queued', message: 'Post queued for social publish' })

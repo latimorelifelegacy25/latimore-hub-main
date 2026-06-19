@@ -1,0 +1,236 @@
+.pahs-hero--sponsor-bg .pahs-hero__bg {
+  background:
+    linear-gradient(100deg, rgba(7, 18, 26, .9) 0%, rgba(7, 18, 26, .74) 44%, rgba(107, 26, 42, .5) 100%),
+    url('/pahs-latimore-logo.png');
+  background-size: min(1120px, 145vw) auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: saturate(1.02) contrast(1.02);
+}
+
+.pahs-hero--sponsor-bg::after {
+  background:
+    radial-gradient(circle at 76% 18%, rgba(196, 154, 108, .28), transparent 32%),
+    linear-gradient(180deg, rgba(7, 18, 26, .04), rgba(7, 18, 26, .78));
+}
+
+.pahs-hero__card img[src='/pahs-protect-go.png'],
+.spgfx {
+  display: none !important;
+}
+
+.pahs-flyer {
+  background: var(--pahs-deep-2);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.pahs-flyer-inner {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.pahs-flyer-image {
+  display: block;
+  width: 100%;
+  margin: 1rem auto 0;
+  border: 1px solid rgba(196, 154, 108, .44);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .48);
+}
+
+.pahs-schedule {
+  background: var(--pahs-deep);
+  padding: 3.5rem 1.5rem;
+  border-top: 1px solid rgba(196, 154, 108, .22);
+}
+
+.pahs-schedule-title {
+  margin: .25rem 0 1.75rem;
+  color: var(--pahs-white);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pahs-schedule-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.pahs-schedule-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: .35rem 1rem;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 12px;
+  padding: .9rem 1.1rem;
+  background: rgba(255, 255, 255, .05);
+}
+
+.pahs-schedule-date {
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--pahs-gold-light);
+  min-width: 58px;
+}
+
+.pahs-schedule-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+}
+
+.pahs-schedule-opponent {
+  color: var(--pahs-white);
+  font-weight: 600;
+}
+
+.pahs-schedule-tag {
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .2rem .55rem;
+  border-radius: 999px;
+}
+
+.pahs-schedule-tag--home {
+  background: var(--pahs-gold);
+  color: var(--pahs-navy);
+}
+
+.pahs-schedule-tag--away {
+  background: rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+
+.pahs-schedule-location {
+  grid-column: 2;
+  color: rgba(255, 255, 255, .6);
+  font-size: .85rem;
+}
+
+.pahs-schedule-time {
+  color: var(--pahs-gold-light);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: .85rem;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .pahs-schedule-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .pahs-schedule-date {
+    grid-row: 1;
+  }
+
+  .pahs-schedule-time {
+    grid-row: 1;
+  }
+
+  .pahs-schedule-info {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .pahs-schedule-location {
+    grid-column: 1 / -1;
+  }
+}
+
+.pahs-hero__card {
+  min-height: 86px;
+}
+
+.pahs-hero__card::before {
+  content: 'PAHS Protect Funnel';
+  display: block;
+  margin-bottom: .4rem;
+  color: #C49A6C;
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(1.1rem, 3.5vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.pahs-hero__card p {
+  margin: 0;
+}
+
+.pahs-then--priority {
+  padding: 4rem 1rem 4.5rem;
+  background:
+    linear-gradient(180deg, rgba(7, 18, 26, .98), rgba(9, 20, 29, .96)),
+    radial-gradient(circle at 50% 0%, rgba(196, 154, 108, .18), transparent 38%);
+  border-top: 1px solid rgba(196, 154, 108, .32);
+  border-bottom: 1px solid rgba(196, 154, 108, .22);
+}
+
+.pahs-story-title {
+  margin: .25rem auto .75rem;
+  max-width: 760px;
+  color: var(--pahs-white);
+  font-family: 'Oswald', system-ui, sans-serif;
+  font-size: clamp(2.1rem, 8vw, 4.5rem);
+  font-weight: 800;
+  line-height: .98;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.pahs-story-copy {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  color: rgba(255, 255, 255, .78);
+  font-size: clamp(1rem, 2.8vw, 1.18rem);
+  line-height: 1.65;
+  text-align: center;
+}
+
+.pahs-then-image {
+  display: block;
+  width: min(100%, 760px);
+  margin: 0 auto;
+  border: 1px solid rgba(196, 154, 108, .44);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .48);
+}
+
+.campaign-videos {
+  padding-top: 3rem;
+}
+
+.video-wrap video {
+  display: block;
+  background: rgba(255, 255, 255, .04);
+}
+
+@media (max-width: 680px) {
+  .pahs-hero {
+    min-height: 92svh;
+    padding: 4rem 0 2rem;
+  }
+
+  .pahs-hero--sponsor-bg .pahs-hero__bg {
+    background-size: 185vw auto;
+    background-position: center 42%;
+  }
+
+  .pahs-hero__card {
+    margin-top: .75rem;
+  }
+
+  .pahs-then--priority {
+    padding: 2.75rem 1rem 3rem;
+  }
+}

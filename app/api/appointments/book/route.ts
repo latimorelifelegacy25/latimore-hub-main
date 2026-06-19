@@ -9,6 +9,7 @@ import { fetchGoogleFreeBusy } from '@/lib/calendar/availability'
 import { createGoogleCalendarEvent } from '@/lib/calendar/events'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { changeInquiryStage } from '@/lib/hub/change-stage'
+import { captureException } from '@/lib/error-tracking'
 import { sendMail } from '@/lib/mailer'
 import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { rateLimit } from '@/lib/rate-limit'
@@ -98,7 +99,7 @@ function buildIntakeSummary(input: z.infer<typeof BodySchema>) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'booking')
+  const limited = await rateLimit(req, 'booking')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
@@ -291,6 +292,9 @@ export async function POST(req: NextRequest) {
       actor: 'native-scheduler',
       notes: input.notes ?? undefined,
       occurredAt: slotStart,
+      // Booking is an objective real-world event — bypass the normal
+      // forward-transition gate, same as the booking webhook flow.
+      force: true,
     })
      // Typed tracking updates (source/intent/status)
     await prisma.inquiry.update({
@@ -360,6 +364,7 @@ export async function POST(req: NextRequest) {
       meetingUrl: googleEvent.hangoutLink ?? googleEvent.htmlLink ?? null,
     })
   } catch (error: any) {
+    await captureException(error, { source: 'booking' })
     return NextResponse.json(
       {
         ok: false,

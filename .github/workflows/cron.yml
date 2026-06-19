@@ -1,0 +1,46 @@
+name: Scheduled cron jobs
+
+on:
+  schedule:
+    # Hourly — lead score updates
+    - cron: "0 * * * *"
+    # Every 15 minutes — notification checks and social publisher
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  lead-score-updates:
+    if: github.event.schedule == '0 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger lead-score-updates
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/lead-score-updates" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  notification-checks:
+    if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger notification-checks
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/notification-checks" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  social-publisher:
+    if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger social-publisher
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/social-publisher" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  no-show-recovery:
+    if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger no-show-recovery
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/no-show-recovery" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

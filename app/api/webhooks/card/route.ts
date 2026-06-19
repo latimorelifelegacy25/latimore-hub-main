@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { CardEventSchema } from '@/lib/schemas'
 import { ingestEvent } from '@/lib/hub/ingest-event'
 import { cleanString } from '@/lib/hub/normalizers'
+import { captureException } from '@/lib/error-tracking'
 
 function getSupabaseClient() {
   const url = process.env.SUPABASE_URL
@@ -29,7 +30,7 @@ function mapCardEvent(event: string, label?: string | null) {
 }
 
 export async function POST(req: NextRequest) {
-  const limited = rateLimit(req, 'cardEvents')
+  const limited = await rateLimit(req, 'cardEvents')
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
@@ -69,19 +70,19 @@ export async function POST(req: NextRequest) {
           county: parse.data.county ?? null,
           product_interest: parse.data.productInterest ?? null,
         })
-        if (error) console.error('[card-events tracking_events]', error.message)
+        if (error) await captureException(new Error(error.message), { source: 'supabase', table: 'tracking_events' })
       })(),
     ])
 
     return NextResponse.json({ ok: true, eventId: event.id })
   } catch (err) {
-    console.error('[card-events POST]', err)
+    await captureException(err, { source: 'webhook', provider: 'card-events' })
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
 
 export async function GET(req: NextRequest) {
-  const limited = rateLimit(req, 'reports')
+  const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
   const session = await getServerSession(authOptions)
@@ -150,7 +151,7 @@ export async function GET(req: NextRequest) {
       })),
     })
   } catch (err) {
-    console.error('[card-events GET]', err)
+    await captureException(err, { source: 'api', provider: 'card-events' })
     return NextResponse.json({ error: 'DB error' }, { status: 500 })
   }
 }

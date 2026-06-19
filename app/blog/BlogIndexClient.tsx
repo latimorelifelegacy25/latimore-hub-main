@@ -3,23 +3,24 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import BlogCard from '@/components/blog/BlogCard'
+import { COLORS } from '@/lib/brand'
 import type { ArticleMeta, Track } from '@/lib/mdx'
 
-// ── Brand tokens ──────────────────────────────────────────────────────────────
+// ── Brand tokens — aligned to globals.css :root and lib/brand.ts COLORS ──────
 const C = {
-  navy: '#2C3E50',
-  navyDeep: '#1a2530',
-  gold: '#C49A6C',
-  goldPale: '#fdf6ee',
-  goldBorder: '#e8d5b8',
-  cream: '#f9f6f0',
-  ink: '#1a1a1a',
-  muted: '#6b6460',
-  rule: '#e2dcd4',
-  white: '#ffffff',
-  trackA: '#2d5f8a',
-  trackB: '#4a7c59',
-  trackC: '#7a4f2e',
+  navy:       COLORS.navy,       // #0E1A2B  --color-navy-800
+  navyDeep:   COLORS.navyDeep,   // #0B0F17  --color-navy-900
+  gold:       COLORS.gold,       // #C9A25F  --color-gold-500
+  goldPale:   COLORS.goldPale,   // #fdf6ee  --color-gold-100
+  goldBorder: COLORS.goldBorder, // #e8d5b8  --color-gold-200
+  cream:      COLORS.goldCream,  // #f9f6f0  --color-gold-50
+  ink:        COLORS.text,       // #0E1A2B  --color-text
+  muted:      COLORS.textMuted,  // #475467  --color-text-muted
+  rule:       COLORS.gray200,    // #e5e7eb  --color-border
+  white:      COLORS.white,
+  trackA:     COLORS.trackA,     // --color-track-a
+  trackB:     COLORS.trackB,     // --color-track-b
+  trackC:     COLORS.trackC,     // --color-track-c
 } as const
 
 const TRACK_COLOR: Record<Track, string> = {
@@ -132,7 +133,7 @@ export default function BlogIndexClient({ articles }: BlogIndexClientProps) {
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: "'Playfair Display',serif", fontSize: '1.25rem', fontWeight: 700, color: C.white }}>Jackson M. Latimore Sr.</div>
               <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: C.gold, margin: '4px 0 10px' }}>Founder &amp; CEO — Latimore Life &amp; Legacy LLC · Independent Insurance Broker · PA DOI #1268820</div>
-              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, maxWidth: 600 }}>In December 2010, I collapsed on the basketball court at East Stroudsburg University's Koehler Fieldhouse. My heart stopped. An AED funded by the Gregory W. Moyer Defibrillator Fund brought me back. That question — what would have happened to the people who depended on me if I had not survived — drives everything I do.</p>
+              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, fontWeight: 300, lineHeight: 1.7, maxWidth: 600 }}>In December 2010, I collapsed on the basketball court at East Stroudsburg University's Koehler Fieldhouse. My heart stopped. An AED placed through the Gregory W. Moyer Defibrillator Fund helped bring me back. That question — what would have happened to the people who depended on me if I had not survived — drives everything I do.</p>
               <span style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: C.gold, marginTop: 8, display: 'block', letterSpacing: '0.08em' }}>#TheBeatGoesOn · Affiliated with Global Financial Impact (GFI)</span>
             </div>
           </div>

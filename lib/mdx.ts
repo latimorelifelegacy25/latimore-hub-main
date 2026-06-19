@@ -14,9 +14,24 @@ export interface PostFrontmatter {
   featured?: boolean
   coverImage?: string
   track?: 'A' | 'B' | 'C'
+  trackLabel?: string
   kpi?: string
   cta?: string
   bilingual?: boolean
+  tags?: string[]
+  description?: string
+  publishedAt?: string
+  format?: string
+  num?: string
+}
+
+
+export type Track = NonNullable<PostFrontmatter['track']>
+export type ArticleMeta = Post & {
+  track: Track
+  trackLabel?: string
+  num?: string
+  format?: string
 }
 
 export interface Post extends PostFrontmatter {
@@ -29,7 +44,7 @@ export function getPostSlugs(): string[] {
   if (!fs.existsSync(CONTENT_DIR)) return []
   return fs
     .readdirSync(CONTENT_DIR)
-    .filter((f) => f.endsWith('.mdx'))
+    .filter((f) => f.endsWith('.mdx') && !f.startsWith('_'))
     .map((f) => f.replace(/\.mdx$/, ''))
 }
 
@@ -62,3 +77,4 @@ export function getPostsByCategory(category: string): Post[] {
 
 export { CATEGORIES } from './blog-constants'
 export type { Category } from './blog-constants'
+

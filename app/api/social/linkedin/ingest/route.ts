@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyLinkedInBridgeToken, normalizeLinkedInLead } from '@/lib/social/linkedin'
 import { upsertSocialLead } from '@/lib/social/upsert-social-lead'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
+  const limited = await rateLimit(req, 'default')
+  if (limited) return limited
+
   const auth = req.headers.get('authorization')
   if (!verifyLinkedInBridgeToken(auth)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
