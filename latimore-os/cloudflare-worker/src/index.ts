@@ -26,7 +26,7 @@ export interface Env {
   TWILIO_AUTH_TOKEN: string;
   TWILIO_PHONE_NUMBER: string;
   WORKER_SECRET: string;
-  OPENAI_API_KEY: string;
+  ANTHROPIC_API_KEY: string;
 
   // Queues
   LEAD_QUEUE: Queue;
