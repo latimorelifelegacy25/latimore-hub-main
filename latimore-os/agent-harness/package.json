@@ -1,0 +1,15 @@
+{
+  "name": "latimore-os-agent-harness",
+  "version": "1.0.0",
+  "description": "Latimore OS — LLM Agent Harness",
+  "main": "src/orchestrator.ts",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.5.0"
+  }
+}

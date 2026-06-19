@@ -11,7 +11,7 @@ import { LeadSchema } from '@/lib/schemas';
 import { ZodError } from 'zod';
 import crypto from 'crypto';
 
-export const runtime = 'nodejs';
+import { GET as canonicalGet, POST as canonicalPost } from '@/app/api/webhooks/fillout/route'
 
 type FilloutQuestion = { name: string; value: unknown };
 type FilloutUrlParam = { id: string; value: unknown };

@@ -1,9 +1,12 @@
+import { notFound } from 'next/navigation'
 import { requireAdminSession } from '@/lib/ai/shared'
-import EngagementDashboardClient from './EngagementDashboardClient'
+import ExecutiveDashboardPage from './ExecutiveDashboardPage'
 
 export const dynamic = 'force-dynamic'
 
 export default async function EngagementDashboardPage() {
-  await requireAdminSession()
-  return <EngagementDashboardClient />
+  const auth = await requireAdminSession()
+  if (!auth.ok) notFound()
+
+  return <ExecutiveDashboardPage />
 }

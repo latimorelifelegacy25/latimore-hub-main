@@ -47,7 +47,7 @@ lib/               # All shared business logic and utilities
   analytics/       # GA4, engagement metrics, aggregation, spike detection
   hub/             # Core CRM service layer (upsert-lead, ingest-event, etc.)
   social/          # Facebook, LinkedIn, Meta API integrations
-  calendar/        # Google Calendar, Calendly availability/slots
+  calendar/        # Google Calendar availability/slots
   reports/         # PDF generation, weekly report compilation
   notion/          # Notion API client and contact sync
   documents/       # Document upload and extraction

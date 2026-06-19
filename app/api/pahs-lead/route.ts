@@ -52,6 +52,8 @@ type ValidatedLead = {
   referrer: string;
 };
 
+type CrmSave = { contact: string; inquiry: string };
+
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max);
 }
@@ -66,10 +68,10 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function leadSummary(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+function leadSummary(lead: ValidatedLead, crm?: CrmSave) {
   return [
     `Name: ${lead.name}`,
-    `Phone: ${lead.phone}`,
+    `Phone: ${lead.phone || 'Not provided'}`,
     `Email: ${lead.email || 'Not provided'}`,
     `Interest: ${lead.interest}`,
     `Best time: ${lead.bestTime || 'No preference'}`,
@@ -99,7 +101,7 @@ function followUpWindow(bestTime: string) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-async function saveToCRM(lead: ValidatedLead) {
+async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
   const { firstName, lastName } = splitName(lead.name);
   const notes = [
     `Coverage interest: ${lead.interest}`,
@@ -110,7 +112,7 @@ async function saveToCRM(lead: ValidatedLead) {
     firstName,
     lastName,
     email: lead.email || null,
-    phone: lead.phone,
+    phone: lead.phone || null,
     productInterest: lead.interest,
     source: lead.utmSource || lead.source,
     medium: lead.utmMedium || null,
@@ -137,8 +139,8 @@ async function sendNotification(lead: ValidatedLead) {
   const text = `New PAHS consultation request
 
 Name: ${lead.name}
-Phone: ${lead.phone}
-Email: ${lead.email}
+Phone: ${lead.phone || 'Not provided'}
+Email: ${lead.email || 'Not provided'}
 State: ${lead.state}
 Priority: ${lead.priority}
 Promo/Coupon: ${lead.promo || 'None'}
@@ -156,7 +158,7 @@ Notify: ${notifyTo}`
   return { skipped: false, channel: 'google_chat' }
 }
 
-async function createCalendarReminder(lead: ValidatedLead, crm?: { contact: string; inquiry: string }) {
+async function createCalendarReminder(lead: ValidatedLead, crm?: CrmSave) {
   const window = followUpWindow(lead.bestTime);
   const event = await createGoogleCalendarEvent({
     summary: `Follow up: PAHS Protect - ${lead.name}`,
@@ -193,9 +195,9 @@ export async function POST(req: NextRequest) {
       referrer: clean(body.referrer || req.headers.get('referer'), 500),
     };
 
-    if (!lead.name || !lead.email || !lead.phone || !lead.state || !lead.priority || !lead.source || !lead.interest) {
+    if (!lead.name || !lead.state || !lead.priority || !lead.source || !lead.interest || (!lead.email && !lead.phone)) {
       return NextResponse.json(
-        { ok: false, error: 'Name, email, phone, state, priority, source, and interest are required.' },
+        { ok: false, error: 'Name, either email or phone, state, priority, source, and interest are required.' },
         { status: 400 }
       )
     }
@@ -223,7 +225,7 @@ export async function POST(req: NextRequest) {
     const crm = save;
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
-      createCalendarReminder(lead, crm),
+      createCalendarReminder(lead, save),
     ]);
 
     const response: Record<string, unknown> = {

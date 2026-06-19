@@ -73,7 +73,7 @@ async function main() {
       email: 'john@example.com',
       phone: '+15555550102',
       county: 'Broward',
-      primarySource: 'Calendly',
+      primarySource: 'Google Calendar',
       primaryMedium: 'Scheduling',
       leadScore: 62,
       lastActivityAt: new Date(),
@@ -85,7 +85,7 @@ async function main() {
   })
 
   const johnInquiry = await prisma.inquiry.create({
-    data: { contactId: john.id, stage: 'Booked', productInterest: 'Final_Expense', source: 'Calendly', medium: 'Scheduling', county: john.county, leadScore: 62, notes: 'Booked a consultation call.' },
+    data: { contactId: john.id, stage: 'Booked', productInterest: 'Final_Expense', source: 'Google Calendar', medium: 'Scheduling', county: john.county, leadScore: 62, notes: 'Booked a consultation call.' },
   })
 
   await prisma.task.createMany({

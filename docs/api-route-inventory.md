@@ -152,7 +152,6 @@ Status legend:
 | `/api/meta/view-content` | POST | public | public (intended) | no | no | ok |
 | `/api/pahs-lead` | POST | public | public (intended) | no | yes | ok |
 | `/api/redirect/ethos` | GET | public | public (intended) | yes | yes | ok |
-| `/api/calendar/calendly/webhook` | POST | webhook | signature/HMAC | no | no | ok |
 | `/api/fillout-webhook` | POST | webhook | NONE | no | yes | BLOCKER (no cron/webhook protection) |
 | `/api/social/meta/webhook` | GET,POST | webhook | signature/HMAC | no | no | ok |
 | `/api/webhooks/booking` | POST | webhook | signature/HMAC | yes | yes | ok |

@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { syncContactToNotion } from '@/lib/notion/sync-contact'
@@ -27,6 +28,9 @@ export type LeadUpsertInput = {
 }
 
 export async function upsertLead(input: LeadUpsertInput) {
+  const correlationId = crypto.randomUUID()
+  logger.info({ correlationId, stage: 'lead_received', source: input.source, medium: input.medium }, 'lead lifecycle')
+
   const email = cleanString(input.email, 191)?.toLowerCase() ?? null
   const rawPhone = cleanString(input.phone, 40)
   const phone = normalizePhone(input.phone) ?? rawPhone

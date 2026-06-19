@@ -55,7 +55,7 @@ export const BRAND = {
 
   tagline: 'Protecting Today. Securing Tomorrow.',
   hashtag: '#TheBeatGoesOn',
-    cardUrl: 'https://card.latimorelifelegacy.com',
+  cardUrl: 'https://card.latimorelifelegacy.com',
 
   advisor: 'Jackson M. Latimore Sr., Founder & CEO',
   affiliation: 'In Affiliation with Global Financial Impact',
@@ -84,9 +84,7 @@ export const BRAND = {
   // Service region
   counties: ['Schuylkill', 'Luzerne', 'Northumberland'],
 
-  // Used for absolute URLs in emails
-  // Prefer the NEXT_PUBLIC_BASE_URL environment variable; otherwise default to
-  // the public domain latimorelifelegacy.com so generated links point at
-  // the correct live site rather than the old `latimorehub.vercel.app` preview.
-  baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com',
+  // Used for absolute URLs in emails. Prefer NEXT_PUBLIC_BASE_URL when set;
+  // otherwise default to the canonical public domain.
+  baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com',
 } as const
