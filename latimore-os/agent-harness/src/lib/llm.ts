@@ -1,14 +1,16 @@
 /**
- * LLM Client — Claude (Anthropic) primary
+ * LLM Client — Gemini 2.5 Flash-Lite primary
  * Thin wrapper with token tracking and error handling
  * Protecting Today. Securing Tomorrow. #TheBeatGoesOn
  */
 
 import type { LLMMessage, LLMResponse, WorkerEnv } from '../types';
 
-// ── ANTHROPIC (primary) ───────────────────────────────────────────────────────
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
-export async function callAnthropic(
+// ── GEMINI (primary) ──────────────────────────────────────────────────────────
+
+export async function callGemini(
   env: WorkerEnv,
   messages: LLMMessage[],
   opts: {
@@ -17,90 +19,113 @@ export async function callAnthropic(
     max_tokens?: number;
     systemPrompt?: string;
     json?: boolean;
+    thinkingBudget?: number;
   } = {}
 ): Promise<LLMResponse> {
-  if (!env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY not configured');
+  if (!env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY not configured');
   }
 
-  const model = opts.model || 'claude-sonnet-4-6';
+  const model = opts.model || DEFAULT_GEMINI_MODEL;
 
   // Separate system message from conversation
   const systemMsg = messages.find(m => m.role === 'system');
   const conversationMsgs = messages.filter(m => m.role !== 'system');
 
   const system = opts.systemPrompt || systemMsg?.content || LATIMORE_SYSTEM_PROMPT;
-
-  // If JSON mode requested, append instruction to system prompt
   const finalSystem = opts.json
     ? `${system}\n\nIMPORTANT: Respond with valid JSON only. No markdown fences, no preamble.`
     : system;
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: opts.max_tokens ?? 1000,
-      temperature: opts.temperature ?? 0.3,
-      system: finalSystem,
-      messages: conversationMsgs.map(m => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      })),
-    }),
-  });
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': env.GEMINI_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: finalSystem }],
+        },
+        contents: conversationMsgs.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: {
+          temperature: opts.temperature ?? 0.3,
+          maxOutputTokens: opts.max_tokens ?? 1000,
+          ...(opts.json ? { responseMimeType: 'application/json' } : {}),
+          // Gemini 2.5 Flash-Lite does not think by default; keep budget at 0 for predictable cost.
+          thinkingConfig: {
+            thinkingBudget: opts.thinkingBudget ?? 0,
+          },
+        },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Anthropic API error (${response.status}): ${err}`);
+    throw new Error(`Gemini API error (${response.status}): ${err}`);
   }
 
   const data = await response.json() as {
-    content: Array<{ type: string; text: string }>;
-    usage: { input_tokens: number; output_tokens: number };
-    model: string;
-    stop_reason: string;
+    candidates?: Array<{
+      content?: { parts?: Array<{ text?: string }> };
+      finishReason?: string;
+    }>;
+    usageMetadata?: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+      thoughtsTokenCount?: number;
+      totalTokenCount?: number;
+    };
+    modelVersion?: string;
   };
 
-  let text = data.content[0]?.text || '';
+  let text = data.candidates?.[0]?.content?.parts
+    ?.map(part => part.text || '')
+    .join('') || '';
 
-  // Strip markdown fences if present (Claude sometimes adds them despite instructions)
+  // Strip markdown fences if present despite JSON-mode instruction.
   if (opts.json) {
     text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
   }
 
   return {
     content: text,
-    tokens_used: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
-    model: data.model,
-    finish_reason: data.stop_reason || 'end_turn',
+    tokens_used: data.usageMetadata?.totalTokenCount || 0,
+    model: data.modelVersion || model,
+    finish_reason: data.candidates?.[0]?.finishReason || 'STOP',
   };
 }
 
-// ── ALIAS for drop-in compatibility (replaces all callOpenAI call sites) ──────
+// ── Compatibility aliases so existing worker imports keep compiling ──────────
 
-/** @deprecated Use callAnthropic directly */
-export const callOpenAI = callAnthropic;
+/** @deprecated Use callGemini directly */
+export const callOpenAI = callGemini;
+
+/** @deprecated Use callGemini directly */
+export const callAnthropic = callGemini;
 
 // ── COST ESTIMATION ───────────────────────────────────────────────────────────
 
 export function estimateCost(model: string, tokens: number): number {
   const rates: Record<string, number> = {
-    'claude-sonnet-4-6':          0.000004,  // $4/1M tokens (blended)
-    'claude-haiku-4-5-20251001':  0.0000004, // $0.40/1M tokens (blended)
-    'claude-opus-4-6':            0.000015,  // $15/1M tokens (blended)
-    // Legacy keys kept for any stored records
+    // Conservative total-token estimate. Actual Gemini billing separates input ($0.10/M) and output ($0.40/M).
+    'gemini-2.5-flash-lite': 0.0000004,
+    'gemini-2.5-flash':      0.0000025,
+    'gemini-2.5-pro':        0.000010,
+    // Legacy keys kept for stored workflow records and older comparisons.
+    'claude-sonnet-4-6':          0.000004,
+    'claude-haiku-4-5-20251001':  0.0000004,
+    'claude-opus-4-6':            0.000015,
     'gpt-4o':                     0.000005,
     'gpt-4o-mini':                0.0000003,
-    'claude-3-5-haiku-20241022':  0.0000004,
-    'claude-3-5-sonnet-20241022': 0.000004,
   };
-  const rate = rates[model] || 0.000004;
+  const rate = rates[model] || rates[DEFAULT_GEMINI_MODEL];
   return tokens * rate;
 }
 
