@@ -1,0 +1,6 @@
+name = "latimore-notion-worker"
+main = "cloudflare/notion-worker/index.js"
+compatibility_date = "2024-09-23"
+
+[triggers]
+crons = ["0 13 * * 1", "0 13 * * 5"]
