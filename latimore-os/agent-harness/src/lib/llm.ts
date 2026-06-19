@@ -1,65 +1,16 @@
 /**
- * LLM Client — OpenAI + Anthropic
+ * LLM Client — Gemini 2.5 Flash-Lite primary
  * Thin wrapper with token tracking and error handling
+ * Protecting Today. Securing Tomorrow. #TheBeatGoesOn
  */
 
-import type { LLMMessage, LLMRequest, LLMResponse, WorkerEnv } from '../types';
+import type { LLMMessage, LLMResponse, WorkerEnv } from '../types';
 
-// ── OPENAI ────────────────────────────────────────────────────────────────────
+const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-lite';
 
-export async function callOpenAI(
-  env: WorkerEnv,
-  messages: LLMMessage[],
-  opts: {
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-    json?: boolean;
-  } = {}
-): Promise<LLMResponse> {
-  const model = opts.model || 'gpt-4o-mini';
-  const request: LLMRequest = {
-    model,
-    messages,
-    temperature: opts.temperature ?? 0.3,
-    max_tokens: opts.max_tokens ?? 1000,
-    ...(opts.json ? { response_format: { type: 'json_object' } } : {}),
-  };
+// ── GEMINI (primary) ──────────────────────────────────────────────────────────
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(request),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`OpenAI API error (${response.status}): ${err}`);
-  }
-
-  const data = await response.json() as {
-    choices: Array<{
-      message: { content: string };
-      finish_reason: string;
-    }>;
-    usage: { total_tokens: number };
-    model: string;
-  };
-
-  return {
-    content: data.choices[0]?.message?.content || '',
-    tokens_used: data.usage?.total_tokens || 0,
-    model: data.model,
-    finish_reason: data.choices[0]?.finish_reason || 'stop',
-  };
-}
-
-// ── ANTHROPIC ─────────────────────────────────────────────────────────────────
-
-export async function callAnthropic(
+export async function callGemini(
   env: WorkerEnv,
   messages: LLMMessage[],
   opts: {
@@ -67,81 +18,130 @@ export async function callAnthropic(
     temperature?: number;
     max_tokens?: number;
     systemPrompt?: string;
+    json?: boolean;
+    thinkingBudget?: number;
   } = {}
 ): Promise<LLMResponse> {
-  if (!env.ANTHROPIC_API_KEY) {
-    throw new Error('ANTHROPIC_API_KEY not configured');
+  if (!env.GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY not configured');
   }
 
-  const model = opts.model || 'claude-3-5-haiku-20241022';
+  const model = opts.model || DEFAULT_GEMINI_MODEL;
 
   // Separate system message from conversation
   const systemMsg = messages.find(m => m.role === 'system');
   const conversationMsgs = messages.filter(m => m.role !== 'system');
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env.ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: opts.max_tokens ?? 1000,
-      temperature: opts.temperature ?? 0.3,
-      system: opts.systemPrompt || systemMsg?.content || 'You are a helpful assistant for Latimore Life & Legacy insurance agency.',
-      messages: conversationMsgs.map(m => ({
-        role: m.role,
-        content: m.content,
-      })),
-    }),
-  });
+  const system = opts.systemPrompt || systemMsg?.content || LATIMORE_SYSTEM_PROMPT;
+  const finalSystem = opts.json
+    ? `${system}\n\nIMPORTANT: Respond with valid JSON only. No markdown fences, no preamble.`
+    : system;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': env.GEMINI_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: finalSystem }],
+        },
+        contents: conversationMsgs.map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+        generationConfig: {
+          temperature: opts.temperature ?? 0.3,
+          maxOutputTokens: opts.max_tokens ?? 1000,
+          ...(opts.json ? { responseMimeType: 'application/json' } : {}),
+          // Gemini 2.5 Flash-Lite does not think by default; keep budget at 0 for predictable cost.
+          thinkingConfig: {
+            thinkingBudget: opts.thinkingBudget ?? 0,
+          },
+        },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const err = await response.text();
-    throw new Error(`Anthropic API error (${response.status}): ${err}`);
+    throw new Error(`Gemini API error (${response.status}): ${err}`);
   }
 
   const data = await response.json() as {
-    content: Array<{ type: string; text: string }>;
-    usage: { input_tokens: number; output_tokens: number };
-    model: string;
-    stop_reason: string;
+    candidates?: Array<{
+      content?: { parts?: Array<{ text?: string }> };
+      finishReason?: string;
+    }>;
+    usageMetadata?: {
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+      thoughtsTokenCount?: number;
+      totalTokenCount?: number;
+    };
+    modelVersion?: string;
   };
 
+  let text = data.candidates?.[0]?.content?.parts
+    ?.map(part => part.text || '')
+    .join('') || '';
+
+  // Strip markdown fences if present despite JSON-mode instruction.
+  if (opts.json) {
+    text = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  }
+
   return {
-    content: data.content[0]?.text || '',
-    tokens_used: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
-    model: data.model,
-    finish_reason: data.stop_reason || 'end_turn',
+    content: text,
+    tokens_used: data.usageMetadata?.totalTokenCount || 0,
+    model: data.modelVersion || model,
+    finish_reason: data.candidates?.[0]?.finishReason || 'STOP',
   };
 }
+
+// ── Compatibility aliases so existing worker imports keep compiling ──────────
+
+/** @deprecated Use callGemini directly */
+export const callOpenAI = callGemini;
+
+/** @deprecated Use callGemini directly */
+export const callAnthropic = callGemini;
 
 // ── COST ESTIMATION ───────────────────────────────────────────────────────────
 
 export function estimateCost(model: string, tokens: number): number {
   const rates: Record<string, number> = {
-    'gpt-4o': 0.000005,           // $5/1M tokens (blended)
-    'gpt-4o-mini': 0.0000003,     // $0.30/1M tokens (blended)
-    'gpt-4-turbo': 0.000015,      // $15/1M tokens
-    'claude-3-5-haiku-20241022': 0.0000004, // $0.40/1M tokens (blended)
-    'claude-3-5-sonnet-20241022': 0.000004, // $4/1M tokens (blended)
+    // Conservative total-token estimate. Actual Gemini billing separates input ($0.10/M) and output ($0.40/M).
+    'gemini-2.5-flash-lite': 0.0000004,
+    'gemini-2.5-flash':      0.0000025,
+    'gemini-2.5-pro':        0.000010,
+    // Legacy keys kept for stored workflow records and older comparisons.
+    'claude-sonnet-4-6':          0.000004,
+    'claude-haiku-4-5-20251001':  0.0000004,
+    'claude-opus-4-6':            0.000015,
+    'gpt-4o':                     0.000005,
+    'gpt-4o-mini':                0.0000003,
   };
-  const rate = rates[model] || 0.000001;
+  const rate = rates[model] || rates[DEFAULT_GEMINI_MODEL];
   return tokens * rate;
 }
 
-// ── PROMPT HELPERS ────────────────────────────────────────────────────────────
+// ── SYSTEM PROMPT ─────────────────────────────────────────────────────────────
 
-export const LATIMORE_SYSTEM_PROMPT = `You are an AI assistant for Latimore Life & Legacy LLC, an independent insurance agency in Schuylkill County, Pennsylvania.
+export const LATIMORE_SYSTEM_PROMPT = `You are an AI assistant for Latimore Life & Legacy LLC, an independent insurance brokerage in Schuylkill County, Pennsylvania.
 
 Agency Details:
-- Owner: Jackson M. Latimore Sr., MBA
+- Owner: Jackson M. Latimore Sr., MBA — "Action Jackson"
 - License: PA DOI #1268820 | NIPR #21638507
-- Tagline: "Protecting Today. Securing Tomorrow."
-- Carriers: North American, Ethos, American Equity, F&G, Corebridge Financial, Foresters Financial
+- Affiliated with: Global Financial Impact (GFI)
+- Tagline: "Protecting Today. Securing Tomorrow." | #TheBeatGoesOn
+- Carriers: North American Company, Corebridge Financial/American General Life, American Equity, F&G, Ethos Life, Foresters Financial
 - Territory: Schuylkill, Luzerne & Northumberland Counties, PA
+- Business phone: (717) 615-2613
+- Admin/leads email: leads@latimorelegacy.com
 
 Your role is to assist with:
 1. Lead follow-up message drafting (empathetic, non-pressured, educational)
