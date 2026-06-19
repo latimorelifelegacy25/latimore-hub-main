@@ -78,7 +78,7 @@ export const EventIngestSchema = z.object({
   metadata: z.record(z.any()).optional().nullable(),
 })
 
-export const LeadIngestSchema = z.object({
+export const LeadSchema = z.object({
   firstName: z.string().max(100).optional().nullable(),
   lastName: z.string().max(100).optional().nullable(),
   email: z.string().email().optional().nullable(),
@@ -101,6 +101,8 @@ export const LeadIngestSchema = z.object({
   message: 'Lead must include at least an email or phone number',
   path: ['email'],
 })
+
+export const LeadIngestSchema = LeadSchema
 
 export const InquiryPatchSchema = z.object({
   stage: stageEnum,

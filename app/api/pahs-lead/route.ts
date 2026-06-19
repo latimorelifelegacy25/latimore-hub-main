@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { upsertLead } from '@/lib/hub/upsert-lead';
 import { createGoogleCalendarEvent } from '@/lib/calendar/events';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
-import { requiredEnv } from '@/lib/required-env';
 import { sendGoogleChatMessage } from '@/lib/google-chat';
+import { LeadSchema } from '@/lib/schemas';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -107,7 +106,7 @@ async function saveToCRM(lead: ValidatedLead) {
     lead.bestTime ? `Best time to call: ${lead.bestTime}` : null,
     lead.promo ? `Promo/Coupon: ${lead.promo}` : null,
   ].filter(Boolean).join(' | ');
-  const { contact, inquiry } = await upsertLead({
+  const { contact, inquiry, deduped } = await upsertLead({
     firstName,
     lastName,
     email: lead.email || null,
@@ -130,37 +129,7 @@ async function saveToCRM(lead: ValidatedLead) {
       referrer: lead.referrer || null,
     },
   });
-  return { contact: contact.id, inquiry: inquiry.id };
-}
-
-async function saveToSupabase(lead: ValidatedLead) {
-  const url = requiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-  const serviceKey = requiredEnv('SUPABASE_SERVICE_ROLE_KEY')
-
-  const table = process.env.PAHS_LEADS_TABLE || 'pahs_leads';
-  const supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
-  const { data, error } = await supabase.from(table).insert({
-    full_name: lead.name,
-    phone: lead.phone,
-    email: lead.email,
-    promo_code: lead.promo || null,
-    product_interest: lead.interest,
-    lead_source: lead.utmSource || lead.source,
-    page_source: lead.page,
-    state: lead.state,
-    priority: lead.priority,
-    utm_source: lead.utmSource || null,
-    utm_medium: lead.utmMedium || null,
-    utm_campaign: lead.utmCampaign || null,
-    utm_term: lead.utmTerm || null,
-    utm_content: lead.utmContent || null,
-    status: 'New',
-    county: null,
-    notes: 'PAHS sponsorship landing page consultation request.',
-  }).select('id').single();
-
-  if (error) throw new Error(`Supabase insert failed: ${error.message}`);
-  return { skipped: false, leadId: data?.id };
+  return { contact: contact.id, inquiry: inquiry.id, deduped };
 }
 
 async function sendNotification(lead: ValidatedLead) {
@@ -231,8 +200,27 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const save = process.env.PAHS_LEAD_TARGET === 'supabase' ? await saveToSupabase(lead) : await saveToCRM(lead);
-    const crm = 'contact' in save && 'inquiry' in save ? save : undefined;
+    const leadInput = {
+      ...splitName(lead.name),
+      email: lead.email || null,
+      phone: lead.phone,
+      productInterest: lead.interest,
+      source: lead.utmSource || lead.source,
+      medium: lead.utmMedium || null,
+      campaign: lead.utmCampaign || null,
+      term: lead.utmTerm || null,
+      content: lead.utmContent || null,
+      referrer: lead.referrer || null,
+      landingPage: lead.page,
+      notes: `Coverage interest: ${lead.interest}${lead.bestTime ? ` | Best time to call: ${lead.bestTime}` : ''}${lead.promo ? ` | Promo/Coupon: ${lead.promo}` : ''}`,
+    }
+    const parsedLead = LeadSchema.safeParse(leadInput)
+    if (!parsedLead.success) {
+      return NextResponse.json({ ok: false, error: parsedLead.error.flatten() }, { status: 422 })
+    }
+
+    const save = await saveToCRM(lead);
+    const crm = save;
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
       createCalendarReminder(lead, crm),
@@ -240,7 +228,10 @@ export async function POST(req: NextRequest) {
 
     const response: Record<string, unknown> = {
       ok: true,
-      leadId: 'inquiry' in save ? save.inquiry : save.leadId,
+      leadId: save.inquiry,
+      contactId: save.contact,
+      inquiryId: save.inquiry,
+      deduped: save.deduped,
       save,
     };
 

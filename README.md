@@ -17,6 +17,10 @@
 
 ---
 
+## 🔒 Spec Hardening
+
+Before changing public routes, brand assets, funnels, tracking, lead capture, booking, or deployment behavior, review and preserve [`SPEC-HARDENING.md`](./SPEC-HARDENING.md). It is the Latimore OS build guardrail for brand consistency, trackable leads, mobile-first UX, and Vercel-ready delivery.
+
 ## 🚀 Deployment Status
 
 - **Platform**: Vercel (Next.js)

@@ -7,6 +7,8 @@ import { logger } from '@/lib/logger';
 import { rateLimit } from '@/lib/rate-limit';
 import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency';
 import { captureException } from '@/lib/error-tracking';
+import { LeadSchema } from '@/lib/schemas';
+import { ZodError } from 'zod';
 import crypto from 'crypto';
 
 export const runtime = 'nodejs';
@@ -113,7 +115,7 @@ export async function POST(req: NextRequest) {
       body.submissionId && `Fillout ID: ${body.submissionId}`,
     ].filter(Boolean).join(' ');
 
-    await legacySupabaseMirror({
+    void legacySupabaseMirror({
       fullName,
       phone,
       email,
@@ -126,9 +128,9 @@ export async function POST(req: NextRequest) {
       utmContent,
       landingPage,
       notes,
-    })
+    }).catch(error => logger.error({ err: error }, 'Legacy Supabase mirror failed'));
 
-    const { contact, inquiry, deduped } = await upsertLead({
+    const leadInput = LeadSchema.parse({
       firstName: firstName || undefined,
       lastName: lastName || undefined,
       email: email || null,
@@ -144,23 +146,32 @@ export async function POST(req: NextRequest) {
       landingPage,
       notes,
       metadata: { form: 'fillout-pahs', submissionId: body.submissionId ?? null },
-    });
+    })
+    const { contact, inquiry, deduped } = await upsertLead(leadInput);
 
     const resendKey = process.env.RESEND_API_KEY;
     if (resendKey) {
-      const resend = new Resend(resendKey);
-      const to = process.env.LEAD_NOTIFY_TO || process.env.LEAD_NOTIFY_EMAIL || 'Jackson1989@latimorelegacy.com';
-      const from = process.env.LEAD_NOTIFY_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
-      await resend.emails.send({
-        from,
-        to,
-        subject: `New PAHS Consultation: ${fullName || 'Unknown'}`,
-        text: `New PAHS Fillout form submission\n\nName: ${fullName}\nPhone: ${phone || 'Not provided'}\nEmail: ${email || 'Not provided'}\nCounty: ${county || 'Not provided'}\nInterest: ${interest || 'Not provided'}\n${address ? `Address: ${address}\n` : ''}${dob ? `DOB: ${dob}\n` : ''}Fillout ID: ${body.submissionId || 'N/A'}`,
-      });
+      try {
+        const resend = new Resend(resendKey);
+        const to = process.env.LEAD_NOTIFY_TO || process.env.LEAD_NOTIFY_EMAIL || 'Jackson1989@latimorelegacy.com';
+        const from = process.env.LEAD_NOTIFY_FROM || 'Latimore Life & Legacy <leads@latimorelifelegacy.com>';
+        await resend.emails.send({
+          from,
+          to,
+          subject: `New PAHS Consultation: ${fullName || 'Unknown'}`,
+          text: `New PAHS Fillout form submission\n\nName: ${fullName}\nPhone: ${phone || 'Not provided'}\nEmail: ${email || 'Not provided'}\nCounty: ${county || 'Not provided'}\nInterest: ${interest || 'Not provided'}\n${address ? `Address: ${address}\n` : ''}${dob ? `DOB: ${dob}\n` : ''}Fillout ID: ${body.submissionId || 'N/A'}`,
+        });
+      } catch (error) {
+        logger.error({ err: error }, '[fillout-webhook] Resend notification failed');
+      }
     }
 
-    return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id, deduped });
+    return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id, deduped });
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ ok: false, error: error.flatten() }, { status: 422 });
+    }
+
     await captureException(error, { source: 'webhook', provider: 'fillout-pahs' });
     return NextResponse.json({ ok: false, error: 'server error' }, { status: 500 });
   }

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withCors } from '@/lib/hub/cors'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { rateLimit } from '@/lib/rate-limit'
-import { LeadIngestSchema } from '@/lib/schemas'
+import { LeadSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 
 export const POST = withCors(async (req: NextRequest) => {
@@ -12,7 +12,7 @@ export const POST = withCors(async (req: NextRequest) => {
   if (limited) return limited
 
   const body = await req.json().catch(() => null)
-  const parse = LeadIngestSchema.safeParse(body)
+  const parse = LeadSchema.safeParse(body)
   if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
 
   try {
