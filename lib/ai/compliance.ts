@@ -56,7 +56,7 @@ const MAJOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string
     description: 'Guaranteed return percentages require an official illustration',
   },
   {
-    pattern: /fear|terrif|scar|panic|danger|risk of death|die without/i,
+    pattern: /(scare tactics|panic now|terrified|die without coverage|risk of death without)/i,
     rule: 'FEAR_BASED_MARKETING',
     description: 'Fear-based marketing violates dignity-first brand guidelines',
   },
