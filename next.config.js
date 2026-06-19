@@ -32,6 +32,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      {
+        source: '/:path*',
+        destination: 'https://www.latimorelifelegacy.com/:path*',
+        permanent: true,
+        has: [{ type: 'host', value: 'latimorelifelegacy.com' }],
+      },
       { source: '/home', destination: '/', permanent: true },
       {
         source: '/',
