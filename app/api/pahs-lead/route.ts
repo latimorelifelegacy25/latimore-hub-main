@@ -52,7 +52,7 @@ type ValidatedLead = {
   referrer: string;
 };
 
-type CrmSave = { contact: string; inquiry: string };
+type CrmSave = { contact: string; inquiry: string; deduped: boolean };
 
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max);
