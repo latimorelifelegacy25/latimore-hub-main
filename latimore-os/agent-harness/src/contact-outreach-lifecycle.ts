@@ -1,4 +1,5 @@
 import type { WorkerEnv, WorkerOutput, StepDefinition } from './types';
+import { createDBClient } from './lib/supabase';
 import { DraftWorker } from './workers/draft-worker';
 import { ComplianceReviewer } from './workers/compliance-reviewer';
 
@@ -17,6 +18,20 @@ export interface StagedContactOutreachDraft {
   subject: string;
   body: string;
   reviewPassed: boolean;
+}
+
+export async function orchestrateContactOutreachLifecycle(
+  event: ContactOutreachTriggerEvent,
+  env: WorkerEnv,
+): Promise<StagedContactOutreachDraft> {
+  const db = createDBClient(env);
+  const contact = await db.contacts.findById(event.contactId);
+
+  if (!contact) {
+    throw new Error(`Contact record matching ID ${event.contactId} was not found.`);
+  }
+
+  return buildReviewedContactOutreachDraft(event, env, contact);
 }
 
 export async function buildReviewedContactOutreachDraft(
