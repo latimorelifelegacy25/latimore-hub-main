@@ -46,3 +46,4 @@ crons = [
 # TWILIO_PHONE_NUMBER
 # WORKER_SECRET (for internal auth between Next.js and Worker)
 # OPENAI_API_KEY
+# FILLOUT_SECRET (HMAC-SHA256 secret from Fillout dashboard)
