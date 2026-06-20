@@ -27,6 +27,7 @@ export interface Env {
   TWILIO_PHONE_NUMBER: string;
   WORKER_SECRET: string;
   GEMINI_API_KEY: string;
+  FILLOUT_SECRET: string;
 
   // Queues
   LEAD_QUEUE: Queue;

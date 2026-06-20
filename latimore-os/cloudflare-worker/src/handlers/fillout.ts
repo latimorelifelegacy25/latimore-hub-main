@@ -8,6 +8,7 @@ import type { Env } from '../index';
 import { createSupabaseClient } from '../lib/supabase';
 import { sendEmail, sendSMS, buildLeadConfirmationEmail, buildLeadConfirmationSMS, buildAgentNotificationEmail } from '../lib/comms';
 import { jsonResponse, errorResponse } from '../lib/response';
+import { verifyFilloutSignature } from '../lib/auth';
 
 interface FilloutSubmission {
   formId: string;
@@ -29,10 +30,23 @@ export async function handleFilloutWebhook(
   env: Env,
   ctx: ExecutionContext
 ): Promise<Response> {
+  const rawBody = await request.text();
+
+  const signature =
+    request.headers.get('x-webhook-signature') ??
+    request.headers.get('x-fillout-signature') ??
+    request.headers.get('x-fillout-signature-256') ??
+    request.headers.get('x-hook-signature');
+
+  if (!(await verifyFilloutSignature(rawBody, signature, env.FILLOUT_SECRET))) {
+    console.warn('[Fillout] Rejected webhook: invalid or missing signature');
+    return errorResponse(401, 'Invalid signature');
+  }
+
   // Parse body
   let submission: FilloutSubmission;
   try {
-    submission = await request.json() as FilloutSubmission;
+    submission = JSON.parse(rawBody) as FilloutSubmission;
   } catch {
     return errorResponse(400, 'Invalid JSON body');
   }
