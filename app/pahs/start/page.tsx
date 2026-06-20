@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const navy = '#223446'
 const navyDark = '#16222d'
-const gold = '#C49A6C'
+const gold = '#C9A25F'
 const white = '#FFFFFF'
 const text = 'rgba(255,255,255,0.86)'
 
