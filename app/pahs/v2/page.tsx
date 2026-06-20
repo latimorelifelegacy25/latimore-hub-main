@@ -38,10 +38,6 @@ export default function PahsV2Page() {
 
           <div className="v2-lhero">
             <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
-            <svg className="v2-hbeat" viewBox="0 0 200 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <polyline points="0,15 30,15 40,5 50,25 60,15 80,15 90,2 100,28 110,15 130,15 140,8 150,22 160,15 200,15"
-                stroke="#C49A6C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-            </svg>
           </div>
 
           <div className="v2-tline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
@@ -112,26 +108,26 @@ export default function PahsV2Page() {
         <div className="v2-pg">
           <div className="v2-pc v2-fu">
             <svg className="v2-pi" viewBox="0 0 44 44" fill="none">
-              <path d="M22 4L6 12V24C6 34 14 42 22 44C30 42 38 34 38 24V12L22 4Z" stroke="#C49A6C" strokeWidth="1.5" fill="rgba(196,154,108,0.08)" />
-              <path d="M15 22L20 27L30 17" stroke="#C49A6C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M22 4L6 12V24C6 34 14 42 22 44C30 42 38 34 38 24V12L22 4Z" stroke="#C9A25F" strokeWidth="1.5" fill="rgba(201,162,95,0.08)" />
+              <path d="M15 22L20 27L30 17" stroke="#C9A25F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <div className="v2-pt">Protecting Today</div>
             <p className="v2-pb">Life insurance and living-benefit solutions that safeguard your family&rsquo;s financial foundation — starting now, not someday.</p>
           </div>
           <div className="v2-pc v2-fu">
             <svg className="v2-pi" viewBox="0 0 44 44" fill="none">
-              <polyline points="6,32 14,20 20,26 28,10 36,18" stroke="#C49A6C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M36 18L40 14M36 18H30" stroke="#e8c99a" strokeWidth="1.5" strokeLinecap="round" />
+              <polyline points="6,32 14,20 20,26 28,10 36,18" stroke="#C9A25F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M36 18L40 14M36 18H30" stroke="#E5C882" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <div className="v2-pt">Securing Tomorrow</div>
             <p className="v2-pb">Index-linked annuities and IUL strategies designed to grow your wealth — with downside protection built in.</p>
           </div>
           <div className="v2-pc v2-fu">
             <svg className="v2-pi" viewBox="0 0 44 44" fill="none">
-              <circle cx="22" cy="14" r="5" stroke="#C49A6C" strokeWidth="1.5" />
-              <circle cx="10" cy="20" r="4" stroke="#C49A6C" strokeWidth="1.5" />
-              <circle cx="34" cy="20" r="4" stroke="#C49A6C" strokeWidth="1.5" />
-              <path d="M4 36C4 30 7 26 14 26H30C37 26 40 30 40 36" stroke="#C49A6C" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="22" cy="14" r="5" stroke="#C9A25F" strokeWidth="1.5" />
+              <circle cx="10" cy="20" r="4" stroke="#C9A25F" strokeWidth="1.5" />
+              <circle cx="34" cy="20" r="4" stroke="#C9A25F" strokeWidth="1.5" />
+              <path d="M4 36C4 30 7 26 14 26H30C37 26 40 30 40 36" stroke="#C9A25F" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
             <div className="v2-pt">Invested in Community</div>
             <p className="v2-pb">Proud ALL-STAR sponsor of PAHS Crimson Tide football. Rooted in Schuylkill, Luzerne, and Northumberland Counties.</p>

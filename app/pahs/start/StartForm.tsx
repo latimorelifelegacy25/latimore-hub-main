@@ -6,7 +6,7 @@ import { BRAND } from '@/lib/brand'
 import { ensureLeadSessionId, getCurrentPageUrl } from '@/lib/lead'
 
 const navyDark = '#16222d'
-const gold = '#C49A6C'
+const gold = '#C9A25F'
 
 type Status = 'idle' | 'submitting' | 'error'
 
