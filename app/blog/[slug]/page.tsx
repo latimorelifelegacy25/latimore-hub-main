@@ -18,6 +18,100 @@ const TRACK_BG: Record<string, string> = {
   'School Districts': '#f2ebe5',
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function escapeAttribute(value: string) {
+  return escapeHtml(value).replace(/`/g, '&#96;')
+}
+
+function getAttribute(source: string, name: string) {
+  const match = source.match(new RegExp(`${name}="([^"]*)"`))
+  return match?.[1] ?? null
+}
+
+function renderInlineContent(value: string) {
+  return escapeHtml(value.trim())
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+    .replace(/\n{2,}/g, '</p><p>')
+    .replace(/\n/g, '<br />')
+}
+
+function parseQuotedStrings(value: string) {
+  return Array.from(value.matchAll(/"((?:[^"\\]|\\.)*)"/g), (match) =>
+    match[1].replace(/\\"/g, '"'),
+  )
+}
+
+function renderStatsRow(body: string) {
+  const stats = Array.from(body.matchAll(/<Stat\s+([^>]+?)\s*\/>/g), (match) => {
+    const attrs = match[1]
+    return {
+      label: getAttribute(attrs, 'label') ?? '',
+      value: getAttribute(attrs, 'value') ?? '',
+    }
+  }).filter((stat) => stat.label || stat.value)
+
+  if (!stats.length) return ''
+
+  return `<div class="blog-stats-row">${stats
+    .map(
+      (stat) =>
+        `<div class="blog-stat"><div class="blog-stat-value">${escapeHtml(stat.value)}</div><div class="blog-stat-label">${escapeHtml(stat.label)}</div></div>`,
+    )
+    .join('')}</div>`
+}
+
+function renderComparisonTable(headersSource: string, rowsSource: string) {
+  const headers = parseQuotedStrings(headersSource)
+  const rows = Array.from(
+    rowsSource.matchAll(/\[\s*((?:"(?:[^"\\]|\\.)*"\s*,?\s*)+)\]/g),
+    (match) => parseQuotedStrings(match[1]),
+  ).filter((row) => row.length)
+
+  if (!headers.length || !rows.length) return ''
+
+  return `<div class="blog-table-wrap"><table class="blog-comparison-table"><thead><tr>${headers
+    .map((header) => `<th>${escapeHtml(header)}</th>`)
+    .join('')}</tr></thead><tbody>${rows
+    .map(
+      (row) =>
+        `<tr>${headers
+          .map((_, index) => `<td>${escapeHtml(row[index] ?? '')}</td>`)
+          .join('')}</tr>`,
+    )
+    .join('')}</tbody></table></div>`
+}
+
+function renderBlogComponents(content: string) {
+  return content
+    .replace(/<StatsRow>\s*([\s\S]*?)\s*<\/StatsRow>/g, (_match, body: string) => renderStatsRow(body))
+    .replace(/<KeyTakeaway>\s*([\s\S]*?)\s*<\/KeyTakeaway>/g, (_match, body: string) => {
+      return `<div class="blog-key-takeaway"><p>${renderInlineContent(body)}</p></div>`
+    })
+    .replace(/<Callout\s*([^>]*)>\s*([\s\S]*?)\s*<\/Callout>/g, (_match, attrs: string, body: string) => {
+      const type = getAttribute(attrs, 'type') ?? 'note'
+      return `<div class="blog-callout blog-callout-${escapeAttribute(type)}"><p>${renderInlineContent(body)}</p></div>`
+    })
+    .replace(
+      /<ComparisonTable\s+headers=\{(\[[\s\S]*?\])\}\s+rows=\{([\s\S]*?)\}\s*\/>/g,
+      (_match, headersSource: string, rowsSource: string) => renderComparisonTable(headersSource, rowsSource),
+    )
+    .replace(/<InlineCTA\s+([\s\S]*?)\s*\/>/g, (_match, attrs: string) => {
+      const text = getAttribute(attrs, 'text') ?? 'Ready to talk through your options?'
+      const href = getAttribute(attrs, 'href') ?? '/contact'
+      const buttonText = getAttribute(attrs, 'buttonText') ?? 'Book Consultation'
+      return `<div class="blog-inline-cta"><p>${escapeHtml(text)}</p><a href="${escapeAttribute(href)}" data-cta="article-inline-cta">${escapeHtml(buttonText)}</a></div>`
+    })
+}
+
 export async function generateStaticParams() {
   return getPostSlugs().map((slug) => ({ slug }))
 }
@@ -77,7 +171,7 @@ export default async function ArticlePage({
 
   const color = TRACK_COLOR[post.category] ?? '#2d5f8a'
   const bg = TRACK_BG[post.category] ?? '#e8f1f8'
-  const htmlContent = await marked(post.content)
+  const htmlContent = await marked(renderBlogComponents(post.content))
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -112,6 +206,19 @@ export default async function ArticlePage({
         .prose-article li { margin-bottom:0.5rem; color:#1a1a1a; font-size:16px; line-height:1.7; }
         .prose-article strong { color:#2C3E50; }
         .prose-article hr { border:none; border-top:1px solid #e2dcd4; margin:2rem 0; }
+        .prose-article .blog-stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin:1.75rem 0; }
+        .prose-article .blog-stat { background:#ffffff; border:1px solid #e2dcd4; border-left:4px solid #C49A6C; padding:1.25rem; }
+        .prose-article .blog-stat-value { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:#2C3E50; line-height:1.1; margin-bottom:0.35rem; }
+        .prose-article .blog-stat-label { font-family:'DM Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:#6b6460; line-height:1.5; }
+        .prose-article .blog-key-takeaway, .prose-article .blog-callout { background:#f2ebe5; border-left:4px solid #C49A6C; padding:1.25rem 1.5rem; margin:1.75rem 0; }
+        .prose-article .blog-key-takeaway p, .prose-article .blog-callout p { margin:0; color:#2C3E50; font-weight:600; }
+        .prose-article .blog-table-wrap { overflow-x:auto; margin:1.75rem 0; border:1px solid #e2dcd4; background:#ffffff; }
+        .prose-article .blog-comparison-table { width:100%; border-collapse:collapse; min-width:640px; font-size:0.95rem; }
+        .prose-article .blog-comparison-table th { background:#2C3E50; color:#ffffff; font-family:'DM Mono',monospace; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; text-align:left; padding:0.9rem; }
+        .prose-article .blog-comparison-table td { border-top:1px solid #e2dcd4; padding:0.9rem; vertical-align:top; color:#1a1a1a; }
+        .prose-article .blog-inline-cta { background:#2C3E50; color:#ffffff; padding:1.5rem; margin:2rem 0; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+        .prose-article .blog-inline-cta p { margin:0; color:#ffffff; font-weight:600; flex:1; }
+        .prose-article .blog-inline-cta a { background:#C49A6C; color:#1a2530; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; font-weight:700; padding:0.85rem 1.1rem; }
       `}</style>
 
       <script
@@ -153,8 +260,9 @@ export default async function ArticlePage({
             </Link>
 
             <nav className="hidden md:flex gap-7">
-              {[['/', 'Home'], ['/about', 'About'], ['/products', 'Products'], ['/contact', 'Contact']].map(
-                ([href, label]) => (
+              {['Home', 'About', 'Products', 'Contact'].map((label) => {
+                const href = label === 'Home' ? '/' : `/${label.toLowerCase()}`
+                return (
                   <Link
                     key={href}
                     href={href}
@@ -163,7 +271,7 @@ export default async function ArticlePage({
                     {label}
                   </Link>
                 )
-              )}
+              })}
               <Link
                 href="/blog"
                 className="text-[#C49A6C] font-mono text-[13px] tracking-[0.06em] uppercase no-underline"

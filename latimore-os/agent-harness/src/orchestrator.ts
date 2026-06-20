@@ -240,7 +240,7 @@ export class WorkflowOrchestrator {
       // Track token usage
       if (output.tokens_used) {
         run.tokens_used += output.tokens_used;
-        run.estimated_cost += estimateCost('gpt-4o-mini', output.tokens_used);
+        run.estimated_cost += estimateCost('gemini-2.5-flash-lite', output.tokens_used);
       }
 
       stepRun.status = 'completed';
