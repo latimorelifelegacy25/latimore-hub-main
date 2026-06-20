@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
+import { requireAdminSession } from "@/lib/ai/shared";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) {
+    return auth.response;
+  }
+
   try {
     const workerUrl = process.env.LATIMORE_NOTION_WORKER_URL;
 

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { encryptToken } from "@/lib/crypto";
 
 export async function GET(req: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL;
@@ -90,16 +91,13 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Recommended: encrypt tokens.refresh_token before persisting.
-    // Also recommended: store it in a dedicated integration/settings table,
-    // not in an event log.
+    // TODO: move to a dedicated integration/settings table instead of an event log.
     await prisma.systemEvent.create({
       data: {
         type: "GA4_CONNECTED",
         occurredAt: new Date(),
         payload: {
-          // Avoid storing raw refresh_token here in production.
-          refresh_token: tokens.refresh_token,
+          refresh_token: encryptToken(tokens.refresh_token),
           connected_at: new Date().toISOString(),
         },
       },
