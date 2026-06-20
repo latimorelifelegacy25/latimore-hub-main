@@ -18,6 +18,7 @@
     "db:push": "prisma db push",
     "build:fresh-db": "prisma generate && prisma db push && next build",
     "db:seed": "tsx prisma/seed.ts",
+    "content:import-calendar": "tsx scripts/import-content-calendar.ts",
     "check": "tsx scripts/verify-workspace.ts",
     "analytics:validate": "ts-node --transpile-only scripts/validate-analytics.ts",
     "preflight": "node scripts/preflight.mjs",
