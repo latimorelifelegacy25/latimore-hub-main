@@ -94,7 +94,7 @@ async function createScheduledReport(env, controller) {
 }
 
 function requireWorkerAuth(request, env) {
-  if (!env.WORKER_SHARED_SECRET) return null
+  if (!env.WORKER_SHARED_SECRET) return json({ ok: false, error: 'Worker secret not configured' }, 401)
   const provided = request.headers.get('x-latimore-worker-secret')
   if (provided !== env.WORKER_SHARED_SECRET) return json({ ok: false, error: 'Unauthorized worker request' }, 401)
   return null

@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const SCRIPT_SCHEMA = {
@@ -72,10 +73,21 @@ Script requirements:
       temperature: 0.7,
     })
 
+    const script = result.output as unknown as {
+      opening: string
+      discoveryQuestions: string[]
+      strategicPivot: string
+      closing: string
+    }
+    const compliance = checkCompliance(
+      [script.opening, ...script.discoveryQuestions, script.strategicPivot, script.closing].join('\n'),
+    )
+
     return Response.json({
       success: true,
       clientName: clientData.name,
       script: result.output,
+      compliance,
     })
   } catch (error) {
     console.error('[/api/admin/ai/review-script] Error:', error)

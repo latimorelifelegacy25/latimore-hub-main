@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import PageHeader from '@/app/admin/_components/PageHeader'
+import PdfBlogUploader from '@/components/admin/PdfBlogUploader'
 
 interface GeneratedPost {
   title: string
@@ -318,6 +319,8 @@ export default function ContentCreatorContent() {
           <p className="text-slate-400 text-lg">Generate your first post to get started</p>
         </div>
       )}
+
+      <PdfBlogUploader />
     </div>
   )
 }

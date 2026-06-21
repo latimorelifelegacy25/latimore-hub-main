@@ -15,11 +15,42 @@ export class SendWorker extends BaseWorker {
     const db = createDBClient(env);
     const contactId = input.contact_id as string || input.context.contact_id as string;
     const draft = input.draft as { subject?: string; body: string; sms?: string } || {};
+    const compliance = input.compliance as { passed?: boolean; violations?: Array<{ severity: string }> } | undefined;
     const sendEmail = input.send_email !== false && !!input.email;
     const sendSMS = input.send_sms !== false && !!input.phone;
     const email = input.email as string || '';
     const phone = input.phone as string || '';
     const firstName = input.first_name as string || 'Friend';
+
+    // Approval gate — a workflow can pass the upstream ComplianceReviewer
+    // output through to this step (see input_map: { compliance: 'compliance' }
+    // in the workflow definition). If it failed, never send automatically;
+    // hold for manual review instead. Retrying wouldn't help — the draft
+    // itself is what's flagged — so this returns success rather than a
+    // failure the orchestrator would retry.
+    if (compliance && compliance.passed === false) {
+      this.error(`Send blocked by compliance review for contact ${contactId || 'unknown'}`);
+
+      if (contactId) {
+        await db.tasks.create({
+          contact_id: contactId,
+          title: `Compliance hold: review draft before sending to ${firstName}`,
+          description: 'Automated send was blocked because the draft failed compliance review. Review and send manually.',
+          task_type: 'compliance_review',
+          status: 'pending',
+          priority: 'high',
+          due_at: new Date(Date.now() + 2 * 3600000).toISOString(),
+          is_automated: true,
+          workflow_run_id: input.context.run_id as string || null,
+        });
+      }
+
+      return {
+        success: true,
+        data: { sent_email: false, sent_sms: false, held_for_compliance: true },
+        actions_taken: ['held_for_compliance_review'],
+      };
+    }
 
     this.log(`Sending to ${firstName} (email: ${sendEmail}, sms: ${sendSMS})`);
 

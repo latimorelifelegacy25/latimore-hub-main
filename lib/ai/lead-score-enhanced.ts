@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { computeLeadScore } from '@/lib/ai/lead-score'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { buildInstructionBoundaryBlock } from '@/lib/ai/prompt-boundary'
 
 /**
  * Enhanced lead scoring with AI-driven insights and product recommendations
@@ -154,15 +155,17 @@ async function analyzeConversationPatterns(contact: any) {
   if (!conversationText.trim()) return { insights: [], scoreAdjustment: 0 }
 
   try {
-    const response = await createOpenAIJsonCompletion<any>({
-      system: `Analyze this conversation history and provide insights about the lead's engagement level and intent. Focus on:
+    const systemPrompt = `Analyze this conversation history and provide insights about the lead's engagement level and intent. Focus on:
       - Urgency signals
       - Specific needs or pain points
       - Budget indicators
       - Timeline expectations
       - Decision-making style
-      Return a JSON object with: { insights: string[], scoreAdjustment: number (-10 to +20) }`,
-      user: `Conversation history:\n${conversationText}`,
+      Return a JSON object with: { insights: string[], scoreAdjustment: number (-10 to +20) }`
+
+    const response = await createOpenAIJsonCompletion<any>({
+      system: systemPrompt,
+      user: buildInstructionBoundaryBlock(systemPrompt, `Conversation history:\n${conversationText}`),
       schemaName: 'conversation_analysis',
       schema: {
         type: 'object',
@@ -198,15 +201,19 @@ async function generateProductRecommendations(contact: any, inquiry: any) {
   }
 
   try {
-    const response = await createOpenAIJsonCompletion<any>({
-      system: `Based on the lead's inquiry and conversation history, recommend specific insurance products that would fit their needs.
+    const systemPrompt = `Based on the lead's inquiry and conversation history, recommend specific insurance products that would fit their needs.
       Consider: life insurance, critical illness, disability, long-term care, annuities.
-      Return JSON array of recommendations: [{ product: string, reason: string, confidence: number (0-1) }]`,
-      user: `Lead Context:
+      Return JSON array of recommendations: [{ product: string, reason: string, confidence: number (0-1) }]`
+
+    const userPrompt = `Lead Context:
       - Intent: ${context.inquiryType}
       - Source: ${context.source}
       - Notes: ${context.notes}
-      - Recent Messages: ${context.messages.filter((m: any) => m.direction === 'inbound').slice(0, 5).map((m: any) => m.bodyText).join('; ')}`,
+      - Recent Messages: ${context.messages.filter((m: any) => m.direction === 'inbound').slice(0, 5).map((m: any) => m.bodyText).join('; ')}`
+
+    const response = await createOpenAIJsonCompletion<any>({
+      system: systemPrompt,
+      user: buildInstructionBoundaryBlock(systemPrompt, userPrompt),
       schemaName: 'product_recommendations',
       schema: {
         type: 'object',
