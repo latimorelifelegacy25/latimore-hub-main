@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function IntegrationsPage() {
   const totalContacts = await prisma.contact.count()
-  const notionConfigured = Boolean(process.env.NOTION_API_KEY && process.env.NOTION_CONTACT_DB_ID)
+  const notionConfigured = Boolean(process.env.INTERNAL_API_SECRET)
 
   return (
     <div className="p-6 md:p-8 space-y-8">

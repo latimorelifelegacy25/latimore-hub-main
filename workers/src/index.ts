@@ -211,7 +211,7 @@ worker.sync("contactsBackfill", {
 // Delta sync — incremental, picks up contacts updated since last cursor
 // ---------------------------------------------------------------------------
 
-type DeltaState = { cursor: string };
+type DeltaState = { cursor: string; page: number };
 
 worker.sync("contactsDelta", {
 	database: contacts,
@@ -219,22 +219,33 @@ worker.sync("contactsDelta", {
 	schedule: "5m",
 	execute: async (state: DeltaState | undefined) => {
 		const cursor = state?.cursor ?? new Date(0).toISOString();
-		// 15-second consistency buffer
+		const page = state?.page ?? 1;
+		// 15-second consistency buffer — never advance the cursor past
+		// records the API may not have finished indexing yet.
 		const maxCursor = new Date(Date.now() - 15_000).toISOString();
 
 		await crmApi.wait();
-		const { contacts: rows, hasMore } = await fetchContacts(1, cursor);
+		const { contacts: rows, hasMore } = await fetchContacts(page, cursor);
 
-		const nextCursor = !hasMore && rows.length > 0
-			? rows[rows.length - 1].updatedAt < maxCursor
-				? rows[rows.length - 1].updatedAt
-				: maxCursor
+		if (hasMore) {
+			// More pages remain within this cursor window — advance the page,
+			// not the cursor, so the next execute() call doesn't refetch page 1.
+			return {
+				changes: rows.map(toUpsert) as any,
+				hasMore: true,
+				nextState: { cursor, page: page + 1 },
+			};
+		}
+
+		const lastUpdatedAt = rows[rows.length - 1]?.updatedAt;
+		const nextCursor = lastUpdatedAt
+			? lastUpdatedAt < maxCursor ? lastUpdatedAt : maxCursor
 			: cursor;
 
 		return {
 			changes: rows.map(toUpsert) as any,
-			hasMore,
-			nextState: { cursor: nextCursor },
+			hasMore: false,
+			nextState: { cursor: nextCursor, page: 1 },
 		};
 	},
 });
