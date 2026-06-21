@@ -1,7 +1,6 @@
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
-import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
 import type { Prisma } from '@prisma/client'
@@ -264,11 +263,6 @@ export async function upsertLead(input: LeadUpsertInput) {
   }
 
   if (!result) throw new Error('Lead upsert failed')
-
-  // Fire-and-forget — Notion sync must not block or break lead capture
-  syncContactToNotion(result.contact, result.inquiry).catch(err =>
-    logger.error({ err, contactId: result.contact.id }, 'Notion sync failed'),
-  )
 
   return result
 }
