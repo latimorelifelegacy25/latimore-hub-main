@@ -31,10 +31,10 @@ export default function Chatbot() {
     const trimmed = nextInput.trim()
     if (!trimmed || loading) return
 
-    const nextMessages: Message[] = [
+    const nextMessages: Message[] = ([
       ...messages,
       { role: 'user', content: trimmed },
-    ].slice(-12)
+    ] as Message[]).slice(-12)
 
     setMessages(nextMessages)
     setInput('')
@@ -48,21 +48,21 @@ export default function Chatbot() {
       })
       const data = await res.json() as { reply?: string }
 
-      setMessages(prev => [
+      setMessages(prev => ([
         ...prev,
         {
           role: 'assistant',
           content: data.reply || 'I could not generate a response. Please try again or contact Jackson directly.',
         },
-      ].slice(-12))
+      ] as Message[]).slice(-12))
     } catch {
-      setMessages(prev => [
+      setMessages(prev => ([
         ...prev,
         {
           role: 'assistant',
           content: 'Something went wrong. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.',
         },
-      ].slice(-12))
+      ] as Message[]).slice(-12))
     } finally {
       setLoading(false)
       inputRef.current?.focus()
