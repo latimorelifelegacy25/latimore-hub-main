@@ -8,6 +8,7 @@ import type { Env } from '../index';
 import { createSupabaseClient } from '../lib/supabase';
 import { sendEmail, sendSMS } from '../lib/comms';
 import { jsonResponse, errorResponse } from '../lib/response';
+import { verifyWebhookSecret } from '../lib/auth';
 
 interface BookingPayload {
   // Generic booking fields (normalized from any booking provider)
@@ -43,6 +44,11 @@ export async function handleBookingWebhook(
   env: Env,
   ctx: ExecutionContext
 ): Promise<Response> {
+  if (!verifyWebhookSecret(request, env.BOOKING_WEBHOOK_SECRET)) {
+    console.warn('[Booking] Rejected webhook: invalid or missing x-webhook-secret');
+    return errorResponse(401, 'Invalid secret');
+  }
+
   let payload: BookingPayload;
   try {
     payload = await request.json() as BookingPayload;
