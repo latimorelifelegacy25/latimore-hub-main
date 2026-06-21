@@ -1,3 +1,11 @@
+// ---------------------------------------------------------------------------
+// Page automation only. This worker creates/appends standalone Notion pages
+// (cron-triggered weekly planning/wrap-up notes, ad hoc page creation via the
+// /api/notion-worker proxy). It does NOT sync CRM contacts — that's handled
+// by the managed Notion Worker in workers/src/index.ts (backfill + 5-minute
+// delta sync against /api/internal/contacts).
+// ---------------------------------------------------------------------------
+
 const NOTION_VERSION = '2022-06-28'
 
 function json(body, status = 200) {
