@@ -38,6 +38,7 @@ export interface Env {
   ENVIRONMENT: string;
   APP_URL: string;
   HUB_URL: string;
+  AGENT_HARNESS_ENABLED?: string;
 }
 
 // ── MAIN FETCH HANDLER ────────────────────────────────────────────────────────
