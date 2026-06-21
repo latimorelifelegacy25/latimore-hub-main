@@ -3,6 +3,7 @@ import './globals.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
+import Chatbot from '@/components/Chatbot'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTagManager } from '@next/third-parties/google'
 
@@ -138,6 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
         <Suspense fallback={null}><PublicTracker /></Suspense>
         {children}
+        <Chatbot />
         <Analytics />
       </body>
     </html>
