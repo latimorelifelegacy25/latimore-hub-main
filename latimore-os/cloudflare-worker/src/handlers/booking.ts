@@ -63,7 +63,7 @@ export async function handleBookingWebhook(
     return errorResponse(400, 'Missing attendee information');
   }
 
-  console.log(`[Booking] ${booking.eventType}: ${booking.attendeeName} at ${booking.startTime}`);
+  console.log(`[Booking] ${booking.eventType}: booking ${booking.bookingId || 'unknown'} at ${booking.startTime}`);
 
   const db = createSupabaseClient(env);
 
