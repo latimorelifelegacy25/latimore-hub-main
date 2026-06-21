@@ -8,6 +8,7 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   booking: { limit: 10, windowSec: 60 },
   cardEvents: { limit: 200, windowSec: 60 },
   fillout: { limit: 20, windowSec: 60 },
+  intake: { limit: 20, windowSec: 60 },
   inquiries: { limit: 60, windowSec: 60 },
   reports: { limit: 30, windowSec: 60 },
   event: { limit: 120, windowSec: 60 },
