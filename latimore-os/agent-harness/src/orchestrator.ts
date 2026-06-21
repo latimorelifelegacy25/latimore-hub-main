@@ -201,70 +201,76 @@ export class WorkflowOrchestrator {
 
     run.steps.push(stepRun);
 
-    try {
-      // Check skip condition
-      if (stepDef.skip_if && this.evaluateCondition(stepDef.skip_if, run.context)) {
-        stepRun.status = 'skipped';
+    if (stepDef.skip_if && this.evaluateCondition(stepDef.skip_if, run.context)) {
+      stepRun.status = 'skipped';
+      stepRun.completed_at = new Date();
+      console.log(`[Orchestrator] Step skipped: ${stepDef.id}`);
+      return;
+    }
+
+    // Bounded retry loop — reuses the same StepRun across attempts so
+    // retry_count actually accumulates (a prior recursive version created a
+    // fresh StepRun with retry_count reset to 0 on every retry, so a
+    // permanently-failing step retried forever instead of stopping at
+    // max_retries).
+    const maxAttempts = stepDef.retry_on_failure ? (workflowDef.max_retries || 1) + 1 : 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      stepRun.retry_count = attempt - 1;
+      stepRun.status = 'running';
+
+      try {
+        const input = this.buildStepInput(stepDef, run.context);
+        stepRun.input = input;
+
+        const worker = workerRegistry.get(stepDef.worker);
+        if (!worker) {
+          throw new Error(`Worker not found: ${stepDef.worker}`);
+        }
+
+        const timeout = stepDef.timeout_ms || workflowDef.timeout_ms || 30000;
+        const output = await this.withTimeout(
+          worker.execute({ context: run.context, step: stepDef, ...input }, this.env),
+          timeout,
+          `Step ${stepDef.id} timed out after ${timeout}ms`
+        );
+
+        if (!output.success) {
+          throw new Error(output.error || `Worker ${stepDef.worker} returned failure`);
+        }
+
+        // Store output in context
+        if (stepDef.output_key && output.data) {
+          run.context[stepDef.output_key] = output.data;
+        }
+
+        // Track token usage
+        if (output.tokens_used) {
+          run.tokens_used += output.tokens_used;
+          run.estimated_cost += estimateCost('gemini-2.5-flash-lite', output.tokens_used);
+        }
+
+        stepRun.status = 'completed';
+        stepRun.output = output.data;
+        stepRun.tokens_used = output.tokens_used;
         stepRun.completed_at = new Date();
-        console.log(`[Orchestrator] Step skipped: ${stepDef.id}`);
+        stepRun.duration_ms = stepRun.completed_at.getTime() - stepRun.started_at!.getTime();
+
+        console.log(`[Orchestrator] Step completed: ${stepDef.id} (${stepRun.duration_ms}ms)`);
         return;
-      }
 
-      // Build step input from context
-      const input = this.buildStepInput(stepDef, run.context);
-      stepRun.input = input;
+      } catch (err) {
+        stepRun.status = 'failed';
+        stepRun.error = String(err);
+        stepRun.completed_at = new Date();
+        stepRun.duration_ms = stepRun.completed_at!.getTime() - stepRun.started_at!.getTime();
 
-      // Get worker from registry
-      const worker = workerRegistry.get(stepDef.worker);
-      if (!worker) {
-        throw new Error(`Worker not found: ${stepDef.worker}`);
-      }
+        console.error(`[Orchestrator] Step failed: ${stepDef.id}`, err);
 
-      // Execute with timeout
-      const timeout = stepDef.timeout_ms || workflowDef.timeout_ms || 30000;
-      const output = await this.withTimeout(
-        worker.execute({ context: run.context, step: stepDef, ...input }, this.env),
-        timeout,
-        `Step ${stepDef.id} timed out after ${timeout}ms`
-      );
-
-      if (!output.success) {
-        throw new Error(output.error || `Worker ${stepDef.worker} returned failure`);
-      }
-
-      // Store output in context
-      if (stepDef.output_key && output.data) {
-        run.context[stepDef.output_key] = output.data;
-      }
-
-      // Track token usage
-      if (output.tokens_used) {
-        run.tokens_used += output.tokens_used;
-        run.estimated_cost += estimateCost('gemini-2.5-flash-lite', output.tokens_used);
-      }
-
-      stepRun.status = 'completed';
-      stepRun.output = output.data;
-      stepRun.tokens_used = output.tokens_used;
-      stepRun.completed_at = new Date();
-      stepRun.duration_ms = stepRun.completed_at.getTime() - stepRun.started_at!.getTime();
-
-      console.log(`[Orchestrator] Step completed: ${stepDef.id} (${stepRun.duration_ms}ms)`);
-
-    } catch (err) {
-      stepRun.status = 'failed';
-      stepRun.error = String(err);
-      stepRun.completed_at = new Date();
-      stepRun.duration_ms = stepRun.completed_at!.getTime() - stepRun.started_at!.getTime();
-
-      console.error(`[Orchestrator] Step failed: ${stepDef.id}`, err);
-
-      // Retry if configured
-      if (stepDef.retry_on_failure && stepRun.retry_count < (workflowDef.max_retries || 1)) {
-        stepRun.retry_count++;
-        console.log(`[Orchestrator] Retrying step: ${stepDef.id} (attempt ${stepRun.retry_count})`);
-        await new Promise(resolve => setTimeout(resolve, 1000 * stepRun.retry_count));
-        await this.executeStep(run, stepDef, workflowDef);
+        if (attempt < maxAttempts) {
+          console.log(`[Orchestrator] Retrying step: ${stepDef.id} (attempt ${attempt})`);
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
       }
     }
   }
@@ -279,9 +285,20 @@ export class WorkflowOrchestrator {
 
     const input: Record<string, unknown> = {};
     for (const [inputKey, contextKey] of Object.entries(stepDef.input_map)) {
-      input[inputKey] = context[contextKey];
+      input[inputKey] = this.resolveContextPath(context, contextKey);
     }
     return input;
+  }
+
+  // input_map values like 'contact_profile.contact_summary' or 'draft.body' are
+  // dotted paths into nested step outputs, not flat context keys — walk them.
+  private resolveContextPath(context: WorkflowContext, path: string): unknown {
+    return path.split('.').reduce<unknown>((value, key) => {
+      if (value && typeof value === 'object' && key in (value as Record<string, unknown>)) {
+        return (value as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, context);
   }
 
   // ── PRIVATE: Evaluate skip condition ─────────────────────────────────────
