@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, type ReactNode, type CSSProperties } from 'react'
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 
@@ -35,12 +35,12 @@ const DOCS = [
 ]
 
 const LOGS = [
-  { time: '09:14', cls: 'text-emerald-400', msg: '✓  Latimore Hub OS — Vercel build passed' },
-  { time: '09:10', cls: 'text-blue-400', msg: '→  Supabase medxfhhxvmczmpurkmrp — schema sync OK' },
-  { time: '08:55', cls: 'text-emerald-400', msg: '✓  GA4 G-WZWMX83WXQ — events firing correctly' },
-  { time: '08:40', cls: 'text-yellow-400', msg: '⚠  PAHS invoice $460 — DUE TODAY' },
-  { time: '08:30', cls: 'text-blue-400', msg: '→  Brand guardrails loaded — all workflows active' },
-  { time: 'Yesterday', cls: 'text-emerald-400', msg: '✓  LAT-2026-01 complaint package — finalized' },
+  { time: '09:14', cls: '#4ade80', msg: '✓  Latimore Hub OS — Vercel build passed' },
+  { time: '09:10', cls: '#60a5fa', msg: '→  Supabase medxfhhxvmczmpurkmrp — schema sync OK' },
+  { time: '08:55', cls: '#4ade80', msg: '✓  GA4 G-WZWMX83WXQ — events firing correctly' },
+  { time: '08:40', cls: '#facc15', msg: '⚠  PAHS invoice $460 — DUE TODAY' },
+  { time: '08:30', cls: '#60a5fa', msg: '→  Brand guardrails loaded — all workflows active' },
+  { time: 'Yesterday', cls: '#4ade80', msg: '✓  LAT-2026-01 complaint package — finalized' },
 ]
 
 const WORKFLOW_PROMPTS: Record<string, string> = {
@@ -76,22 +76,125 @@ async function callAI(prompt: string): Promise<string> {
   return json?.text ?? ''
 }
 
-const PRI_STYLES: Record<TaskPri, string> = {
-  high: 'bg-red-100 text-red-700',
-  med: 'bg-amber-100 text-amber-700',
-  low: 'bg-emerald-100 text-emerald-700',
+const PRI_COLORS: Record<TaskPri, { bg: string; text: string }> = {
+  high: { bg: '#ff4444', text: '#fff' },
+  med: { bg: '#C49A6C', text: '#000' },
+  low: { bg: '#0f2a1a', text: '#4ade80' },
 }
 
-const STAGE_STYLES: Record<string, string> = {
-  lead: 'bg-amber-100 text-amber-700',
-  quote: 'bg-blue-100 text-blue-700',
-  close: 'bg-emerald-100 text-emerald-700',
-  active: 'bg-[#e8d5b7] text-[#8b6a45]',
+const STAGE_COLORS: Record<string, { bg: string; text: string }> = {
+  lead: { bg: '#3a2f12', text: '#facc15' },
+  quote: { bg: '#10233a', text: '#60a5fa' },
+  close: { bg: '#0f2a1a', text: '#4ade80' },
+  active: { bg: '#3a2f1f', text: '#C49A6C' },
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 type Tab = 'dashboard' | 'revenue' | 'files' | 'tasks' | 'codex'
+
+const NAV_TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: '⬡' },
+  { id: 'revenue', label: 'Revenue Engine', icon: '◎' },
+  { id: 'files', label: 'File Vault', icon: '▣' },
+  { id: 'tasks', label: 'Tasks', icon: '☑' },
+  { id: 'codex', label: 'Codex Sync', icon: '>_' },
+]
+
+function Clock() {
+  const [now, setNow] = useState<Date | null>(null)
+  useEffect(() => {
+    setNow(new Date())
+    const t = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(t)
+  }, [])
+  if (!now) return null
+  return (
+    <div style={{ textAlign: 'right' }}>
+      <div style={{ fontSize: 11, color: '#C49A6C', fontWeight: 700, letterSpacing: 1 }}>
+        {now.toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }).toUpperCase()}
+      </div>
+      <div style={{ fontSize: 9, color: '#4a5568' }}>{now.toLocaleTimeString('en-US', { hour12: false })} EST</div>
+    </div>
+  )
+}
+
+function Ticker() {
+  const msgs = LOGS.map(l => `[${l.time}] ${l.msg}`)
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => (i + 1) % msgs.length), 3000)
+    return () => clearInterval(t)
+  }, [msgs.length])
+  return (
+    <div style={{ display: 'flex', gap: 32, alignItems: 'center', fontSize: 10, color: '#4ade80', fontFamily: 'monospace', overflow: 'hidden' }}>
+      <span style={{ color: '#4ade80', marginRight: 8 }}>●</span>
+      {msgs.map((m, i) => (
+        <span key={i} style={{ opacity: i === idx ? 1 : 0.25, transition: 'opacity 0.4s', whiteSpace: 'nowrap', letterSpacing: 1 }}>{m}</span>
+      ))}
+    </div>
+  )
+}
+
+function StatCard({ label, value, sub, warn }: { label: string; value: string; sub: string; warn: boolean }) {
+  return (
+    <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 18px', flex: 1, minWidth: 0 }}>
+      <div style={{ fontSize: 10, letterSpacing: 2, color: '#4a5568', fontFamily: 'monospace', marginBottom: 8 }}>{label.toUpperCase()}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace' }}>{value}</div>
+      <div style={{ fontSize: 10, marginTop: 6, color: warn ? '#facc15' : '#4ade80', fontFamily: 'monospace' }}>{sub}</div>
+    </div>
+  )
+}
+
+function WorkflowCard({ icon, title, desc, onClick }: { icon: string; title: string; desc: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        textAlign: 'left', background: '#080c17', border: '1px solid #1e2a3a', borderRadius: 8,
+        padding: '14px 16px', cursor: 'pointer', transition: 'all 0.15s',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = '#C49A6C66')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e2a3a')}
+    >
+      <div style={{ width: 28, height: 28, borderRadius: 6, background: '#1f1810', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8, fontSize: 13, color: '#C49A6C' }}>{icon}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', fontFamily: 'monospace', marginBottom: 4 }}>{title}</div>
+      <div style={{ fontSize: 10, color: '#64748b', lineHeight: 1.5, marginBottom: 8 }}>{desc}</div>
+      <div style={{ fontSize: 10, color: '#C49A6C', fontWeight: 700, letterSpacing: 0.5 }}>▶ LAUNCH</div>
+    </button>
+  )
+}
+
+function AiPanel({ title, children, output, loading, placeholder }: { title: string; children: ReactNode; output: string; loading: boolean; placeholder?: string }) {
+  return (
+    <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, overflow: 'hidden' }}>
+      <div style={{ background: '#080c17', borderBottom: '1px solid #1e2a3a', padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ color: '#C49A6C', fontSize: 12 }}>✦</span>
+        <span style={{ color: '#C49A6C', fontSize: 10, fontWeight: 700, letterSpacing: 1 }}>{title}</span>
+      </div>
+      <div style={{ padding: 12 }}>{children}</div>
+      {output && (
+        <div style={{ padding: '12px 14px', fontSize: 11, color: '#94a3b8', lineHeight: 1.6, borderTop: '1px solid #1e2a3a', whiteSpace: 'pre-wrap', maxHeight: 240, overflowY: 'auto', fontFamily: 'monospace' }}>
+          {output}
+        </div>
+      )}
+      {!output && placeholder && !loading && (
+        <div style={{ padding: '12px 14px', fontSize: 11, color: '#4a5568', borderTop: '1px solid #1e2a3a' }}>{placeholder}</div>
+      )}
+    </div>
+  )
+}
+
+const inputStyle: CSSProperties = {
+  background: '#080c17', border: '1px solid #1e2a3a', borderRadius: 6,
+  color: '#94a3b8', fontSize: 11, fontFamily: 'monospace', padding: '6px 10px',
+}
+
+const buttonStyle: CSSProperties = {
+  background: '#C49A6C', color: '#000', border: 'none', borderRadius: 6,
+  fontSize: 11, fontWeight: 700, fontFamily: 'monospace', padding: '7px 16px',
+  cursor: 'pointer', whiteSpace: 'nowrap', letterSpacing: 0.5,
+}
 
 export default function HubOSClient() {
   const [tab, setTab] = useState<Tab>('dashboard')
@@ -193,334 +296,269 @@ Provide production-ready, copy-paste code or commands. Be specific and complete.
 
   const openTasks = tasks.filter(t => !t.done).length
 
-  const NAV_TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'fa-layout-dashboard' },
-    { id: 'revenue', label: 'Revenue Engine', icon: 'fa-dollar-sign' },
-    { id: 'files', label: 'File Vault', icon: 'fa-folder' },
-    { id: 'tasks', label: `Tasks (${openTasks})`, icon: 'fa-check-square' },
-    { id: 'codex', label: 'Codex Sync', icon: 'fa-terminal' },
-  ]
-
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto">
-      {/* Topbar */}
-      <div className="rounded-t-xl bg-[#2C3E50] px-5 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#C49A6C] rounded-md flex items-center justify-center text-[#2C3E50] font-black text-sm">LL</div>
+    <div style={{
+      background: '#050810', minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      fontFamily: "'Courier New', monospace", color: '#e2e8f0',
+    }}>
+      {/* TOP BAR */}
+      <div style={{
+        background: '#080c17', borderBottom: '1px solid #1e2a3a', padding: '10px 20px',
+        display: 'flex', alignItems: 'center', gap: 16, height: 52,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ width: 34, height: 34, background: '#C49A6C', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 14, color: '#000' }}>LL</div>
           <div>
-            <div className="text-white text-sm font-semibold leading-tight">Latimore Hub OS</div>
-            <div className="text-[#C49A6C] text-[11px]">Revenue & Operations Command Center</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 3, color: '#e2e8f0' }}>LATIMORE HUB OS</span>
+              <span style={{ fontSize: 8, padding: '1px 6px', border: '1px solid #C49A6C', color: '#C49A6C', borderRadius: 3, letterSpacing: 1 }}>LIVE</span>
+            </div>
+            <div style={{ fontSize: 8, color: '#4a5568', letterSpacing: 2 }}>REVENUE &amp; OPERATIONS COMMAND CENTER</div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-white/50 text-[11px]">Live</span>
-          <span className="text-[#C49A6C] text-[11px] bg-[#C49A6C]/15 rounded-full px-3 py-0.5">
-            {new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
-          </span>
+        <div style={{ marginLeft: 'auto' }}>
+          <Clock />
         </div>
       </div>
 
-      {/* Tab nav */}
-      <div className="flex overflow-x-auto bg-white border-x border-white/20">
-        {NAV_TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex items-center gap-1.5 px-4 py-2.5 text-xs whitespace-nowrap border-b-2 transition-all ${
-              tab === t.id
-                ? 'border-[#C49A6C] text-[#2C3E50] font-semibold bg-amber-50/50'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-            }`}
-          >
-            <i className={`fa-solid ${t.icon}`} />
-            {t.label}
-          </button>
-        ))}
+      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        {/* LEFT ICON RAIL */}
+        <div style={{
+          width: 56, background: '#080c17', borderRight: '1px solid #1e2a3a',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 12, gap: 4,
+        }}>
+          {NAV_TABS.map(item => (
+            <button
+              key={item.id}
+              title={item.label}
+              onClick={() => setTab(item.id)}
+              style={{
+                width: 38, height: 38, background: tab === item.id ? '#0d1424' : 'transparent',
+                border: tab === item.id ? '1px solid #C49A6C44' : '1px solid transparent',
+                borderRadius: 6, color: tab === item.id ? '#C49A6C' : '#4a5568',
+                fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', position: 'relative',
+              }}
+            >
+              {item.icon}
+              {item.id === 'tasks' && openTasks > 0 && (
+                <span style={{
+                  position: 'absolute', top: 2, right: 2, fontSize: 8, background: '#ff4444',
+                  color: '#fff', borderRadius: 8, padding: '0 4px', fontWeight: 700,
+                }}>{openTasks}</span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* CONTENT */}
+        <div style={{ flex: 1, overflow: 'auto', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* ── DASHBOARD ───────────────────────────────────────── */}
+          {tab === 'dashboard' && (
+            <>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <StatCard label="Active Policies" value="1" sub="Target: 5/mo by Mo.12" warn />
+                <StatCard label="Pipeline Value" value="$26.4K" sub="4 active prospects" warn={false} />
+                <StatCard label="Referral Rate" value="12%" sub="Target: 20–30%" warn />
+                <StatCard label="District Contacts" value="1" sub="Target: 3–5 by Mo.12" warn />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568' }}>QUICK-LAUNCH WORKFLOWS</span>
+                  <span style={{ fontSize: 9, color: '#C49A6C', background: '#1f1810', padding: '2px 10px', borderRadius: 10 }}>#THEBEATGOESON</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <WorkflowCard icon="✉" title="Email Campaign Builder" desc="On-brand emails for pre-retirees, families, or school districts." onClick={() => launchWorkflow('email')} />
+                  <WorkflowCard icon="🏫" title="District Proposal Builder" desc="Full school district B2B proposals covering risk and continuity." onClick={() => launchWorkflow('proposal')} />
+                  <WorkflowCard icon="🛡" title="Brand Compliance Check" desc="Scored report against brand guardrails with a priority fix list." onClick={() => launchWorkflow('brand-check')} />
+                  <WorkflowCard icon="◎" title="CTA Generator" desc="Generate KPI-linked calls to action for any ICP or channel." onClick={() => launchWorkflow('cta')} />
+                </div>
+              </div>
+
+              <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 18px' }}>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568', marginBottom: 10 }}>TODAY'S PRIORITIES</div>
+                {tasks.slice(0, 3).map((t, i) => (
+                  <TaskRow key={i} task={t} index={i} onToggle={toggleTask} />
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── REVENUE ENGINE ─────────────────────────────────── */}
+          {tab === 'revenue' && (
+            <>
+              <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568' }}>REVENUE PIPELINE</span>
+                  <span style={{ fontSize: 9, color: '#60a5fa', background: '#10233a', padding: '2px 10px', borderRadius: 10 }}>COAL REGION</span>
+                </div>
+                {PIPELINE.map((p, i) => {
+                  const sc = STAGE_COLORS[p.cls]
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: i < PIPELINE.length - 1 ? '1px solid #1e2a3a' : 'none' }}>
+                      <div style={{ width: 30, height: 30, borderRadius: '50%', background: '#080c17', border: '1px solid #1e2a3a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#94a3b8', flexShrink: 0 }}>{p.initials}</div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0' }}>{p.name}</div>
+                        <div style={{ fontSize: 10, color: '#64748b' }}>{p.stage}</div>
+                      </div>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 10px', borderRadius: 10, background: sc.bg, color: sc.text }}>{p.stage}</span>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#C49A6C', flexShrink: 0 }}>{p.val}</div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              <AiPanel title="LATIMORE BRAND CONTENT BUILDER" output={revOutput} loading={revLoading} placeholder="Select your ICP, asset type, and KPI — then hit Generate to build on-brand revenue content.">
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                  <select value={revIcp} onChange={e => setRevIcp(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 150 }}>
+                    <option>Pre-Retirees — Schuylkill County</option>
+                    <option>Young Families — Coal Region</option>
+                    <option>School Districts — Schuylkill</option>
+                    <option>Latino Market — Luzerne County</option>
+                  </select>
+                  <select value={revAsset} onChange={e => setRevAsset(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 150 }}>
+                    <option>Email campaign</option>
+                    <option>Social post</option>
+                    <option>One-page flyer</option>
+                    <option>Follow-up phone script</option>
+                    <option>Landing page copy</option>
+                    <option>Referral request message</option>
+                  </select>
+                  <select value={revKpi} onChange={e => setRevKpi(e.target.value)} style={{ ...inputStyle, flex: 1, minWidth: 150 }}>
+                    <option>Monthly applications</option>
+                    <option>Referral rate</option>
+                    <option>District penetration</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <textarea
+                    value={revBrief}
+                    onChange={e => setRevBrief(e.target.value)}
+                    placeholder="Optional: add a specific angle, product, event, or compliance note…"
+                    style={{ ...inputStyle, flex: 1, resize: 'none', height: 56 }}
+                  />
+                  <button onClick={runRevenueAI} disabled={revLoading} style={{ ...buttonStyle, opacity: revLoading ? 0.6 : 1 }}>
+                    {revLoading ? 'GENERATING…' : 'GENERATE ▶'}
+                  </button>
+                </div>
+              </AiPanel>
+            </>
+          )}
+
+          {/* ── FILE VAULT ─────────────────────────────────────── */}
+          {tab === 'files' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568' }}>FILE VAULT</span>
+                <span style={{ fontSize: 9, color: '#C49A6C', background: '#1f1810', padding: '2px 10px', borderRadius: 10 }}>ORGANIZED</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {FOLDERS.map(f => (
+                  <button
+                    key={f.key}
+                    onClick={() => { navigator.clipboard?.writeText(`Open the Latimore ${f.name} folder.`).catch(() => {}) }}
+                    style={{ textAlign: 'left', background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 16px', cursor: 'pointer' }}
+                  >
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>{f.icon}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#e2e8f0', marginBottom: 4 }}>{f.name}</div>
+                    <div style={{ fontSize: 10, color: '#64748b' }}>{f.sub}</div>
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 18px' }}>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568', marginBottom: 10 }}>RECENT DOCUMENTS</div>
+                {DOCS.map((d, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < DOCS.length - 1 ? '1px solid #1e2a3a' : 'none' }}>
+                    <span style={{ color: '#4a5568', fontSize: 12 }}>▤</span>
+                    <div style={{ flex: 1, fontSize: 11, color: '#94a3b8' }}>{d.name}</div>
+                    <span style={{ fontSize: 9, color: '#C49A6C', background: '#1f1810', padding: '2px 8px', borderRadius: 8, flexShrink: 0 }}>{d.tag}</span>
+                    <div style={{ fontSize: 10, color: '#4a5568', flexShrink: 0 }}>{d.date}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ── TASKS ───────────────────────────────────────────── */}
+          {tab === 'tasks' && (
+            <>
+              <div style={{ background: '#0a0e1a', border: '1px solid #1e2a3a', borderRadius: 8, padding: '14px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568' }}>ACTIVE TASKS</span>
+                  <span style={{ fontSize: 9, color: '#C49A6C', background: '#1f1810', padding: '2px 10px', borderRadius: 10 }}>{openTasks} OPEN</span>
+                </div>
+                {tasks.map((t, i) => (
+                  <TaskRow key={i} task={t} index={i} onToggle={toggleTask} />
+                ))}
+              </div>
+
+              <AiPanel title="TASK ASSISTANT" output={taskOutput} loading={taskLoading}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <textarea
+                    value={taskQ}
+                    onChange={e => setTaskQ(e.target.value)}
+                    placeholder="Ask Claude to prioritize your list, draft a task plan, or help with a specific item…"
+                    style={{ ...inputStyle, flex: 1, resize: 'none', height: 48 }}
+                  />
+                  <button onClick={runTaskAI} disabled={taskLoading} style={{ ...buttonStyle, opacity: taskLoading ? 0.6 : 1 }}>
+                    {taskLoading ? '…' : 'ASK ▶'}
+                  </button>
+                </div>
+              </AiPanel>
+            </>
+          )}
+
+          {/* ── CODEX SYNC ──────────────────────────────────────── */}
+          {tab === 'codex' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568' }}>CODEX SYNC LOG</span>
+                <span style={{ fontSize: 9, color: '#60a5fa', background: '#10233a', padding: '2px 10px', borderRadius: 10 }}>LATIMORE HUB OS</span>
+              </div>
+
+              <div style={{ background: '#02050a', border: '1px solid #1e2a3a', borderRadius: 8, padding: 12, fontFamily: 'monospace', fontSize: 11, lineHeight: 2, maxHeight: 160, overflowY: 'auto' }}>
+                {LOGS.map((l, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12 }}>
+                    <span style={{ color: '#C49A6C', flexShrink: 0 }}>[{l.time}]</span>
+                    <span style={{ color: l.cls }}>{l.msg}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <div style={{ fontSize: 9, letterSpacing: 2, color: '#4a5568', marginBottom: 10 }}>CODEX WORKFLOWS — RUN WITH CLAUDE</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <WorkflowCard icon="◇" title="Codebase audit" desc="Scan Hub OS for broken routes, missing env vars, and deploy issues." onClick={() => launchWorkflow('audit')} />
+                  <WorkflowCard icon="⌥" title="Termux deploy" desc="Ready-to-paste git + Vercel deploy commands for Android Termux sessions." onClick={() => launchWorkflow('deploy')} />
+                  <WorkflowCard icon="◈" title="Supabase health check" desc="Audit CRM tables, admin routes, and Prisma schema." onClick={() => launchWorkflow('supabase')} />
+                  <WorkflowCard icon="▦" title="Generate admin page" desc="Build a new Hub OS page — leads, CRM, docs, or strategy." onClick={() => launchWorkflow('admin-page')} />
+                </div>
+              </div>
+
+              <AiPanel title="CODEX / CLAUDE INTEGRATED PROMPT" output={codexOutput} loading={codexLoading}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <textarea
+                    value={codexQ}
+                    onChange={e => setCodexQ(e.target.value)}
+                    placeholder="e.g. Generate a Next.js CRM lead table component that pulls from Supabase leads table, sorted by county…"
+                    style={{ ...inputStyle, flex: 1, resize: 'none', height: 56 }}
+                  />
+                  <button onClick={runCodexAI} disabled={codexLoading} style={{ ...buttonStyle, opacity: codexLoading ? 0.6 : 1 }}>
+                    {codexLoading ? 'RUNNING…' : 'RUN ▶'}
+                  </button>
+                </div>
+              </AiPanel>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Panel */}
-      <div className="bg-white border border-t-0 border-slate-200 rounded-b-xl p-5 min-h-[440px]">
-
-        {/* ── DASHBOARD ──────────────────────────────────────────── */}
-        {tab === 'dashboard' && (
-          <div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
-              {[
-                { label: 'Active Policies', value: '1', sub: 'Target: 5/mo by Mo.12', warn: true },
-                { label: 'Pipeline Value', value: '$26.4K', sub: '4 active prospects', warn: false },
-                { label: 'Referral Rate', value: '12%', sub: 'Target: 20–30%', warn: true },
-                { label: 'District Contacts', value: '1', sub: 'Target: 3–5 by Mo.12', warn: true },
-              ].map(k => (
-                <div key={k.label} className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                  <div className="text-[11px] text-slate-500 mb-1">{k.label}</div>
-                  <div className="text-2xl font-bold text-[#2C3E50]">{k.value}</div>
-                  <div className={`text-[11px] mt-1 ${k.warn ? 'text-amber-600' : 'text-emerald-600'}`}>{k.sub}</div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-slate-800">Quick-launch workflows</span>
-              <span className="text-[10px] bg-[#e8d5b7] text-[#8b6a45] px-2.5 py-0.5 rounded-full font-medium">#TheBeatGoesOn</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-              {[
-                { key: 'email', icon: 'fa-envelope', title: 'Email Campaign Builder', desc: 'On-brand emails for pre-retirees, families, or school districts.' },
-                { key: 'proposal', icon: 'fa-school', title: 'District Proposal Builder', desc: 'Full school district B2B proposals covering risk and continuity.' },
-                { key: 'brand-check', icon: 'fa-shield-check', title: 'Brand Compliance Check', desc: 'Scored report against brand guardrails with a priority fix list.' },
-                { key: 'cta', icon: 'fa-bullseye', title: 'CTA Generator', desc: 'Generate KPI-linked calls to action for any ICP or channel.' },
-              ].map(w => (
-                <button
-                  key={w.key}
-                  onClick={() => launchWorkflow(w.key)}
-                  className="text-left border border-slate-200 rounded-lg p-3.5 hover:border-[#C49A6C] hover:shadow-sm transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-[#e8d5b7] flex items-center justify-center mb-2">
-                    <i className={`fa-solid ${w.icon} text-[#8b6a45]`} />
-                  </div>
-                  <div className="text-xs font-semibold text-slate-800 mb-1">{w.title}</div>
-                  <div className="text-[11px] text-slate-500 leading-snug mb-2">{w.desc}</div>
-                  <div className="text-[11px] text-[#8b6a45] font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                    <i className="fa-solid fa-play text-[9px]" /> Launch in Claude ↗
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="text-sm font-semibold text-slate-800 mb-2">Today's priorities</div>
-            {tasks.slice(0, 3).map((t, i) => (
-              <TaskRow key={i} task={t} index={i} onToggle={toggleTask} />
-            ))}
-          </div>
-        )}
-
-        {/* ── REVENUE ENGINE ─────────────────────────────────────── */}
-        {tab === 'revenue' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-slate-800">Revenue pipeline</span>
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">Coal Region</span>
-            </div>
-            {PIPELINE.map((p, i) => (
-              <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-100 last:border-0">
-                <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-[11px] font-semibold text-slate-600 shrink-0">
-                  {p.initials}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-slate-800">{p.name}</div>
-                  <div className="text-[11px] text-slate-500">{p.stage}</div>
-                </div>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${STAGE_STYLES[p.cls]}`}>{p.stage}</span>
-                <div className="text-xs font-semibold text-[#8b6a45] shrink-0">{p.val}</div>
-              </div>
-            ))}
-
-            <div className="h-px bg-slate-100 my-4" />
-
-            {/* AI Content Builder */}
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="bg-[#2C3E50] px-4 py-2 flex items-center gap-2">
-                <i className="fa-solid fa-sparkles text-[#C49A6C] text-sm" />
-                <span className="text-[#C49A6C] text-xs font-semibold">Latimore Brand Content Builder — Powered by Claude</span>
-              </div>
-              <div className="flex gap-2 p-3 bg-slate-50 border-b border-slate-100 flex-wrap">
-                <select value={revIcp} onChange={e => setRevIcp(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded-md bg-white text-slate-700 flex-1 min-w-[140px]">
-                  <option>Pre-Retirees — Schuylkill County</option>
-                  <option>Young Families — Coal Region</option>
-                  <option>School Districts — Schuylkill</option>
-                  <option>Latino Market — Luzerne County</option>
-                </select>
-                <select value={revAsset} onChange={e => setRevAsset(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded-md bg-white text-slate-700 flex-1 min-w-[140px]">
-                  <option>Email campaign</option>
-                  <option>Social post</option>
-                  <option>One-page flyer</option>
-                  <option>Follow-up phone script</option>
-                  <option>Landing page copy</option>
-                  <option>Referral request message</option>
-                </select>
-                <select value={revKpi} onChange={e => setRevKpi(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded-md bg-white text-slate-700 flex-1 min-w-[140px]">
-                  <option>Monthly applications</option>
-                  <option>Referral rate</option>
-                  <option>District penetration</option>
-                </select>
-              </div>
-              <div className="flex gap-2 p-3">
-                <textarea
-                  value={revBrief}
-                  onChange={e => setRevBrief(e.target.value)}
-                  placeholder="Optional: add a specific angle, product, event, or compliance note…"
-                  className="flex-1 text-xs p-2 border border-slate-200 rounded-md bg-slate-50 text-slate-700 resize-none h-14 focus:outline-none focus:border-[#C49A6C]"
-                />
-                <button
-                  onClick={runRevenueAI}
-                  disabled={revLoading}
-                  className="bg-[#2C3E50] text-white text-xs font-semibold px-4 rounded-md hover:bg-[#3d5166] disabled:opacity-60 transition-colors whitespace-nowrap"
-                >
-                  {revLoading ? 'Generating…' : 'Generate ↗'}
-                </button>
-              </div>
-              {revOutput && (
-                <div className="px-4 py-3 text-xs text-slate-600 leading-relaxed bg-slate-50 border-t border-slate-100 whitespace-pre-wrap max-h-72 overflow-y-auto">
-                  {revOutput}
-                </div>
-              )}
-              {!revOutput && (
-                <div className="px-4 py-3 text-xs text-slate-400 bg-slate-50 border-t border-slate-100">
-                  Select your ICP, asset type, and KPI — then hit Generate to build on-brand revenue content.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── FILE VAULT ─────────────────────────────────────────── */}
-        {tab === 'files' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-slate-800">File vault</span>
-              <span className="text-[10px] bg-[#e8d5b7] text-[#8b6a45] px-2.5 py-0.5 rounded-full font-medium">Organized</span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-5">
-              {FOLDERS.map(f => (
-                <button
-                  key={f.key}
-                  className="text-left border border-slate-200 rounded-lg p-3 hover:border-[#C49A6C] transition-colors"
-                  onClick={() => {
-                    navigator.clipboard?.writeText(`Open the Latimore ${f.name} folder.`).catch(() => {})
-                  }}
-                >
-                  <div className="text-2xl mb-2">{f.icon}</div>
-                  <div className="text-xs font-semibold text-slate-800 mb-1">{f.name}</div>
-                  <div className="text-[11px] text-slate-500">{f.sub}</div>
-                </button>
-              ))}
-            </div>
-
-            <div className="text-sm font-semibold text-slate-800 mb-3">Recent documents</div>
-            {DOCS.map((d, i) => (
-              <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-                <i className="fa-solid fa-file-lines text-slate-400 text-sm shrink-0" />
-                <div className="flex-1 text-xs text-slate-700">{d.name}</div>
-                <span className="text-[10px] bg-[#e8d5b7] text-[#8b6a45] px-2 py-0.5 rounded-full font-medium shrink-0">{d.tag}</span>
-                <div className="text-[11px] text-slate-400 shrink-0">{d.date}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* ── TASKS ──────────────────────────────────────────────── */}
-        {tab === 'tasks' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-slate-800">Active tasks</span>
-              <span className="text-[10px] bg-[#e8d5b7] text-[#8b6a45] px-2.5 py-0.5 rounded-full font-medium">{openTasks} open</span>
-            </div>
-            {tasks.map((t, i) => (
-              <TaskRow key={i} task={t} index={i} onToggle={toggleTask} />
-            ))}
-
-            <div className="h-px bg-slate-100 my-4" />
-
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="bg-[#2C3E50] px-4 py-2 flex items-center gap-2">
-                <i className="fa-solid fa-sparkles text-[#C49A6C] text-sm" />
-                <span className="text-[#C49A6C] text-xs font-semibold">Task assistant — Claude</span>
-              </div>
-              <div className="flex gap-2 p-3">
-                <textarea
-                  value={taskQ}
-                  onChange={e => setTaskQ(e.target.value)}
-                  placeholder="Ask Claude to prioritize your list, draft a task plan, or help with a specific item…"
-                  className="flex-1 text-xs p-2 border border-slate-200 rounded-md bg-slate-50 text-slate-700 resize-none h-12 focus:outline-none focus:border-[#C49A6C]"
-                />
-                <button
-                  onClick={runTaskAI}
-                  disabled={taskLoading}
-                  className="bg-[#2C3E50] text-white text-xs font-semibold px-4 rounded-md hover:bg-[#3d5166] disabled:opacity-60 transition-colors"
-                >
-                  {taskLoading ? '…' : 'Ask ↗'}
-                </button>
-              </div>
-              {taskOutput && (
-                <div className="px-4 py-3 text-xs text-slate-600 leading-relaxed bg-slate-50 border-t border-slate-100 whitespace-pre-wrap max-h-60 overflow-y-auto">
-                  {taskOutput}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── CODEX SYNC ─────────────────────────────────────────── */}
-        {tab === 'codex' && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-semibold text-slate-800">Codex sync log</span>
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full font-medium">Latimore Hub OS</span>
-            </div>
-
-            <div className="bg-[#1a1f2e] rounded-lg p-3 font-mono text-[11.5px] leading-7 mb-4 max-h-40 overflow-y-auto">
-              {LOGS.map((l, i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="text-[#C49A6C] shrink-0">[{l.time}]</span>
-                  <span className={l.cls}>{l.msg}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-sm font-semibold text-slate-800 mb-3">Codex workflows — run with Claude</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
-              {[
-                { key: 'audit', icon: 'fa-magnifying-glass-chart', title: 'Codebase audit', desc: 'Scan Hub OS for broken routes, missing env vars, and deploy issues.' },
-                { key: 'deploy', icon: 'fa-code-branch', title: 'Termux deploy', desc: 'Ready-to-paste git + Vercel deploy commands for Android Termux sessions.' },
-                { key: 'supabase', icon: 'fa-database', title: 'Supabase health check', desc: 'Audit CRM tables, admin routes, and Prisma schema.' },
-                { key: 'admin-page', icon: 'fa-table-columns', title: 'Generate admin page', desc: 'Build a new Hub OS page — leads, CRM, docs, or strategy.' },
-              ].map(w => (
-                <button
-                  key={w.key}
-                  onClick={() => launchWorkflow(w.key)}
-                  className="text-left border border-slate-200 rounded-lg p-3.5 hover:border-[#C49A6C] hover:shadow-sm transition-all group"
-                >
-                  <div className="w-8 h-8 rounded-lg bg-[#e8d5b7] flex items-center justify-center mb-2">
-                    <i className={`fa-solid ${w.icon} text-[#8b6a45]`} />
-                  </div>
-                  <div className="text-xs font-semibold text-slate-800 mb-1">{w.title}</div>
-                  <div className="text-[11px] text-slate-500 leading-snug mb-2">{w.desc}</div>
-                  <div className="text-[11px] text-[#8b6a45] font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                    <i className="fa-solid fa-play text-[9px]" /> Launch ↗
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="bg-[#2C3E50] px-4 py-2 flex items-center gap-2">
-                <i className="fa-solid fa-sparkles text-[#C49A6C] text-sm" />
-                <span className="text-[#C49A6C] text-xs font-semibold">Codex / Claude integrated prompt</span>
-              </div>
-              <div className="flex gap-2 p-3">
-                <textarea
-                  value={codexQ}
-                  onChange={e => setCodexQ(e.target.value)}
-                  placeholder="e.g. Generate a Next.js CRM lead table component that pulls from Supabase leads table, sorted by county…"
-                  className="flex-1 text-xs p-2 border border-slate-200 rounded-md bg-slate-50 text-slate-700 resize-none h-14 focus:outline-none focus:border-[#C49A6C]"
-                />
-                <button
-                  onClick={runCodexAI}
-                  disabled={codexLoading}
-                  className="bg-[#2C3E50] text-white text-xs font-semibold px-4 rounded-md hover:bg-[#3d5166] disabled:opacity-60 transition-colors"
-                >
-                  {codexLoading ? 'Running…' : 'Run ↗'}
-                </button>
-              </div>
-              {codexOutput && (
-                <div className="px-4 py-3 text-xs text-slate-600 leading-relaxed bg-slate-50 border-t border-slate-100 whitespace-pre-wrap max-h-72 overflow-y-auto">
-                  {codexOutput}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+      {/* STATUS TICKER */}
+      <div style={{ background: '#020508', borderTop: '1px solid #0f1a0a', padding: '6px 16px', display: 'flex', alignItems: 'center', overflow: 'hidden' }}>
+        <Ticker />
       </div>
     </div>
   )
@@ -529,21 +567,24 @@ Provide production-ready, copy-paste code or commands. Be specific and complete.
 // ── Shared sub-component ──────────────────────────────────────────────────────
 
 function TaskRow({ task, index, onToggle }: { task: Task; index: number; onToggle: (i: number) => void }) {
+  const c = PRI_COLORS[task.pri]
   return (
-    <div className="flex items-start gap-2.5 py-2 border-b border-slate-100 last:border-0">
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderBottom: '1px solid #1e2a3a' }}>
       <button
         onClick={() => onToggle(index)}
-        className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center shrink-0 border transition-colors ${
-          task.done ? 'bg-[#2C3E50] border-[#2C3E50]' : 'border-slate-300'
-        }`}
+        style={{
+          marginTop: 2, width: 16, height: 16, borderRadius: 3, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0, border: `1px solid ${task.done ? '#C49A6C' : '#334155'}`,
+          background: task.done ? '#C49A6C' : 'transparent', cursor: 'pointer',
+        }}
       >
-        {task.done && <span className="text-white text-[9px] font-bold">✓</span>}
+        {task.done && <span style={{ fontSize: 10, color: '#000', fontWeight: 900 }}>✓</span>}
       </button>
-      <div className={`flex-1 text-xs leading-snug ${task.done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+      <div style={{ flex: 1, fontSize: 11, lineHeight: 1.5, color: task.done ? '#4a5568' : '#94a3b8', textDecoration: task.done ? 'line-through' : 'none' }}>
         {task.text}
       </div>
-      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${PRI_STYLES[task.pri]}`}>
-        {task.pri}
+      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 8, flexShrink: 0, background: c.bg, color: c.text }}>
+        {task.pri.toUpperCase()}
       </span>
     </div>
   )
