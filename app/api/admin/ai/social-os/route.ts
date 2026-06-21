@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance, type ComplianceResult } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+
+// Actions whose output is publishable marketing copy — run the PA DOI compliance
+// checker against the text fields listed for each before returning to the client.
+const COMPLIANCE_TEXT_FIELDS: Record<string, string[]> = {
+  socialContent: ['draft'],
+  assetContent: ['draft'],
+  bulkCampaign: ['draft'],
+  funnelStrategy: ['assetCopy'],
+  socialStrategy: ['captions[].text'],
+  reviewScript: ['opening', 'discoveryQuestions[]', 'strategicPivot', 'closing'],
+}
+
+function extractComplianceText(action: string, output: any): string | null {
+  const fields = COMPLIANCE_TEXT_FIELDS[action]
+  if (!fields) return null
+
+  const items = Array.isArray(output) ? output : [output]
+  const chunks: string[] = []
+
+  for (const item of items) {
+    for (const field of fields) {
+      if (field === 'captions[].text') {
+        for (const c of item?.captions ?? []) if (c?.text) chunks.push(c.text)
+      } else if (field === 'discoveryQuestions[]') {
+        for (const q of item?.discoveryQuestions ?? []) if (q) chunks.push(q)
+      } else if (item?.[field]) {
+        chunks.push(item[field])
+      }
+    }
+  }
+
+  return chunks.length ? chunks.join('\n') : null
+}
 
 const BRAND = `Latimore Life & Legacy LLC. Founder: Jackson M. Latimore Sr. Region: Schuylkill, Luzerne, and Northumberland Counties in Pennsylvania. Tagline: Protecting Today. Securing Tomorrow. Hashtag: #TheBeatGoesOn. Voice: education-first, practical, community-rooted, legacy-focused, urgent but never fear-based.`
 
@@ -49,7 +83,10 @@ export async function POST(req: NextRequest) {
       schema,
       temperature: 0.35,
     })
-    return NextResponse.json({ ok:true, data: result.output, model: result.model })
+    const complianceText = extractComplianceText(action, result.output)
+    const compliance: ComplianceResult | undefined = complianceText ? checkCompliance(complianceText) : undefined
+
+    return NextResponse.json({ ok:true, data: result.output, model: result.model, compliance })
   } catch (e:any) {
     return NextResponse.json({ ok:false, error:e?.message || 'AI request failed' }, { status:500 })
   }

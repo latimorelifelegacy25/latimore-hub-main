@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { callNotionWorker } from '@/lib/notion-worker'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-function assertCronAuthorized(req: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (!secret) return { ok: false, response: NextResponse.json({ ok: false, error: 'Missing CRON_SECRET' }, { status: 500 }) }
-
-  const bearer = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
-  const header = req.headers.get('x-cron-secret')
-
-  if (bearer === secret || header === secret) return { ok: true as const }
-  return { ok: false, response: NextResponse.json({ ok: false, error: 'Unauthorized cron request' }, { status: 401 }) }
-}
-
 export async function GET(req: NextRequest) {
-  const auth = assertCronAuthorized(req)
-  if (!auth.ok) return auth.response
+  const unauthorized = requireCronAuth(req)
+  if (unauthorized) return unauthorized
 
   const now = new Date()
   const day = now.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'America/New_York' })

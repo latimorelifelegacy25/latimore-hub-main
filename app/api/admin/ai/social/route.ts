@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const BRAND_VOICE = withAdminAiGuardrails(`You are the Brand-Locked Content Engine for Latimore Life & Legacy LLC.
@@ -66,12 +67,17 @@ Each draft must:
       temperature: 0.8,
     })
 
+    const compliance = checkCompliance(
+      (result.output as Array<{ draft: string }>).map((p) => p.draft).join('\n'),
+    )
+
     return Response.json({
       success: true,
       topic,
       platform,
       count: result.output.length,
       posts: result.output,
+      compliance,
     })
   } catch (error) {
     console.error('[/api/admin/ai/social] Error:', error)

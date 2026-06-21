@@ -3,8 +3,10 @@
  * Generate AI-powered social media content using Gemini or OpenAI
  */
 
+import { NextRequest } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
-import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { checkCompliance } from '@/lib/ai/compliance'
+import { applyAiRateLimit, requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 
 const CONTENT_SCHEMA = {
@@ -47,9 +49,12 @@ Non-Negotiables:
 - Solutions-oriented
 - Warm and community-focused`)
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await applyAiRateLimit(req)
+  if (limited) return limited
 
   try {
     const body = await req.json()
@@ -59,12 +64,14 @@ export async function POST(req: Request) {
       return Response.json({ error: 'topic is required' }, { status: 400 })
     }
 
+    const clampedCount = Math.min(Math.max(Number(count) || 1, 1), 5)
+
     const systemPrompt = BRAND_VOICE
 
-    const userPrompt = `Generate ${count} social media post(s) for ${platform} about: "${topic}"`
+    const userPrompt = `Generate ${clampedCount} social media post(s) for ${platform} about: "${topic}"`
 
     const results = []
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < clampedCount; i++) {
       const result = await createOpenAIJsonCompletion({
         system: systemPrompt,
         user: userPrompt,
@@ -78,10 +85,16 @@ export async function POST(req: Request) {
 
     logger.debug({ count: results.length }, 'Final content generation results')
 
+    const posts = results.flat() // Flatten the array of arrays into a single array
+    const compliance = checkCompliance(
+      (posts as Array<{ draft: string }>).map((p) => p.draft).join('\n'),
+    )
+
     return Response.json({
       success: true,
       count: results.length,
-      posts: results.flat(), // Flatten the array of arrays into a single array
+      posts,
+      compliance,
     })
   } catch (error) {
     console.error('Content generation error:', error)
