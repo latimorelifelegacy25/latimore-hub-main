@@ -7,75 +7,11 @@
 import { BaseWorker } from '../types';
 import type { WorkerInput, WorkerOutput, WorkerEnv, ComplianceCheck, ComplianceViolation } from '../types';
 import { callOpenAI } from '../lib/llm';
+import { CRITICAL_PATTERNS, MAJOR_PATTERNS, MINOR_PATTERNS } from '../lib/compliance-rules';
 
 export class ComplianceReviewer extends BaseWorker {
   name = 'ComplianceReviewer';
   description = 'Reviews AI-generated content for PA DOI insurance compliance';
-
-  // Hard-coded rule patterns (fast, no LLM needed)
-  private readonly CRITICAL_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
-    {
-      pattern: /guarantee[sd]?\s+(you|your|that|a|the)\s+(will|won't|won't|shall|must)/i,
-      rule: 'NO_GUARANTEE',
-      description: 'Definitive guarantee language is prohibited in insurance marketing',
-    },
-    {
-      pattern: /\$[\d,]+\s*(per month|\/month|monthly)\s*(guaranteed|for sure|definitely)/i,
-      rule: 'NO_SPECIFIC_PREMIUM_GUARANTEE',
-      description: 'Specific premium amounts cannot be guaranteed without an official illustration',
-    },
-    {
-      pattern: /you (will|won't|shall) (receive|get|earn|make|pay)/i,
-      rule: 'NO_DEFINITIVE_OUTCOME',
-      description: 'Definitive outcome statements are prohibited — use "may", "can", or "could"',
-    },
-    {
-      pattern: /medical (advice|diagnosis|treatment|prescription)/i,
-      rule: 'NO_MEDICAL_ADVICE',
-      description: 'Medical advice is strictly prohibited',
-    },
-    {
-      pattern: /legal (advice|counsel|opinion|guidance)/i,
-      rule: 'NO_LEGAL_ADVICE',
-      description: 'Legal advice is strictly prohibited',
-    },
-  ];
-
-  private readonly MAJOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
-    {
-      pattern: /best (insurance|policy|plan|product|rate|deal) (in|on|for)/i,
-      rule: 'SUPERLATIVE_CLAIM',
-      description: 'Superlative claims ("best") require substantiation',
-    },
-    {
-      pattern: /\d+%\s*(return|growth|gain|yield|interest)\s*(guaranteed|assured|certain)/i,
-      rule: 'GUARANTEED_RETURN',
-      description: 'Guaranteed return percentages require official illustration',
-    },
-    {
-      pattern: /fear|terrif|scar|panic|danger|risk of death|die without/i,
-      rule: 'FEAR_BASED_MARKETING',
-      description: 'Fear-based marketing violates dignity-first brand guidelines',
-    },
-    {
-      pattern: /limited time|act now|expires|last chance|only \d+ (spots|slots|openings) left/i,
-      rule: 'FALSE_URGENCY',
-      description: 'False urgency claims may violate PA DOI regulations',
-    },
-  ];
-
-  private readonly MINOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
-    {
-      pattern: /always|never|every (family|person|client|customer)/i,
-      rule: 'ABSOLUTE_LANGUAGE',
-      description: 'Absolute language should be softened with qualifiers',
-    },
-    {
-      pattern: /\$[\d,]{4,}/,
-      rule: 'SPECIFIC_DOLLAR_AMOUNT',
-      description: 'Specific dollar amounts should reference official illustrations',
-    },
-  ];
 
   async execute(input: WorkerInput, env: WorkerEnv): Promise<WorkerOutput> {
     const content = input.content as string || '';
@@ -152,7 +88,7 @@ export class ComplianceReviewer extends BaseWorker {
     const warnings: string[] = [];
 
     // Check critical patterns
-    for (const { pattern, rule, description } of this.CRITICAL_PATTERNS) {
+    for (const { pattern, rule, description } of CRITICAL_PATTERNS) {
       const match = content.match(pattern);
       if (match) {
         violations.push({
@@ -165,7 +101,7 @@ export class ComplianceReviewer extends BaseWorker {
     }
 
     // Check major patterns
-    for (const { pattern, rule, description } of this.MAJOR_PATTERNS) {
+    for (const { pattern, rule, description } of MAJOR_PATTERNS) {
       const match = content.match(pattern);
       if (match) {
         violations.push({
@@ -178,7 +114,7 @@ export class ComplianceReviewer extends BaseWorker {
     }
 
     // Check minor patterns
-    for (const { pattern, rule, description } of this.MINOR_PATTERNS) {
+    for (const { pattern, rule, description } of MINOR_PATTERNS) {
       const match = content.match(pattern);
       if (match) {
         warnings.push(`[${rule}] ${description} — found: "${match[0].substring(0, 50)}"`);

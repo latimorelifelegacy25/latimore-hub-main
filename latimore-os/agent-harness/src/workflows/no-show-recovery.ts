@@ -52,6 +52,7 @@ export const noShowRecoveryWorkflow: WorkflowDefinition = {
       depends_on: ['compliance_check'],
       input_map: {
         draft: 'draft',
+        compliance: 'compliance',
         email: 'email',
         phone: 'phone',
         first_name: 'first_name',
