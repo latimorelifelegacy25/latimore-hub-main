@@ -256,7 +256,17 @@ function formatAppointmentTime(isoTime: string, timezone = 'America/New_York'): 
 
 // ── EMAIL TEMPLATES ───────────────────────────────────────────────────────────
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function buildBookingConfirmationEmail(firstName: string, formattedTime: string, meetingUrl?: string): string {
+  const safeMeetingUrl = meetingUrl ? encodeURI(meetingUrl) : '';
   return `
 <!DOCTYPE html>
 <html>
@@ -269,13 +279,13 @@ function buildBookingConfirmationEmail(firstName: string, formattedTime: string,
           <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:8px 0 0;">Latimore Life & Legacy</p>
         </td></tr>
         <tr><td style="padding:40px;">
-          <p style="color:#1A1A2E;font-size:18px;margin:0 0 16px;">Hi ${firstName},</p>
+          <p style="color:#1A1A2E;font-size:18px;margin:0 0 16px;">Hi ${escapeHtml(firstName)},</p>
           <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 16px;">
             Your consultation with Jackson M. Latimore Sr., MBA is confirmed for:
           </p>
           <div style="background:#f8f6f0;border-left:4px solid #C8A951;padding:20px 24px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-            <p style="margin:0;color:#1B3A6B;font-size:20px;font-weight:bold;">${formattedTime}</p>
-            ${meetingUrl ? `<p style="margin:8px 0 0;"><a href="${meetingUrl}" style="color:#C8A951;">Join Video Call →</a></p>` : '<p style="margin:8px 0 0;color:#555;font-size:14px;">We will call you at the number you provided.</p>'}
+            <p style="margin:0;color:#1B3A6B;font-size:20px;font-weight:bold;">${escapeHtml(formattedTime)}</p>
+            ${safeMeetingUrl ? `<p style="margin:8px 0 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C8A951;">Join Video Call →</a></p>` : '<p style="margin:8px 0 0;color:#555;font-size:14px;">We will call you at the number you provided.</p>'}
           </div>
           <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 16px;">
             To prepare, think about: your current coverage, your family\'s financial needs, and any questions you have about life insurance or retirement planning.
@@ -292,6 +302,7 @@ function buildBookingConfirmationEmail(firstName: string, formattedTime: string,
 
 function buildAgentBookingEmail(booking: ReturnType<typeof normalizeBooking>): string {
   const time = formatAppointmentTime(booking.startTime, booking.timezone);
+  const safeMeetingUrl = booking.meetingUrl ? encodeURI(booking.meetingUrl) : '';
   return `
 <!DOCTYPE html>
 <html>
@@ -299,13 +310,13 @@ function buildAgentBookingEmail(booking: ReturnType<typeof normalizeBooking>): s
   <div style="background:#fff;border-radius:8px;padding:24px;max-width:600px;margin:0 auto;border-left:4px solid #C8A951;">
     <h2 style="color:#1B3A6B;margin:0 0 16px;">📅 New Appointment — Latimore OS</h2>
     <table style="width:100%;border-collapse:collapse;">
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;width:160px;">Name:</td><td style="padding:8px 0;">${booking.attendeeName}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Email:</td><td style="padding:8px 0;">${booking.attendeeEmail}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Phone:</td><td style="padding:8px 0;">${booking.attendeePhone || 'Not provided'}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Time:</td><td style="padding:8px 0;color:#1B3A6B;font-weight:bold;">${time}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Type:</td><td style="padding:8px 0;">${booking.appointmentType}</td></tr>
-      ${booking.meetingUrl ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Link:</td><td style="padding:8px 0;"><a href="${booking.meetingUrl}" style="color:#C8A951;">${booking.meetingUrl}</a></td></tr>` : ''}
-      ${booking.notes ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Notes:</td><td style="padding:8px 0;">${booking.notes}</td></tr>` : ''}
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;width:160px;">Name:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeeName)}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Email:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeeEmail)}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Phone:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeePhone || 'Not provided')}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Time:</td><td style="padding:8px 0;color:#1B3A6B;font-weight:bold;">${escapeHtml(time)}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Type:</td><td style="padding:8px 0;">${escapeHtml(booking.appointmentType)}</td></tr>
+      ${safeMeetingUrl ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Link:</td><td style="padding:8px 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C8A951;">${escapeHtml(safeMeetingUrl)}</a></td></tr>` : ''}
+      ${booking.notes ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Notes:</td><td style="padding:8px 0;">${escapeHtml(booking.notes)}</td></tr>` : ''}
     </table>
     <div style="margin-top:20px;padding:12px;background:#1B3A6B;border-radius:6px;text-align:center;">
       <a href="https://hub.latimorelifelegacy.com/admin/appointments" style="color:#C8A951;font-weight:bold;text-decoration:none;">View in Latimore OS →</a>

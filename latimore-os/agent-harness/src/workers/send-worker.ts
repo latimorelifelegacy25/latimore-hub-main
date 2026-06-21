@@ -7,6 +7,15 @@ import { BaseWorker } from '../types';
 import type { WorkerInput, WorkerOutput, WorkerEnv } from '../types';
 import { createDBClient } from '../lib/supabase';
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export class SendWorker extends BaseWorker {
   name = 'SendWorker';
   description = 'Sends emails and SMS, logs all communications to CRM';
@@ -213,7 +222,7 @@ export class SendWorker extends BaseWorker {
   private buildEmailHTML(firstName: string, body: string): string {
     const htmlBody = body
       .split('\n')
-      .map(line => line.trim() ? `<p style="margin:0 0 12px;color:#555;font-size:16px;line-height:1.6;">${line}</p>` : '<br>')
+      .map(line => line.trim() ? `<p style="margin:0 0 12px;color:#555;font-size:16px;line-height:1.6;">${escapeHtml(line)}</p>` : '<br>')
       .join('');
 
     return `
