@@ -113,13 +113,13 @@ function buildMonthlySnapshotEmail(
   activeAgents: number
 ): string {
   const metrics = [
-    { label: 'New Leads', value: leads, color: '#1B3A6B' },
-    { label: 'Appts Set', value: apptsSet, color: '#C8A951' },
+    { label: 'New Leads', value: leads, color: '#0E1A2B' },
+    { label: 'Appts Set', value: apptsSet, color: '#C9A25F' },
     { label: 'Appts Held', value: apptsHeld, color: '#276221' },
     { label: 'Apps Submitted', value: prod.apps_submitted, color: '#555' },
     { label: 'Policies Issued', value: prod.policies_issued, color: '#276221' },
-    { label: 'Premium Written', value: `$${(prod.premium_written || 0).toLocaleString()}`, color: '#1B3A6B' },
-    { label: 'Annuity Premium', value: `$${(prod.annuity_premium || 0).toLocaleString()}`, color: '#C8A951' },
+    { label: 'Premium Written', value: `$${(prod.premium_written || 0).toLocaleString()}`, color: '#0E1A2B' },
+    { label: 'Annuity Premium', value: `$${(prod.annuity_premium || 0).toLocaleString()}`, color: '#C9A25F' },
     { label: 'Commission', value: `$${(prod.commission_earned || 0).toLocaleString()}`, color: '#276221' },
     { label: 'Active Agents', value: activeAgents, color: '#9C5700' },
   ];
@@ -131,8 +131,8 @@ function buildMonthlySnapshotEmail(
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:30px 20px;">
     <tr><td align="center">
       <table width="640" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
-        <tr><td style="background:#1B3A6B;padding:28px 36px;">
-          <h1 style="color:#C8A951;font-size:22px;margin:0;">📈 Monthly Snapshot — ${monthName}</h1>
+        <tr><td style="background:#0E1A2B;padding:28px 36px;">
+          <h1 style="color:#C9A25F;font-size:22px;margin:0;">📈 Monthly Snapshot — ${monthName}</h1>
           <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:6px 0 0;">Latimore Life & Legacy — Protecting Today. Securing Tomorrow.</p>
         </td></tr>
         <tr><td style="padding:32px 36px;">
@@ -149,7 +149,7 @@ function buildMonthlySnapshotEmail(
               <tr><td colspan="6" style="height:12px;"></td></tr>` : '').filter(Boolean).join('')}
           </table>
           <div style="text-align:center;margin-top:24px;">
-            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#1B3A6B;color:#C8A951;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;">
+            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;">
               View Full Dashboard →
             </a>
           </div>

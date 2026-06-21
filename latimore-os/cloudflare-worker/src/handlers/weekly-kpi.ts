@@ -149,7 +149,7 @@ function buildWeeklyKPIEmail(data: {
     .map(([source, count]) => `
       <tr>
         <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-transform:capitalize;">${source}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#1B3A6B;">${count}</td>
+        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#0E1A2B;">${count}</td>
         <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#888;">${((count / data.leads.length) * 100).toFixed(0)}%</td>
       </tr>`).join('');
 
@@ -157,7 +157,7 @@ function buildWeeklyKPIEmail(data: {
     ? data.agents.map((a, i) => `
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">${i + 1}. ${a.agent_name}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#C8A951;">$${(a.ytd_premium || 0).toLocaleString()}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#C9A25F;">$${(a.ytd_premium || 0).toLocaleString()}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">${a.ytd_policies || 0}</td>
         </tr>`).join('')
     : '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center;">No agent data yet</td></tr>';
@@ -165,7 +165,7 @@ function buildWeeklyKPIEmail(data: {
   const pipelineRows = data.pipeline.map(p => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-transform:capitalize;">${p.status.replace(/_/g, ' ')}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#1B3A6B;">${p.count}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#0E1A2B;">${p.count}</td>
     </tr>`).join('');
 
   return `
@@ -177,20 +177,20 @@ function buildWeeklyKPIEmail(data: {
       <table width="680" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
 
         <!-- Header -->
-        <tr><td style="background:#1B3A6B;padding:28px 36px;">
-          <h1 style="color:#C8A951;font-size:22px;margin:0;">📊 Weekly KPI Report — Latimore OS</h1>
+        <tr><td style="background:#0E1A2B;padding:28px 36px;">
+          <h1 style="color:#C9A25F;font-size:22px;margin:0;">📊 Weekly KPI Report — Latimore OS</h1>
           <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:6px 0 0;">Week of ${data.weekStart} → ${data.weekEnd}</p>
         </td></tr>
 
         <!-- Production KPIs -->
         <tr><td style="padding:28px 36px 0;">
-          <h3 style="color:#1B3A6B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C8A951;padding-bottom:8px;">💼 Personal Production</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">💼 Personal Production</h3>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               ${[
                 ['Policies Issued', data.production.policies_issued, '#276221'],
-                ['Premium Written', `$${(data.production.premium_written || 0).toLocaleString()}`, '#1B3A6B'],
-                ['Annuity Premium', `$${(data.production.annuity_premium || 0).toLocaleString()}`, '#C8A951'],
+                ['Premium Written', `$${(data.production.premium_written || 0).toLocaleString()}`, '#0E1A2B'],
+                ['Annuity Premium', `$${(data.production.annuity_premium || 0).toLocaleString()}`, '#C9A25F'],
                 ['Apps Submitted', data.production.apps_submitted, '#555'],
                 ['Commission', `$${(data.production.commission_earned || 0).toLocaleString()}`, '#276221'],
               ].map(([label, value, color]) => `
@@ -204,12 +204,12 @@ function buildWeeklyKPIEmail(data: {
 
         <!-- Lead Activity -->
         <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#1B3A6B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C8A951;padding-bottom:8px;">🔔 Lead Activity</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🔔 Lead Activity</h3>
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               ${[
-                ['Total Leads', data.leads.length, '#1B3A6B'],
-                ['Appts Set', data.appts.filter(a => ['scheduled','confirmed','held'].includes(a.status)).length, '#C8A951'],
+                ['Total Leads', data.leads.length, '#0E1A2B'],
+                ['Appts Set', data.appts.filter(a => ['scheduled','confirmed','held'].includes(a.status)).length, '#C9A25F'],
                 ['Appts Held', data.appts.filter(a => a.status === 'held').length, '#276221'],
                 ['Conversion', `${data.conversionRate}%`, '#9C5700'],
               ].map(([label, value, color]) => `
@@ -223,7 +223,7 @@ function buildWeeklyKPIEmail(data: {
 
         <!-- Lead Sources -->
         <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C8A951;padding-bottom:8px;">📡 Lead Sources</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">📡 Lead Sources</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Source</th>
@@ -236,7 +236,7 @@ function buildWeeklyKPIEmail(data: {
 
         <!-- Pipeline -->
         <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C8A951;padding-bottom:8px;">🔄 Pipeline Status</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🔄 Pipeline Status</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Status</th>
@@ -248,7 +248,7 @@ function buildWeeklyKPIEmail(data: {
 
         <!-- Agent Leaderboard -->
         <tr><td style="padding:24px 36px;">
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C8A951;padding-bottom:8px;">🏆 Agent Leaderboard (YTD)</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🏆 Agent Leaderboard (YTD)</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Agent</th>
@@ -259,7 +259,7 @@ function buildWeeklyKPIEmail(data: {
           </table>
 
           <div style="text-align:center;margin-top:24px;">
-            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#1B3A6B;color:#C8A951;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
+            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
               Open Full Dashboard →
             </a>
           </div>

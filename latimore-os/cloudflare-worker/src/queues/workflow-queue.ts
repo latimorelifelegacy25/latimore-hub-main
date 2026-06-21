@@ -20,7 +20,7 @@ export async function processWorkflowQueue(
   const db = createSupabaseClient(env);
 
   // Check if agent harness is enabled
-  const harnessEnabled = (env as unknown as Record<string, string>)['AGENT_HARNESS_ENABLED'] === 'true';
+  const harnessEnabled = env.AGENT_HARNESS_ENABLED === 'true';
 
   for (const message of batch.messages) {
     try {
@@ -44,7 +44,7 @@ export async function processWorkflowQueue(
       }
 
       // Forward to Next.js agent harness endpoint
-      const hubUrl = (env as unknown as Record<string, string>)['HUB_URL'] || 'https://hub.latimorelifelegacy.com';
+      const hubUrl = env.HUB_URL || 'https://hub.latimorelifelegacy.com';
       const workerSecret = env.WORKER_SECRET;
 
       const response = await fetch(`${hubUrl}/api/agent/run`, {

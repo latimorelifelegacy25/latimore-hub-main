@@ -28,6 +28,7 @@ export interface Env {
   WORKER_SECRET: string;
   GEMINI_API_KEY: string;
   FILLOUT_SECRET: string;
+  BOOKING_WEBHOOK_SECRET: string;
 
   // Queues
   LEAD_QUEUE: Queue;
@@ -37,6 +38,7 @@ export interface Env {
   ENVIRONMENT: string;
   APP_URL: string;
   HUB_URL: string;
+  AGENT_HARNESS_ENABLED?: string;
 }
 
 // ── MAIN FETCH HANDLER ────────────────────────────────────────────────────────

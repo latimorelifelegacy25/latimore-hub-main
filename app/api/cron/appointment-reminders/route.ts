@@ -16,8 +16,25 @@ export async function GET(req: NextRequest) {
     include: { contact: true },
   })
 
+  const remindedEventIds = new Set<string>()
+  if (events.length > 0) {
+    const alreadyReminded = await prisma.systemEvent.findMany({
+      where: {
+        type: 'appointment.reminder.sent',
+        OR: events.map((event) => ({ payload: { path: ['eventId'], equals: event.id } })),
+      },
+      select: { payload: true },
+    })
+    for (const systemEvent of alreadyReminded) {
+      const eventId = (systemEvent.payload as { eventId?: string } | null)?.eventId
+      if (eventId) remindedEventIds.add(eventId)
+    }
+  }
+
   let reminders = 0
   for (const event of events) {
+    if (remindedEventIds.has(event.id)) continue
+
     const contactName = [event.contact?.firstName, event.contact?.lastName].filter(Boolean).join(' ') || event.contact?.email || event.contact?.phone || 'Unknown contact'
     await sendGoogleChatMessage(
       `Appointment reminder\n\nContact: ${contactName}\nScheduled: ${event.startAt.toLocaleString('en-US')}\nEvent ID: ${event.id}`,

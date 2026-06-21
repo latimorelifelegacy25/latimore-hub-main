@@ -123,6 +123,7 @@
   - **Fix**: Replaced the legacy route body with a thin import/export wrapper around the canonical signed Fillout webhook handler.
   - **Verification method**: Code-level verification of `app/api/fillout-webhook/route.ts`.
   - **Deployment status**: Committed to `main` in `d900350f41add5747941223e2a3ae48cf593afea`.
+  - **Regression**: A later commit reintroduced a divergent route body, undoing the wrapper. Re-fixed and restored the thin wrapper in `4957d97` ("Restore signed Fillout webhook wrapper; fix Chatbot message-role type widening").
 
 - **Issue: Public rate limiting could fail open** — A missing or failing durable rate-limit backend could leave public intake/webhook routes relying on process memory or no effective protection.
   - **Root cause**: `lib/rate-limit.ts` allowed an in-memory fallback and treated Upstash failures as not-limited.

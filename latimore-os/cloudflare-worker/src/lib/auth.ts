@@ -22,6 +22,15 @@ export function verifyWorkerSecret(
   return { valid: true };
 }
 
+// Verifies the shared webhook secret header, matching the convention used by
+// app/api/webhooks/booking/route.ts on the Next.js side (x-webhook-secret).
+export function verifyWebhookSecret(request: Request, secret: string): boolean {
+  if (!secret) return false;
+  const header = request.headers.get('x-webhook-secret');
+  if (!header) return false;
+  return safeCompare(header, secret);
+}
+
 function normalizeSignature(sig: string): string {
   const value = sig.trim();
   const idx = value.indexOf('=');

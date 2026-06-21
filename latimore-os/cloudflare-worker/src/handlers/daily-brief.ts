@@ -144,7 +144,7 @@ function buildDailyBriefEmail(data: {
     ? data.newLeads.slice(0, 5).map(l => `
         <tr>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">${l.first_name} ${l.last_name}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#C8A951;">${l.source}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#C9A25F;">${l.source}</td>
           <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#888;">${formatRelativeTime(l.created_at)}</td>
         </tr>`).join('')
     : '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center;">No new leads</td></tr>';
@@ -167,8 +167,8 @@ function buildDailyBriefEmail(data: {
     <tr><td align="center">
       <table width="640" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
         <!-- Header -->
-        <tr><td style="background:#1B3A6B;padding:24px 32px;">
-          <h1 style="color:#C8A951;font-size:22px;margin:0;">☀️ Daily Brief — Latimore OS</h1>
+        <tr><td style="background:#0E1A2B;padding:24px 32px;">
+          <h1 style="color:#C9A25F;font-size:22px;margin:0;">☀️ Daily Brief — Latimore OS</h1>
           <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:6px 0 0;">${data.date}</p>
         </td></tr>
 
@@ -177,11 +177,11 @@ function buildDailyBriefEmail(data: {
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="text-align:center;padding:0 16px;">
-                <div style="font-size:28px;font-weight:bold;color:#1B3A6B;">${data.appointments.length}</div>
+                <div style="font-size:28px;font-weight:bold;color:#0E1A2B;">${data.appointments.length}</div>
                 <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Appointments</div>
               </td>
               <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;">
-                <div style="font-size:28px;font-weight:bold;color:#C8A951;">${data.newLeads.length}</div>
+                <div style="font-size:28px;font-weight:bold;color:#C9A25F;">${data.newLeads.length}</div>
                 <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">New Leads</div>
               </td>
               <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;">
@@ -198,7 +198,7 @@ function buildDailyBriefEmail(data: {
 
         <tr><td style="padding:24px 32px;">
           <!-- Appointments -->
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;">📅 Today's Appointments</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">📅 Today's Appointments</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Time</th>
@@ -209,7 +209,7 @@ function buildDailyBriefEmail(data: {
           </table>
 
           <!-- New Leads -->
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;">🔔 New Leads (Last 24h)</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">🔔 New Leads (Last 24h)</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Name</th>
@@ -220,7 +220,7 @@ function buildDailyBriefEmail(data: {
           </table>
 
           <!-- Tasks -->
-          <h3 style="color:#1B3A6B;margin:0 0 12px;font-size:16px;">✅ Pending Tasks</h3>
+          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">✅ Pending Tasks</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
             <tr style="background:#f5f5f5;">
               <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Task</th>
@@ -231,7 +231,7 @@ function buildDailyBriefEmail(data: {
 
           <!-- CTA -->
           <div style="text-align:center;margin-top:8px;">
-            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#1B3A6B;color:#C8A951;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
+            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
               Open Latimore OS →
             </a>
           </div>

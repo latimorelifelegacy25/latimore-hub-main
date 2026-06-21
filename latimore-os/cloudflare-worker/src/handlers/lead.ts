@@ -63,7 +63,7 @@ export async function handleLeadIntake(
       const lastLead = existing[0] as { id: string; created_at: string };
       const hoursSince = (Date.now() - new Date(lastLead.created_at).getTime()) / 3600000;
       if (hoursSince < 24) {
-        console.log(`[Lead] Duplicate detected for ${payload.email} (${hoursSince.toFixed(1)}h ago)`);
+        console.log(`[Lead] Duplicate detected for lead ${lastLead.id} (${hoursSince.toFixed(1)}h ago)`);
         // Still return success to avoid exposing duplicate detection
         return jsonResponse({ success: true, message: 'Thank you! We will be in touch shortly.' });
       }
@@ -175,7 +175,7 @@ export async function handleLeadIntake(
     })
   );
 
-  console.log(`[Lead] Created: ${payload.first_name} ${payload.last_name} (${source})`);
+  console.log(`[Lead] Created: ${leadRecord?.id} (${source})`);
 
   return jsonResponse({
     success: true,
