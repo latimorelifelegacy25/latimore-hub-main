@@ -72,9 +72,8 @@ latimore-os/
 │
 └── docs/
     ├── ARCHITECTURE.md      # This file
-    ├── DATABASE.md          # Schema documentation
     ├── API.md               # API endpoint reference
-    └── WORKFLOWS.md         # Agent workflow reference
+    └── DEPLOYMENT.md        # Deployment checklist and env var reference
 ```
 
 The Next.js admin/public app (CRM, analytics, content tools) is the **repository root**, not nested under `latimore-os/` — it's a separate Prisma + Supabase-pooled-connection app from the one `agent-harness/` talks to via `createDBClient`. Treat `latimore-os/` and the root app as two systems that happen to live in the same git repo, not one shared codebase.

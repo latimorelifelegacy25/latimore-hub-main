@@ -47,3 +47,4 @@ crons = [
 # WORKER_SECRET (for internal auth between Next.js and Worker)
 # OPENAI_API_KEY
 # FILLOUT_SECRET (HMAC-SHA256 secret from Fillout dashboard)
+# BOOKING_WEBHOOK_SECRET (shared secret sent as x-webhook-secret by the booking provider)

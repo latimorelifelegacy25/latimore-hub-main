@@ -27,6 +27,8 @@ export async function GET(req: NextRequest) {
           }
         ]
       },
+      orderBy: { lastActivityAt: 'desc' },
+      take: 500,
       include: {
         inquiries: {
           include: {
