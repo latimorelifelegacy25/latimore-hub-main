@@ -9,7 +9,6 @@ import NotificationCenter from './_components/NotificationCenter'
 
 const navItems = [
   { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
-  { href: '/admin/dashboard', label: 'Dashboard', icon: 'fa-chart-line' },
   { href: '/admin/nexus-agent', label: 'Nexus Agent', icon: 'fa-robot' },
   { href: '/admin/workflow', label: 'Workflow Builder', icon: 'fa-diagram-project' },
   { href: '/admin/autonomous-monitor', label: 'Auto Monitor', icon: 'fa-tower-broadcast' },
