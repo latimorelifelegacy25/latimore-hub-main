@@ -1,9 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeStage } from './normalizers'
-import { syncContactToNotion } from '@/lib/notion/sync-contact'
 import { captureException } from '@/lib/error-tracking'
-import { logger } from '@/lib/logger'
 
 export async function recordAppointment(input: {
   inquiryId?: string | null
@@ -69,6 +67,13 @@ export async function recordAppointment(input: {
           actor: bookingSource,
           note: 'Stage advanced by appointment booking',
         },
+      })
+
+      // The Notion Worker's delta sync windows on Contact.updatedAt — a stage
+      // change only touches Inquiry, so bump the Contact row to get picked up.
+      await tx.contact.update({
+        where: { id: inquiry.contactId },
+        data: { updatedAt: new Date() },
       })
 
       await tx.task.updateMany({
@@ -137,11 +142,6 @@ export async function recordAppointment(input: {
       scheduledFor: appointment.scheduledFor,
     },
   })
-
-  // Fire-and-forget — Notion sync must not block or break booking confirmation
-  syncContactToNotion(inquiry.contact, { ...inquiry, stage: toStage }).catch(err =>
-    logger.error({ err, contactId: inquiry.contactId }, 'Notion sync failed'),
-  )
 
   return { inquiry, appointment }
 }

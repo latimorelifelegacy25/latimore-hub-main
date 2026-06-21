@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { Contact } from '@prisma/client'
 import PageHeader from '@/app/admin/_components/PageHeader'
+import { useAiTasks } from '@/app/admin/_hooks/useAiTasks'
+import ContactActionPanel from './ContactActionPanel'
 
 interface ClientWithDetails extends Contact {
   inquiries?: any[]
@@ -34,7 +36,7 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
     county: '',
   })
   const [showFilters, setShowFilters] = useState(false)
-  const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
+  const { isLoading: isGeneratingTasks, generateTasks } = useAiTasks()
 
   const pipelineStages = [
     'NEW',
@@ -152,55 +154,19 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
   const handleGenerateTasks = async () => {
     if (selectedContacts.size === 0) return
 
-    setIsGeneratingTasks(true)
     try {
-      const tasksPromises = Array.from(selectedContacts).map(contactId =>
-        fetch('/api/ai/generate-tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contactId })
-        })
+      const results = await Promise.all(
+        Array.from(selectedContacts).map(contactId => generateTasks(contactId))
       )
+      const totalTasks = results.reduce((count, tasks) => count + (tasks?.length || 0), 0)
 
-      const results = await Promise.all(tasksPromises)
-      const allTasks = []
-
-      for (const result of results) {
-        if (result.ok) {
-          const data = await result.json()
-          allTasks.push(...data.tasks)
-        }
-      }
-
-      alert(`Generated ${allTasks.length} AI-powered tasks for ${selectedContacts.size} contacts`)
+      alert(`Generated ${totalTasks} AI-powered tasks for ${selectedContacts.size} contacts`)
     } catch (error) {
       console.error('Task generation error:', error)
       alert('Failed to generate tasks')
-    } finally {
-      setIsGeneratingTasks(false)
     }
   }
 
-  const handleGenerateTasksForContact = async (contactId: string) => {
-    setIsGeneratingTasks(true)
-    try {
-      const response = await fetch('/api/ai/generate-tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contactId })
-      })
-
-      if (!response.ok) throw new Error('Failed to generate tasks')
-
-      const data = await response.json()
-      alert(`Generated ${data.tasks.length} AI-powered tasks for this contact`)
-    } catch (error) {
-      console.error('Task generation error:', error)
-      alert('Failed to generate tasks')
-    } finally {
-      setIsGeneratingTasks(false)
-    }
-  }
 
   const handleExportContacts = () => {
     const selectedContactsData = filteredContacts.filter(c => selectedContacts.has(c.id))
@@ -580,13 +546,6 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                       <h3 className="text-lg font-black text-white">AI Client Snapshot</h3>
                       <div className="flex gap-3">
                         <button
-                          onClick={() => handleGenerateTasksForContact(selectedContact.id)}
-                          disabled={isGeneratingTasks}
-                          className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
-                        >
-                          {isGeneratingTasks ? 'Generating...' : '🤖 Generate Tasks'}
-                        </button>
-                        <button
                           onClick={() => handleGenerateSnapshot(selectedContact)}
                           disabled={isGeneratingSnapshot}
                           className="bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-black px-4 py-2 rounded-lg transition"
@@ -636,6 +595,9 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
                       <p className="text-slate-400">No AI snapshot available. Click Generate to create one.</p>
                     )}
                   </div>
+
+                  {/* AI Task Recommendations */}
+                  <ContactActionPanel contactId={selectedContact.id} />
                 </div>
               </div>
             </div>

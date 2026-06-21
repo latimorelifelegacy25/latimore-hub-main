@@ -3,11 +3,11 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --navy:      #2C3E50;
+  --navy:      #0E1A2B;
   --navy-dark: #1a2632;
   --navy-mid:  #3d5166;
-  --gold:      #C49A6C;
-  --gold-dark: #a67d52;
+  --gold:      #C9A25F;
+  --gold-dark: #a8854a;
   --gold-light:#d4b48a;
   --crimson:   #8B1A2F;
   --white:     #ffffff;

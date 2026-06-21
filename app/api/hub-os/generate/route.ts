@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { buildInstructionBoundaryBlock, sanitizeAiText } from '@/lib/ai/prompt-boundary'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,9 +10,14 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null)
   const prompt = body?.prompt
+  const systemCtx = body?.systemCtx ?? body?.system ?? ''
   if (!prompt || typeof prompt !== 'string') {
     return NextResponse.json({ error: 'prompt required' }, { status: 400 })
   }
+
+  const cleanPrompt = sanitizeAiText(prompt)
+  const cleanSystem = sanitizeAiText(systemCtx)
+  const boundedPrompt = buildInstructionBoundaryBlock(cleanSystem, cleanPrompt)
 
   const provider = (process.env.AI_PROVIDER ?? 'openai').toLowerCase()
 
@@ -24,7 +30,8 @@ export async function POST(req: NextRequest) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          ...(cleanSystem ? { systemInstruction: { parts: [{ text: cleanSystem }] } } : {}),
+          contents: [{ role: 'user', parts: [{ text: boundedPrompt }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 1500 },
         }),
         cache: 'no-store',
@@ -48,7 +55,10 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL ?? 'gpt-4.1-mini',
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        ...(cleanSystem ? [{ role: 'system' as const, content: cleanSystem }] : []),
+        { role: 'user' as const, content: boundedPrompt },
+      ],
       max_tokens: 1500,
       temperature: 0.7,
     }),

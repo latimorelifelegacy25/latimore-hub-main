@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -39,11 +40,10 @@ const REQUIRED_IN_PRODUCTION = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'RESEND_API_KEY',
   'GOOGLE_CHAT_WEBHOOK_URL',
-  // Without these, lib/rate-limit.ts falls back to failing closed (429s every
-  // request) on all public intake/webhook routes — better to fail the deploy
-  // than silently lock out real traffic.
-  'UPSTASH_REDIS_REST_URL',
-  'UPSTASH_REDIS_REST_TOKEN',
+  // UPSTASH_REDIS_REST_URL/TOKEN are intentionally NOT required here —
+  // lib/rate-limit.ts already falls back to an in-memory limiter when they're
+  // absent, so missing Upstash config degrades rate limiting, it doesn't
+  // break the app.
 ] as const
 
 /**
@@ -58,9 +58,15 @@ export function validateEnv(): void {
   }
 }
 
+// Importing this module must never crash the importing route. `lib/auth.ts`
+// and `instrumentation.ts` pull this in, and instrumentation runs on every
+// serverless cold start across the whole app — a thrown error here previously
+// took down every route (blog, API, everything), not just the
+// auth/admin/cron features that actually depend on these vars. Misconfigs are
+// logged loudly instead so they're visible without taking the site down.
 if (isProduction && !isBuildPhase) {
   if (env.DISABLE_ADMIN_AUTH === 'true') {
-    throw new Error('DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
+    logger.error('[env] DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
   }
 
   const adminEmails = (env.ADMIN_EMAILS ?? '')
@@ -69,12 +75,16 @@ if (isProduction && !isBuildPhase) {
     .filter(Boolean)
 
   if (adminEmails.length === 0) {
-    throw new Error('ADMIN_EMAILS must be set to a non-empty list when NODE_ENV=production')
+    logger.error('[env] ADMIN_EMAILS must be set to a non-empty list when NODE_ENV=production')
   }
 
   if (!env.CRON_SECRET) {
-    throw new Error('CRON_SECRET must be set when NODE_ENV=production')
+    logger.error('[env] CRON_SECRET must be set when NODE_ENV=production')
   }
 
-  validateEnv()
+  try {
+    validateEnv()
+  } catch (err) {
+    logger.error({ err }, '[env] validateEnv failed')
+  }
 }
