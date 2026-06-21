@@ -207,12 +207,53 @@
 }
 
 .campaign-videos {
-  padding-top: 3rem;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding: 3.25rem 1rem;
 }
 
-.video-wrap video {
-  display: block;
+.campaign-videos-inner {
+  width: min(960px, calc(100% - 1rem));
+  margin: 0 auto;
+}
+
+.videos-grid.single {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.video-wrap {
+  position: relative;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  padding-top: 0 !important;
+  overflow: hidden;
+  border-radius: 12px;
   background: rgba(255, 255, 255, .04);
+}
+
+.video-wrap video,
+.video-wrap iframe {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  border-radius: inherit;
+  background: var(--pahs-deep);
+  object-fit: contain;
+}
+
+.campaign-videos p {
+  max-width: 760px;
+  margin: 1rem auto 0;
+  color: rgba(255, 255, 255, .72);
+  line-height: 1.6;
 }
 
 @media (max-width: 680px) {
@@ -232,5 +273,9 @@
 
   .pahs-then--priority {
     padding: 2.75rem 1rem 3rem;
+  }
+
+  .campaign-videos {
+    padding: 2.5rem .75rem;
   }
 }
