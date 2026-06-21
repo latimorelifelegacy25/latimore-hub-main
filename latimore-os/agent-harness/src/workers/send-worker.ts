@@ -232,8 +232,8 @@ export class SendWorker extends BaseWorker {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
-        <tr><td style="background:#1B3A6B;padding:28px 40px;text-align:center;">
-          <h1 style="color:#C8A951;font-size:24px;margin:0;font-family:Georgia,serif;">LATIMORE LIFE & LEGACY</h1>
+        <tr><td style="background:#0E1A2B;padding:28px 40px;text-align:center;">
+          <h1 style="color:#C9A25F;font-size:24px;margin:0;font-family:Georgia,serif;">LATIMORE LIFE & LEGACY</h1>
           <p style="color:rgba(255,255,255,0.75);font-size:13px;margin:6px 0 0;font-style:italic;">Protecting Today. Securing Tomorrow.</p>
         </td></tr>
         <tr><td style="padding:36px 40px;">

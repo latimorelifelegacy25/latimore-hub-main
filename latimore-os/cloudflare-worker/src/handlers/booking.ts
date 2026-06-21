@@ -274,8 +274,8 @@ function buildBookingConfirmationEmail(firstName: string, formattedTime: string,
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
-        <tr><td style="background:#1B3A6B;padding:32px 40px;text-align:center;">
-          <h1 style="color:#C8A951;font-size:24px;margin:0;">✅ Consultation Confirmed</h1>
+        <tr><td style="background:#0E1A2B;padding:32px 40px;text-align:center;">
+          <h1 style="color:#C9A25F;font-size:24px;margin:0;">✅ Consultation Confirmed</h1>
           <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:8px 0 0;">Latimore Life & Legacy</p>
         </td></tr>
         <tr><td style="padding:40px;">
@@ -283,15 +283,15 @@ function buildBookingConfirmationEmail(firstName: string, formattedTime: string,
           <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 16px;">
             Your consultation with Jackson M. Latimore Sr., MBA is confirmed for:
           </p>
-          <div style="background:#f8f6f0;border-left:4px solid #C8A951;padding:20px 24px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-            <p style="margin:0;color:#1B3A6B;font-size:20px;font-weight:bold;">${escapeHtml(formattedTime)}</p>
-            ${safeMeetingUrl ? `<p style="margin:8px 0 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C8A951;">Join Video Call →</a></p>` : '<p style="margin:8px 0 0;color:#555;font-size:14px;">We will call you at the number you provided.</p>'}
+          <div style="background:#f8f6f0;border-left:4px solid #C9A25F;padding:20px 24px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+            <p style="margin:0;color:#0E1A2B;font-size:20px;font-weight:bold;">${escapeHtml(formattedTime)}</p>
+            ${safeMeetingUrl ? `<p style="margin:8px 0 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C9A25F;">Join Video Call →</a></p>` : '<p style="margin:8px 0 0;color:#555;font-size:14px;">We will call you at the number you provided.</p>'}
           </div>
           <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 16px;">
             To prepare, think about: your current coverage, your family\'s financial needs, and any questions you have about life insurance or retirement planning.
           </p>
           <p style="color:#555;font-size:14px;">Questions? Call or text: <strong>(717) 615-2613</strong></p>
-          <p style="color:#1B3A6B;font-weight:bold;margin-top:24px;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</p>
+          <p style="color:#0E1A2B;font-weight:bold;margin-top:24px;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</p>
         </td></tr>
       </table>
     </td></tr>
@@ -307,19 +307,19 @@ function buildAgentBookingEmail(booking: ReturnType<typeof normalizeBooking>): s
 <!DOCTYPE html>
 <html>
 <body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
-  <div style="background:#fff;border-radius:8px;padding:24px;max-width:600px;margin:0 auto;border-left:4px solid #C8A951;">
-    <h2 style="color:#1B3A6B;margin:0 0 16px;">📅 New Appointment — Latimore OS</h2>
+  <div style="background:#fff;border-radius:8px;padding:24px;max-width:600px;margin:0 auto;border-left:4px solid #C9A25F;">
+    <h2 style="color:#0E1A2B;margin:0 0 16px;">📅 New Appointment — Latimore OS</h2>
     <table style="width:100%;border-collapse:collapse;">
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;width:160px;">Name:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeeName)}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Email:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeeEmail)}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Phone:</td><td style="padding:8px 0;">${escapeHtml(booking.attendeePhone || 'Not provided')}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Time:</td><td style="padding:8px 0;color:#1B3A6B;font-weight:bold;">${escapeHtml(time)}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Time:</td><td style="padding:8px 0;color:#0E1A2B;font-weight:bold;">${escapeHtml(time)}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Type:</td><td style="padding:8px 0;">${escapeHtml(booking.appointmentType)}</td></tr>
-      ${safeMeetingUrl ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Link:</td><td style="padding:8px 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C8A951;">${escapeHtml(safeMeetingUrl)}</a></td></tr>` : ''}
+      ${safeMeetingUrl ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Link:</td><td style="padding:8px 0;"><a href="${escapeHtml(safeMeetingUrl)}" style="color:#C9A25F;">${escapeHtml(safeMeetingUrl)}</a></td></tr>` : ''}
       ${booking.notes ? `<tr><td style="padding:8px 0;color:#555;font-weight:bold;">Notes:</td><td style="padding:8px 0;">${escapeHtml(booking.notes)}</td></tr>` : ''}
     </table>
-    <div style="margin-top:20px;padding:12px;background:#1B3A6B;border-radius:6px;text-align:center;">
-      <a href="https://hub.latimorelifelegacy.com/admin/appointments" style="color:#C8A951;font-weight:bold;text-decoration:none;">View in Latimore OS →</a>
+    <div style="margin-top:20px;padding:12px;background:#0E1A2B;border-radius:6px;text-align:center;">
+      <a href="https://hub.latimorelifelegacy.com/admin/appointments" style="color:#C9A25F;font-weight:bold;text-decoration:none;">View in Latimore OS →</a>
     </div>
   </div>
 </body>
