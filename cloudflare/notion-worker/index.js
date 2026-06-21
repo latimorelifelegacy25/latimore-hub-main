@@ -38,6 +38,17 @@ function headingBlock(text) {
   }
 }
 
+function requireWorkerAuth(request, env) {
+  if (!env.WORKER_SHARED_SECRET) {
+    return json({ ok: false, error: 'Worker secret not configured' }, 401)
+  }
+  const provided = request.headers.get('x-latimore-worker-secret')
+  if (provided !== env.WORKER_SHARED_SECRET) {
+    return json({ ok: false, error: 'Unauthorized worker request' }, 401)
+  }
+  return null
+}
+
 function buildChildren(sections = []) {
   return sections.flatMap((section) => {
     const blocks = []
@@ -162,6 +173,9 @@ export default {
     if (request.method !== 'POST') {
       return json({ ok: false, error: 'Method not allowed' }, 405)
     }
+
+    const unauthorized = requireWorkerAuth(request, env)
+    if (unauthorized) return unauthorized
 
     let payload
     try {

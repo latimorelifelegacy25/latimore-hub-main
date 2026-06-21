@@ -8,6 +8,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const POSTS_SCHEMA = {
@@ -91,12 +92,17 @@ Each post must:
       temperature: 0.75,
     })
 
+    const compliance = checkCompliance(
+      (result.output as Array<{ draft: string }>).map((p) => p.draft).join('\n'),
+    )
+
     return Response.json({
       success: true,
       assetName,
       platform,
       count: result.output.length,
       posts: result.output,
+      compliance,
     })
   } catch (error) {
     console.error('[/api/admin/ai/asset] Error:', error)
