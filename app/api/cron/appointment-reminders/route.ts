@@ -4,8 +4,6 @@ import twilio from 'twilio'
 import { prisma } from '@/lib/prisma'
 import { requireCronAuth } from '@/lib/ai/shared'
 
-export const dynamic = 'force-dynamic'
-
 const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
   ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
   : null

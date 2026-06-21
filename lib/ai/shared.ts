@@ -115,15 +115,3 @@ export function toIso(value?: Date | string | null): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
-export function requireCronAuth(req: Request) {
-  const secret = process.env.CRON_SECRET
-  const header =
-    req.headers.get('x-cron-secret') ??
-    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
-
-  if (!secret || header !== secret) {
-    return Response.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
-
-  return null
-}
