@@ -160,7 +160,7 @@ export interface ComplianceViolation {
   rule: string;
   severity: 'critical' | 'major' | 'minor';
   description: string;
-  content_excerpt?: string;
+  excerpt?: string;
 }
 
 // ── CONTACT / CRM TYPES ───────────────────────────────────────────────────────

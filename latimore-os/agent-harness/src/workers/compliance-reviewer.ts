@@ -95,7 +95,7 @@ export class ComplianceReviewer extends BaseWorker {
           rule,
           severity: 'critical',
           description,
-          content_excerpt: match[0].substring(0, 100),
+          excerpt: match[0].substring(0, 100),
         });
       }
     }
@@ -108,7 +108,7 @@ export class ComplianceReviewer extends BaseWorker {
           rule,
           severity: 'major',
           description,
-          content_excerpt: match[0].substring(0, 100),
+          excerpt: match[0].substring(0, 100),
         });
       }
     }
@@ -151,7 +151,7 @@ Key rules:
 7. No superlative claims without substantiation
 
 Return JSON with:
-- violations: array of {rule, severity ("critical"|"major"|"minor"), description, content_excerpt}
+- violations: array of {rule, severity ("critical"|"major"|"minor"), description, excerpt}
 - warnings: string array
 Only flag genuine violations — do not over-flag educational content.`
       },
