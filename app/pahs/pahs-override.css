@@ -14,11 +14,6 @@
     linear-gradient(180deg, rgba(7, 18, 26, .04), rgba(7, 18, 26, .78));
 }
 
-.pahs-hero__card img[src='/pahs-protect-go.png'],
-.spgfx {
-  display: none !important;
-}
-
 .pahs-flyer {
   background: var(--pahs-deep-2);
   padding: 3rem 1.5rem;
