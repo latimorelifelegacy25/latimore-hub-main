@@ -1,228 +1,158 @@
 'use client'
 
-import { useState } from 'react'
-import { Contact } from '@prisma/client'
+import { useMemo, useState } from 'react'
+import type { Contact, LeadStatus } from '@prisma/client'
 import PageHeader from '@/app/admin/_components/PageHeader'
+import ContactActionPanel from './ContactActionPanel'
 
 interface ClientWithDetails extends Contact {
-  inquiries?: any[]
-  notes?: any[]
+  inquiries?: Array<{ id: string; stage?: string | null; createdAt?: Date | string }>
+  notes?: Array<{ id: string; body?: string | null; createdAt?: Date | string }>
   snapshot?: {
-    whoTheyAre: string
-    familyContext: string[]
-    financialPicture: string[]
-    topGoals: string[]
-    riskThemes: string[]
-    summary: string
+    whoTheyAre?: string
+    familyContext?: string[]
+    financialPicture?: string[]
+    topGoals?: string[]
+    riskThemes?: string[]
+    summary?: string
   }
+}
+
+const PIPELINE_STAGES: LeadStatus[] = [
+  'NEW',
+  'ATTEMPTED_CONTACT',
+  'CONTACTED',
+  'QUALIFIED',
+  'BOOKED',
+  'IN_CONSULT',
+  'CLOSED_WON',
+  'CLOSED_LOST',
+  'NURTURE',
+  'ON_HOLD',
+  'DORMANT',
+]
+
+function formatStatus(status: string) {
+  return status
+    .split('_')
+    .map(part => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(' ')
+}
+
+function contactName(contact: ClientWithDetails) {
+  const name = contact.fullName || `${contact.firstName ?? ''} ${contact.lastName ?? ''}`.trim()
+  return name || contact.email || contact.phone || 'Unnamed contact'
+}
+
+function dateValue(value: Date | string | null | undefined) {
+  if (!value) return 'Not recorded'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Not recorded'
+  return date.toLocaleDateString()
 }
 
 export default function LifeHubCRMContent({ initialContacts }: { initialContacts: ClientWithDetails[] }) {
   const [contacts, setContacts] = useState<ClientWithDetails[]>(initialContacts)
   const [viewMode, setViewMode] = useState<'pipeline' | 'list'>('pipeline')
   const [selectedContact, setSelectedContact] = useState<ClientWithDetails | null>(null)
-  const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
   const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set())
-  const [showBulkActions, setShowBulkActions] = useState(false)
-  const [filters, setFilters] = useState({
-    status: '',
-    leadScoreMin: '',
-    leadScoreMax: '',
-    dateFrom: '',
-    dateTo: '',
-    county: '',
-  })
-  const [showFilters, setShowFilters] = useState(false)
-  const [isGeneratingTasks, setIsGeneratingTasks] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const pipelineStages = [
-    'NEW',
-    'ATTEMPTED_CONTACT',
-    'CONTACTED',
-    'QUALIFIED',
-    'BOOKED',
-    'IN_CONSULT',
-    'CLOSED_WON',
-    'CLOSED_LOST',
-    'NURTURE',
-    'ON_HOLD',
-  ]
+  const filteredContacts = useMemo(() => {
+    const search = searchTerm.trim().toLowerCase()
+    return contacts.filter(contact => {
+      const matchesSearch = !search || [
+        contact.fullName,
+        contact.firstName,
+        contact.lastName,
+        contact.email,
+        contact.phone,
+        contact.county,
+      ].some(value => value?.toLowerCase().includes(search))
 
-  const handleGenerateSnapshot = async (contact: ClientWithDetails) => {
-    setIsGeneratingSnapshot(true)
-    try {
-      const response = await fetch('/api/admin/ai/client-snapshot', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contactId: contact.id,
-          notes: contact.notes,
-        }),
-      })
+      const matchesStatus = !statusFilter || contact.status === statusFilter
+      return matchesSearch && matchesStatus
+    })
+  }, [contacts, searchTerm, statusFilter])
 
-      if (!response.ok) throw new Error('Failed to generate snapshot')
+  const contactsByStage = useMemo(() => {
+    return PIPELINE_STAGES.map(stage => ({
+      stage,
+      contacts: filteredContacts.filter(contact => contact.status === stage),
+    }))
+  }, [filteredContacts])
 
-      const data = await response.json()
-      setContacts(contacts.map(c =>
-        c.id === contact.id ? { ...c, snapshot: data.snapshot } : c
-      ))
-    } catch (error) {
-      console.error('Snapshot generation error:', error)
-      alert('Failed to generate client snapshot')
-    } finally {
-      setIsGeneratingSnapshot(false)
-    }
+  const selectedCount = selectedContacts.size
+
+  function toggleContact(contactId: string, checked: boolean) {
+    setSelectedContacts(prev => {
+      const next = new Set(prev)
+      if (checked) next.add(contactId)
+      else next.delete(contactId)
+      return next
+    })
   }
 
-  const filteredContacts = contacts.filter(contact => {
-    // Search term filter
-    const matchesSearch = !searchTerm ||
-      contact.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contact.phone?.includes(searchTerm)
-
-    // Advanced filters
-    const matchesStatus = !filters.status || contact.status === filters.status
-    const matchesLeadScore = (!filters.leadScoreMin || (contact.leadScore || 0) >= parseInt(filters.leadScoreMin)) &&
-                            (!filters.leadScoreMax || (contact.leadScore || 0) <= parseInt(filters.leadScoreMax))
-    const matchesCounty = !filters.county || contact.county === filters.county
-    const matchesDateRange = (!filters.dateFrom || new Date(contact.createdAt) >= new Date(filters.dateFrom)) &&
-                            (!filters.dateTo || new Date(contact.createdAt) <= new Date(filters.dateTo))
-
-    return matchesSearch && matchesStatus && matchesLeadScore && matchesCounty && matchesDateRange
-  })
-
-  const contactsByStage = pipelineStages.map(stage => ({
-    stage,
-    contacts: filteredContacts.filter(c => c.status === stage)
-  }))
-
-  const handleSelectContact = (contactId: string, selected: boolean) => {
-    const newSelected = new Set(selectedContacts)
-    if (selected) {
-      newSelected.add(contactId)
-    } else {
-      newSelected.delete(contactId)
-    }
-    setSelectedContacts(newSelected)
-    setShowBulkActions(newSelected.size > 0)
+  function toggleAll(checked: boolean) {
+    setSelectedContacts(checked ? new Set(filteredContacts.map(contact => contact.id)) : new Set())
   }
 
-  const handleSelectAll = (selected: boolean) => {
-    if (selected) {
-      setSelectedContacts(new Set(filteredContacts.map(c => c.id)))
-    } else {
-      setSelectedContacts(new Set())
-    }
-    setShowBulkActions(selected)
-  }
-
-  const handleBulkStatusUpdate = async (newStatus: string) => {
-    if (selectedContacts.size === 0) return
+  async function updateStatus(contactIds: string[], status: LeadStatus) {
+    if (!contactIds.length) return
+    setIsUpdating(true)
+    setError(null)
 
     try {
-      const promises = Array.from(selectedContacts).map(contactId =>
+      const responses = await Promise.all(contactIds.map(contactId =>
         fetch(`/api/contacts/${contactId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: newStatus })
-        })
-      )
-
-      await Promise.all(promises)
-
-      // Update local state
-      setContacts(contacts.map(contact =>
-        selectedContacts.has(contact.id)
-          ? { ...contact, status: newStatus as any }
-          : contact
+          body: JSON.stringify({ status }),
+        }),
       ))
 
+      const failed = responses.find(response => !response.ok)
+      if (failed) throw new Error(await failed.text())
+
+      const idSet = new Set(contactIds)
+      setContacts(prev => prev.map(contact => idSet.has(contact.id) ? { ...contact, status } : contact))
       setSelectedContacts(new Set())
-      setShowBulkActions(false)
-      alert(`Updated ${selectedContacts.size} contacts to ${newStatus}`)
-    } catch (error) {
-      console.error('Bulk update error:', error)
-      alert('Failed to update contacts')
-    }
-  }
-
-  const handleGenerateTasks = async () => {
-    if (selectedContacts.size === 0) return
-
-    setIsGeneratingTasks(true)
-    try {
-      const tasksPromises = Array.from(selectedContacts).map(contactId =>
-        fetch('/api/ai/generate-tasks', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contactId })
-        })
-      )
-
-      const results = await Promise.all(tasksPromises)
-      const allTasks = []
-
-      for (const result of results) {
-        if (result.ok) {
-          const data = await result.json()
-          allTasks.push(...data.tasks)
-        }
-      }
-
-      alert(`Generated ${allTasks.length} AI-powered tasks for ${selectedContacts.size} contacts`)
-    } catch (error) {
-      console.error('Task generation error:', error)
-      alert('Failed to generate tasks')
+      setSelectedContact(prev => prev && idSet.has(prev.id) ? { ...prev, status } : prev)
+    } catch (err) {
+      console.error('[LifeHubCRM] status update failed', err)
+      setError('Status update failed. Check the contact API route and database connection.')
     } finally {
-      setIsGeneratingTasks(false)
+      setIsUpdating(false)
     }
   }
 
-  const handleGenerateTasksForContact = async (contactId: string) => {
-    setIsGeneratingTasks(true)
-    try {
-      const response = await fetch('/api/ai/generate-tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contactId })
-      })
-
-      if (!response.ok) throw new Error('Failed to generate tasks')
-
-      const data = await response.json()
-      alert(`Generated ${data.tasks.length} AI-powered tasks for this contact`)
-    } catch (error) {
-      console.error('Task generation error:', error)
-      alert('Failed to generate tasks')
-    } finally {
-      setIsGeneratingTasks(false)
-    }
-  }
-
-  const handleExportContacts = () => {
-    const selectedContactsData = filteredContacts.filter(c => selectedContacts.has(c.id))
-    const csvContent = [
+  function exportContacts() {
+    const rows = [
       ['Name', 'Email', 'Phone', 'County', 'Status', 'Lead Score', 'Created At'],
-      ...selectedContactsData.map(c => [
-        `${c.firstName} ${c.lastName}`,
-        c.email || '',
-        c.phone || '',
-        c.county || '',
-        c.status,
-        c.leadScore?.toString() || '0',
-        new Date(c.createdAt).toLocaleDateString()
-      ])
-    ].map(row => row.map(field => `"${field}"`).join(',')).join('\n')
+      ...filteredContacts.map(contact => [
+        contactName(contact),
+        contact.email ?? '',
+        contact.phone ?? '',
+        contact.county ?? '',
+        contact.status,
+        String(contact.leadScore ?? 0),
+        dateValue(contact.createdAt),
+      ]),
+    ]
 
-    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const csv = rows
+      .map(row => row.map(field => `"${String(field).replaceAll('"', '""')}"`).join(','))
+      .join('\n')
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `contacts-export-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `life-hub-contacts-${new Date().toISOString().slice(0, 10)}.csv`
+    anchor.click()
     URL.revokeObjectURL(url)
   }
 
@@ -231,300 +161,168 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
       <PageHeader
         eyebrow="Client Relationship Management"
         title="Life Hub CRM"
-        description="AI-powered pipeline management and client insights"
+        description="Pipeline management, contact review, and action planning for Latimore Life & Legacy."
       />
 
-      {/* Controls */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <div className="flex gap-3">
+      <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-3">
             <button
+              type="button"
               onClick={() => setViewMode('pipeline')}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                viewMode === 'pipeline'
-                  ? 'bg-[#C9A25F] text-slate-900'
-                  : 'bg-white/5 text-white hover:bg-white/10'
-              }`}
+              className={`rounded-xl px-4 py-2 text-sm font-black transition ${viewMode === 'pipeline' ? 'bg-[#C9A25F] text-slate-950' : 'bg-white/10 text-white hover:bg-white/15'}`}
             >
-              Pipeline View
+              Pipeline
             </button>
             <button
+              type="button"
               onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                viewMode === 'list'
-                  ? 'bg-[#C9A25F] text-slate-900'
-                  : 'bg-white/5 text-white hover:bg-white/10'
-              }`}
+              className={`rounded-xl px-4 py-2 text-sm font-black transition ${viewMode === 'list' ? 'bg-[#C9A25F] text-slate-950' : 'bg-white/10 text-white hover:bg-white/15'}`}
             >
-              List View
+              List
             </button>
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`px-4 py-2 rounded-lg font-semibold transition ${
-                showFilters
-                  ? 'bg-[#C9A25F] text-slate-900'
-                  : 'bg-white/5 text-white hover:bg-white/10'
-              }`}
+              type="button"
+              onClick={exportContacts}
+              className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/15"
             >
-              <i className="fa-solid fa-filter mr-2"></i>
-              Filters
+              Export CSV
             </button>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <input
-              type="text"
-              placeholder="Search contacts..."
+              type="search"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A25F]"
+              onChange={event => setSearchTerm(event.target.value)}
+              placeholder="Search name, email, phone, county"
+              className="min-w-[260px] rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 text-sm text-white placeholder:text-slate-500 outline-none focus:border-[#C9A25F]"
             />
-            {selectedContacts.size > 0 && (
-              <button
-                onClick={handleExportContacts}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 font-semibold rounded-lg transition"
-              >
-                <i className="fa-solid fa-download mr-2"></i>
-                Export ({selectedContacts.size})
-              </button>
-            )}
+            <select
+              value={statusFilter}
+              onChange={event => setStatusFilter(event.target.value)}
+              className="rounded-xl border border-white/10 bg-slate-950/60 px-4 py-2 text-sm text-white outline-none focus:border-[#C9A25F]"
+            >
+              <option value="">All statuses</option>
+              {PIPELINE_STAGES.map(stage => (
+                <option key={stage} value={stage}>{formatStatus(stage)}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Advanced Filters */}
-        {showFilters && (
-          <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-            <h3 className="text-lg font-black text-white mb-4">Advanced Filters</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Status</label>
-                <select
-                  value={filters.status}
-                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
-                >
-                  <option value="">All Statuses</option>
-                  {pipelineStages.map(stage => (
-                    <option key={stage} value={stage}>{stage.replace(/_/g, ' ')}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Min Lead Score</label>
-                <input
-                  type="number"
-                  value={filters.leadScoreMin}
-                  onChange={(e) => setFilters({ ...filters, leadScoreMin: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
-                  placeholder="0"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Max Lead Score</label>
-                <input
-                  type="number"
-                  value={filters.leadScoreMax}
-                  onChange={(e) => setFilters({ ...filters, leadScoreMax: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
-                  placeholder="100"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">County</label>
-                <input
-                  type="text"
-                  value={filters.county}
-                  onChange={(e) => setFilters({ ...filters, county: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white placeholder-slate-400 focus:outline-none focus:border-[#C9A25F]"
-                  placeholder="Enter county"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">From Date</label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">To Date</label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                  className="w-full mt-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#C9A25F]"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => setFilters({
-                  status: '',
-                  leadScoreMin: '',
-                  leadScoreMax: '',
-                  dateFrom: '',
-                  dateTo: '',
-                  county: '',
-                })}
-                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded-lg transition"
-              >
-                Clear Filters
-              </button>
-              <div className="text-sm text-slate-400">
-                Showing {filteredContacts.length} of {contacts.length} contacts
-              </div>
-            </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-[0.16em] text-slate-400">
+          <span>{filteredContacts.length} shown</span>
+          <span>{contacts.length} total</span>
+          <span>{selectedCount} selected</span>
+        </div>
+
+        {error && (
+          <div className="mt-4 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm font-semibold text-rose-200">
+            {error}
           </div>
         )}
 
-        {/* Bulk Actions */}
-        {showBulkActions && (
-          <div className="bg-[#C9A25F]/10 border border-[#C9A25F]/30 rounded-3xl p-6">
-            <h3 className="text-lg font-black text-[#C9A25F] mb-4">
-              Bulk Actions ({selectedContacts.size} selected)
-            </h3>
-            <div className="flex flex-wrap gap-3">
+        {selectedCount > 0 && (
+          <div className="mt-5 flex flex-wrap gap-3 rounded-2xl border border-[#C9A25F]/30 bg-[#C9A25F]/10 p-4">
+            {(['CONTACTED', 'QUALIFIED', 'BOOKED', 'CLOSED_WON', 'CLOSED_LOST', 'NURTURE'] as LeadStatus[]).map(status => (
               <button
-                onClick={handleGenerateTasks}
-                disabled={isGeneratingTasks}
-                className="px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold rounded-lg transition disabled:opacity-50"
+                key={status}
+                type="button"
+                disabled={isUpdating}
+                onClick={() => updateStatus(Array.from(selectedContacts), status)}
+                className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-white transition hover:bg-white/15 disabled:opacity-50"
               >
-                {isGeneratingTasks ? 'Generating Tasks...' : '🤖 Generate AI Tasks'}
+                Mark {formatStatus(status)}
               </button>
-              <button
-                onClick={() => handleBulkStatusUpdate('CONTACTED')}
-                className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 font-semibold rounded-lg transition"
-              >
-                Mark as Contacted
-              </button>
-              <button
-                onClick={() => handleBulkStatusUpdate('BOOKED')}
-                className="px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 font-semibold rounded-lg transition"
-              >
-                Mark as Booked
-              </button>
-              <button
-                onClick={() => handleBulkStatusUpdate('CLOSED_LOST')}
-                className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-semibold rounded-lg transition"
-              >
-                Mark as Lost
-              </button>
-              <button
-                onClick={() => setSelectedContacts(new Set())}
-                className="px-4 py-2 bg-slate-500/20 hover:bg-slate-500/30 text-slate-300 font-semibold rounded-lg transition"
-              >
-                Clear Selection
-              </button>
-            </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setSelectedContacts(new Set())}
+              className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-slate-300 transition hover:bg-white/15"
+            >
+              Clear
+            </button>
           </div>
         )}
       </div>
 
       {viewMode === 'pipeline' ? (
-        /* Pipeline View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {contactsByStage.map(({ stage, contacts: stageContacts }) => (
-            <div key={stage} className="bg-white/5 border border-white/10 rounded-3xl p-6">
-              <h3 className="text-lg font-black text-white mb-4">{stage}</h3>
+            <section key={stage} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <h2 className="text-sm font-black uppercase tracking-[0.18em] text-white">{formatStatus(stage)}</h2>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-black text-[#C9A25F]">{stageContacts.length}</span>
+              </div>
               <div className="space-y-3">
-                {stageContacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="bg-white/5 border border-white/10 rounded-xl p-4 cursor-pointer hover:border-[#C9A25F] transition"
-                  >
-                    <div className="flex items-start gap-3">
+                {stageContacts.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-white/10 p-4 text-center text-xs font-semibold text-slate-500">No contacts</p>
+                ) : stageContacts.map(contact => (
+                  <article key={contact.id} className="rounded-2xl border border-white/10 bg-slate-950/50 p-4 transition hover:border-[#C9A25F]/60">
+                    <div className="flex gap-3">
                       <input
                         type="checkbox"
                         checked={selectedContacts.has(contact.id)}
-                        onChange={(e) => handleSelectContact(contact.id, e.target.checked)}
-                        className="mt-1 text-[#C9A25F] focus:ring-[#C9A25F]"
-                        onClick={(e) => e.stopPropagation()}
+                        onChange={event => toggleContact(contact.id, event.target.checked)}
+                        className="mt-1"
+                        aria-label={`Select ${contactName(contact)}`}
                       />
-                      <div
-                        className="flex-1"
-                        onClick={() => setSelectedContact(contact)}
-                      >
-                        <p className="text-sm font-semibold text-white">
-                          {contact.firstName} {contact.lastName}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-1">{contact.email}</p>
-                        {contact.leadScore && (
-                          <div className="mt-2 flex items-center gap-2">
-                            <div className="text-xs text-[#C9A25F] font-semibold">
-                              Score: {contact.leadScore}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      <button type="button" onClick={() => setSelectedContact(contact)} className="min-w-0 flex-1 text-left">
+                        <p className="truncate text-sm font-black text-white">{contactName(contact)}</p>
+                        <p className="mt-1 truncate text-xs text-slate-400">{contact.email || contact.phone || 'No contact detail'}</p>
+                        <p className="mt-2 text-xs font-bold text-[#C9A25F]">Score {contact.leadScore ?? 0}</p>
+                      </button>
                     </div>
-                  </div>
+                  </article>
                 ))}
-                {stageContacts.length === 0 && (
-                  <p className="text-xs text-slate-500 text-center py-4">No contacts</p>
-                )}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       ) : (
-        /* List View */
-        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-white/5">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-white/10">
+            <table className="w-full text-sm">
+              <thead className="bg-white/10 text-xs uppercase tracking-[0.16em] text-slate-400">
                 <tr>
-                  <th className="px-6 py-4 text-left">
+                  <th className="w-12 px-5 py-4 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedContacts.size === filteredContacts.length && filteredContacts.length > 0}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="text-[#C9A25F] focus:ring-[#C9A25F]"
+                      checked={filteredContacts.length > 0 && selectedContacts.size === filteredContacts.length}
+                      onChange={event => toggleAll(event.target.checked)}
+                      aria-label="Select all visible contacts"
                     />
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Name</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Email</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Score</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold uppercase tracking-widest text-slate-400">Actions</th>
+                  <th className="px-5 py-4 text-left">Name</th>
+                  <th className="px-5 py-4 text-left">Contact</th>
+                  <th className="px-5 py-4 text-left">County</th>
+                  <th className="px-5 py-4 text-left">Status</th>
+                  <th className="px-5 py-4 text-left">Score</th>
+                  <th className="px-5 py-4 text-left">Created</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredContacts.map((contact) => (
-                  <tr key={contact.id} className="border-t border-white/10 hover:bg-white/5">
-                    <td className="px-6 py-4">
+                {filteredContacts.map(contact => (
+                  <tr key={contact.id} className="border-t border-white/10 text-slate-200 hover:bg-white/5">
+                    <td className="px-5 py-4">
                       <input
                         type="checkbox"
                         checked={selectedContacts.has(contact.id)}
-                        onChange={(e) => handleSelectContact(contact.id, e.target.checked)}
-                        className="text-[#C9A25F] focus:ring-[#C9A25F]"
+                        onChange={event => toggleContact(contact.id, event.target.checked)}
+                        aria-label={`Select ${contactName(contact)}`}
                       />
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-white">
-                        {contact.firstName} {contact.lastName}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <p className="text-xs text-slate-400">{contact.email}</p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-slate-700 text-xs font-semibold rounded">
-                        {contact.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-[#C9A25F] font-semibold">{contact.leadScore || 0}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => setSelectedContact(contact)}
-                        className="text-[#C9A25F] hover:text-[#D4AF77] text-sm font-semibold"
-                      >
-                        View
+                    <td className="px-5 py-4">
+                      <button type="button" onClick={() => setSelectedContact(contact)} className="text-left font-black text-white hover:text-[#C9A25F]">
+                        {contactName(contact)}
                       </button>
                     </td>
+                    <td className="px-5 py-4 text-slate-400">{contact.email || contact.phone || 'Not provided'}</td>
+                    <td className="px-5 py-4 text-slate-400">{contact.county || 'Not set'}</td>
+                    <td className="px-5 py-4"><span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-black text-[#C9A25F]">{formatStatus(contact.status)}</span></td>
+                    <td className="px-5 py-4 font-black text-white">{contact.leadScore ?? 0}</td>
+                    <td className="px-5 py-4 text-slate-400">{dateValue(contact.createdAt)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -533,111 +331,52 @@ export default function LifeHubCRMContent({ initialContacts }: { initialContacts
         </div>
       )}
 
-      {/* Contact Detail Modal */}
       {selectedContact && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-white/10 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-8">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h2 className="text-2xl font-black text-white">
-                    {selectedContact.firstName} {selectedContact.lastName}
-                  </h2>
-                  <p className="text-slate-400 mt-1">{selectedContact.email}</p>
-                </div>
-                <button
-                  onClick={() => setSelectedContact(null)}
-                  className="text-slate-400 hover:text-white"
-                >
-                  <i className="fa-solid fa-times text-xl"></i>
-                </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#C9A25F]">Contact detail</p>
+                <h2 className="mt-2 text-2xl font-black text-white">{contactName(selectedContact)}</h2>
+                <p className="mt-1 text-sm text-slate-400">{selectedContact.email || selectedContact.phone || 'No contact detail'}</p>
               </div>
+              <button type="button" onClick={() => setSelectedContact(null)} className="rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white hover:bg-white/15">
+                Close
+              </button>
+            </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Contact Info */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-black text-white mb-4">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Phone</p>
-                        <p className="text-white mt-1">{selectedContact.phone || 'Not provided'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">County</p>
-                        <p className="text-white mt-1">{selectedContact.county || 'Not specified'}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Lead Score</p>
-                        <p className="text-[#C9A25F] font-semibold mt-1">{selectedContact.leadScore || 0}</p>
-                      </div>
-                    </div>
-                  </div>
+            <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <h3 className="text-sm font-black uppercase tracking-[0.16em] text-white">Profile</h3>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div><dt className="text-slate-500">Phone</dt><dd className="font-semibold text-white">{selectedContact.phone || 'Not provided'}</dd></div>
+                  <div><dt className="text-slate-500">County</dt><dd className="font-semibold text-white">{selectedContact.county || 'Not set'}</dd></div>
+                  <div><dt className="text-slate-500">Status</dt><dd className="font-semibold text-[#C9A25F]">{formatStatus(selectedContact.status)}</dd></div>
+                  <div><dt className="text-slate-500">Lead score</dt><dd className="font-semibold text-white">{selectedContact.leadScore ?? 0}</dd></div>
+                  <div><dt className="text-slate-500">Created</dt><dd className="font-semibold text-white">{dateValue(selectedContact.createdAt)}</dd></div>
+                </dl>
 
-                  {/* AI Snapshot */}
-                  <div>
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-black text-white">AI Client Snapshot</h3>
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => handleGenerateTasksForContact(selectedContact.id)}
-                          disabled={isGeneratingTasks}
-                          className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 font-semibold px-4 py-2 rounded-lg transition disabled:opacity-50"
-                        >
-                          {isGeneratingTasks ? 'Generating...' : '🤖 Generate Tasks'}
-                        </button>
-                        <button
-                          onClick={() => handleGenerateSnapshot(selectedContact)}
-                          disabled={isGeneratingSnapshot}
-                          className="bg-[#C9A25F] hover:bg-[#D4AF77] disabled:opacity-50 text-slate-900 font-black px-4 py-2 rounded-lg transition"
-                        >
-                          {isGeneratingSnapshot ? 'Generating...' : 'Generate Snapshot'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {selectedContact.snapshot ? (
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Who They Are</p>
-                          <p className="text-white mt-2 text-sm">{selectedContact.snapshot.whoTheyAre}</p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Family Context</p>
-                          <ul className="text-white mt-2 text-sm space-y-1">
-                            {selectedContact.snapshot.familyContext.map((item, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-[#C9A25F] mt-1">â€¢</span>
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Financial Picture</p>
-                          <ul className="text-white mt-2 text-sm space-y-1">
-                            {selectedContact.snapshot.financialPicture.map((item, i) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <span className="text-[#C9A25F] mt-1">â€¢</span>
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Summary</p>
-                          <p className="text-white mt-2 text-sm">{selectedContact.snapshot.summary}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-slate-400">No AI snapshot available. Click Generate to create one.</p>
-                    )}
-                  </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {(['CONTACTED', 'QUALIFIED', 'BOOKED', 'CLOSED_WON', 'CLOSED_LOST', 'NURTURE'] as LeadStatus[]).map(status => (
+                    <button
+                      key={status}
+                      type="button"
+                      disabled={isUpdating}
+                      onClick={() => updateStatus([selectedContact.id], status)}
+                      className="rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-black text-white hover:bg-white/15 disabled:opacity-50"
+                    >
+                      {formatStatus(status)}
+                    </button>
+                  ))}
                 </div>
-              </div>
+              </section>
+
+              <section className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <h3 className="text-sm font-black uppercase tracking-[0.16em] text-white">AI action panel</h3>
+                <div className="mt-4">
+                  <ContactActionPanel contactId={selectedContact.id} />
+                </div>
+              </section>
             </div>
           </div>
         </div>

@@ -1,10 +1,33 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { prisma } from '@/lib/prisma'
 import { encryptToken } from '@/lib/crypto'
 
-export async function GET(req: Request) {
+export const dynamic = 'force-dynamic'
+
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
+  const state = searchParams.get('state')
+  const cookieState = req.cookies.get('fb_oauth_state')?.value
+
+  const stateBuf = Buffer.from(state ?? '')
+  const cookieBuf = Buffer.from(cookieState ?? '')
+  const stateValid =
+    state &&
+    cookieState &&
+    stateBuf.length === cookieBuf.length &&
+    timingSafeEqual(stateBuf, cookieBuf)
+
+  if (!stateValid) {
+    return NextResponse.redirect(
+      new URL('/admin/social?fb_error=invalid_state', req.url)
+    )
+  }
+
+  if (!code) {
+    return NextResponse.redirect(new URL('/admin/social?fb_error=no_code', req.url))
+  }
 
   // Exchange code for short-lived token
   const tokenRes = await fetch(
@@ -27,11 +50,10 @@ export async function GET(req: Request) {
   const pages = await pagesRes.json()
 
   if (!pages.data?.length) {
-    return NextResponse.redirect('/admin/social?fb_error=no_pages')
+    return NextResponse.redirect(new URL('/admin/social?fb_error=no_pages', req.url))
   }
 
   const page = pages.data[0]
-  const sc = (prisma as any).socialConnection
 
   // Save Facebook connection
   const existingFacebook = await prisma.socialConnection.findFirst({ where: { provider: 'facebook' } })
@@ -69,5 +91,5 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.redirect('/admin/social?fb_success=1')
+  return NextResponse.redirect(new URL('/admin/social?fb_success=1', req.url))
 }

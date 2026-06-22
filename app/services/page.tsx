@@ -69,6 +69,7 @@ const services: Service[] = [
       'Reduces your taxable estate over time',
       'Complements — not replaces — your existing 401(k) or IRA',
     ],
+    learnMoreHref: '/services/iul-strategy',
   },
   {
     number: '02',
@@ -84,6 +85,7 @@ const services: Service[] = [
       'Guaranteed growth options through fixed vehicles',
       'Retain control of your funds without employer restrictions',
     ],
+    learnMoreHref: '/services/401k-rollover',
   },
   {
     number: '03',
@@ -99,6 +101,7 @@ const services: Service[] = [
       'May not count against financial aid eligibility',
       'Funds remain available if the child does not attend college',
     ],
+    learnMoreHref: '/services/college-funding',
   },
   {
     number: '04',
@@ -130,6 +133,7 @@ const services: Service[] = [
       'Final expense coverage to prevent burial costs falling on loved ones',
       'Disability waiver of premium to keep coverage in force',
     ],
+    learnMoreHref: '/services/life-insurance',
   },
   {
     number: '06',
@@ -161,6 +165,7 @@ const services: Service[] = [
       'Available inside both indexed universal life and fixed indexed annuities',
       'Tax-deferred growth throughout the accumulation phase',
     ],
+    learnMoreHref: '/services/iul-strategy',
   },
   {
     number: '08',
@@ -176,6 +181,7 @@ const services: Service[] = [
       'Living benefit riders available on many policies',
       'Affordable coverage often available without a full medical exam',
     ],
+    learnMoreHref: '/services/mortgage-protection',
   },
   {
     number: '09',
@@ -207,6 +213,7 @@ const services: Service[] = [
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
     ],
+    learnMoreHref: '/services/retirement-income',
   },
 ]
 

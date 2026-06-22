@@ -103,8 +103,8 @@ export function buildLeadConfirmationEmail(firstName: string): string {
         <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
           <!-- Header -->
           <tr>
-            <td style="background:#1B3A6B;padding:32px 40px;text-align:center;">
-              <h1 style="color:#C8A951;font-family:Georgia,serif;font-size:28px;margin:0;letter-spacing:1px;">
+            <td style="background:#0E1A2B;padding:32px 40px;text-align:center;">
+              <h1 style="color:#C9A25F;font-family:Georgia,serif;font-size:28px;margin:0;letter-spacing:1px;">
                 LATIMORE LIFE & LEGACY
               </h1>
               <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:8px 0 0;font-style:italic;">
@@ -123,10 +123,10 @@ export function buildLeadConfirmationEmail(firstName: string): string {
                 In the meantime, if you have any questions, you can reach me directly:
               </p>
               <!-- Contact Card -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f6f0;border-left:4px solid #C8A951;border-radius:0 8px 8px 0;margin:0 0 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8f6f0;border-left:4px solid #C9A25F;border-radius:0 8px 8px 0;margin:0 0 24px;">
                 <tr>
                   <td style="padding:20px 24px;">
-                    <p style="margin:0 0 4px;color:#1B3A6B;font-weight:bold;font-size:16px;">Jackson M. Latimore Sr., MBA</p>
+                    <p style="margin:0 0 4px;color:#0E1A2B;font-weight:bold;font-size:16px;">Jackson M. Latimore Sr., MBA</p>
                     <p style="margin:0 0 4px;color:#555;font-size:14px;">Founder & CEO, Latimore Life & Legacy</p>
                     <p style="margin:0 0 4px;color:#555;font-size:14px;">📞 (717) 615-2613</p>
                     <p style="margin:0 0 4px;color:#555;font-size:14px;">📧 Jackson1989@latimorelegacy.com</p>
@@ -137,7 +137,7 @@ export function buildLeadConfirmationEmail(firstName: string): string {
               <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 8px;">
                 Protecting Today. Securing Tomorrow.
               </p>
-              <p style="color:#1B3A6B;font-size:16px;font-weight:bold;margin:0;">
+              <p style="color:#0E1A2B;font-size:16px;font-weight:bold;margin:0;">
                 Jackson
               </p>
             </td>
@@ -148,7 +148,7 @@ export function buildLeadConfirmationEmail(firstName: string): string {
               <p style="color:#888;font-size:12px;margin:0;">
                 PA DOI #1268820 | NIPR #21638507 | Latimore Life & Legacy LLC<br>
                 1544 Route 61 Highway S, Schuylkill County, PA<br>
-                <a href="https://latimorelifelegacy.com" style="color:#C8A951;">#TheBeatGoesOn</a>
+                <a href="https://latimorelifelegacy.com" style="color:#C9A25F;">#TheBeatGoesOn</a>
               </p>
             </td>
           </tr>
@@ -176,17 +176,17 @@ export function buildAgentNotificationEmail(leadData: {
 <!DOCTYPE html>
 <html>
 <body style="font-family:Arial,sans-serif;background:#f5f5f5;padding:20px;">
-  <div style="background:#fff;border-radius:8px;padding:24px;max-width:600px;margin:0 auto;border-left:4px solid #C8A951;">
-    <h2 style="color:#1B3A6B;margin:0 0 16px;">🔔 New Lead — Latimore OS</h2>
+  <div style="background:#fff;border-radius:8px;padding:24px;max-width:600px;margin:0 auto;border-left:4px solid #C9A25F;">
+    <h2 style="color:#0E1A2B;margin:0 0 16px;">🔔 New Lead — Latimore OS</h2>
     <table style="width:100%;border-collapse:collapse;">
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;width:140px;">Name:</td><td style="padding:8px 0;color:#1A1A2E;">${leadData.firstName} ${leadData.lastName}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Phone:</td><td style="padding:8px 0;color:#1A1A2E;">${leadData.phone}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Email:</td><td style="padding:8px 0;color:#1A1A2E;">${leadData.email}</td></tr>
-      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Source:</td><td style="padding:8px 0;color:#C8A951;font-weight:bold;">${leadData.source}</td></tr>
+      <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Source:</td><td style="padding:8px 0;color:#C9A25F;font-weight:bold;">${leadData.source}</td></tr>
       <tr><td style="padding:8px 0;color:#555;font-weight:bold;">Interest:</td><td style="padding:8px 0;color:#1A1A2E;">${leadData.interest}</td></tr>
     </table>
-    <div style="margin-top:20px;padding:12px;background:#1B3A6B;border-radius:6px;text-align:center;">
-      <a href="https://hub.latimorelifelegacy.com/admin/leads" style="color:#C8A951;font-weight:bold;text-decoration:none;font-size:16px;">
+    <div style="margin-top:20px;padding:12px;background:#0E1A2B;border-radius:6px;text-align:center;">
+      <a href="https://hub.latimorelifelegacy.com/admin/leads" style="color:#C9A25F;font-weight:bold;text-decoration:none;font-size:16px;">
         View in Latimore OS →
       </a>
     </div>

@@ -1,3 +1,11 @@
+// ---------------------------------------------------------------------------
+// Page automation only. This worker creates/appends standalone Notion pages
+// (cron-triggered weekly planning/wrap-up notes, ad hoc page creation via the
+// /api/notion-worker proxy). It does NOT sync CRM contacts — that's handled
+// by the managed Notion Worker in workers/src/index.ts (backfill + 5-minute
+// delta sync against /api/internal/contacts).
+// ---------------------------------------------------------------------------
+
 const NOTION_VERSION = '2022-06-28'
 
 function json(body, status = 200) {
@@ -28,6 +36,27 @@ function headingBlock(text) {
       rich_text: [{ type: 'text', text: { content: String(text || '') } }],
     },
   }
+}
+
+// Constant-time string comparison to avoid leaking length/content via timing.
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false
+  let result = 0
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return result === 0
+}
+
+function requireWorkerAuth(request, env) {
+  if (!env.WORKER_SHARED_SECRET) {
+    return json({ ok: false, error: 'Worker secret not configured' }, 401)
+  }
+  const provided = request.headers.get('x-latimore-worker-secret')
+  if (!provided || !safeCompare(provided, env.WORKER_SHARED_SECRET)) {
+    return json({ ok: false, error: 'Unauthorized worker request' }, 401)
+  }
+  return null
 }
 
 function buildChildren(sections = []) {
@@ -154,6 +183,9 @@ export default {
     if (request.method !== 'POST') {
       return json({ ok: false, error: 'Method not allowed' }, 405)
     }
+
+    const unauthorized = requireWorkerAuth(request, env)
+    if (unauthorized) return unauthorized
 
     let payload
     try {

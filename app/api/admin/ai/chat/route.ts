@@ -6,6 +6,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const SYSTEM_PROMPT = withAdminAiGuardrails(`You are the Latimore Legacy Business Co-Pilot — a specialized AI assistant for Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC, an independent insurance brokerage based in Schuylkill County, Pennsylvania.
@@ -126,7 +127,11 @@ export async function POST(req: Request) {
         schema: STRATEGY_SCHEMA,
         temperature: 0.75,
       })
-      return Response.json({ mode: 'strategy', data: result.output })
+      const strategyOutput = result.output as unknown as { captions: { platform: string; text: string }[] }
+      const compliance = checkCompliance(
+        strategyOutput.captions.map((c) => c.text).join('\n'),
+      )
+      return Response.json({ mode: 'strategy', data: result.output, compliance })
     }
 
     if (mode === 'trends') {

@@ -358,6 +358,14 @@ Content-Type: application/json
 
 ### Agent Harness
 
+> **Not yet implemented.** `cloudflare-worker/src/queues/workflow-queue.ts` forwards
+> to this route when `AGENT_HARNESS_ENABLED=true`, but no `/api/agent/run` route
+> exists in the Next.js app yet, and nothing in `agent-harness/src/workflows/`
+> is wired into a registry the orchestrator can resolve workflow names against.
+> The flag defaults to disabled, so the queue consumer currently just logs the
+> trigger to `workflow_runs` and acks the message — this spec describes the
+> intended contract once the route is built.
+
 #### Trigger Workflow
 ```
 POST /api/agent/run

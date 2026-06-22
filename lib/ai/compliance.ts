@@ -1,5 +1,13 @@
 // PA DOI insurance-marketing compliance checks for AI-generated content.
 // Fast, deterministic regex rules — no LLM call required.
+//
+// This file is the single source of truth for the rule patterns below.
+// latimore-os/agent-harness/src/workers/compliance-reviewer.ts imports
+// CRITICAL_PATTERNS/MAJOR_PATTERNS/MINOR_PATTERNS from here (via a relative
+// path, see latimore-os/agent-harness/src/lib/compliance-rules.ts) instead of
+// keeping its own copy, so the two systems can't silently drift apart. Keep
+// this file free of imports/Node APIs so it stays importable from that
+// separate package's TypeScript build.
 
 export type ComplianceSeverity = 'critical' | 'major' | 'minor'
 
@@ -16,7 +24,9 @@ export type ComplianceResult = {
   warnings: string[]
 }
 
-const CRITICAL_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
+export type CompliancePattern = { pattern: RegExp; rule: string; description: string }
+
+export const CRITICAL_PATTERNS: CompliancePattern[] = [
   {
     pattern: /guarantee[sd]?\s+(you|your|that|a|the)\s+(will|won't|shall|must)/i,
     rule: 'NO_GUARANTEE',
@@ -44,7 +54,7 @@ const CRITICAL_PATTERNS: Array<{ pattern: RegExp; rule: string; description: str
   },
 ]
 
-const MAJOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
+export const MAJOR_PATTERNS: CompliancePattern[] = [
   {
     pattern: /best (insurance|policy|plan|product|rate|deal) (in|on|for)/i,
     rule: 'SUPERLATIVE_CLAIM',
@@ -67,7 +77,7 @@ const MAJOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string
   },
 ]
 
-const MINOR_PATTERNS: Array<{ pattern: RegExp; rule: string; description: string }> = [
+export const MINOR_PATTERNS: CompliancePattern[] = [
   {
     pattern: /always|never|every (family|person|client|customer)/i,
     rule: 'ABSOLUTE_LANGUAGE',

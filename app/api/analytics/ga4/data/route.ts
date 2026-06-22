@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { decryptToken } from '@/lib/crypto'
 
 type GoogleRefreshTokenResponse = {
   access_token?: string
@@ -66,7 +67,7 @@ export async function GET() {
     }
 
     const payload = event.payload as { refresh_token?: string } | null
-    const refreshToken = payload?.refresh_token
+    const refreshToken = decryptToken(payload?.refresh_token)
 
     if (!refreshToken) {
       return NextResponse.json({ error: 'GA4 refresh token not found' }, { status: 401 })

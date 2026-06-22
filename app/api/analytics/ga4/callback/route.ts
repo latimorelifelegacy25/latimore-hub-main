@@ -1,16 +1,40 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { encryptToken } from "@/lib/crypto";
 
 export async function GET(req: NextRequest) {
   const baseUrl = process.env.NEXTAUTH_URL;
   const code = req.nextUrl.searchParams.get("code");
   const error = req.nextUrl.searchParams.get("error");
+  const state = req.nextUrl.searchParams.get("state");
+  const cookieState = req.cookies.get("ga4_oauth_state")?.value;
 
   if (!baseUrl) {
     return NextResponse.json(
       { error: "NEXTAUTH_URL is not configured" },
       { status: 500 }
+    );
+  }
+
+  const stateBuf = Buffer.from(state ?? "");
+  const cookieBuf = Buffer.from(cookieState ?? "");
+  const stateValid =
+    !!state &&
+    !!cookieState &&
+    stateBuf.length === cookieBuf.length &&
+    timingSafeEqual(stateBuf, cookieBuf);
+
+  function redirectAndClearState(url: string) {
+    const response = NextResponse.redirect(url);
+    response.cookies.delete("ga4_oauth_state");
+    return response;
+  }
+
+  if (!stateValid) {
+    return redirectAndClearState(
+      `${baseUrl}/admin/settings/analytics?error=invalid_state`
     );
   }
 
@@ -26,13 +50,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(
+    return redirectAndClearState(
       `${baseUrl}/admin/settings/analytics?error=oauth_denied`
     );
   }
 
   if (!code) {
-    return NextResponse.redirect(
+    return redirectAndClearState(
       `${baseUrl}/admin/settings/analytics?error=no_code`
     );
   }
@@ -66,7 +90,7 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      return NextResponse.redirect(
+      return redirectAndClearState(
         `${baseUrl}/admin/settings/analytics?error=token_exchange_failed`
       );
     }
@@ -85,27 +109,24 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      return NextResponse.redirect(
+      return redirectAndClearState(
         `${baseUrl}/admin/settings/analytics?error=no_refresh_token`
       );
     }
 
-    // Recommended: encrypt tokens.refresh_token before persisting.
-    // Also recommended: store it in a dedicated integration/settings table,
-    // not in an event log.
+    // TODO: move to a dedicated integration/settings table instead of an event log.
     await prisma.systemEvent.create({
       data: {
         type: "GA4_CONNECTED",
         occurredAt: new Date(),
         payload: {
-          // Avoid storing raw refresh_token here in production.
-          refresh_token: tokens.refresh_token,
+          refresh_token: encryptToken(tokens.refresh_token),
           connected_at: new Date().toISOString(),
         },
       },
     });
 
-    return NextResponse.redirect(
+    return redirectAndClearState(
       `${baseUrl}/admin/settings/analytics?success=true`
     );
   } catch (err) {
@@ -119,7 +140,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.redirect(
+    return redirectAndClearState(
       `${baseUrl}/admin/settings/analytics?error=unexpected_error`
     );
   }

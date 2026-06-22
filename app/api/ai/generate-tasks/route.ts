@@ -1,24 +1,43 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { z } from 'zod'
+import { AiRunType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-import { rateLimit } from '@/lib/rate-limit'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { applyAiRateLimit, completeAiRun, createAiRun, failAiRun, requireAdminSession } from '@/lib/ai/shared'
+
+const BodySchema = z
+  .object({
+    contactId: z.string().optional(),
+    inquiryId: z.string().optional(),
+  })
+  .refine((data) => Boolean(data.contactId || data.inquiryId), {
+    message: 'contactId or inquiryId required',
+  })
 
 export async function POST(req: NextRequest) {
-  const limited = await rateLimit(req, 'default')
+  const startedAt = Date.now()
+  const limited = await applyAiRateLimit(req)
   if (limited) return limited
 
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
+  const body = await req.json().catch(() => null)
+  const parsed = BodySchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 422 })
+  }
+
+  let aiRunId: string | undefined
   try {
-    const { contactId, inquiryId } = await req.json()
+    const { contactId, inquiryId } = parsed.data
 
-    if (!contactId && !inquiryId) {
-      return NextResponse.json({ error: 'contactId or inquiryId required' }, { status: 400 })
-    }
+    const aiRun = await createAiRun({
+      type: AiRunType.content_generation,
+      input: { task: 'generate_tasks', contactId, inquiryId },
+    })
+    aiRunId = aiRun.id
 
     // Get contact/inquiry data for AI analysis
     let contact, inquiry
@@ -168,7 +187,7 @@ Provide tasks in this JSON format:
     })
 
     if (!tasksResult?.output?.tasks || tasksResult.output.tasks.length === 0) {
-      return NextResponse.json({ error: 'No tasks generated' }, { status: 400 })
+      return failAiRun({ aiRunId, error: new Error('No tasks generated') })
     }
 
     // Create tasks in database
@@ -190,6 +209,15 @@ Provide tasks in this JSON format:
       createdTasks.push(task)
     }
 
+    await completeAiRun({
+      aiRunId,
+      output: { tasks: createdTasks } as unknown as Record<string, unknown>,
+      model: tasksResult.model,
+      tokensInput: tasksResult.usage?.input_tokens,
+      tokensOutput: tasksResult.usage?.output_tokens,
+      latencyMs: Date.now() - startedAt,
+    })
+
     return NextResponse.json({
       success: true,
       tasks: createdTasks,
@@ -197,7 +225,6 @@ Provide tasks in this JSON format:
     })
 
   } catch (error) {
-    console.error('AI task generation error:', error)
-    return NextResponse.json({ error: 'Failed to generate tasks' }, { status: 500 })
+    return failAiRun({ aiRunId, error })
   }
 }
