@@ -182,7 +182,9 @@ function classifyEvent(element: HTMLElement): { eventType: string; text: string;
   if (href.startsWith('sms:')) return { eventType: 'text_click', text, href }
   if (href.startsWith('mailto:')) return { eventType: 'email_click', text, href }
   if (DOWNLOAD_HREF_PATTERN.test(href) || element.hasAttribute('download')) return { eventType: 'lead_magnet_download', text, href }
-  if (BOOKING_HREF_PATTERN.test(href) || /book|schedule|consult/i.test(text)) return { eventType: 'book_click', text, href }
+  if (/ethos|instant.?quote|get.?quote/i.test(href) || /instant quote|get.?quote/i.test(text)) return { eventType: 'instant_quote_clicked', text, href }
+  if (BOOKING_HREF_PATTERN.test(href) || /book|schedule|consult/i.test(text)) return { eventType: 'book_consultation_clicked', text, href }
+  if (/^\/services\//i.test(new URL(href, 'https://x').pathname)) return { eventType: 'service_card_clicked', text, href }
   if (isMeaningfulCta(element, text, href)) return { eventType: 'cta_click', text, href }
 
   return null
@@ -245,6 +247,26 @@ export default function PublicTracker() {
       contentName,
       contentCategory,
     })
+
+    // SPEC-HARDENING §5 — fire gbp_service_visit when traffic arrives via GBP
+    if (context.medium === 'business_profile' || searchParams?.get('utm_medium') === 'business_profile') {
+      void sendEvent({
+        leadSessionId: context.leadSessionId,
+        pageUrl: context.pageUrl,
+        referrer: context.referrer,
+        source: context.source,
+        medium: context.medium,
+        campaign: context.campaign,
+        term: context.term,
+        content: context.content,
+        county: null,
+        productInterest: null,
+        eventType: 'gbp_service_visit',
+        metadata: {
+          utmContent: searchParams?.get('utm_content') ?? null,
+        },
+      })
+    }
   }, [pathname, searchParams])
 
   useEffect(() => {
