@@ -503,6 +503,15 @@ enum EventType {
   post_created
   post_published
   reaction_added
+  // Spec-hardening §6 — named funnel + GBP events
+  legacy_checkup_started
+  legacy_checkup_step_completed
+  legacy_checkup_completed
+  lead_submitted
+  book_consultation_clicked
+  instant_quote_clicked
+  service_card_clicked
+  gbp_service_visit
 }
 
 enum ThreadChannel {
