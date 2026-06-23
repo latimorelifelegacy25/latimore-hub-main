@@ -6,21 +6,26 @@ import {
   Activity,
   Bot,
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Code2,
   Copy,
   Database,
   FileText,
   FolderOpen,
   GitBranch,
+  Globe,
   HardDrive,
   LayoutDashboard,
   Loader2,
   Rocket,
+  Send,
   ShieldCheck,
   Sparkles,
   Target,
   Terminal,
+  User,
   Wand2,
 } from 'lucide-react'
 
@@ -33,6 +38,19 @@ type Task = {
 }
 
 type AiMode = 'chat' | 'strategy'
+
+type AgentAction =
+  | { type: 'web_search'; queries: string[]; sources: string[] }
+  | { type: 'execute_js'; code: string; result: string }
+  | { type: 'read_file'; filePath: string; preview: string }
+
+type AgentMessage = {
+  role: 'user' | 'assistant'
+  text: string
+  actions?: AgentAction[]
+}
+
+type AgentToolConfig = { webSearch: boolean; code: boolean; files: boolean }
 
 const defaultTasks: Task[] = [
   { text: 'Review PAHS QR funnel and confirm sponsor traffic route', priority: 'high', done: false },
@@ -76,6 +94,66 @@ async function callNexusAgent(message: string, mode: AiMode = 'chat') {
   return typeof data.data === 'string' ? data.data : JSON.stringify(data.data, null, 2)
 }
 
+async function callAgentMode(message: string, history: AgentMessage[], tools: AgentToolConfig) {
+  const response = await fetch('/api/admin/ai/agent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message,
+      history: history.map((m) => ({ role: m.role, text: m.text })),
+      tools,
+    }),
+  })
+
+  const data = await response.json()
+  if (!response.ok) throw new Error(data?.error || 'Agent mode request failed')
+  return { text: data.reply as string, actions: (data.actions ?? []) as AgentAction[] }
+}
+
+function AgentActionLog({ action }: { action: AgentAction }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const label =
+    action.type === 'execute_js'
+      ? 'Executed sandboxed JavaScript'
+      : action.type === 'web_search'
+        ? `Web search: ${action.queries[0] ?? ''}`
+        : `Read file: ${action.filePath}`
+  const Icon = action.type === 'execute_js' ? Code2 : action.type === 'web_search' ? Globe : FileText
+
+  return (
+    <div className="mb-2 overflow-hidden rounded-xl border border-white/10 bg-black/30">
+      <button
+        onClick={() => setIsOpen((v) => !v)}
+        className="flex w-full items-center justify-between px-3 py-2 text-left text-xs font-bold text-[#A9B1BE] hover:text-white"
+      >
+        <span className="flex items-center gap-2"><Icon size={14} className="text-[#C9A25F]" />{label}</span>
+        {isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+      </button>
+      {isOpen && (
+        <div className="border-t border-white/10 bg-black/40 p-3 text-xs font-mono text-[#A9B1BE]">
+          {action.type === 'execute_js' && (
+            <>
+              <pre className="mb-2 whitespace-pre-wrap text-[#E8EDF5]">{action.code}</pre>
+              <pre className="whitespace-pre-wrap text-emerald-300">{action.result}</pre>
+            </>
+          )}
+          {action.type === 'web_search' && (
+            <ul className="space-y-1">
+              {action.sources.map((src) => (
+                <li key={src} className="truncate text-[#E8EDF5]">{src}</li>
+              ))}
+              {action.sources.length === 0 && <li>No sources returned.</li>}
+            </ul>
+          )}
+          {action.type === 'read_file' && (
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap text-[#E8EDF5]">{action.preview}</pre>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function PriorityBadge({ priority }: { priority: Task['priority'] }) {
   const classes = {
     high: 'border-red-400/30 bg-red-500/10 text-red-200',
@@ -96,6 +174,11 @@ export default function NexusAgentClient() {
   const [revenueAsset, setRevenueAsset] = useState('Facebook + LinkedIn content pack')
   const [driveBrief, setDriveBrief] = useState('Summarize what should be in the PAHS campaign folder and which assets need cleanup.')
   const [codexBrief, setCodexBrief] = useState('Review the Latimore Hub admin experience and list the next safest code improvements.')
+  const [agentTools, setAgentTools] = useState<AgentToolConfig>({ webSearch: true, code: true, files: true })
+  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([])
+  const [agentInput, setAgentInput] = useState('')
+  const [agentLoading, setAgentLoading] = useState(false)
+  const [agentError, setAgentError] = useState<string | null>(null)
 
   useEffect(() => {
     const saved = window.localStorage.getItem('latimore-nexus-tasks')
@@ -136,6 +219,30 @@ export default function NexusAgentClient() {
   const addTask = (text: string, priority: Task['priority'] = 'medium') => {
     if (!text.trim()) return
     setTasks((prev) => [{ text: text.trim(), priority, done: false }, ...prev])
+  }
+
+  const toggleAgentTool = (key: keyof AgentToolConfig) => {
+    setAgentTools((prev) => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const sendAgentMessage = async () => {
+    const text = agentInput.trim()
+    if (!text || agentLoading) return
+    setAgentInput('')
+    setAgentError(null)
+    setAgentLoading(true)
+    const history = agentMessages
+    setAgentMessages((prev) => [...prev, { role: 'user', text }])
+    try {
+      const { text: reply, actions } = await callAgentMode(text, history, agentTools)
+      setAgentMessages((prev) => [...prev, { role: 'assistant', text: reply, actions }])
+    } catch (err) {
+      const fallback = err instanceof Error ? err.message : 'Unknown error'
+      setAgentError(fallback)
+      setAgentMessages((prev) => [...prev, { role: 'assistant', text: `Agent mode error: ${fallback}` }])
+    } finally {
+      setAgentLoading(false)
+    }
   }
 
   return (
@@ -308,6 +415,74 @@ export default function NexusAgentClient() {
                 <p className="mt-2 text-sm text-[#A9B1BE]">Generate safe implementation instructions for repo updates without overwriting production-critical files.</p>
                 <textarea value={codexBrief} onChange={(event) => setCodexBrief(event.target.value)} rows={5} className="mt-5 w-full rounded-2xl border border-white/10 bg-black/30 p-4 text-sm text-white outline-none focus:border-[#C9A25F]/60" />
                 <button onClick={() => runAgent(`Code operations request: ${codexBrief}. Return exact files to edit, risk level, test commands, and deployment notes for latimore-hub-main.`)} disabled={loading} className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-[#C9A25F] px-5 py-3 text-sm font-black text-[#101826] disabled:opacity-60"><Terminal size={18} /> Generate code brief</button>
+              </section>
+            )}
+
+            {activeTab === 'codex' && (
+              <section className="rounded-3xl border border-white/10 bg-[#0E1420]/90 p-5 md:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3"><Bot className="text-[#C9A25F]" /><h2 className="text-xl font-black text-white">Agent mode</h2></div>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      ['webSearch', 'Web search', Globe],
+                      ['code', 'Sandboxed JS', Code2],
+                      ['files', 'Read repo files', FileText],
+                    ] as const).map(([key, label, Icon]) => (
+                      <button
+                        key={key}
+                        onClick={() => toggleAgentTool(key)}
+                        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                          agentTools[key] ? 'border-[#C9A25F]/60 bg-[#C9A25F]/15 text-[#E7C986]' : 'border-white/10 text-[#A9B1BE] hover:text-white'
+                        }`}
+                      >
+                        <Icon size={13} /> {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-2 text-sm text-[#A9B1BE]">
+                  Real tool calls, executed server-side: live web search, a sandboxed JavaScript evaluator (no filesystem/network access inside it), and read-only repo file access. No API keys ever reach the browser.
+                </p>
+
+                <div className="mt-5 max-h-[480px] space-y-3 overflow-y-auto rounded-2xl border border-white/10 bg-black/20 p-4">
+                  {agentMessages.length === 0 && (
+                    <p className="text-sm text-[#A9B1BE]">Ask the agent something that needs a tool — e.g. "search the web for current term life trends" or "read lib/ai/client.ts and summarize it" or "calculate compound interest on $10,000 at 6% for 20 years".</p>
+                  )}
+                  {agentMessages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`flex max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg ${msg.role === 'user' ? 'ml-2 bg-[#C9A25F]' : 'mr-2 border border-white/10 bg-black/40'}`}>
+                          {msg.role === 'user' ? <User size={14} className="text-[#101826]" /> : <Bot size={14} className="text-[#C9A25F]" />}
+                        </div>
+                        <div className="min-w-0">
+                          {msg.actions?.map((action, ai) => <AgentActionLog key={ai} action={action} />)}
+                          <div className={`whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-6 ${msg.role === 'user' ? 'bg-[#C9A25F] text-[#101826]' : 'border border-white/10 bg-[#111827]/80 text-[#E8EDF5]'}`}>
+                            {msg.text}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {agentLoading && (
+                    <div className="flex items-center gap-2 text-sm text-[#A9B1BE]"><Loader2 size={14} className="animate-spin" /> Working…</div>
+                  )}
+                </div>
+
+                {agentError && <div className="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">{agentError}</div>}
+
+                <div className="mt-4 flex gap-2">
+                  <input
+                    value={agentInput}
+                    onChange={(event) => setAgentInput(event.target.value)}
+                    onKeyDown={(event) => { if (event.key === 'Enter') sendAgentMessage() }}
+                    placeholder="Ask the agent to search, calculate, or read a file…"
+                    disabled={agentLoading}
+                    className="flex-1 rounded-2xl border border-white/10 bg-black/30 p-3 text-sm text-white outline-none focus:border-[#C9A25F]/60 disabled:opacity-60"
+                  />
+                  <button onClick={sendAgentMessage} disabled={agentLoading || !agentInput.trim()} className="flex items-center gap-2 rounded-2xl bg-[#C9A25F] px-5 py-3 text-sm font-black text-[#101826] disabled:opacity-60">
+                    {agentLoading ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />}
+                  </button>
+                </div>
               </section>
             )}
 
