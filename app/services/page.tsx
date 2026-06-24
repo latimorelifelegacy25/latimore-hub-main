@@ -25,6 +25,13 @@ import {
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 import { SERVICE_PAGES } from '@/lib/services-content'
 
+// GBP UTM helper — SPEC-HARDENING §5
+function gbpServiceUrl(href: string): string {
+  const slug = href.split('/').filter(Boolean).pop() ?? 'service'
+  return `${href}?utm_source=google&utm_medium=business_profile&utm_campaign=gbp_services&utm_content=${slug}`
+}
+
+
 interface Service {
   number: string
   icon: ReactNode
@@ -322,16 +329,23 @@ function ServiceCard({ service }: { service: Service }) {
 
       </div>
 
-      {service.learnMoreHref && (
-        <div className="px-6 pb-6">
+      <div className="px-6 pb-6 flex flex-col gap-2">
+        <Link
+          href="/legacy-checkup"
+          className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+          data-track-event="legacy_checkup_started"
+        >
+          Start Legacy Checkup →
+        </Link>
+        {service.learnMoreHref && (
           <Link
-            href={service.learnMoreHref}
-            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+            href={gbpServiceUrl(service.learnMoreHref)}
+            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm border border-[#C9A24D] text-[#C9A24D] bg-transparent"
           >
-            Learn more →
+            Learn more
           </Link>
-        </div>
-      )}
+        )}
+      </div>
     </article>
   )
 }

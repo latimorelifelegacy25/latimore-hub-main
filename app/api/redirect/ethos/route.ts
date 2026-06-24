@@ -33,8 +33,12 @@ function pick<T>(value: T | null | undefined): T | undefined {
 }
 
 export async function GET(req: NextRequest) {
-  const limited = await rateLimit(req, 'ethos_redirect')
-  if (limited) return limited
+  try {
+    const limited = await rateLimit(req, 'ethos_redirect')
+    if (limited) return limited
+  } catch (error) {
+    console.error('[ethos_redirect] rate limit check failed; continuing to redirect', error)
+  }
 
   const url = new URL(req.url)
   const parsed = QuerySchema.safeParse(Object.fromEntries(url.searchParams.entries()))
@@ -55,122 +59,126 @@ export async function GET(req: NextRequest) {
 
   const intentHint = q.intent === 'consult' ? LeadIntent.CONSULT : LeadIntent.QUICK_TERM
 
-  // 1) Ensure lead session exists if provided (connects later form submits)
-  if (leadSessionId) {
-    await prisma.leadSession.upsert({
-      where: { id: leadSessionId },
-      update: {
-        lastSeenAt: new Date(),
-        landingPage: pageUrl ?? undefined,
-        referrer: pick(q.referrer) ?? undefined,
-        source: pick(q.utm_source) ?? undefined,
-        medium: pick(q.utm_medium) ?? undefined,
-        campaign: pick(q.utm_campaign) ?? undefined,
-        term: pick(q.utm_term) ?? undefined,
-        content: pick(q.utm_content) ?? undefined,
-      },
-      create: {
-        id: leadSessionId,
-        landingPage: pageUrl ?? undefined,
-        referrer: pick(q.referrer) ?? undefined,
-        source: pick(q.utm_source) ?? undefined,
-        medium: pick(q.utm_medium) ?? undefined,
-        campaign: pick(q.utm_campaign) ?? undefined,
-        term: pick(q.utm_term) ?? undefined,
-        content: pick(q.utm_content) ?? undefined,
-      },
-    })
-  }
-
-  // 2) Log Event (marketing/system source of truth)
-  await prisma.event.create({
-    data: {
-      eventType: 'cta_click',
-      occurredAt: new Date(),
-      leadSessionId: leadSessionId ?? undefined,
-      contactId: pick(q.contactId),
-      inquiryId: pick(q.inquiryId),
-      pageUrl: pageUrl ?? undefined,
-      referrer: pick(q.referrer) ?? undefined,
-      source: pick(q.utm_source) ?? undefined,
-      medium: pick(q.utm_medium) ?? undefined,
-      campaign: pick(q.utm_campaign) ?? undefined,
-      metadata: {
-        destination: 'ethos',
-        ethosUrl: BRAND.ethosUrl,
-        intentHint,
-      },
-    },
-  })
-
-  // 3) Log SystemEvent (audit trail + admin filtering later)
-  await prisma.systemEvent.create({
-    data: {
-      type: 'ethos.redirect',
-      occurredAt: new Date(),
-      leadSessionId: leadSessionId ?? undefined,
-      contactId: pick(q.contactId),
-      inquiryId: pick(q.inquiryId),
-      source: pick(q.utm_source) ?? undefined,
-      medium: pick(q.utm_medium) ?? undefined,
-      campaign: pick(q.utm_campaign) ?? undefined,
-      payload: {
-        destination: 'ethos',
-        ethosUrl: BRAND.ethosUrl,
-        pageUrl,
-        referrer: pick(q.referrer) ?? null,
-        sourceType,
-        intentHint,
-      },
-    },
-  })
-
-  // 4) If we have an inquiry/contact, update lifecycle status
-  // (This is the key “source of truth” step)
-  if (q.inquiryId) {
-    await prisma.inquiry.update({
-      where: { id: q.inquiryId },
-      data: {
-        sourceType,
-        status: LeadStatus.REFERRED_TO_ETHOS,
-        // Do NOT overwrite intent if it's already meaningful; only upgrade UNKNOWN
-        intent: undefined,
-      },
-    })
-
-    const inquiry = await prisma.inquiry.findUnique({
-      where: { id: q.inquiryId },
-      select: { intent: true, contactId: true },
-    })
-
-    if (inquiry) {
-      await prisma.inquiry.update({
-        where: { id: q.inquiryId },
-        data: {
-          intent: inquiry.intent === 'UNKNOWN' ? intentHint : inquiry.intent,
+  try {
+    // 1) Ensure lead session exists if provided (connects later form submits)
+    if (leadSessionId) {
+      await prisma.leadSession.upsert({
+        where: { id: leadSessionId },
+        update: {
+          lastSeenAt: new Date(),
+          landingPage: pageUrl ?? undefined,
+          referrer: pick(q.referrer) ?? undefined,
+          source: pick(q.utm_source) ?? undefined,
+          medium: pick(q.utm_medium) ?? undefined,
+          campaign: pick(q.utm_campaign) ?? undefined,
+          term: pick(q.utm_term) ?? undefined,
+          content: pick(q.utm_content) ?? undefined,
         },
-      })
-
-      await prisma.contact.update({
-        where: { id: inquiry.contactId },
-        data: {
-          primarySourceType: undefined, // preserve; do not overwrite
-          currentIntent: intentHint,
-          status: LeadStatus.REFERRED_TO_ETHOS,
+        create: {
+          id: leadSessionId,
+          landingPage: pageUrl ?? undefined,
+          referrer: pick(q.referrer) ?? undefined,
+          source: pick(q.utm_source) ?? undefined,
+          medium: pick(q.utm_medium) ?? undefined,
+          campaign: pick(q.utm_campaign) ?? undefined,
+          term: pick(q.utm_term) ?? undefined,
+          content: pick(q.utm_content) ?? undefined,
         },
       })
     }
-  } else if (q.contactId) {
-    // If only contactId is known, update contact lifecycle (optional path)
-    await prisma.contact.update({
-      where: { id: q.contactId },
+
+    // 2) Log Event (marketing/system source of truth)
+    await prisma.event.create({
       data: {
-        currentIntent: intentHint,
-        status: LeadStatus.REFERRED_TO_ETHOS,
-        primarySourceType: undefined,
-        primaryIntent: undefined,
+        eventType: 'cta_click',
+        occurredAt: new Date(),
+        leadSessionId: leadSessionId ?? undefined,
+        contactId: pick(q.contactId),
+        inquiryId: pick(q.inquiryId),
+        pageUrl: pageUrl ?? undefined,
+        referrer: pick(q.referrer) ?? undefined,
+        source: pick(q.utm_source) ?? undefined,
+        medium: pick(q.utm_medium) ?? undefined,
+        campaign: pick(q.utm_campaign) ?? undefined,
+        metadata: {
+          destination: 'ethos',
+          ethosUrl: BRAND.ethosUrl,
+          intentHint,
+        },
       },
     })
+
+    // 3) Log SystemEvent (audit trail + admin filtering later)
+    await prisma.systemEvent.create({
+      data: {
+        type: 'ethos.redirect',
+        occurredAt: new Date(),
+        leadSessionId: leadSessionId ?? undefined,
+        contactId: pick(q.contactId),
+        inquiryId: pick(q.inquiryId),
+        source: pick(q.utm_source) ?? undefined,
+        medium: pick(q.utm_medium) ?? undefined,
+        campaign: pick(q.utm_campaign) ?? undefined,
+        payload: {
+          destination: 'ethos',
+          ethosUrl: BRAND.ethosUrl,
+          pageUrl,
+          referrer: pick(q.referrer) ?? null,
+          sourceType,
+          intentHint,
+        },
+      },
+    })
+
+    // 4) If we have an inquiry/contact, update lifecycle status
+    // (This is the key “source of truth” step)
+    if (q.inquiryId) {
+      await prisma.inquiry.update({
+        where: { id: q.inquiryId },
+        data: {
+          sourceType,
+          status: LeadStatus.REFERRED_TO_ETHOS,
+          // Do NOT overwrite intent if it's already meaningful; only upgrade UNKNOWN
+          intent: undefined,
+        },
+      })
+
+      const inquiry = await prisma.inquiry.findUnique({
+        where: { id: q.inquiryId },
+        select: { intent: true, contactId: true },
+      })
+
+      if (inquiry) {
+        await prisma.inquiry.update({
+          where: { id: q.inquiryId },
+          data: {
+            intent: inquiry.intent === 'UNKNOWN' ? intentHint : inquiry.intent,
+          },
+        })
+
+        await prisma.contact.update({
+          where: { id: inquiry.contactId },
+          data: {
+            primarySourceType: undefined, // preserve; do not overwrite
+            currentIntent: intentHint,
+            status: LeadStatus.REFERRED_TO_ETHOS,
+          },
+        })
+      }
+    } else if (q.contactId) {
+      // If only contactId is known, update contact lifecycle (optional path)
+      await prisma.contact.update({
+        where: { id: q.contactId },
+        data: {
+          currentIntent: intentHint,
+          status: LeadStatus.REFERRED_TO_ETHOS,
+          primarySourceType: undefined,
+          primaryIntent: undefined,
+        },
+      })
+    }
+  } catch (error) {
+    console.error('[ethos_redirect] tracking failed; redirecting anyway', error)
   }
 
   // 5) Redirect to Ethos (safe allowlist: always redirect to BRAND.ethosUrl)

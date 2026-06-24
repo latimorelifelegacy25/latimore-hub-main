@@ -47,6 +47,9 @@ export const COLORS = {
   trackC: '#7a4f2e',
 } as const
 
+const DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL =
+  'https://calendar.google.com/calendar/appointments/schedules/AcZssZ0RjEKuPGf76zHTJE0p3E_oOL0FJnPi5s28JlVnXPTHTdXkMJWqUWpbup9FNP_bOg6Z-4Zv_8Ph?gv=true'
+
 export const BRAND = {
   // Public-facing name (use in headings/metadata)
   name: 'Latimore Life & Legacy',
@@ -67,8 +70,13 @@ export const BRAND = {
   nipr: '21638507',
   paLicense: '1268820',
 
-  // Primary CTAs — all booking buttons route directly to the Fillout consultation form
-  bookingUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
+  // Primary CTAs — keep public booking traffic on-site for stable tracking and fallback handling.
+  bookingUrl: '/book',
+  googleAppointmentScheduleUrl:
+    process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_SCHEDULE_URL ??
+    DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL,
+
+  // Legacy fallback only. Do not use this for primary public CTAs.
   filloutUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
