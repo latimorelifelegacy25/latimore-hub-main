@@ -398,7 +398,7 @@ export default function PahsProtectForm() {
       {/* ── PAHS SCHEDULE ── */}
       <section className="pwyp-schedule-section pwyp-fade-in">
         <div className="pwyp-schedule-inner">
-          <div className="pwyp-section-label" style={{ color: '#C49A6C' }}>2026 Season</div>
+          <div className="pwyp-section-label" style={{ color: '#C9A25F' }}>2026 Season</div>
           <h2>Crimson Tide Schedule</h2>
           <table className="pwyp-schedule-table">
             <thead>

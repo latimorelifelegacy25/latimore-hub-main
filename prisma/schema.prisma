@@ -64,13 +64,15 @@ model Contact {
   events               Event[]
   inquiries            Inquiry[]
   leadSessions         LeadSession[]
+  legacyCheckups       LegacyCheckupAssessment[]
   notes                Note[]
   systemEvents         SystemEvent[]
   tasks                Task[]
+  joinApplications     JoinApplication[]
 
   @@index([createdAt])
   @@index([county])
-  @@index([phone])
+  @@unique([phone])
   @@index([leadScore])
   @@index([lastActivityAt])
   @@index([primarySourceType])
@@ -106,9 +108,11 @@ model Inquiry {
   contact         Contact               @relation(fields: [contactId], references: [id])
   leadSession     LeadSession?          @relation(fields: [leadSessionId], references: [id])
   history         InquiryStageHistory[]
+  legacyCheckups  LegacyCheckupAssessment[]
   notesEntries    Note[]
   systemEvents    SystemEvent[]
   tasks           Task[]
+  joinApplications JoinApplication[]
 
   @@index([createdAt])
   @@index([stage])
@@ -161,6 +165,26 @@ model Task {
 
   @@index([status])
   @@index([dueAt])
+}
+
+model LegacyCheckupAssessment {
+  id                    String   @id @default(uuid())
+  createdAt             DateTime @default(now())
+  contactId             String
+  inquiryId             String?
+  hasLifeInsurance      Boolean?
+  hasMortgageProtection Boolean?
+  hasFinalExpense       Boolean?
+  hasRetirementPlan     Boolean?
+  hasLegacyPlan         Boolean?
+  interestedIn          String[]
+  message               String?
+  contact               Contact  @relation(fields: [contactId], references: [id])
+  inquiry               Inquiry? @relation(fields: [inquiryId], references: [id])
+
+  @@index([contactId])
+  @@index([inquiryId])
+  @@index([createdAt])
 }
 
 model Event {
@@ -280,10 +304,30 @@ model AiRun {
   error        String?
   contact      Contact?    @relation(fields: [contactId], references: [id])
   inquiry      Inquiry?    @relation(fields: [inquiryId], references: [id])
+  agentSteps   AgentWorkflowStep[]
 
   @@index([type, createdAt])
   @@index([status])
   @@index([contactId])
+}
+
+model AgentWorkflowStep {
+  id          String           @id @default(uuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  aiRunId     String
+  order       Int
+  agentRole   String
+  task        String
+  status      AgentStepStatus  @default(pending)
+  output      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  aiRun       AiRun            @relation(fields: [aiRunId], references: [id], onDelete: Cascade)
+
+  @@index([aiRunId, order])
+  @@index([status])
 }
 
 model Note {
@@ -301,6 +345,78 @@ model Note {
 
   @@index([contactId, createdAt])
   @@index([inquiryId, createdAt])
+}
+
+model JoinApplication {
+  id                    String          @id @default(uuid())
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  contactId             String
+  inquiryId             String?
+  fullName              String
+  firstName             String?
+  lastName              String?
+  phone                 String
+  email                 String
+  cityState             String?
+  bestContactMethod     String?
+  bestContactTime       String?
+  interestReason        String?
+  lookingFor            String[]        @default([])
+  selfDescription       String?
+  licenseStatus         String?
+  licensesHeld          String[]        @default([])
+  priorExperience       String?
+  experienceDescription String?
+  incomeGoal            String?
+  hoursPerWeek          String?
+  comfortLevel          Int?
+  willingToTrain        String?
+  motivation            String?
+  values                String[]        @default([])
+  mentorshipNeeds       String?
+  availableForCall      String?
+  preferredCallTime     String?
+  questions             String?
+  consentAccepted       Boolean         @default(false)
+  consentText           String?
+  leadSessionId         String?
+  pageUrl               String?
+  referrer              String?
+  source                String?
+  medium                String?
+  campaign              String?
+  status                String          @default("New")
+  contact               Contact         @relation(fields: [contactId], references: [id])
+  inquiry               Inquiry?        @relation(fields: [inquiryId], references: [id])
+  events                JoinFormEvent[]
+
+  @@index([createdAt])
+  @@index([contactId])
+  @@index([inquiryId])
+  @@index([status])
+  @@index([source, medium, campaign])
+  @@index([leadSessionId])
+}
+
+model JoinFormEvent {
+  id            String           @id @default(uuid())
+  createdAt     DateTime         @default(now())
+  applicationId String?
+  leadSessionId String?
+  eventType     String
+  pageUrl       String?
+  referrer      String?
+  source        String?
+  medium        String?
+  campaign      String?
+  metadata      Json?
+  application   JoinApplication? @relation(fields: [applicationId], references: [id])
+
+  @@index([createdAt])
+  @@index([applicationId])
+  @@index([leadSessionId])
+  @@index([eventType])
 }
 
 model InquiryStageHistory {
@@ -461,6 +577,14 @@ enum EventType {
   post_created
   post_published
   reaction_added
+  legacy_checkup_started
+  legacy_checkup_step_completed
+  legacy_checkup_completed
+  lead_submitted
+  book_consultation_clicked
+  instant_quote_clicked
+  service_card_clicked
+  gbp_service_visit
 }
 
 enum ThreadChannel {
@@ -491,12 +615,20 @@ enum AiRunStatus {
   failed
 }
 
+enum AgentStepStatus {
+  pending
+  running
+  succeeded
+  failed
+}
+
 enum AiRunType {
   daily_brief
   draft_message
   contact_brief
   lead_score
   content_generation
+  content_repurposing
   crm_assistant
   agent_workflow
 }

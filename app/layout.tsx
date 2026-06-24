@@ -3,14 +3,14 @@ import './globals.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
+import Chatbot from '@/components/Chatbot'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTagManager } from '@next/third-parties/google'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
-// This value should match the production domain (`latimorelifelegacy.com`) rather than the
-// old Vercel preview domain. It can still be overridden via the NEXT_PUBLIC_BASE_URL
-// environment variable if necessary.
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com'
+// This value should match the production canonical domain. It can still be overridden via
+// the NEXT_PUBLIC_BASE_URL environment variable when necessary.
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com'
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -139,6 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
         <Suspense fallback={null}><PublicTracker /></Suspense>
         {children}
+        <Chatbot />
         <Analytics />
       </body>
     </html>

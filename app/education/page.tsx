@@ -430,13 +430,13 @@ export default function EducationPage() {
 
     try {
       if (currentStep === 'welcome') {
-        await logOnce('page_view', { activity: 'Started Education Funnel' })
+        await logOnce('legacy_checkup_started', { activity: 'Started Education Funnel' })
       }
 
       if (currentStep === 'contact') {
         setIsSubmitting(true)
         await submitLead()
-        await logEvent('form_submit', { activity: 'Completed Contact Capture' })
+        await logEvent('lead_submitted', { activity: 'Completed Contact Capture' })
       }
 
       if (currentStep === 'priority') {
@@ -493,22 +493,22 @@ export default function EducationPage() {
   }
 
   async function bookCall() {
-    await logEvent('book_click', { activity: 'Clicked Book With Jackson' })
+    await logEvent('book_consultation_clicked', { activity: 'Clicked Book With Jackson' })
     window.location.href = BRAND.bookingUrl
   }
 
   useEffect(() => {
-    const eventsByStep: Partial<Record<Step, [string, Record<string, unknown>]>> = {
-      rule72: ['cta_click', { activity: 'Viewed Rule of 72', detail: 'Interactive compound interest education' }],
-      taxBuckets: ['cta_click', { activity: 'Viewed Tax Buckets', detail: 'Tax now, tax later, tax advantage' }],
-      retirementTools: ['cta_click', { activity: 'Viewed 401k vs IUL Education', detail: 'Different tools, different rules' }],
-      retirementIncome: ['cta_click', { activity: 'Viewed GRIPP Module', detail: 'Retirement income and market volatility education' }],
+    const stepLabels: Partial<Record<Step, string>> = {
+      rule72: 'Rule of 72 — compound interest education',
+      taxBuckets: 'Tax Buckets — tax now, tax later, tax advantage',
+      retirementTools: '401k vs IUL — different tools, different rules',
+      retirementIncome: 'GRIPP Module — retirement income and market volatility',
     }
 
-    const event = eventsByStep[currentStep]
+    const stepLabel = stepLabels[currentStep]
 
-    if (event) {
-      logOnce(`${event[0]}:${currentStep}`, event[1]).catch(() => null)
+    if (stepLabel) {
+      logOnce('legacy_checkup_step_completed', { step: currentStep, detail: stepLabel }).catch(() => null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
@@ -518,7 +518,7 @@ export default function EducationPage() {
 
     completedRef.current = true
 
-    logEvent('form_submit', { activity: 'Completed Legacy Checkup', legacyScore: score }).catch(() => null)
+    logEvent('legacy_checkup_completed', { activity: 'Completed Legacy Checkup', legacyScore: score }).catch(() => null)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep, score])
 
@@ -569,8 +569,8 @@ export default function EducationPage() {
                 <div className="grid items-center gap-6 md:grid-cols-2">
                   <div className="overflow-hidden rounded-2xl">
                     <Image
-                      src="/hero_family_home.jpg"
-                      alt="Family at home"
+                      src="/jackson-outdoor.jpg"
+                      alt="Jackson M. Latimore Sr. — Independent Insurance Consultant"
                       width={800}
                       height={800}
                       priority

@@ -49,7 +49,6 @@ lib/               # All shared business logic and utilities
   social/          # Facebook, LinkedIn, Meta API integrations
   calendar/        # Google Calendar availability/slots
   reports/         # PDF generation, weekly report compilation
-  notion/          # Notion API client and contact sync
   documents/       # Document upload and extraction
   tracking/        # Session inference and dashboard event tracking
 prisma/            # Schema, migrations, seed data
@@ -145,6 +144,13 @@ Key AI capabilities:
 - **Export** — `lib/analytics/export.ts` for data downloads
 - Routes under `/api/analytics/v1/*` serve funnel, breakdown, and export data to the admin dashboard
 
+### Notion integrations
+
+Two independent Notion integrations exist — do not conflate them:
+
+- **CRM contact sync** (`workers/`) — a Notion Workers SDK worker (hosted by Notion, deployed via `ntn workers deploy`). `workers/src/index.ts` runs a manual full backfill (`contactsBackfill`) plus a 5-minute incremental delta sync (`contactsDelta`) against `app/api/internal/contacts`, which is protected by the `INTERNAL_API_SECRET` header. This is the only path that syncs `Contact`/`Inquiry` data into Notion. Stage changes (`change-stage.ts`, `record-appointment.ts`) explicitly bump `Contact.updatedAt` so the delta sync's window picks them up.
+- **Page automation** (`cloudflare/notion-worker/`) — a standalone Cloudflare Worker, unrelated to CRM data. It creates/appends ad hoc Notion pages (cron-triggered weekly planning/wrap-up notes, and on-demand pages via `app/api/notion-worker` → `lib/notion-worker.ts`). Configured with `NOTION_TOKEN` / `NOTION_PARENT_PAGE_ID` on the Cloudflare side and `LATIMORE_NOTION_WORKER_URL` on the Next.js side.
+
 ### Social integrations (`lib/social/`)
 
 OAuth tokens for Facebook/LinkedIn stored encrypted in `SocialConnection`. Key modules:
@@ -220,7 +226,10 @@ Protected by Google OAuth. Key areas:
 | `FACEBOOK_APP_ID` / `FACEBOOK_APP_SECRET` | Facebook/Instagram OAuth |
 | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | LinkedIn OAuth |
 | `TOKEN_ENCRYPTION_KEY` | AES-256-GCM key for OAuth token storage |
-| `NOTION_TOKEN` / `NOTION_PAGE_ID` | Notion sync (GitHub Action) |
+| `NOTION_TOKEN` / `NOTION_PAGE_ID` | README→Notion sync (GitHub Action) |
+| `INTERNAL_API_SECRET` | Shared secret for `/api/internal/*` routes. Set it in this app's env **and** push the same value to the Notion Worker with `ntn workers env set INTERNAL_API_SECRET=...` (run from `workers/`) |
+| `APP_BASE_URL` | Set on the Notion Worker (not this app) to this app's deployed URL — used to call `/api/internal/contacts` |
+| `LATIMORE_NOTION_WORKER_URL` | Deployed Cloudflare Worker URL for the page-automation worker (`cloudflare/notion-worker/`), used by `/api/notion-worker` |
 
 ## CI/CD
 

@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { captureException } from '@/lib/error-tracking'
+import { validateResendSandboxRoute } from '@/lib/resend-sandbox'
 
 export async function sendMail({
   to,
@@ -16,6 +17,13 @@ export async function sendMail({
     console.warn('RESEND_API_KEY not set — skipping email')
     return { ok: false, error: 'missing RESEND_API_KEY' }
   }
+
+  const sandboxCheck = validateResendSandboxRoute({ from, to })
+  if (sandboxCheck.ok === false) {
+    console.warn(sandboxCheck.error)
+    return { ok: false, error: sandboxCheck.error }
+  }
+
   try {
     const resend = new Resend(process.env.RESEND_API_KEY)
     const r = await resend.emails.send({ to, from, subject, html })

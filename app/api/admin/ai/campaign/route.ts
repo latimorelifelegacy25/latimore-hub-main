@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const CAMPAIGN_SCHEMA = {
@@ -82,12 +83,17 @@ POST 4 (Day 21) — The Legacy Invitation: CTA
       temperature: 0.8,
     })
 
+    const compliance = checkCompliance(
+      (result.output as Array<{ draft: string }>).map((p) => p.draft).join('\n'),
+    )
+
     return Response.json({
       success: true,
       goal,
       persona: targetPersona,
       count: result.output.length,
       posts: result.output,
+      compliance,
     })
   } catch (error) {
     console.error('[/api/admin/ai/campaign] Error:', error)

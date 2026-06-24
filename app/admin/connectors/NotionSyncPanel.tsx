@@ -1,35 +1,9 @@
-'use client'
-
-import { useState } from 'react'
-
 interface Props {
   totalContacts: number
   notionConfigured: boolean
 }
 
 export default function NotionSyncPanel({ totalContacts, notionConfigured }: Props) {
-  const [status, setStatus] = useState<'idle' | 'syncing' | 'done' | 'error'>('idle')
-  const [result, setResult] = useState<{ synced?: number; error?: string } | null>(null)
-
-  async function triggerSync() {
-    setStatus('syncing')
-    setResult(null)
-    try {
-      const res = await fetch('/api/admin/notion-sync', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) {
-        setStatus('error')
-        setResult({ error: data.error ?? 'Sync failed' })
-      } else {
-        setStatus('done')
-        setResult({ synced: data.synced })
-      }
-    } catch (err) {
-      setStatus('error')
-      setResult({ error: 'Network error' })
-    }
-  }
-
   return (
     <div className="rounded-xl border border-white/10 bg-white/5 p-6">
       <div className="flex items-center gap-3 mb-4">
@@ -38,7 +12,7 @@ export default function NotionSyncPanel({ totalContacts, notionConfigured }: Pro
         </div>
         <div>
           <h2 className="text-white font-medium">Notion Sync</h2>
-          <p className="text-xs text-[#A9B1BE]">Sync CRM contacts to your Notion database</p>
+          <p className="text-xs text-[#A9B1BE]">CRM contacts sync to Notion automatically</p>
         </div>
         <div className="ml-auto">
           <span
@@ -62,56 +36,23 @@ export default function NotionSyncPanel({ totalContacts, notionConfigured }: Pro
           <p className="text-2xl font-semibold text-white">{totalContacts.toLocaleString()}</p>
         </div>
         <div className="rounded-lg bg-white/5 p-3">
-          <p className="text-xs text-[#A9B1BE] mb-1">Last sync</p>
-          <p className="text-sm text-white">
-            {status === 'done' && result?.synced !== undefined
-              ? `${result.synced.toLocaleString()} synced`
-              : status === 'syncing'
-              ? 'Running...'
-              : '—'}
-          </p>
+          <p className="text-xs text-[#A9B1BE] mb-1">Sync schedule</p>
+          <p className="text-sm text-white">Every 5 minutes</p>
         </div>
       </div>
 
       {!notionConfigured && (
         <p className="mb-4 rounded-lg bg-yellow-500/10 px-3 py-2 text-xs text-yellow-300">
-          Set <code className="font-mono">NOTION_API_KEY</code> and{' '}
-          <code className="font-mono">NOTION_CONTACT_DB_ID</code> environment variables to enable
-          sync.
+          Set <code className="font-mono">INTERNAL_API_SECRET</code> in this app and push it to
+          the Notion Worker (<code className="font-mono">ntn workers env set</code>) to enable sync.
         </p>
       )}
 
-      {result?.error && (
-        <p className="mb-4 rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
-          {result.error}
-        </p>
-      )}
-
-      {status === 'done' && result?.synced !== undefined && (
-        <p className="mb-4 rounded-lg bg-green-500/10 px-3 py-2 text-xs text-green-300">
-          Synced {result.synced.toLocaleString()} contacts to Notion successfully.
-        </p>
-      )}
-
-      <button
-        onClick={triggerSync}
-        disabled={!notionConfigured || status === 'syncing'}
-        className="flex items-center gap-2 rounded-lg bg-[#C9A25F] px-4 py-2 text-sm font-medium text-black transition hover:bg-[#E5C882] disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {status === 'syncing' ? (
-          <>
-            <i className="fa-solid fa-spinner fa-spin text-xs" />
-            Syncing...
-          </>
-        ) : (
-          <>
-            <i className="fa-solid fa-rotate text-xs" />
-            Sync All Contacts
-          </>
-        )}
-      </button>
-      <p className="mt-2 text-xs text-[#A9B1BE]">
-        Pushes all {totalContacts.toLocaleString()} contacts to the Notion database. May take a moment for large lists.
+      <p className="rounded-lg bg-white/5 px-3 py-2 text-xs text-[#A9B1BE]">
+        Contacts sync to Notion via a managed Notion Worker — a delta sync runs every 5 minutes
+        and a full backfill can be triggered with <code className="font-mono">ntn workers sync trigger contactsBackfill</code>.
+        There is no manual sync button here; monitor status with{' '}
+        <code className="font-mono">ntn workers sync status</code>.
       </p>
     </div>
   )

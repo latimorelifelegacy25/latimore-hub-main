@@ -25,6 +25,13 @@ import {
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 import { SERVICE_PAGES } from '@/lib/services-content'
 
+// GBP UTM helper — SPEC-HARDENING §5
+function gbpServiceUrl(href: string): string {
+  const slug = href.split('/').filter(Boolean).pop() ?? 'service'
+  return `${href}?utm_source=google&utm_medium=business_profile&utm_campaign=gbp_services&utm_content=${slug}`
+}
+
+
 interface Service {
   number: string
   icon: ReactNode
@@ -39,14 +46,6 @@ interface ClientSegment {
   icon: ReactNode
   title: string
   description: string
-}
-
-interface Strategy {
-  number: string
-  icon: ReactNode
-  title: string
-  blurb: string
-  href: string
 }
 
 const NAVY = '#0E1A2B'
@@ -69,6 +68,7 @@ const services: Service[] = [
       'Reduces your taxable estate over time',
       'Complements — not replaces — your existing 401(k) or IRA',
     ],
+    learnMoreHref: '/services/iul-strategy',
   },
   {
     number: '02',
@@ -84,6 +84,7 @@ const services: Service[] = [
       'Guaranteed growth options through fixed vehicles',
       'Retain control of your funds without employer restrictions',
     ],
+    learnMoreHref: '/services/401k-rollover',
   },
   {
     number: '03',
@@ -99,6 +100,7 @@ const services: Service[] = [
       'May not count against financial aid eligibility',
       'Funds remain available if the child does not attend college',
     ],
+    learnMoreHref: '/services/college-funding',
   },
   {
     number: '04',
@@ -130,6 +132,7 @@ const services: Service[] = [
       'Final expense coverage to prevent burial costs falling on loved ones',
       'Disability waiver of premium to keep coverage in force',
     ],
+    learnMoreHref: '/services/life-insurance',
   },
   {
     number: '06',
@@ -161,6 +164,7 @@ const services: Service[] = [
       'Available inside both indexed universal life and fixed indexed annuities',
       'Tax-deferred growth throughout the accumulation phase',
     ],
+    learnMoreHref: '/services/iul-strategy',
   },
   {
     number: '08',
@@ -176,6 +180,7 @@ const services: Service[] = [
       'Living benefit riders available on many policies',
       'Affordable coverage often available without a full medical exam',
     ],
+    learnMoreHref: '/services/mortgage-protection',
   },
   {
     number: '09',
@@ -207,79 +212,7 @@ const services: Service[] = [
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
     ],
-  },
-]
-
-const strategies: Strategy[] = [
-  {
-    number: '01',
-    icon: <Shield size={24} aria-hidden="true" />,
-    title: 'Life Insurance',
-    blurb: 'Term, whole life, and indexed universal life — protection that fits your budget and your goals.',
-    href: '/services/life-insurance',
-  },
-  {
-    number: '02',
-    icon: <Home size={24} aria-hidden="true" />,
-    title: 'Mortgage Protection',
-    blurb: 'Make sure your family can keep the home if something happens to you.',
-    href: '/services/mortgage-protection',
-  },
-  {
-    number: '03',
-    icon: <Target size={24} aria-hidden="true" />,
-    title: 'Retirement Income',
-    blurb: 'Turn savings into income that lasts — without running out of money.',
-    href: '/services/retirement-income',
-  },
-  {
-    number: '04',
-    icon: <Landmark size={24} aria-hidden="true" />,
-    title: '401(k) Rollover',
-    blurb: 'Roll over an old 401(k) or 403(b) into a strategy with principal protection.',
-    href: '/services/401k-rollover',
-  },
-  {
-    number: '05',
-    icon: <HeartPulse size={24} aria-hidden="true" />,
-    title: 'Final Expense',
-    blurb: 'Cover end-of-life costs so your family is not left with the bill.',
-    href: '/services/final-expense',
-  },
-  {
-    number: '06',
-    icon: <Baby size={24} aria-hidden="true" />,
-    title: 'College Funding',
-    blurb: 'Save for education with flexibility that 529 plans cannot match.',
-    href: '/services/college-funding',
-  },
-  {
-    number: '07',
-    icon: <Briefcase size={24} aria-hidden="true" />,
-    title: 'Business Protection',
-    blurb: 'Key-person coverage and buy-sell funding to keep your business running.',
-    href: '/services/business-protection',
-  },
-  {
-    number: '08',
-    icon: <Wrench size={24} aria-hidden="true" />,
-    title: 'Legacy Checkup',
-    blurb: 'A free, guided review to see exactly where you stand today.',
-    href: '/services/legacy-checkup',
-  },
-  {
-    number: '09',
-    icon: <Building2 size={24} aria-hidden="true" />,
-    title: 'Estate Planning',
-    blurb: 'Pass on more of what you have built, with less left to chance.',
-    href: '/services/estate-planning',
-  },
-  {
-    number: '10',
-    icon: <LineChart size={24} aria-hidden="true" />,
-    title: 'IUL Strategy',
-    blurb: 'Tax-advantaged growth with downside protection, built around your goals.',
-    href: '/services/iul-strategy',
+    learnMoreHref: '/services/retirement-income',
   },
 ]
 
@@ -396,37 +329,24 @@ function ServiceCard({ service }: { service: Service }) {
 
       </div>
 
-      {service.learnMoreHref && (
-        <div className="px-6 pb-6">
+      <div className="px-6 pb-6 flex flex-col gap-2">
+        <Link
+          href="/legacy-checkup"
+          className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+          data-track-event="legacy_checkup_started"
+        >
+          Start Legacy Checkup →
+        </Link>
+        {service.learnMoreHref && (
           <Link
-            href={service.learnMoreHref}
-            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm bg-[#C9A24D] text-[#0E1A2B]"
+            href={gbpServiceUrl(service.learnMoreHref)}
+            className="block w-full text-center rounded-md font-bold no-underline transition-all hover:brightness-110 px-4 py-2 text-sm border border-[#C9A24D] text-[#C9A24D] bg-transparent"
           >
-            Learn more →
+            Learn more
           </Link>
-        </div>
-      )}
-    </article>
-  )
-}
-
-function StrategyCard({ strategy }: { strategy: Strategy }) {
-  return (
-    <Link
-      href={strategy.href}
-      className="block bg-white rounded-xl shadow-md border border-black/5 p-5 no-underline transition-all hover:-translate-y-1 hover:shadow-lg"
-    >
-      <div className="flex items-center gap-3 mb-3">
-        <span className="font-extrabold text-sm" style={{ color: GOLD }}>
-          {strategy.number}
-        </span>
-        <span style={{ color: NAVY }} aria-hidden="true">
-          {strategy.icon}
-        </span>
+        )}
       </div>
-      <h3 className="text-gray-900 font-semibold mb-1">{strategy.title}</h3>
-      <p className="text-gray-600 text-sm leading-relaxed">{strategy.blurb}</p>
-    </Link>
+    </article>
   )
 }
 
@@ -489,28 +409,6 @@ export default function ServicesPage() {
             <div className="grid md:grid-cols-2 gap-8">
               {services.map((service) => (
                 <ServiceCard key={service.number} service={service} />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 bg-white" aria-labelledby="strategies-heading">
-          <div className="max-w-6xl mx-auto px-5">
-            <div className="text-center mb-10">
-              <p
-                className="text-sm font-semibold tracking-widest uppercase mb-3"
-                style={{ color: GOLD }}
-              >
-                Go Deeper
-              </p>
-              <h2 id="strategies-heading" className="text-3xl md:text-4xl font-bold text-gray-900">
-                Explore Each Strategy in Detail
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-5">
-              {strategies.map((strategy) => (
-                <StrategyCard key={strategy.number} strategy={strategy} />
               ))}
             </div>
           </div>

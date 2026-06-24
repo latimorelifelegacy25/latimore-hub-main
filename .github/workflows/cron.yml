@@ -35,3 +35,12 @@ jobs:
         run: |
           curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/social-publisher" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+
+  no-show-recovery:
+    if: github.event.schedule == '*/15 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger no-show-recovery
+        run: |
+          curl -fsS -X GET "${{ secrets.APP_BASE_URL }}/api/cron/no-show-recovery" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

@@ -2,8 +2,6 @@ import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizeStage } from './normalizers'
 import { assertTransition } from './pipeline-transitions'
-import { syncContactToNotion } from '@/lib/notion/sync-contact'
-import { logger } from '@/lib/logger'
 
 export async function changeInquiryStage(input: {
   inquiryId: string
@@ -49,6 +47,13 @@ export async function changeInquiryStage(input: {
     },
   })
 
+  // The Notion Worker's delta sync windows on Contact.updatedAt — a stage
+  // change only touches Inquiry, so bump the Contact row to get picked up.
+  await prisma.contact.update({
+    where: { id: inquiry.contactId },
+    data: { updatedAt: new Date() },
+  })
+
   await ingestEvent({
     eventType: 'stage_changed',
     occurredAt,
@@ -68,11 +73,6 @@ export async function changeInquiryStage(input: {
       note,
     },
   })
-
-  // Fire-and-forget — Notion sync must not block or break stage changes
-  syncContactToNotion(inquiry.contact, updated).catch(err =>
-    logger.error({ err, contactId: inquiry.contact.id }, 'Notion sync failed'),
-  )
 
   return updated
 }

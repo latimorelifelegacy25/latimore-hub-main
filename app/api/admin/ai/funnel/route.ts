@@ -5,6 +5,7 @@
  */
 
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const FUNNEL_SCHEMA = {
@@ -77,11 +78,16 @@ All copy must be education-first, reference Central PA where relevant, and avoid
       temperature: 0.75,
     })
 
+    const compliance = checkCompliance(
+      (result.output as Array<{ assetCopy: string }>).map((s) => s.assetCopy).join('\n'),
+    )
+
     return Response.json({
       success: true,
       goal,
       persona: targetPersona,
       stages: result.output,
+      compliance,
     })
   } catch (error) {
     console.error('[/api/admin/ai/funnel] Error:', error)

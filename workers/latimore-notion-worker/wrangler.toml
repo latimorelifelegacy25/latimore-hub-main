@@ -1,0 +1,9 @@
+name = "latimore-notion-worker"
+main = "src/index.js"
+compatibility_date = "2026-06-20"
+
+[vars]
+NOTION_PARENT_PAGE_ID = "366a6c9577a781d5bc57e2185eb3d43f"
+
+[triggers]
+crons = ["0 13 * * 1", "0 13 * * 5"]

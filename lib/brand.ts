@@ -47,6 +47,9 @@ export const COLORS = {
   trackC: '#7a4f2e',
 } as const
 
+const DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL =
+  'https://calendar.google.com/calendar/appointments/schedules/AcZssZ0RjEKuPGf76zHTJE0p3E_oOL0FJnPi5s28JlVnXPTHTdXkMJWqUWpbup9FNP_bOg6Z-4Zv_8Ph?gv=true'
+
 export const BRAND = {
   // Public-facing name (use in headings/metadata)
   name: 'Latimore Life & Legacy',
@@ -55,7 +58,7 @@ export const BRAND = {
 
   tagline: 'Protecting Today. Securing Tomorrow.',
   hashtag: '#TheBeatGoesOn',
-    cardUrl: 'https://card.latimorelifelegacy.com',
+  cardUrl: 'https://card.latimorelifelegacy.com',
 
   advisor: 'Jackson M. Latimore Sr., Founder & CEO',
   affiliation: 'In Affiliation with Global Financial Impact',
@@ -67,8 +70,13 @@ export const BRAND = {
   nipr: '21638507',
   paLicense: '1268820',
 
-  // Primary CTAs — all booking buttons route directly to the Fillout consultation form
-  bookingUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
+  // Primary CTAs — keep public booking traffic on-site for stable tracking and fallback handling.
+  bookingUrl: '/book',
+  googleAppointmentScheduleUrl:
+    process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_SCHEDULE_URL ??
+    DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL,
+
+  // Legacy fallback only. Do not use this for primary public CTAs.
   filloutUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
@@ -84,9 +92,7 @@ export const BRAND = {
   // Service region
   counties: ['Schuylkill', 'Luzerne', 'Northumberland'],
 
-  // Used for absolute URLs in emails
-  // Prefer the NEXT_PUBLIC_BASE_URL environment variable; otherwise default to
-  // the public domain latimorelifelegacy.com so generated links point at
-  // the correct live site rather than the old `latimorehub.vercel.app` preview.
-  baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com',
+  // Used for absolute URLs in emails. Prefer NEXT_PUBLIC_BASE_URL when set;
+  // otherwise default to the canonical public domain.
+  baseUrl: process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com',
 } as const

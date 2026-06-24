@@ -9,8 +9,11 @@ export async function createGoogleCalendarEvent(input: {
   attendeeEmail?: string | null
   attendeeName?: string | null
   location?: string | null
+  timeoutMs?: number
 }) {
   const accessToken = await getValidGoogleAccessToken()
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 8_000)
 
   const res = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BOOKING_CONFIG.calendarId)}/events`,
@@ -42,8 +45,9 @@ export async function createGoogleCalendarEvent(input: {
           : undefined,
       }),
       cache: 'no-store',
+      signal: controller.signal,
     }
-  )
+  ).finally(() => clearTimeout(timeout))
 
   const data = await res.json()
 

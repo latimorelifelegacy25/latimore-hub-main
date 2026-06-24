@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { logger } from '@/lib/logger'
 
 const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -18,6 +19,8 @@ const EnvSchema = z.object({
   GOOGLE_CHAT_WEBHOOK_URL: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
+  UPSTASH_REDIS_REST_URL: z.string().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 })
 
 export const env = EnvSchema.parse(process.env)
@@ -37,6 +40,10 @@ const REQUIRED_IN_PRODUCTION = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'RESEND_API_KEY',
   'GOOGLE_CHAT_WEBHOOK_URL',
+  // UPSTASH_REDIS_REST_URL/TOKEN are intentionally NOT required here —
+  // lib/rate-limit.ts already falls back to an in-memory limiter when they're
+  // absent, so missing Upstash config degrades rate limiting, it doesn't
+  // break the app.
 ] as const
 
 /**
@@ -51,9 +58,15 @@ export function validateEnv(): void {
   }
 }
 
+// Importing this module must never crash the importing route. `lib/auth.ts`
+// and `instrumentation.ts` pull this in, and instrumentation runs on every
+// serverless cold start across the whole app — a thrown error here previously
+// took down every route (blog, API, everything), not just the
+// auth/admin/cron features that actually depend on these vars. Misconfigs are
+// logged loudly instead so they're visible without taking the site down.
 if (isProduction && !isBuildPhase) {
   if (env.DISABLE_ADMIN_AUTH === 'true') {
-    throw new Error('DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
+    logger.error('[env] DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
   }
 
   const adminEmails = (env.ADMIN_EMAILS ?? '')
@@ -62,12 +75,16 @@ if (isProduction && !isBuildPhase) {
     .filter(Boolean)
 
   if (adminEmails.length === 0) {
-    throw new Error('ADMIN_EMAILS must be set to a non-empty list when NODE_ENV=production')
+    logger.error('[env] ADMIN_EMAILS must be set to a non-empty list when NODE_ENV=production')
   }
 
   if (!env.CRON_SECRET) {
-    throw new Error('CRON_SECRET must be set when NODE_ENV=production')
+    logger.error('[env] CRON_SECRET must be set when NODE_ENV=production')
   }
 
-  validateEnv()
+  try {
+    validateEnv()
+  } catch (err) {
+    logger.error({ err }, '[env] validateEnv failed')
+  }
 }

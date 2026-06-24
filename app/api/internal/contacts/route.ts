@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 const PAGE_SIZE = 100
 
+function isAuthorized(req: NextRequest): boolean {
+  const expected = process.env.INTERNAL_API_SECRET
+  const provided = req.headers.get('x-internal-secret')
+  if (!expected || !provided) return false
+
+  const expectedBuf = Buffer.from(expected)
+  const providedBuf = Buffer.from(provided)
+  return expectedBuf.length === providedBuf.length && timingSafeEqual(expectedBuf, providedBuf)
+}
+
 // GET /api/internal/contacts?page=1&updatedSince=<ISO>
 // Used by the Notion Worker (workers/src/index.ts) for backfill and delta syncs.
 // Protected by INTERNAL_API_SECRET to prevent public access.
 export async function GET(req: NextRequest) {
-  const secret = req.headers.get('x-internal-secret')
-  if (!process.env.INTERNAL_API_SECRET || secret !== process.env.INTERNAL_API_SECRET) {
+  if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

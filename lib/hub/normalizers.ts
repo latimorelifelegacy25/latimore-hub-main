@@ -30,6 +30,14 @@ type EventType =
   | 'post_created'
   | 'post_published'
   | 'reaction_added'
+  | 'legacy_checkup_started'
+  | 'legacy_checkup_step_completed'
+  | 'legacy_checkup_completed'
+  | 'lead_submitted'
+  | 'book_consultation_clicked'
+  | 'instant_quote_clicked'
+  | 'service_card_clicked'
+  | 'gbp_service_visit'
 
 const STAGE_MAP: Record<string, PipelineStage> = {
   new: 'New',
@@ -111,6 +119,29 @@ const EVENT_MAP: Record<string, EventType> = {
   post_created: 'post_created',
   post_published: 'post_published',
   reaction_added: 'reaction_added',
+  // Spec-hardening §6 — named funnel + GBP events
+  legacy_checkup_started: 'legacy_checkup_started',
+  checkup_started: 'legacy_checkup_started',
+  funnel_started: 'legacy_checkup_started',
+  legacy_checkup_step_completed: 'legacy_checkup_step_completed',
+  checkup_step: 'legacy_checkup_step_completed',
+  funnel_step: 'legacy_checkup_step_completed',
+  legacy_checkup_completed: 'legacy_checkup_completed',
+  checkup_completed: 'legacy_checkup_completed',
+  funnel_completed: 'legacy_checkup_completed',
+  lead_submitted: 'lead_submitted',
+  contact_submitted: 'lead_submitted',
+  book_consultation_clicked: 'book_consultation_clicked',
+  book_consultation: 'book_consultation_clicked',
+  consultation_clicked: 'book_consultation_clicked',
+  instant_quote_clicked: 'instant_quote_clicked',
+  instant_quote: 'instant_quote_clicked',
+  quote_clicked: 'instant_quote_clicked',
+  service_card_clicked: 'service_card_clicked',
+  service_click: 'service_card_clicked',
+  gbp_service_visit: 'gbp_service_visit',
+  gbp_visit: 'gbp_service_visit',
+  business_profile_visit: 'gbp_service_visit',
 }
 
 function normalizeKey(value?: string | null): string {

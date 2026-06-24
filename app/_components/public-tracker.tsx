@@ -18,7 +18,7 @@ type EventPayload = ReturnType<typeof getEventContext> & {
 }
 
 const CTA_TEXT_PATTERN =
-  /(book|schedule|consult|quote|get started|get quote|instant quote|call|text|email|download|facebook|instagram|linkedin|work with me|read full story|ready to explore)/i
+  /(book|schedule|consult|quote|get started|get quote|instant quote|call|text|email|download|facebook|instagram|linkedin|work with me|read full story|ready to explore|find my fit|get my recommendation)/i
 
 const SKIP_TEXT_PATTERN = /^(home|about|products|services|education|contact|menu|close|back to home)$/i
 const BOOKING_HREF_PATTERN = /(\/book(?:$|[/?#])|fillout\.com|calendar\.app\.google|schedule|consult)/i
@@ -29,8 +29,8 @@ const META_ALLOWED_HOSTS = new Set(['latimorelifelegacy.com', 'www.latimorelifel
 const PRODUCT_PATTERNS: Array<[RegExp, string]> = [
   [/mortgage/i, 'Mortgage_Protection'],
   [/final expense/i, 'Final_Expense'],
-  [/term life/i, 'Term_Life'],
-  [/whole life/i, 'Whole_Life'],
+  [/term[\s_-]?life/i, 'Term_Life'],
+  [/whole[\s_-]?life/i, 'Whole_Life'],
   [/child/i, 'Child_Whole_Life'],
   [/accident/i, 'Accident'],
   [/critical illness/i, 'Critical_Illness'],
@@ -115,11 +115,16 @@ function getContextText(element: HTMLElement): string {
   return ''
 }
 
+function findProductElement(element: HTMLElement): HTMLElement | null {
+  return element.closest<HTMLElement>('[data-product-interest],[data-product-slug]')
+}
+
 function inferProductInterest(element: HTMLElement, text: string, href: string): string | null {
-  const explicit = element.dataset.productInterest?.trim()
+  const productElement = findProductElement(element)
+  const explicit = element.dataset.productInterest?.trim() || productElement?.dataset.productInterest?.trim()
   if (explicit) return explicit
 
-  const combined = `${text} ${href} ${getContextText(element)} ${element.closest('[data-product-interest]')?.getAttribute('data-product-interest') ?? ''}`
+  const combined = `${text} ${href} ${getContextText(element)}`
   for (const [pattern, value] of PRODUCT_PATTERNS) {
     if (pattern.test(combined)) return value
   }
@@ -182,7 +187,9 @@ function classifyEvent(element: HTMLElement): { eventType: string; text: string;
   if (href.startsWith('sms:')) return { eventType: 'text_click', text, href }
   if (href.startsWith('mailto:')) return { eventType: 'email_click', text, href }
   if (DOWNLOAD_HREF_PATTERN.test(href) || element.hasAttribute('download')) return { eventType: 'lead_magnet_download', text, href }
-  if (BOOKING_HREF_PATTERN.test(href) || /book|schedule|consult/i.test(text)) return { eventType: 'book_click', text, href }
+  if (/ethos|instant.?quote|get.?quote/i.test(href) || /instant quote|get.?quote/i.test(text)) return { eventType: 'instant_quote_clicked', text, href }
+  if (BOOKING_HREF_PATTERN.test(href) || /book|schedule|consult/i.test(text)) return { eventType: 'book_consultation_clicked', text, href }
+  if (/^\/services\//i.test(new URL(href, 'https://x').pathname)) return { eventType: 'service_card_clicked', text, href }
   if (isMeaningfulCta(element, text, href)) return { eventType: 'cta_click', text, href }
 
   return null
@@ -245,6 +252,26 @@ export default function PublicTracker() {
       contentName,
       contentCategory,
     })
+
+    // SPEC-HARDENING §5 — fire gbp_service_visit when traffic arrives via GBP
+    if (context.medium === 'business_profile' || searchParams?.get('utm_medium') === 'business_profile') {
+      void sendEvent({
+        leadSessionId: context.leadSessionId,
+        pageUrl: context.pageUrl,
+        referrer: context.referrer,
+        source: context.source,
+        medium: context.medium,
+        campaign: context.campaign,
+        term: context.term,
+        content: context.content,
+        county: null,
+        productInterest: null,
+        eventType: 'gbp_service_visit',
+        metadata: {
+          utmContent: searchParams?.get('utm_content') ?? null,
+        },
+      })
+    }
   }, [pathname, searchParams])
 
   useEffect(() => {
@@ -259,6 +286,7 @@ export default function PublicTracker() {
       if (!classified) return
 
       const currentPage = getCurrentPageUrl()
+      const productElement = findProductElement(clickable)
       const productInterest = inferProductInterest(clickable, classified.text, classified.href)
       const county = inferCounty(clickable, classified.text, classified.href)
 
@@ -278,6 +306,9 @@ export default function PublicTracker() {
           tagName: clickable.tagName.toLowerCase(),
           id: clickable.id || null,
           target: clickable.getAttribute('target'),
+          productSlug: clickable.dataset.productSlug || productElement?.dataset.productSlug || null,
+          explicitTrackEvent: clickable.dataset.trackEvent || null,
+          trackCta: clickable.dataset.trackCta || null,
         },
       })
     }

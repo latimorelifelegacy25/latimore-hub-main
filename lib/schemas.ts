@@ -33,6 +33,14 @@ const eventEnum = z.enum([
   'post_created',
   'post_published',
   'reaction_added',
+  'legacy_checkup_started',
+  'legacy_checkup_step_completed',
+  'legacy_checkup_completed',
+  'lead_submitted',
+  'book_consultation_clicked',
+  'instant_quote_clicked',
+  'service_card_clicked',
+  'gbp_service_visit',
 ])
 
 export const FilloutSchema = z.object({
@@ -78,7 +86,7 @@ export const EventIngestSchema = z.object({
   metadata: z.record(z.any()).optional().nullable(),
 })
 
-export const LeadIngestSchema = z.object({
+export const LeadSchema = z.object({
   firstName: z.string().max(100).optional().nullable(),
   lastName: z.string().max(100).optional().nullable(),
   email: z.string().email().optional().nullable(),
@@ -101,6 +109,37 @@ export const LeadIngestSchema = z.object({
   message: 'Lead must include at least an email or phone number',
   path: ['email'],
 })
+
+export const ProductFitSchema = z.object({
+  fullName: z.string().min(2).max(150),
+  email: z.string().email().max(191).optional().or(z.literal('')),
+  phone: z.string().min(7).max(50),
+  state: z.string().max(100).optional().nullable(),
+  county: z.string().max(100).optional().nullable(),
+  lifeStage: z.enum(['young_family', 'pre_retiree', 'retiree', 'business_owner', 'high_income', 'other']).optional().nullable(),
+  hasMortgage: z.boolean().optional().nullable(),
+  hasDependents: z.boolean().optional().nullable(),
+  ownsBusiness: z.boolean().optional().nullable(),
+  hasEmployees: z.boolean().optional().nullable(),
+  wantsRetirementIncome: z.boolean().optional().nullable(),
+  wantsLegacyPlanning: z.boolean().optional().nullable(),
+  timeline: z.enum(['now', '30_days', '90_days', 'researching']).optional().nullable(),
+  bestContactTime: z.string().max(80).optional().nullable(),
+  productInterest: z.string().max(100).optional().nullable(),
+  selectedProductSlug: z.string().max(100).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  leadSessionId: z.string().max(191).optional().nullable(),
+  pageUrl: z.string().max(500).optional().nullable(),
+  referrer: z.string().max(500).optional().nullable(),
+  source: z.string().max(100).optional().nullable(),
+  medium: z.string().max(100).optional().nullable(),
+  campaign: z.string().max(150).optional().nullable(),
+  term: z.string().max(100).optional().nullable(),
+  content: z.string().max(100).optional().nullable(),
+  hp_company: z.string().max(200).optional().nullable(),
+})
+
+export const LeadIngestSchema = LeadSchema
 
 export const InquiryPatchSchema = z.object({
   stage: stageEnum,
@@ -137,6 +176,64 @@ export const CardEventSchema = z.object({
   productInterest: z.string().max(100).optional().nullable(),
   county: z.string().max(100).optional().nullable(),
   metadata: z.record(z.any()).optional().nullable(),
+})
+
+export const VirtualIntakeSchema = z.object({
+  journey: z.enum(['client', 'business_partner', 'both']),
+  firstName: z.string().min(1).max(100),
+  lastName: z.string().min(1).max(100),
+  email: z.string().email(),
+  phone: z.string().max(40).optional().nullable(),
+  state: z.string().max(100).optional().nullable(),
+  selectedPriorities: z.array(z.string().max(100)).max(10).optional(),
+  topPriorityWhy: z.string().max(1000).optional().nullable(),
+
+  maritalStatus: z.string().max(50).optional().nullable(),
+  spouseName: z.string().max(150).optional().nullable(),
+  ageRange: z.string().max(50).optional().nullable(),
+  smoker: z.boolean().optional().nullable(),
+  hasChildren: z.boolean().optional().nullable(),
+  childrenAges: z.string().max(200).optional().nullable(),
+  occupation: z.string().max(150).optional().nullable(),
+  familyNotes: z.string().max(2000).optional().nullable(),
+  recreationNotes: z.string().max(2000).optional().nullable(),
+  motivationNotes: z.string().max(2000).optional().nullable(),
+
+  monthlyIncome: z.number().finite().optional().nullable(),
+  monthlyExpenses: z.number().finite().optional().nullable(),
+  emergencyFund: z.number().finite().optional().nullable(),
+  marketAssets: z.number().finite().optional().nullable(),
+  hasEmergencyFund: z.boolean().optional().nullable(),
+  emergencyFundMonths: z.number().finite().optional().nullable(),
+
+  hasEmployerRetirement: z.boolean().optional().nullable(),
+  retirementPlanTypes: z.array(z.string().max(100)).max(10).optional(),
+  retirementBalance: z.number().finite().optional().nullable(),
+  retirementContribution: z.number().finite().optional().nullable(),
+  contributionFrequency: z.string().max(50).optional().nullable(),
+  hasCompanyMatch: z.boolean().optional().nullable(),
+  companyMatchDetails: z.string().max(500).optional().nullable(),
+  hasOutsideRetirement: z.boolean().optional().nullable(),
+
+  hasLifeInsurance: z.boolean().optional().nullable(),
+  lifeInsuranceSource: z.string().max(150).optional().nullable(),
+  coverageAmount: z.number().finite().optional().nullable(),
+  premiumAmount: z.number().finite().optional().nullable(),
+  premiumFrequency: z.string().max(50).optional().nullable(),
+  policyType: z.string().max(100).optional().nullable(),
+  hasLivingBenefits: z.boolean().optional().nullable(),
+  hasLtc: z.boolean().optional().nullable(),
+
+  taxStatus: z.string().max(100).optional().nullable(),
+  taxAmount: z.number().finite().optional().nullable(),
+  minMonthlySavings: z.number().finite().optional().nullable(),
+  maxMonthlySavings: z.number().finite().optional().nullable(),
+  savingForChildren: z.boolean().optional().nullable(),
+  additionalIncomeInterest: z.boolean().optional().nullable(),
+
+  debt: z.number().finite().optional().nullable(),
+  mortgageBalance: z.number().finite().optional().nullable(),
+  educationGoal: z.number().finite().optional().nullable(),
 })
 
 export { stageEnum as PipelineStageSchema, productEnum as ProductInterestSchema, eventEnum as EventTypeSchema }

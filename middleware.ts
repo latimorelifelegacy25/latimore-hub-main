@@ -6,6 +6,11 @@ import { isAdminEmail } from '@/lib/admin-access'
 // Never set this true in production.
 const DISABLE_AUTH = process.env.DISABLE_ADMIN_AUTH === 'true'
 
+const privateHubHosts = (process.env.HUB_PRIVATE_HOSTS || 'hub.latimorelifelegacy.com')
+  .split(',')
+  .map(host => host.trim().toLowerCase())
+  .filter(Boolean)
+
 const protectedPrefixes = [
   '/admin',
   '/dashboard',
@@ -38,6 +43,39 @@ const protectedPrefixes = [
   '/api/tasks',
 ]
 
+const publicHubPrefixes = [
+  '/login',
+  '/api/auth',
+  '/_next/static',
+  '/_next/image',
+]
+
+function normalizedHost(req: NextRequest) {
+  return (req.headers.get('host') || '').split(':')[0].toLowerCase()
+}
+
+function isPrivateHubHost(req: NextRequest) {
+  const host = normalizedHost(req)
+  return privateHubHosts.includes(host)
+}
+
+function isPublicAsset(pathname: string) {
+  return (
+    pathname === '/favicon.ico' ||
+    pathname === '/manifest.json' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml' ||
+    /\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|txt|xml|json|mp4)$/i.test(pathname)
+  )
+}
+
+function isPublicHubPath(pathname: string) {
+  return (
+    isPublicAsset(pathname) ||
+    publicHubPrefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))
+  )
+}
+
 function isProtectedPath(pathname: string) {
   return protectedPrefixes.some(
     prefix => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -66,15 +104,27 @@ function unauthorizedJson(status: 401 | 403, message: string) {
 }
 
 function redirectToSignIn(req: NextRequest) {
-  const signInUrl = new URL('/api/auth/signin', req.url)
+  const signInUrl = new URL('/login', req.url)
   signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname)
   return withPrivateHeaders(NextResponse.redirect(signInUrl))
 }
 
+function redirectToAdmin(req: NextRequest) {
+  const adminUrl = new URL('/admin', req.url)
+  return withPrivateHeaders(NextResponse.redirect(adminUrl))
+}
+
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  const hubHost = isPrivateHubHost(req)
 
-  if (!isProtectedPath(pathname)) {
+  if (hubHost && isPublicHubPath(pathname)) {
+    return withPrivateHeaders(NextResponse.next())
+  }
+
+  const shouldProtect = isProtectedPath(pathname) || hubHost
+
+  if (!shouldProtect) {
     return NextResponse.next()
   }
 
@@ -85,6 +135,7 @@ export default async function middleware(req: NextRequest) {
         : notFound()
     }
 
+    if (hubHost && pathname === '/') return redirectToAdmin(req)
     return withPrivateHeaders(NextResponse.next())
   }
 
@@ -109,43 +160,12 @@ export default async function middleware(req: NextRequest) {
       : notFound()
   }
 
+  if (hubHost && pathname === '/') return redirectToAdmin(req)
   return withPrivateHeaders(NextResponse.next())
 }
 
 export const config = {
   matcher: [
-    '/admin',
-    '/admin/:path*',
-    '/dashboard',
-    '/dashboard/:path*',
-    '/crm',
-    '/crm/:path*',
-    '/leads',
-    '/leads/:path*',
-    '/api/admin/:path*',
-    '/api/ai/:path*',
-    '/api/analytics/ga4/data',
-    '/api/analytics/v1/:path*',
-    '/api/calendar/book',
-    '/api/calendar/google/:path*',
-    '/api/contacts/:path*',
-    '/api/content/:path*',
-    '/api/dashboard/:path*',
-    '/api/documents/:path*',
-    '/api/hub-os/:path*',
-    '/api/inquiries/:path*',
-    '/api/marketing/:path*',
-    '/api/messages/:path*',
-    '/api/reports/:path*',
-    '/api/social/facebook/insights',
-    '/api/social/facebook/publish',
-    '/api/social/facebook/validate',
-    '/api/social/ingest',
-    '/api/social/manual-test',
-    '/api/social/metrics',
-    '/api/social/posts/:path*',
-    '/api/social/templates/:path*',
-    '/api/social/upload',
-    '/api/tasks/:path*',
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|svg|webp|ico|css|js|txt|xml|json|mp4)$).*)',
   ],
 }
