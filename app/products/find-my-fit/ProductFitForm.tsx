@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { getCurrentPageUrl, getEventContext, hydrateLeadContext } from '@/lib/lead'
 import { getProductInterestLabel, type ProductInterestValue } from '@/lib/products/catalog'
@@ -11,20 +11,24 @@ type Props = {
   selectedProductInterest: ProductInterestValue
 }
 
+type LifeStage = 'young_family' | 'pre_retiree' | 'retiree' | 'business_owner' | 'high_income' | 'other' | ''
+type Timeline = 'now' | '30_days' | '90_days' | 'researching' | ''
+type BooleanField = 'hasMortgage' | 'hasDependents' | 'ownsBusiness' | 'hasEmployees' | 'wantsRetirementIncome' | 'wantsLegacyPlanning'
+
 type FormState = {
   fullName: string
   email: string
   phone: string
   state: string
   county: string
-  lifeStage: 'young_family' | 'pre_retiree' | 'retiree' | 'business_owner' | 'high_income' | 'other' | ''
+  lifeStage: LifeStage
   hasMortgage: boolean
   hasDependents: boolean
   ownsBusiness: boolean
   hasEmployees: boolean
   wantsRetirementIncome: boolean
   wantsLegacyPlanning: boolean
-  timeline: 'now' | '30_days' | '90_days' | 'researching' | ''
+  timeline: Timeline
   bestContactTime: string
   notes: string
   hp_company: string
@@ -63,6 +67,31 @@ const initialState: FormState = {
 }
 
 const steps = ['Profile', 'Protection', 'Timeline', 'Contact']
+
+const lifeStageOptions: Array<[Exclude<LifeStage, ''>, string]> = [
+  ['young_family', 'Young family / income protection'],
+  ['pre_retiree', 'Approaching retirement'],
+  ['retiree', 'Retired / preserving assets'],
+  ['business_owner', 'Business owner'],
+  ['high_income', 'High-income planning'],
+  ['other', 'Not sure / other'],
+]
+
+const protectionOptions: Array<[BooleanField, string]> = [
+  ['hasDependents', 'Family / dependents'],
+  ['hasMortgage', 'Mortgage or housing obligation'],
+  ['ownsBusiness', 'Business ownership'],
+  ['hasEmployees', 'Employees or key people'],
+  ['wantsRetirementIncome', 'Retirement income'],
+  ['wantsLegacyPlanning', 'Legacy / final expense planning'],
+]
+
+const timelineOptions: Array<[Exclude<Timeline, ''>, string]> = [
+  ['now', 'Now / urgent'],
+  ['30_days', 'Next 30 days'],
+  ['90_days', 'Next 90 days'],
+  ['researching', 'Researching'],
+]
 
 function fieldStyle() {
   return {
@@ -148,6 +177,10 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
     setForm((current) => ({ ...current, [key]: value }))
   }
 
+  function toggleProtection(key: BooleanField) {
+    setForm((current) => ({ ...current, [key]: !current[key] }))
+  }
+
   function goNext() {
     void sendEvent('legacy_checkup_step_completed', { step: steps[step], stepIndex: step })
     setStep((current) => Math.min(current + 1, steps.length - 1))
@@ -178,7 +211,7 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
     goNext()
   }
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const validation = validateCurrentStep()
     if (validation) {
@@ -325,15 +358,8 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
           <h2 style={{ color: COLORS.navy, margin: '0 0 0.4rem' }}>Who are we helping?</h2>
           <p style={{ color: COLORS.gray600, margin: '0 0 1rem', lineHeight: 1.7 }}>Pick the closest match. This controls the first recommendation pass.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-            {[
-              ['young_family', 'Young family / income protection'],
-              ['pre_retiree', 'Approaching retirement'],
-              ['retiree', 'Retired / preserving assets'],
-              ['business_owner', 'Business owner'],
-              ['high_income', 'High-income planning'],
-              ['other', 'Not sure / other'],
-            ].map(([value, label]) => (
-              <button key={value} type="button" onClick={() => update('lifeStage', value as FormState['lifeStage'])} style={optionStyle(form.lifeStage === value)}>
+            {lifeStageOptions.map(([value, label]) => (
+              <button key={value} type="button" onClick={() => update('lifeStage', value)} style={optionStyle(form.lifeStage === value)}>
                 {label}
               </button>
             ))}
@@ -346,16 +372,9 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
           <h2 style={{ color: COLORS.navy, margin: '0 0 0.4rem' }}>What are you protecting?</h2>
           <p style={{ color: COLORS.gray600, margin: '0 0 1rem', lineHeight: 1.7 }}>Select every item that applies.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
-            {[
-              ['hasDependents', 'Family / dependents'],
-              ['hasMortgage', 'Mortgage or housing obligation'],
-              ['ownsBusiness', 'Business ownership'],
-              ['hasEmployees', 'Employees or key people'],
-              ['wantsRetirementIncome', 'Retirement income'],
-              ['wantsLegacyPlanning', 'Legacy / final expense planning'],
-            ].map(([key, label]) => (
-              <button key={key} type="button" onClick={() => update(key as keyof FormState, !form[key as keyof FormState] as never)} style={optionStyle(Boolean(form[key as keyof FormState]))}>
-                {Boolean(form[key as keyof FormState]) ? '✓ ' : ''}{label}
+            {protectionOptions.map(([key, label]) => (
+              <button key={key} type="button" onClick={() => toggleProtection(key)} style={optionStyle(form[key])}>
+                {form[key] ? '✓ ' : ''}{label}
               </button>
             ))}
           </div>
@@ -367,13 +386,8 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
           <h2 style={{ color: COLORS.navy, margin: '0 0 0.4rem' }}>What timeline are you on?</h2>
           <p style={{ color: COLORS.gray600, margin: '0 0 1rem', lineHeight: 1.7 }}>This helps prioritize follow-up inside the CRM.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem' }}>
-            {[
-              ['now', 'Now / urgent'],
-              ['30_days', 'Next 30 days'],
-              ['90_days', 'Next 90 days'],
-              ['researching', 'Researching'],
-            ].map(([value, label]) => (
-              <button key={value} type="button" onClick={() => update('timeline', value as FormState['timeline'])} style={optionStyle(form.timeline === value)}>
+            {timelineOptions.map(([value, label]) => (
+              <button key={value} type="button" onClick={() => update('timeline', value)} style={optionStyle(form.timeline === value)}>
                 {label}
               </button>
             ))}
