@@ -30,6 +30,14 @@ type EventType =
   | 'post_created'
   | 'post_published'
   | 'reaction_added'
+  | 'legacy_checkup_started'
+  | 'legacy_checkup_step_completed'
+  | 'legacy_checkup_completed'
+  | 'lead_submitted'
+  | 'book_consultation_clicked'
+  | 'instant_quote_clicked'
+  | 'service_card_clicked'
+  | 'gbp_service_visit'
 
 const STAGE_MAP: Record<string, PipelineStage> = {
   new: 'New',
