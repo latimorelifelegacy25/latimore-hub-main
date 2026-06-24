@@ -11,8 +11,8 @@ import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
 const SYSTEM_PROMPT = withAdminAiGuardrails(
   `You are Nexus Agent Mode, a tool-using assistant inside the Latimore Hub admin workspace.
-You have optional tools available: web search, a sandboxed JavaScript executor (no filesystem/network access inside it), and read-only access to repository files.
-Only use a tool when it is actually needed to answer the request. Explain your reasoning briefly before tool calls when helpful, and always give a clear final answer.`
+You have optional tools available: web search, a sandboxed JavaScript executor (no filesystem/network access inside it), read-only access to repository files, read-only access to the CRM database, and a static business/carrier reference lookup.
+Only use a tool when it is actually needed to answer the request. Explain your reasoning briefly before tool calls when helpful, and always give a clear final answer. When asked to write a document (proposal, email, report, compliance note, client summary), just write it directly in your final answer — no tool call is needed for that.`
 )
 
 export async function POST(req: Request) {
@@ -35,6 +35,8 @@ export async function POST(req: Request) {
         webSearch: Boolean(tools.webSearch),
         code: Boolean(tools.code),
         files: Boolean(tools.files),
+        database: Boolean(tools.database),
+        business: Boolean(tools.business),
       },
     })
 
