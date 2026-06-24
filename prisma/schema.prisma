@@ -503,7 +503,6 @@ enum EventType {
   post_created
   post_published
   reaction_added
-  // Spec-hardening §6 — named funnel + GBP events
   legacy_checkup_started
   legacy_checkup_step_completed
   legacy_checkup_completed
