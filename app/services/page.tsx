@@ -81,7 +81,7 @@ const services: Service[] = [
       'Tax-free, penalty-free 401(k) and 403(b) rollover guidance',
       'Pension lump-sum vs. annuity analysis',
       'Principal protection from market volatility',
-      'Guaranteed growth options through fixed vehicles',
+      'Fixed vehicles offering predictable, contractually-defined growth*',
       'Retain control of your funds without employer restrictions',
     ],
     learnMoreHref: '/services/401k-rollover',
@@ -159,7 +159,7 @@ const services: Service[] = [
       'Indexed products credit interest from market-index formulas while offering protection from direct index losses, subject to product terms and charges.',
     points: [
       'Cash value linked to indexes like the S&P 500',
-      'Zero-loss floor — market drops cannot reduce your balance',
+      'Zero-loss floor — market drops cannot reduce your credited interest*',
       'Participation rates and cap rates determine your share of gains',
       'Available inside both indexed universal life and fixed indexed annuities',
       'Tax-deferred growth throughout the accumulation phase',
@@ -204,10 +204,10 @@ const services: Service[] = [
     title: 'Retirement Income Strategies',
     who: 'Pre-retirees and retirees wanting guaranteed income they cannot outlive',
     summary:
-      'Running out of money in retirement is one of the greatest financial risks. Guaranteed income removes that fear.',
+      'Running out of money in retirement is one of the greatest financial risks. Guaranteed income strategies can provide predictable payments for life.*',
     points: [
       'Fixed and fixed-indexed annuities for principal-protection strategies, subject to product terms',
-      'Guaranteed lifetime income riders — payments you cannot outlive',
+      'Guaranteed lifetime income riders — backed by carrier claims-paying ability*',
       'Structured to complement Social Security and other income',
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
@@ -480,6 +480,34 @@ export default function ServicesPage() {
           </div>
         </section>
       </main>
+
+
+      {/* PA DOI Compliance Disclaimer */}
+      <section className="bg-[#060D1B] border-t border-white/5 py-8 px-5">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-xs text-white/40 leading-relaxed">
+            <strong className="text-white/50 font-semibold">Important Disclosures:</strong>{' '}
+            Fixed indexed annuities and indexed life insurance are insurance products — not securities or investments.
+            They are not FDIC-insured and are not deposits or obligations of any bank.
+            Product guarantees, including income riders and death benefits, are subject to the claims-paying
+            ability of the issuing insurance company.
+            Indexed products credit interest based on changes in an external market index; however, they do not
+            directly participate in the stock market, and returns may be subject to caps, participation rates, or
+            spreads that limit credited interest.
+            The &ldquo;floor&rdquo; (typically 0%) means credited interest cannot be negative due to index performance;
+            it does not protect against premium charges, policy fees, or surrender charges, which may reduce policy value.
+            &ldquo;Tax-deferred,&rdquo; &ldquo;tax-free distributions,&rdquo; and &ldquo;tax-advantaged&rdquo; references
+            assume compliance with IRS rules; tax treatment varies by individual circumstance. Consult a qualified tax
+            advisor before making any decisions.
+            Policy loans reduce the death benefit and cash value. Surrender charges may apply during the surrender
+            charge period. Products, features, and availability vary by state and issuing carrier.
+            Jackson Latimore is licensed in Pennsylvania (PA DOI License #1268820) and holds appointments with
+            North American Company, Corebridge Financial / American General Life, American Equity, F&amp;G,
+            Ethos Life, and Foresters Financial. This content is for informational and educational purposes only
+            and does not constitute financial, legal, or tax advice.
+          </p>
+        </div>
+      </section>
 
       <SiteFooter />
     </>
