@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { BOOKING_CONFIG } from '@/lib/booking/config'
 import { fetchGoogleFreeBusy } from '@/lib/calendar/availability'
 import { generateAvailability, projectSlots } from '@/lib/calendar/slots'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -44,12 +45,25 @@ export async function GET() {
       days,
     })
   } catch (error: any) {
+    const message: string = error?.message ?? 'Failed to load availability'
+    logger.error({ err: message }, 'availability: fetch failed')
+
+    // Distinguish calendar connectivity issues from generic errors
+    const isDisconnected =
+      message.includes('not connected') ||
+      message.includes('refresh token is missing') ||
+      message.includes('Missing required env var: GOOGLE_CLIENT') ||
+      message.includes('invalid_client') ||
+      message.includes('invalid_grant') ||
+      message.includes('Token has been expired or revoked')
+
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || 'Failed to load availability',
+        errorCode: isDisconnected ? 'CALENDAR_DISCONNECTED' : 'CALENDAR_ERROR',
+        error: message,
       },
-      { status: 500 }
+      { status: 503 }
     )
   }
 }
