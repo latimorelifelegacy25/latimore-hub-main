@@ -39,6 +39,7 @@ const nextConfig = {
         permanent: true,
       },
       { source: '/home', destination: '/', permanent: true },
+      { source: '/pahs/index.html', destination: '/pahs', permanent: true },
       {
         source: '/',
         destination: '/admin',
