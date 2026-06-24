@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { Briefcase, Shield, TrendingUp } from 'lucide-react'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
@@ -8,7 +9,7 @@ import { MobileStickyCta } from './_components/MobileStickyCta'
 
 const categoryOrder: ProductCategory[] = ['life', 'annuity', 'business']
 
-const categoryStyles: Record<ProductCategory, { icon: React.ReactNode; background: string; intro: string }> = {
+const categoryStyles: Record<ProductCategory, { icon: ReactNode; background: string; intro: string }> = {
   life: {
     icon: <Shield size={30} />,
     background: COLORS.white,
