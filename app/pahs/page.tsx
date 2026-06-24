@@ -180,7 +180,12 @@ export default function PAHSPage() {
       <section className="pahs-flyer" id="flyer">
         <div className="pahs-flyer-inner">
           <div className="section-label gold-label">Friday Night Lights</div>
-          <PahsSponsorGraphic className="pahs-flyer-image" />
+          <img
+            src="/pahs-sponsor-flyer.png"
+            alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
+            className="pahs-flyer-image"
+            style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
+          />
         </div>
       </section>
 
