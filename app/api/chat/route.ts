@@ -13,6 +13,69 @@ const ChatRequestSchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(12),
 })
 
+const CONTACT_REPLY = 'For personalized guidance, contact Jackson at 717-615-2613 or jackson1989@latimorelegacy.com. He can help you review options and next steps.'
+
+function createLocalReply(message: string) {
+  const normalized = message.toLowerCase()
+
+  if (normalized.includes('service') || normalized.includes('offer') || normalized.includes('what do you do')) {
+    return [
+      'Latimore Life & Legacy helps with life insurance, mortgage protection, final expense coverage,',
+      'indexed universal life, fixed indexed annuities, retirement income education, juvenile life policies,',
+      'business protection, college funding education, debt management education, and legacy planning basics through referral partners.',
+      CONTACT_REPLY,
+    ].join(' ')
+  }
+
+  if (normalized.includes('mortgage')) {
+    return [
+      'Mortgage protection is life insurance designed to help your family keep the home if something happens to you.',
+      'It can provide money for the mortgage, bills, or other needs instead of leaving loved ones with the payment alone.',
+      CONTACT_REPLY,
+    ].join(' ')
+  }
+
+  if (
+    normalized.includes('quote') ||
+    normalized.includes('price') ||
+    normalized.includes('cost') ||
+    normalized.includes('rate')
+  ) {
+    return [
+      'To get a quote, Jackson will usually need a few basics: your age range, county, coverage goal,',
+      'approximate amount of protection, and preferred contact method.',
+      'You can call 717-615-2613 or email jackson1989@latimorelegacy.com to start.',
+    ].join(' ')
+  }
+
+  if (normalized.includes('final expense') || normalized.includes('burial') || normalized.includes('funeral')) {
+    return [
+      'Final expense coverage is life insurance intended to help loved ones handle funeral costs, burial expenses,',
+      'medical bills, or other end-of-life needs. The right amount depends on your goals and budget.',
+      CONTACT_REPLY,
+    ].join(' ')
+  }
+
+  if (normalized.includes('annuity') || normalized.includes('retirement')) {
+    return [
+      'Latimore Life & Legacy can provide education around fixed indexed annuities and retirement income planning.',
+      'Annuities are not right for everyone, so it is best to review your timeline, risk comfort,',
+      'and income goals with a licensed professional.',
+      CONTACT_REPLY,
+    ].join(' ')
+  }
+
+  if (normalized.includes('contact') || normalized.includes('phone') || normalized.includes('email') || normalized.includes('jackson')) {
+    return 'You can reach Jackson M. Latimore Sr. by phone at 717-615-2613 or by email at jackson1989@latimorelegacy.com.'
+  }
+
+  return [
+    'I can help with general questions about life insurance, mortgage protection, final expense,',
+    'annuities, retirement income education, and how to contact Jackson.',
+    CONTACT_REPLY,
+  ].join(' ')
+}
+
 const SYSTEM_PROMPT = `You are the public website assistant for Latimore Life & Legacy LLC.
 
 Business context:
@@ -33,13 +96,6 @@ Rules:
 - Encourage booking or contacting Jackson when the user shows purchase intent.`
 
 export async function POST(req: Request) {
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json(
-      { reply: 'Chat is not configured yet. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.' },
-      { status: 503 },
-    )
-  }
-
   try {
     const json = await req.json()
     const parsed = ChatRequestSchema.safeParse(json)
@@ -49,6 +105,14 @@ export async function POST(req: Request) {
         { reply: 'Please send a shorter message and try again.' },
         { status: 400 },
       )
+    }
+
+    const latestUserMessage = [...parsed.data.messages].reverse().find(message => message.role === 'user')
+
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json({
+        reply: createLocalReply(latestUserMessage?.content ?? ''),
+      })
     }
 
     const input = [
