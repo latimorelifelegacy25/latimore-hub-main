@@ -767,6 +767,24 @@ model SocialMetric {
   @@index([platform, metricDate])
 }
 
+model SocialAccountMetric {
+  id           String   @id @default(cuid())
+  provider     SocialProvider
+  externalId   String
+  metricDate   DateTime
+  followers    Int      @default(0)
+  impressions  Int      @default(0)
+  reach        Int      @default(0)
+  profileViews Int      @default(0)
+  engagedUsers Int      @default(0)
+  raw          Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, externalId, metricDate])
+  @@index([provider, metricDate])
+}
+
 model SocialComment {
   id                String   @id @default(cuid())
   postId            String

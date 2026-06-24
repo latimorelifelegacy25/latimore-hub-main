@@ -164,3 +164,50 @@ export async function fetchPageInsights(
     metrics: insightsData.data ?? [],
   }
 }
+
+/** Fetch Instagram Business Account Insights for a professional account. */
+export type InstagramInsightsResult = {
+  igUserId: string
+  username: string
+  followersCount: number
+  metrics: Array<{
+    name: string
+    period: string
+    values: Array<{ value: number | Record<string, number>; end_time: string }>
+  }>
+}
+
+export async function fetchInstagramInsights(
+  igUserId: string,
+  accessToken: string,
+  metrics: string[] = ['reach', 'profile_views'],
+  period: 'day' | 'week' | 'days_28' = 'day'
+): Promise<InstagramInsightsResult> {
+  const insightsParams = new URLSearchParams({
+    metric: metrics.join(','),
+    period,
+    access_token: accessToken,
+  })
+  const profileParams = new URLSearchParams({
+    fields: 'username,followers_count',
+    access_token: accessToken,
+  })
+
+  const [insightsRes, profileRes] = await Promise.all([
+    fetch(`${GRAPH_BASE}/${igUserId}/insights?${insightsParams}`),
+    fetch(`${GRAPH_BASE}/${igUserId}?${profileParams}`),
+  ])
+
+  const [insightsData, profileData] = await Promise.all([insightsRes.json(), profileRes.json()])
+
+  if (!insightsRes.ok || insightsData.error) {
+    throw new Error(`Instagram Insights fetch failed: ${insightsData.error?.message ?? insightsRes.status}`)
+  }
+
+  return {
+    igUserId,
+    username: profileData.username ?? igUserId,
+    followersCount: profileData.followers_count ?? 0,
+    metrics: insightsData.data ?? [],
+  }
+}
