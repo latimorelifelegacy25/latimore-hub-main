@@ -82,12 +82,19 @@ export const POST = withCors(async (req: NextRequest) => {
     const state = nullable(data.state, 100)
     const pageUrl = nullable(data.pageUrl, 500)
     const referrer = nullable(data.referrer ?? req.headers.get('referer'), 500)
+    const leadSessionId = nullable(data.leadSessionId, 191)
+    const source = nullable(data.source || 'product_fit', 100)
+    const medium = nullable(data.medium, 100)
+    const campaign = nullable(data.campaign, 150)
+    const term = nullable(data.term, 100)
+    const content = nullable(data.content, 100)
+    const bestContactTime = nullable(data.bestContactTime, 80)
     const notes = buildNotes({
       selectedProductName: selectedProduct?.name ?? selectedProductSlug,
       recommendedPrimary: recommendation.primary,
       recommendedSecondary: recommendation.secondary,
       timeline: data.timeline,
-      bestContactTime: nullable(data.bestContactTime, 80),
+      bestContactTime,
       notes: nullable(data.notes, 2000),
       reasons: recommendation.reasons,
     })
@@ -99,12 +106,12 @@ export const POST = withCors(async (req: NextRequest) => {
       phone: data.phone,
       county,
       productInterest,
-      leadSessionId: nullable(data.leadSessionId, 191),
-      source: nullable(data.source || 'product_fit', 100),
-      medium: nullable(data.medium, 100),
-      campaign: nullable(data.campaign, 150),
-      term: nullable(data.term, 100),
-      content: nullable(data.content, 100),
+      leadSessionId,
+      source,
+      medium,
+      campaign,
+      term,
+      content,
       referrer,
       landingPage: pageUrl,
       notes,
@@ -118,7 +125,7 @@ export const POST = withCors(async (req: NextRequest) => {
         state,
         county,
         timeline: data.timeline ?? null,
-        bestContactTime: data.bestContactTime ?? null,
+        bestContactTime,
       },
     })
 
@@ -126,59 +133,76 @@ export const POST = withCors(async (req: NextRequest) => {
       data: {
         contactId: contact.id,
         inquiryId: inquiry.id,
-        leadSessionId: nullable(data.leadSessionId, 191),
         hasLifeInsurance: null,
         hasMortgageProtection: data.hasMortgage ?? null,
         hasFinalExpense: null,
         hasRetirementPlan: data.wantsRetirementIncome ?? null,
         hasLegacyPlan: data.wantsLegacyPlanning ?? null,
         interestedIn: [productInterest],
-        message: nullable(data.notes, 2000),
-        lifeStage: data.lifeStage ?? null,
-        state,
-        county,
-        timeline: data.timeline ?? null,
-        bestContactTime: nullable(data.bestContactTime, 80),
-        selectedProductSlug,
-        recommendedPrimary: recommendation.primary,
-        recommendedSecondary: recommendation.secondary,
-        score: recommendation.score,
-        answers: {
-          lifeStage: data.lifeStage ?? null,
-          hasMortgage: data.hasMortgage ?? null,
-          hasDependents: data.hasDependents ?? null,
-          ownsBusiness: data.ownsBusiness ?? null,
-          hasEmployees: data.hasEmployees ?? null,
-          wantsRetirementIncome: data.wantsRetirementIncome ?? null,
-          wantsLegacyPlanning: data.wantsLegacyPlanning ?? null,
-          timeline: data.timeline ?? null,
-          bestContactTime: data.bestContactTime ?? null,
-          selectedProductSlug,
-        } as Prisma.InputJsonValue,
-        attribution: {
-          pageUrl,
-          referrer,
-          source: nullable(data.source, 100),
-          medium: nullable(data.medium, 100),
-          campaign: nullable(data.campaign, 150),
-          term: nullable(data.term, 100),
-          content: nullable(data.content, 100),
-          leadSessionId: nullable(data.leadSessionId, 191),
-        } as Prisma.InputJsonValue,
+        message: nullable(data.notes, 2000) ?? notes,
       },
     })
+
+    const answers = {
+      lifeStage: data.lifeStage ?? null,
+      hasMortgage: data.hasMortgage ?? null,
+      hasDependents: data.hasDependents ?? null,
+      ownsBusiness: data.ownsBusiness ?? null,
+      hasEmployees: data.hasEmployees ?? null,
+      wantsRetirementIncome: data.wantsRetirementIncome ?? null,
+      wantsLegacyPlanning: data.wantsLegacyPlanning ?? null,
+      timeline: data.timeline ?? null,
+      bestContactTime,
+      selectedProductSlug,
+    }
+
+    const attribution = {
+      pageUrl,
+      referrer,
+      source,
+      medium,
+      campaign,
+      term,
+      content,
+      leadSessionId,
+    }
+
+    try {
+      await prisma.$executeRaw`
+        UPDATE "LegacyCheckupAssessment"
+        SET
+          "leadSessionId" = ${leadSessionId},
+          "lifeStage" = ${data.lifeStage ?? null},
+          "state" = ${state},
+          "county" = ${county},
+          "timeline" = ${data.timeline ?? null},
+          "bestContactTime" = ${bestContactTime},
+          "selectedProductSlug" = ${selectedProductSlug},
+          "recommendedPrimary" = ${recommendation.primary},
+          "recommendedSecondary" = ${recommendation.secondary},
+          "score" = ${recommendation.score},
+          "answers" = CAST(${JSON.stringify(answers)} AS jsonb),
+          "attribution" = CAST(${JSON.stringify(attribution)} AS jsonb)
+        WHERE "id" = ${assessment.id}
+      `
+    } catch (extensionError) {
+      logger.error(
+        { err: extensionError instanceof Error ? extensionError.message : String(extensionError) },
+        '[product-fit] extended assessment field update failed',
+      )
+    }
 
     await prisma.event.create({
       data: {
         eventType: 'legacy_checkup_completed',
-        leadSessionId: nullable(data.leadSessionId, 191) ?? undefined,
+        leadSessionId: leadSessionId ?? undefined,
         contactId: contact.id,
         inquiryId: inquiry.id,
         pageUrl: pageUrl ?? undefined,
         referrer: referrer ?? undefined,
-        source: nullable(data.source || 'product_fit', 100) ?? undefined,
-        medium: nullable(data.medium, 100) ?? undefined,
-        campaign: nullable(data.campaign, 150) ?? undefined,
+        source: source ?? undefined,
+        medium: medium ?? undefined,
+        campaign: campaign ?? undefined,
         county: county ?? undefined,
         productInterest,
         metadata: {
@@ -195,10 +219,10 @@ export const POST = withCors(async (req: NextRequest) => {
         type: 'product_fit.completed',
         contactId: contact.id,
         inquiryId: inquiry.id,
-        leadSessionId: nullable(data.leadSessionId, 191),
-        source: nullable(data.source || 'product_fit', 100),
-        medium: nullable(data.medium, 100),
-        campaign: nullable(data.campaign, 150),
+        leadSessionId,
+        source,
+        medium,
+        campaign,
         payload: {
           assessmentId: assessment.id,
           productInterest,
