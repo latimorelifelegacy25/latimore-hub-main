@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createTextCompletion } from '@/lib/ai/client'
 import { rateLimit } from '@/lib/rate-limit'
+import { requireAdminSession } from '@/lib/ai/shared'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
+
   const limited = await rateLimit(req, 'default')
   if (limited) return limited
 
