@@ -76,7 +76,7 @@ function serviceEducationUrl(serviceLabel: string) {
     service: serviceLabel,
   })
 
-  return `/education?${params.toString()}`
+  return `/education/checkup?${params.toString()}`
 }
 
 function CtaButtons({ centered = false, large = false, label, serviceLabel }: { centered?: boolean; large?: boolean; label: string; serviceLabel: string }) {
