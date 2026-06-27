@@ -729,8 +729,8 @@ export const WorkflowBuilder: React.FC = () => {
             <Layers size={18} />
           </div>
           <div>
-            <h3 className="text-[13px] font-bold text-[#2C3E50] uppercase tracking-wider leading-none">Autonomous Workflows Constructor</h3>
-            <p className="text-[10px] text-[#6b6b6b] mt-1">Configure automated task sequences, steps selectors, wait nodes, and execution scripts</p>
+            <h3 className="text-[13px] font-bold text-[#2C3E50] uppercase tracking-wider leading-none">Workflow Sandbox (Prototype — Local Simulation Only)</h3>
+            <p className="text-[10px] text-[#6b6b6b] mt-1">Sketch autonomous-agent task sequences and preview the run order. Saved to this browser only — not connected to any live execution backend or the Marketing Workflows system.</p>
           </div>
         </div>
 
@@ -853,8 +853,8 @@ export const WorkflowBuilder: React.FC = () => {
             <HelpCircle size={14} className="text-[#2C3E50] shrink-0 mt-0.5" />
             <div>
               <span className="font-bold uppercase tracking-wider block mb-1">Configuration Helper</span>
-              Define multi-step scripts that the autonomous robot handles in sandboxed environments. Click 
-              <span className="font-semibold text-[#C49A6C]"> Simulated Run</span> to preview step-order highlights, delay processing, and sandbox logging feeds.
+              This builder does not execute anything — no browser navigation, no terminal commands, no real AI calls. Click
+              <span className="font-semibold text-[#C49A6C]"> Simulated Run</span> to preview step order and timing only; templates persist to this browser's local storage.
             </div>
           </div>
         </div>

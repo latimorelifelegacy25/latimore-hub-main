@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       )
     }
 
-    logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] executing')
+    logger.info({ workflowId: workflow.id, name: workflow.name, stepCount: workflow.steps.length }, '[workflow] simulating (no live dispatch wired up)')
 
     await prisma.workflowTemplate.update({
       where: { id: id },
@@ -73,9 +73,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     }
 
-    return NextResponse.json({ ok: true, workflowId: id, results })
+    return NextResponse.json({ ok: true, workflowId: id, simulated: true, results })
   } catch (err) {
-    logger.error({ err }, '[workflow] execution failed')
-    return NextResponse.json({ ok: false, error: 'Execution failed' }, { status: 500 })
+    logger.error({ err }, '[workflow] simulation failed')
+    return NextResponse.json({ ok: false, error: 'Simulation failed' }, { status: 500 })
   }
 }
