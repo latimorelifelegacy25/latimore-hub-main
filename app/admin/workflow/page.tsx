@@ -1,8 +1,8 @@
 import { WorkflowBuilder } from '@/components/nexus/WorkflowBuilder'
 
 export const metadata = {
-  title: 'Workflow Builder | Latimore Hub OS',
-  description: 'Build, save, and run multi-step AI workflows — email drip campaigns, compliance audits, marketing automations, and more.',
+  title: 'Workflow Sandbox | Latimore Hub OS',
+  description: 'Sketch and simulate multi-step automation sequences locally. For live marketing automation, use /marketing.',
 }
 
 export default function WorkflowPage() {

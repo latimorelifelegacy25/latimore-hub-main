@@ -15,8 +15,12 @@ type TaskResult = {
   durationMs: number
 }
 
+const TASK_TIMEOUT_MS = 45_000
+
 async function runTask(name: string, url: string, req: NextRequest, method: 'GET' | 'POST' = 'GET'): Promise<TaskResult> {
   const start = Date.now()
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), TASK_TIMEOUT_MS)
   try {
     const res = await fetch(url, {
       method,
@@ -25,17 +29,21 @@ async function runTask(name: string, url: string, req: NextRequest, method: 'GET
         'x-cron-secret': process.env.CRON_SECRET ?? '',
         'x-forwarded-for': req.headers.get('x-forwarded-for') ?? '',
       },
+      signal: controller.signal,
       ...(method === 'POST' ? { body: JSON.stringify({ days: 7 }) } : {}),
     })
     const data = await res.json().catch(() => null)
     return { task: name, ok: res.ok, status: res.status, data, durationMs: Date.now() - start }
   } catch (err) {
+    const timedOut = err instanceof Error && err.name === 'AbortError'
     return {
       task: name,
       ok: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: timedOut ? `Timed out after ${TASK_TIMEOUT_MS}ms` : err instanceof Error ? err.message : String(err),
       durationMs: Date.now() - start,
     }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
