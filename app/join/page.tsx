@@ -50,9 +50,12 @@ export default function JoinPage() {
                 style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 18 }}
               />
             </div>
-            <p style={{ color: 'rgba(255,255,255,.8)', fontSize: '.9rem', lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
-              The recruiting poster is now displayed directly on the page so QR, social, and website visitors see the same creative before completing the form.
-            </p>
+            <div style={{ background: '#fff', color: navy, borderRadius: 24, padding: 'clamp(1.25rem,4vw,2rem)', boxShadow: '0 24px 60px rgba(0,0,0,.26)', border: `4px solid ${gold}` }}>
+              <p style={{ margin: 0, color: gold, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase' }}>Your purpose. Our mission.</p>
+              <h2 style={{ margin: '10px 0', fontSize: 'clamp(1.8rem,4vw,3rem)', lineHeight: 1 }}>Take the step. Join me today!</h2>
+              <p style={{ color: '#475467', lineHeight: 1.7 }}>We're looking for driven individuals who want more out of life and are ready to help families protect their future.</p>
+              <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>{['No insurance experience required to start exploring', 'Training, mentorship, and compliance support', 'Part-time and growth-oriented paths available'].map((item) => <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}><span style={{ color: gold, fontWeight: 900 }}>✓</span><span>{item}</span></div>)}</div>
+            </div>
           </aside>
         </div>
       </section>
