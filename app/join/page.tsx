@@ -1,5 +1,6 @@
 import { BRAND } from '@/lib/brand'
 import { SiteFooter, SiteHeader, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
+import Image from 'next/image'
 import JoinFormSection from '@/components/join/JoinFormSection'
 
 const navy = '#0E1A2B'
@@ -38,11 +39,23 @@ export default function JoinPage() {
               <a href="/book?utm_source=join_hero&utm_medium=website&utm_campaign=join-team" style={{ background: '#fff', color: navy, padding: '14px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }}>Schedule Intro Call</a>
             </div>
           </div>
-          <aside style={{ background: '#fff', color: navy, borderRadius: 24, padding: 'clamp(1.25rem,4vw,2rem)', boxShadow: '0 24px 60px rgba(0,0,0,.26)', border: `4px solid ${gold}` }}>
-            <p style={{ margin: 0, color: gold, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase' }}>Your purpose. Our mission.</p>
-            <h2 style={{ margin: '10px 0', fontSize: 'clamp(1.8rem,4vw,3rem)', lineHeight: 1 }}>Take the step. Join me today!</h2>
-            <p style={{ color: '#475467', lineHeight: 1.7 }}>We're looking for driven individuals who want more out of life and are ready to help families protect their future.</p>
-            <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>{['No insurance experience required to start exploring', 'Training, mentorship, and compliance support', 'Part-time and growth-oriented paths available'].map((item) => <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}><span style={{ color: gold, fontWeight: 900 }}>✓</span><span>{item}</span></div>)}</div>
+          <aside style={{ display: 'grid', gap: 14 }}>
+            <div style={{ background: '#fff', borderRadius: 26, padding: 10, boxShadow: '0 24px 60px rgba(0,0,0,.28)', border: `4px solid ${gold}` }}>
+              <Image
+                src="/join-team-poster.svg"
+                alt="Latimore Life & Legacy LLC Join Our Team poster with QR code, benefits, and #TheBeatGoesOn message"
+                width={1080}
+                height={1620}
+                priority
+                style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 18 }}
+              />
+            </div>
+            <div style={{ background: '#fff', color: navy, borderRadius: 24, padding: 'clamp(1.25rem,4vw,2rem)', boxShadow: '0 24px 60px rgba(0,0,0,.26)', border: `4px solid ${gold}` }}>
+              <p style={{ margin: 0, color: gold, fontWeight: 900, letterSpacing: '.16em', textTransform: 'uppercase' }}>Your purpose. Our mission.</p>
+              <h2 style={{ margin: '10px 0', fontSize: 'clamp(1.8rem,4vw,3rem)', lineHeight: 1 }}>Take the step. Join me today!</h2>
+              <p style={{ color: '#475467', lineHeight: 1.7 }}>We're looking for driven individuals who want more out of life and are ready to help families protect their future.</p>
+              <div style={{ display: 'grid', gap: 10, marginTop: 18 }}>{['No insurance experience required to start exploring', 'Training, mentorship, and compliance support', 'Part-time and growth-oriented paths available'].map((item) => <div key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}><span style={{ color: gold, fontWeight: 900 }}>✓</span><span>{item}</span></div>)}</div>
+            </div>
           </aside>
         </div>
       </section>
