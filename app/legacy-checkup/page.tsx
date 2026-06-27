@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 
 // SPEC-HARDENING §3 — Primary funnel route must be /legacy-checkup
-// /education is the alias; this page is the canonical entry point.
+// /education/checkup is the alias; this page is the canonical entry point.
 export const metadata: Metadata = {
   title: 'Legacy Checkup | Latimore Life & Legacy',
   description:
@@ -11,5 +11,5 @@ export const metadata: Metadata = {
 }
 
 export default function LegacyCheckupPage() {
-  redirect('/education')
+  redirect('/education/checkup')
 }
