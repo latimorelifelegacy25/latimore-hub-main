@@ -3,6 +3,10 @@
   "buildCommand": "npm run build:safe",
   "crons": [
     {
+      "path": "/api/cron/google-appointments-sync",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/cron/daily",
       "schedule": "0 13 * * *"
     }
