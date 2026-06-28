@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { checkCompliance, type ComplianceResult } from '@/lib/ai/compliance'

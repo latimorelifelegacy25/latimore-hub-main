@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/chat
  * Centralized inference endpoint for the Legacy Co-Pilot chatbot.
