@@ -160,9 +160,29 @@ export const BookingNotifySchema = z.object({
   medium: z.string().max(100).optional().nullable(),
   campaign: z.string().max(150).optional().nullable(),
   location: z.string().max(250).optional().nullable(),
-}).refine((value) => !!(value.inquiryId || value.lead_session_id), {
-  message: 'Booking webhook must include inquiryId or lead_session_id',
-  path: ['lead_session_id'],
+  meeting_url: z.string().max(500).optional().nullable(),
+  timezone: z.string().max(100).optional().nullable(),
+  title: z.string().max(250).optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+  first_name: z.string().max(100).optional().nullable(),
+  firstName: z.string().max(100).optional().nullable(),
+  last_name: z.string().max(100).optional().nullable(),
+  lastName: z.string().max(100).optional().nullable(),
+  full_name: z.string().max(150).optional().nullable(),
+  fullName: z.string().max(150).optional().nullable(),
+  name: z.string().max(150).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  attendee_email: z.string().email().optional().nullable(),
+  phone: z.string().max(40).optional().nullable(),
+  county: z.string().max(100).optional().nullable(),
+  product_interest: z.string().max(100).optional().nullable(),
+  productInterest: z.string().max(100).optional().nullable(),
+  page_url: z.string().max(500).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  metadata: z.record(z.any()).optional().nullable(),
+}).refine((value) => !!(value.inquiryId || value.lead_session_id || value.email || value.attendee_email || value.phone), {
+  message: 'Booking webhook must include an inquiry/session id or contact email/phone',
+  path: ['email'],
 })
 
 export const CardEventSchema = z.object({
