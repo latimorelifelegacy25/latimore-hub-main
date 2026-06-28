@@ -39,7 +39,7 @@ function getAiProvider() {
   return (process.env.AI_PROVIDER ?? 'openai').toLowerCase()
 }
 
-// ─── Plain-text completion (no JSON schema required) ──────────────────────────
+// ─── Plain-text completion ────────────────────────────────────────────────────
 export async function createTextCompletion({
   system,
   user,
@@ -50,8 +50,43 @@ export async function createTextCompletion({
   temperature?: number
 }): Promise<string> {
   const provider = getAiProvider()
+  if (provider === 'anthropic') return createAnthropicTextCompletion({ system, user, temperature })
   if (provider === 'gemini') return createGeminiTextCompletion({ system, user, temperature })
   return createOpenAiTextCompletion({ system, user, temperature })
+}
+
+async function createAnthropicTextCompletion({
+  system,
+  user,
+  temperature,
+}: {
+  system: string
+  user: string
+  temperature: number
+}): Promise<string> {
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error('Missing ANTHROPIC_API_KEY')
+  const model = process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6'
+  const res = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 1024,
+      temperature,
+      system,
+      messages: [{ role: 'user', content: user }],
+    }),
+    cache: 'no-store',
+  })
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(json?.error?.message ?? 'Anthropic request failed')
+  const text = json?.content?.[0]?.text
+  if (!text) throw new Error('Anthropic returned empty output')
+  return text as string
 }
 
 async function createOpenAiTextCompletion({
@@ -111,6 +146,7 @@ async function createGeminiTextCompletion({
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─── JSON schema completion ───────────────────────────────────────────────────
 export async function createOpenAIJsonCompletion<T>({
   model,
   system,
@@ -127,6 +163,17 @@ export async function createOpenAIJsonCompletion<T>({
   temperature?: number
 }): Promise<CompletionResult<T>> {
   const provider = getAiProvider()
+
+  if (provider === 'anthropic') {
+    return createAnthropicJsonCompletion<T>({
+      model: model ?? process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+      system,
+      user,
+      schemaName,
+      schema,
+      temperature,
+    })
+  }
 
   if (provider === 'gemini') {
     return createGeminiJsonCompletion<T>({
@@ -147,6 +194,83 @@ export async function createOpenAIJsonCompletion<T>({
     schema,
     temperature,
   })
+}
+
+async function createAnthropicJsonCompletion<T>({
+  model,
+  system,
+  user,
+  schemaName,
+  schema,
+  temperature = 0.2,
+}: {
+  model: string
+  system: string
+  user: string
+  schemaName: string
+  schema: JsonSchema
+  temperature: number
+}): Promise<CompletionResult<T>> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    throw new Error('Missing ANTHROPIC_API_KEY')
+  }
+
+  const jsonPrompt = [
+    user,
+    '',
+    `Return ONLY valid JSON matching schema "${schemaName}". No markdown fences, no commentary, no extra keys.`,
+    '',
+    'JSON Schema:',
+    JSON.stringify(schema),
+  ].join('\n')
+
+  const response = await fetchWithTimeout('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 2048,
+      temperature,
+      system,
+      messages: [{ role: 'user', content: jsonPrompt }],
+    }),
+    cache: 'no-store',
+  })
+
+  const json = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(json?.error?.message ?? 'Anthropic request failed')
+  }
+
+  const text = json?.content?.[0]?.text
+  if (!text || typeof text !== 'string') {
+    throw new Error('Anthropic returned empty output')
+  }
+
+  // Strip any accidental markdown fences
+  const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
+
+  let parsed: T
+  try {
+    parsed = JSON.parse(cleaned) as T
+  } catch {
+    throw new Error(`Anthropic returned invalid JSON: ${cleaned.slice(0, 200)}`)
+  }
+
+  return {
+    model: json?.model ?? model,
+    output: parsed,
+    usage: {
+      input_tokens: json?.usage?.input_tokens,
+      output_tokens: json?.usage?.output_tokens,
+      total_tokens: (json?.usage?.input_tokens ?? 0) + (json?.usage?.output_tokens ?? 0),
+    },
+  }
 }
 
 async function createOpenAiProviderJsonCompletion<T>({
