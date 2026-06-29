@@ -4,7 +4,7 @@
   "crons": [
     {
       "path": "/api/cron/google-appointments-sync",
-      "schedule": "*/15 * * * *"
+      "schedule": "5 13 * * *"
     },
     {
       "path": "/api/cron/daily",
