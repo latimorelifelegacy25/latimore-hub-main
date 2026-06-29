@@ -3,7 +3,7 @@ import { ingestEvent } from './ingest-event'
 import { cleanString, normalizePhone, normalizeProductInterest, normalizeStage } from './normalizers'
 import { captureException } from '@/lib/error-tracking'
 import { upsertLead } from './upsert-lead'
-import type { Prisma } from '@prisma/client'
+import type { CalendarProvider, Prisma } from '@prisma/client'
 
 type RecordAppointmentInput = {
   inquiryId?: string | null
@@ -285,7 +285,7 @@ export async function recordAppointment(input: RecordAppointmentInput) {
       }
 
       if (scheduledFor) {
-        const provider = gcalId ? 'google' : 'manual'
+        const provider: CalendarProvider = gcalId ? 'google' : 'manual'
         const existingCalendarEvent = gcalId
           ? await tx.calendarEvent.findFirst({ where: { provider: 'google', externalId: gcalId } })
           : await tx.calendarEvent.findFirst({ where: { appointmentId: savedAppointment.id } })

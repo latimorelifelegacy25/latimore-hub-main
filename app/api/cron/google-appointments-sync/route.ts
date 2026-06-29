@@ -30,7 +30,7 @@ async function handle(req: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error: any) {
-    await captureException(error, { source: 'google-appointments-sync' })
+    await captureException(error, { source: 'api', provider: 'google-appointments-sync' })
     return NextResponse.json(
       { ok: false, error: error?.message ?? 'Google appointment sync failed' },
       { status: 500 }
