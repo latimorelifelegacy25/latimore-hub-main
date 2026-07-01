@@ -28,7 +28,8 @@
     "worker:deploy:dry": "npm --prefix latimore-os/cloudflare-worker run deploy -- --dry-run",
     "worker:deploy": "npm --prefix latimore-os/cloudflare-worker run deploy",
     "agent-harness:setup": "npm --prefix latimore-os/agent-harness install",
-    "agent-harness:typecheck": "npm --prefix latimore-os/agent-harness run type-check"
+    "agent-harness:typecheck": "npm --prefix latimore-os/agent-harness run type-check",
+    "security:rls:check": "node scripts/check-rls-coverage.mjs"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

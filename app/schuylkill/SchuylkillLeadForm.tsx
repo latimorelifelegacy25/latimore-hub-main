@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from 'react'
 import { COLORS, BRAND } from '@/lib/brand'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 
 const navy = COLORS.navy
 const gold = COLORS.gold
@@ -49,11 +50,12 @@ export default function SchuylkillLeadForm() {
         }),
       })
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error ?? `HTTP ${res.status}`)
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok || !result?.ok) {
+        throw new Error(result?.error ?? `HTTP ${res.status}`)
       }
 
+      trackLeadConversion({ eventId: result.conversionEventId, source: 'Schuylkill County Landing Page', campaign: 'protecting-what-matters-most', formName: 'schuylkill_landing' })
       setStatus('success')
     } catch (err) {
       setStatus('error')

@@ -6,6 +6,8 @@ import { z } from 'zod'
 import { rateLimit } from '@/lib/rate-limit'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { logger } from '@/lib/logger'
+import { sendMetaLeadConversion } from '@/lib/tracking/server-conversions'
+import crypto from 'node:crypto'
 
 const LeadSchema = z.object({
   full_name: z.string().min(2).max(150).optional(),
@@ -73,6 +75,8 @@ export async function POST(req: NextRequest) {
     const productInterest = body.coverage_interest ?? body.productInterest ?? 'General'
     const source = body.utm_source ?? body.source ?? 'direct'
 
+    const conversionEventId = crypto.randomUUID()
+
     const { contact, inquiry } = await upsertLead({
       firstName,
       lastName,
@@ -102,11 +106,23 @@ export async function POST(req: NextRequest) {
         utmSource: source,
         utmMedium: body.utm_medium ?? null,
         utmCampaign: body.utm_campaign ?? null,
+        conversionEventId,
       },
     })
 
+    await sendMetaLeadConversion({
+      eventId: conversionEventId,
+      email: body.email || null,
+      phone: body.phone,
+      eventSourceUrl: body.pageUrl ?? req.headers.get('referer'),
+      userAgent: req.headers.get('user-agent'),
+      ipAddress: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip'),
+      source,
+      campaign: body.utm_campaign ?? null,
+    })
+
     return NextResponse.json(
-      { ok: true, contactId: contact.id, inquiryId: inquiry.id, score: inquiry.leadScore },
+      { ok: true, contactId: contact.id, inquiryId: inquiry.id, score: inquiry.leadScore, conversionEventId },
       { status: 201 },
     )
   } catch (error) {

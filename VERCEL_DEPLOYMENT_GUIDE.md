@@ -65,14 +65,20 @@ vercel env pull .env.local
 npx prisma migrate deploy
 ```
 
-#### 1.4 Apply Row Level Security (RLS)
-1. In Supabase dashboard, go to **SQL Editor**
-2. Click **"New Query"**
-3. Open `/home/user/webapp/supabase-rls.sql` in your local editor
-4. Copy all SQL content
-5. Paste into Supabase SQL Editor
-6. Click **"Run"** (bottom right)
-7. Verify: Should see "Success. No rows returned"
+#### 1.4 Verify Row Level Security (RLS)
+RLS is managed by checked-in Prisma migrations, not by a manual Supabase SQL Editor paste step.
+
+```bash
+npm run security:rls:check
+```
+
+Then deploy the same migrations used for the schema:
+
+```bash
+npm run db:deploy
+```
+
+The legacy `supabase-rls.sql` file is retained only as an operator note for older runbooks.
 
 ---
 

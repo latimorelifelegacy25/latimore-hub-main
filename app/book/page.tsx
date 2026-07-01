@@ -1,61 +1,66 @@
 import { BRAND } from '@/lib/brand'
 
-function withGoogleCalendarEmbedParam(url: string) {
-  try {
-    const schedulerUrl = new URL(url)
-    if (!schedulerUrl.searchParams.has('gv')) {
-      schedulerUrl.searchParams.set('gv', 'true')
-    }
-    return schedulerUrl.toString()
-  } catch {
-    return url
-  }
-}
+const bookingFormUrl = process.env.NEXT_PUBLIC_BOOKING_FORM_URL
 
 export default function BookPage() {
-  const appointmentUrl = withGoogleCalendarEmbedParam(BRAND.googleAppointmentScheduleUrl)
-
   return (
-    <main className="min-h-screen bg-[#0E1A2B] px-4 py-12 text-white">
-      <section className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl md:p-10">
-        <div className="mb-8 max-w-3xl">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-[#C9A25F]">
-            Latimore Life & Legacy
-          </p>
-          <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
-            Book your consultation
-          </h1>
-          <p className="mt-4 text-base leading-7 text-white/75 md:text-lg">
-            Choose a time for a focused protection, retirement, or legacy planning conversation. If the scheduler does not load, call or text {BRAND.phone}.
-          </p>
-        </div>
+    <main className="min-h-screen bg-[#0B0F17] px-4 py-10 text-white sm:py-14">
+      <section className="mx-auto max-w-5xl text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#C9A25F]">
+          Complimentary Consultation
+        </p>
+        <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">
+          Secure Your Legacy
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#D7DCE5] sm:text-base">
+          Book a Latimore Life & Legacy consultation to talk through protection,
+          retirement, and legacy planning options.
+        </p>
+      </section>
 
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white">
+      <section className="mx-auto mt-8 max-w-5xl">
+        {bookingFormUrl ? (
           <iframe
-            src={appointmentUrl}
-            title="Latimore Life & Legacy appointment scheduling"
-            className="h-[760px] w-full border-0"
+            src={bookingFormUrl}
+            title="Book a Latimore Life & Legacy consultation"
+            className="min-h-[720px] w-full rounded-xl border-0 bg-white"
             loading="lazy"
           />
-        </div>
-
-        <div className="mt-6 flex flex-col gap-3 text-sm text-white/75 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            Need help? Call or text{' '}
-            <a className="font-semibold text-[#C9A25F]" href={`tel:+1${BRAND.phoneRaw}`}>
-              {BRAND.phone}
-            </a>
-            {' '}or email{' '}
-            <a className="font-semibold text-[#C9A25F]" href={`mailto:${BRAND.email}`}>
-              {BRAND.email}
-            </a>
-            .
-          </p>
-          <a className="font-semibold text-[#C9A25F]" href={BRAND.filloutUrl}>
-            Backup form
-          </a>
-        </div>
+        ) : (
+          <div className="rounded-3xl border border-[#C9A25F]/30 bg-white/[0.04] p-6 text-center shadow-2xl sm:p-10">
+            <h2 className="text-2xl font-semibold text-white">Online booking is being updated.</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-[#D7DCE5] sm:text-base">
+              Call or text {BRAND.phone}, or email {BRAND.email}. We’ll help you choose the next
+              best time for a consultation.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <a
+                href={BRAND.phoneHref}
+                className="rounded-full bg-[#C9A25F] px-5 py-3 text-sm font-bold text-[#0B0F17] transition hover:brightness-110"
+              >
+                Call or Text {BRAND.phone}
+              </a>
+              <a
+                href={`mailto:${BRAND.email}`}
+                className="rounded-full border border-[#C9A25F] px-5 py-3 text-sm font-bold text-[#C9A25F] transition hover:bg-[#C9A25F]/10"
+              >
+                Email {BRAND.email}
+              </a>
+            </div>
+          </div>
+        )}
       </section>
+
+      <p className="mx-auto mt-6 max-w-5xl text-center text-sm text-[#A9B1BE]">
+        Prefer to call or text?{' '}
+        <a href={BRAND.phoneHref} className="font-semibold text-[#C9A25F] underline-offset-4 hover:underline">
+          {BRAND.phone}
+        </a>{' '}
+        ·{' '}
+        <a href={`mailto:${BRAND.email}`} className="font-semibold text-[#C9A25F] underline-offset-4 hover:underline">
+          {BRAND.email}
+        </a>
+      </p>
     </main>
   )
 }

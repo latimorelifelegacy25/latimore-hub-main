@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { COLORS, BRAND } from '@/lib/brand'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
 export const metadata = {
@@ -71,7 +72,393 @@ const GLOSSARY = [
   { term: 'DIME Method',                      def: 'A coverage calculation framework: Debt + Income replacement + Mortgage + Education. Helps estimate how much protection your family may need.' },
 ]
 
-// ─── PAGE ──────────────────────────────────────────────────────────────────
+const lifeInsuranceOptions = ['Yes', 'No', 'Through work only', 'Not sure']
+
+const yesNoOptions = ['Yes', 'No', 'Somewhat', 'Not sure']
+
+const initialData: FunnelData = {
+  contact: {
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    county: '',
+  },
+  priorityPath: '',
+  familyDependents: [],
+  incomeStability: '',
+  mortgageOrDebt: [],
+  retirementStatus: '',
+  lifeInsuranceStatus: '',
+  dimeCoverage: '',
+  livingBenefitsInterest: '',
+  estatePlanningInterest: '',
+  rule72: {
+    startingAmount: '10000',
+    estimatedRate: '6',
+    currentAge: '35',
+  },
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function calculateScore(data: FunnelData) {
+  let score = 0
+
+  if (data.priorityPath) score += 10
+  if (data.familyDependents.length > 0) score += 10
+
+  const incomePoints: Record<string, number> = {
+    'Less than 1 month': 5,
+    '1–3 months': 8,
+    '3–6 months': 11,
+    '6–12 months': 14,
+    'More than 12 months': 18,
+  }
+
+  const retirementPoints: Record<string, number> = {
+    '401(k), 403(b), or pension': 12,
+    'IRA or Roth IRA': 12,
+    Annuity: 12,
+    'Personal savings only': 8,
+    'Not currently saving': 4,
+    'Not sure': 5,
+  }
+
+  score += incomePoints[data.incomeStability] ?? 0
+  score += data.mortgageOrDebt.includes('None') ? 12 : 8
+  score += retirementPoints[data.retirementStatus] ?? 0
+
+  if (data.lifeInsuranceStatus === 'Yes') score += 15
+  if (data.lifeInsuranceStatus === 'Through work only') score += 8
+  if (data.lifeInsuranceStatus === 'No' || data.lifeInsuranceStatus === 'Not sure') score += 4
+
+  if (data.dimeCoverage === 'Yes') score += 12
+  if (data.dimeCoverage === 'Somewhat') score += 8
+  if (data.dimeCoverage === 'No' || data.dimeCoverage === 'Not sure') score += 4
+
+  if (data.livingBenefitsInterest === 'Yes') score += 7
+  if (data.livingBenefitsInterest === 'Somewhat' || data.livingBenefitsInterest === 'Not sure') score += 4
+
+  if (data.estatePlanningInterest === 'Yes') score += 10
+  if (data.estatePlanningInterest === 'Somewhat' || data.estatePlanningInterest === 'Not sure') score += 5
+
+  return Math.min(100, score)
+}
+
+function getStatus(score: number, type: 'family' | 'income' | 'retirement' | 'estate') {
+  if (type === 'family') {
+    if (score >= 80) return 'Prepared'
+    if (score >= 60) return 'Moderate Gap'
+    return 'Needs Review'
+  }
+
+  if (type === 'income') {
+    if (score >= 80) return 'Stable'
+    if (score >= 60) return 'Moderate Gap'
+    return 'Needs Review'
+  }
+
+  if (type === 'retirement') {
+    if (score >= 80) return 'On Track'
+    if (score >= 60) return 'Needs Strategy'
+    return 'Needs Review'
+  }
+
+  if (score >= 80) return 'Included'
+  if (score >= 60) return 'Missing or Unknown'
+  return 'Needs Review'
+}
+
+function toggleValue(values: string[], value: string) {
+  if (value === 'None' || value === 'No one currently') {
+    return values.includes(value) ? [] : [value]
+  }
+
+  const cleaned = values.filter((item) => item !== 'None' && item !== 'No one currently')
+
+  return cleaned.includes(value) ? cleaned.filter((item) => item !== value) : [...cleaned, value]
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function getRule72Result(rule72: Rule72State) {
+  const amount = Number(rule72.startingAmount)
+  const rate = Number(rule72.estimatedRate)
+  const age = Number(rule72.currentAge)
+
+  if (!Number.isFinite(amount) || !Number.isFinite(rate) || !Number.isFinite(age) || amount <= 0 || rate <= 0) {
+    return null
+  }
+
+  const yearsToDouble = 72 / rate
+  const doubledAmount = amount * 2
+  const estimatedAge = age + yearsToDouble
+
+  return { yearsToDouble, doubledAmount, estimatedAge }
+}
+
+function buildGuideContent(priorityPath: string, score: number) {
+  const title = guideTitles[priorityPath] || 'Family Protection Starter Guide'
+
+  return `
+${title}
+${BRAND.fullName}
+${BRAND.tagline}
+${BRAND.hashtag}
+
+Educational Use Only
+This guide is for educational purposes only. It is not tax, legal, investment, or insurance advice. Products and strategies vary by state, carrier, underwriting, policy design, and client eligibility.
+
+Your selected priority:
+${priorityPath || 'Protect My Family'}
+
+Legacy Readiness Score: ${score} / 100
+
+Recommended review checklist:
+1. Identify who depends on your income or support.
+2. Review whether your current plan addresses Debt, Income, Mortgage, and Education needs.
+3. Confirm whether coverage is personal, employer-based, temporary, permanent, or unknown.
+4. Ask whether living benefits may be appropriate for your situation.
+5. Review retirement savings separately from retirement income planning.
+6. Consider whether estate planning documents should support the financial plan.
+7. Schedule a free consultation with ${BRAND.advisor}.
+
+Booking link:
+${BRAND.bookingUrl}
+
+Call us:
+${BRAND.phone}
+`.trim()
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+export default function EducationPage() {
+  const [currentStep, setCurrentStep] = useState<Step>('welcome')
+  const [data, setData] = useState<FunnelData>(initialData)
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const viewedEventsRef = useRef<Set<string>>(new Set())
+  const completedRef = useRef(false)
+  const leadSessionIdRef = useRef<string>('')
+
+  if (!leadSessionIdRef.current && typeof crypto !== 'undefined' && crypto.randomUUID) {
+    leadSessionIdRef.current = crypto.randomUUID()
+  }
+
+  const stepIndex = steps.indexOf(currentStep)
+  const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
+  const score = useMemo(() => calculateScore(data), [data])
+  const rule72Result = useMemo(() => getRule72Result(data.rule72), [data.rule72])
+
+  async function logEvent(eventType: string, metadata?: Record<string, unknown>, productInterest?: string) {
+    await fetch('/api/event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      keepalive: true,
+      body: JSON.stringify({
+        eventType,
+        leadSessionId: leadSessionIdRef.current || undefined,
+        landingPage: '/education',
+        county: data.contact.county || undefined,
+        productInterest,
+        metadata: { funnelStep: currentStep, ...metadata },
+      }),
+    }).catch(() => null)
+  }
+
+  async function logOnce(eventType: string, metadata?: Record<string, unknown>) {
+    if (viewedEventsRef.current.has(eventType)) return
+    viewedEventsRef.current.add(eventType)
+    await logEvent(eventType, metadata)
+  }
+
+  async function submitLead() {
+    const productInterest = PRIORITY_PRODUCT_MAP[data.priorityPath]
+
+    const response = await fetch('/api/lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: data.contact.firstName.trim(),
+        lastName: data.contact.lastName.trim(),
+        email: data.contact.email.trim().toLowerCase(),
+        phone: data.contact.phone.trim(),
+        county: data.contact.county.trim() || undefined,
+        productInterest,
+        leadSessionId: leadSessionIdRef.current || undefined,
+        landingPage: '/education',
+        source: 'Education Funnel',
+        medium: 'organic',
+        notes: 'Submitted via Latimore Legacy Checkup education funnel.',
+        metadata: {
+          form: 'education-funnel',
+          priorityPath: data.priorityPath,
+          familyDependents: data.familyDependents,
+          incomeStability: data.incomeStability,
+          mortgageOrDebt: data.mortgageOrDebt,
+          retirementStatus: data.retirementStatus,
+          lifeInsuranceStatus: data.lifeInsuranceStatus,
+          dimeCoverage: data.dimeCoverage,
+          livingBenefitsInterest: data.livingBenefitsInterest,
+          estatePlanningInterest: data.estatePlanningInterest,
+          legacyScore: score,
+        },
+      }),
+    })
+
+    const result = await response.json().catch(() => null)
+    if (!response.ok || !result?.ok) {
+      throw new Error(result?.error ? JSON.stringify(result.error) : 'Unable to save your information.')
+    }
+
+    trackLeadConversion({ eventId: result.conversionEventId, source: 'Education Funnel', campaign: 'legacy_checkup', formName: 'education_funnel' })
+  }
+
+  function validateStep(step: Step) {
+    if (step === 'contact') {
+      const contact = data.contact
+
+      if (!contact.firstName.trim() || !contact.lastName.trim() || !contact.email.trim() || !contact.phone.trim() || !contact.county.trim()) {
+        return 'Please complete all contact fields.'
+      }
+
+      if (!isValidEmail(contact.email)) {
+        return 'Please enter a valid email address.'
+      }
+    }
+
+    if (step === 'priority' && !data.priorityPath) return 'Please choose your main priority.'
+    if (step === 'family' && data.familyDependents.length === 0) return 'Please choose at least one option.'
+    if (step === 'income' && !data.incomeStability) return 'Please choose one option.'
+    if (step === 'debt' && data.mortgageOrDebt.length === 0) return 'Please choose at least one option.'
+    if (step === 'retirement' && !data.retirementStatus) return 'Please choose one option.'
+    if (step === 'lifeInsurance' && !data.lifeInsuranceStatus) return 'Please choose one option.'
+    if (step === 'dime' && !data.dimeCoverage) return 'Please choose one option.'
+    if (step === 'livingBenefits' && !data.livingBenefitsInterest) return 'Please choose one option.'
+    if (step === 'estatePlanning' && !data.estatePlanningInterest) return 'Please choose one option.'
+
+    return ''
+  }
+
+  async function next() {
+    setError('')
+
+    const validationError = validateStep(currentStep)
+
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    try {
+      if (currentStep === 'welcome') {
+        await logOnce('page_view', { activity: 'Started Education Funnel' })
+      }
+
+      if (currentStep === 'contact') {
+        setIsSubmitting(true)
+        await submitLead()
+        await logEvent('form_submit', { activity: 'Completed Contact Capture' })
+      }
+
+      if (currentStep === 'priority') {
+        await logEvent('product_selected', { activity: 'Selected Service Priority', detail: data.priorityPath }, PRIORITY_PRODUCT_MAP[data.priorityPath])
+      }
+
+      if (currentStep === 'retirement') {
+        await logEvent('cta_click', { activity: 'Answered Retirement Question', detail: data.retirementStatus })
+      }
+
+      if (currentStep === 'lifeInsurance') {
+        await logEvent('cta_click', { activity: 'Answered Life Insurance Question', detail: data.lifeInsuranceStatus })
+      }
+
+      if (currentStep === 'dime') {
+        await logEvent('cta_click', { activity: 'Answered DIME Question', detail: data.dimeCoverage })
+      }
+
+      const nextStep = steps[stepIndex + 1]
+
+      if (nextStep) {
+        setCurrentStep(nextStep)
+      }
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Something went wrong.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function back() {
+    setError('')
+    const previousStep = steps[stepIndex - 1]
+
+    if (previousStep) {
+      setCurrentStep(previousStep)
+    }
+  }
+
+  async function downloadGuide() {
+    await logEvent('lead_magnet_download', { activity: 'Downloaded Education Guide', detail: data.priorityPath })
+
+    const title = guideTitles[data.priorityPath] || 'Family Protection Starter Guide'
+    const content = buildGuideContent(data.priorityPath, score)
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+
+    anchor.href = url
+    anchor.download = `${slugify(title)}.txt`
+    anchor.click()
+
+    URL.revokeObjectURL(url)
+  }
+
+  async function bookCall() {
+    await logEvent('book_click', { activity: 'Clicked Book With Jackson' })
+    window.location.href = BRAND.bookingUrl
+  }
+
+  useEffect(() => {
+    const eventsByStep: Partial<Record<Step, [string, Record<string, unknown>]>> = {
+      rule72: ['cta_click', { activity: 'Viewed Rule of 72', detail: 'Interactive compound interest education' }],
+      taxBuckets: ['cta_click', { activity: 'Viewed Tax Buckets', detail: 'Tax now, tax later, tax advantage' }],
+      retirementTools: ['cta_click', { activity: 'Viewed 401k vs IUL Education', detail: 'Different tools, different rules' }],
+      retirementIncome: ['cta_click', { activity: 'Viewed GRIPP Module', detail: 'Retirement income and market volatility education' }],
+    }
+
+    const event = eventsByStep[currentStep]
+
+    if (event) {
+      logOnce(`${event[0]}:${currentStep}`, event[1]).catch(() => null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep])
+
+  useEffect(() => {
+    if (currentStep !== 'results' || completedRef.current) return
+
+    completedRef.current = true
+
+    logEvent('form_submit', { activity: 'Completed Legacy Checkup', legacyScore: score }).catch(() => null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, score])
 
 export default function EducationHubPage() {
   return (
