@@ -3,10 +3,12 @@
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { buildFilloutParams } from '@/lib/lead'
+import { BRAND } from '@/lib/brand'
 
 type AvailabilityResponse = {
   ok: boolean
   timezone: string
+  errorCode?: 'CALENDAR_DISCONNECTED' | 'CALENDAR_ERROR'
   days: {
     date: string
     slots: string[]
@@ -160,6 +162,7 @@ export default function ConsultBookingFlow() {
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(null)
   const [availabilityLoading, setAvailabilityLoading] = useState(true)
   const [availabilityError, setAvailabilityError] = useState('')
+  const [calendarDisconnected, setCalendarDisconnected] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlot, setSelectedSlot] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -193,6 +196,10 @@ export default function ConsultBookingFlow() {
         const res = await fetch('/api/availability', { cache: 'no-store' })
         const data: AvailabilityResponse = await res.json()
         if (!res.ok || !data.ok) {
+          if (data.errorCode === 'CALENDAR_DISCONNECTED') {
+            if (!ignore) setCalendarDisconnected(true)
+            return
+          }
           throw new Error(data.error || 'Failed to load availability')
         }
         if (!ignore) {
@@ -575,9 +582,33 @@ export default function ConsultBookingFlow() {
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-5 text-sm text-[#D7DCE5]">
                     Loading available times...
                   </div>
+                ) : calendarDisconnected ? (
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-[#C9A25F]/20 bg-[#C9A25F]/5 p-5">
+                      <p className="text-sm font-medium text-[#C9A25F] mb-1">Online Scheduling Temporarily Unavailable</p>
+                      <p className="text-sm text-[#D7DCE5]">
+                        Use the form below to request your free consultation — we respond within one business day.
+                      </p>
+                    </div>
+                    <iframe
+                      src={BRAND.filloutUrl}
+                      width="100%"
+                      height="700"
+                      style={{ border: 'none', borderRadius: '16px', minHeight: 600 }}
+                      title="Book a Free Consultation"
+                    />
+                  </div>
                 ) : availabilityError ? (
-                  <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-200">
-                    {availabilityError}
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
+                      {availabilityError}
+                    </div>
+                    <p className="text-xs text-[#8F98A8]">
+                      Having trouble?{' '}
+                      <a href={BRAND.filloutUrl} target="_blank" rel="noopener noreferrer" className="text-[#C9A25F] underline underline-offset-2">
+                        Use our online form instead
+                      </a>.
+                    </p>
                   </div>
                 ) : (
                   <div className="grid gap-6 lg:grid-cols-[240px_1fr]">

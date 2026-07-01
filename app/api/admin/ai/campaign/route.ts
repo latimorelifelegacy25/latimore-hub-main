@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/campaign
  * Generate a 4-post strategic Legacy Campaign sequence.

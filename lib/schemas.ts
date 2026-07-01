@@ -33,6 +33,14 @@ const eventEnum = z.enum([
   'post_created',
   'post_published',
   'reaction_added',
+  'legacy_checkup_started',
+  'legacy_checkup_step_completed',
+  'legacy_checkup_completed',
+  'lead_submitted',
+  'book_consultation_clicked',
+  'instant_quote_clicked',
+  'service_card_clicked',
+  'gbp_service_visit',
 ])
 
 export const FilloutSchema = z.object({
@@ -102,6 +110,35 @@ export const LeadSchema = z.object({
   path: ['email'],
 })
 
+export const ProductFitSchema = z.object({
+  fullName: z.string().min(2).max(150),
+  email: z.string().email().max(191).optional().or(z.literal('')),
+  phone: z.string().min(7).max(50),
+  state: z.string().max(100).optional().nullable(),
+  county: z.string().max(100).optional().nullable(),
+  lifeStage: z.enum(['young_family', 'pre_retiree', 'retiree', 'business_owner', 'high_income', 'other']).optional().nullable(),
+  hasMortgage: z.boolean().optional().nullable(),
+  hasDependents: z.boolean().optional().nullable(),
+  ownsBusiness: z.boolean().optional().nullable(),
+  hasEmployees: z.boolean().optional().nullable(),
+  wantsRetirementIncome: z.boolean().optional().nullable(),
+  wantsLegacyPlanning: z.boolean().optional().nullable(),
+  timeline: z.enum(['now', '30_days', '90_days', 'researching']).optional().nullable(),
+  bestContactTime: z.string().max(80).optional().nullable(),
+  productInterest: z.string().max(100).optional().nullable(),
+  selectedProductSlug: z.string().max(100).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  leadSessionId: z.string().max(191).optional().nullable(),
+  pageUrl: z.string().max(500).optional().nullable(),
+  referrer: z.string().max(500).optional().nullable(),
+  source: z.string().max(100).optional().nullable(),
+  medium: z.string().max(100).optional().nullable(),
+  campaign: z.string().max(150).optional().nullable(),
+  term: z.string().max(100).optional().nullable(),
+  content: z.string().max(100).optional().nullable(),
+  hp_company: z.string().max(200).optional().nullable(),
+})
+
 export const LeadIngestSchema = LeadSchema
 
 export const InquiryPatchSchema = z.object({
@@ -123,9 +160,29 @@ export const BookingNotifySchema = z.object({
   medium: z.string().max(100).optional().nullable(),
   campaign: z.string().max(150).optional().nullable(),
   location: z.string().max(250).optional().nullable(),
-}).refine((value) => !!(value.inquiryId || value.lead_session_id), {
-  message: 'Booking webhook must include inquiryId or lead_session_id',
-  path: ['lead_session_id'],
+  meeting_url: z.string().max(500).optional().nullable(),
+  timezone: z.string().max(100).optional().nullable(),
+  title: z.string().max(250).optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+  first_name: z.string().max(100).optional().nullable(),
+  firstName: z.string().max(100).optional().nullable(),
+  last_name: z.string().max(100).optional().nullable(),
+  lastName: z.string().max(100).optional().nullable(),
+  full_name: z.string().max(150).optional().nullable(),
+  fullName: z.string().max(150).optional().nullable(),
+  name: z.string().max(150).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  attendee_email: z.string().email().optional().nullable(),
+  phone: z.string().max(40).optional().nullable(),
+  county: z.string().max(100).optional().nullable(),
+  product_interest: z.string().max(100).optional().nullable(),
+  productInterest: z.string().max(100).optional().nullable(),
+  page_url: z.string().max(500).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  metadata: z.record(z.any()).optional().nullable(),
+}).refine((value) => !!(value.inquiryId || value.lead_session_id || value.email || value.attendee_email || value.phone), {
+  message: 'Booking webhook must include an inquiry/session id or contact email/phone',
+  path: ['email'],
 })
 
 export const CardEventSchema = z.object({

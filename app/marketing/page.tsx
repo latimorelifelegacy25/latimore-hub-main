@@ -314,7 +314,7 @@ function TriggerPanel({ workflow, onChange }: { workflow: Workflow; onChange: (w
       </div>
 
       {t === 'manual' && (
-        <p style={{ color: MUTED, fontSize: '0.82rem', margin: 0 }}>This workflow is triggered manually from the dashboard or via the Run Now button.</p>
+        <p style={{ color: MUTED, fontSize: '0.82rem', margin: 0 }}>This workflow is triggered manually from the dashboard or via the Simulate Run button. Steps are logged and queued, not dispatched live.</p>
       )}
       {t === 'webhook' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -468,8 +468,8 @@ export default function MarketingCommandCenter() {
     try {
       const res = await fetch(`/api/marketing/workflows/${id}/execute`, { method: 'POST' })
       const data = await res.json()
-      if (data.ok) showToast(`▶ Executed ${data.results?.length ?? 0} steps`)
-      else showToast('Execution failed', false)
+      if (data.ok) showToast(`▶ Simulated ${data.results?.length ?? 0} steps`)
+      else showToast('Simulation failed', false)
     } catch { showToast('Network error', false) }
     setExecuting(null)
   }
@@ -718,7 +718,7 @@ export default function MarketingCommandCenter() {
                     <>
                       <SBtn variant="ghost" onClick={() => toggleActive(selected)}>{selected.isActive ? '⏸ Deactivate' : '▶ Activate'}</SBtn>
                       {selected.triggerType === 'manual' && (
-                        <SBtn variant="ghost" onClick={() => selected.id && runNow(selected.id)} disabled={executing === selected.id}>{executing === selected.id ? 'Running…' : '▶ Run Now'}</SBtn>
+                        <SBtn variant="ghost" onClick={() => selected.id && runNow(selected.id)} disabled={executing === selected.id}>{executing === selected.id ? 'Simulating…' : '▶ Simulate Run'}</SBtn>
                       )}
                       <SBtn variant="danger" onClick={() => selected.id && deleteWf(selected.id)}>Delete</SBtn>
                     </>

@@ -52,14 +52,16 @@ type ScheduleGame = {
 }
 
 const scheduleGames: ScheduleGame[] = [
-  { date: 'Sep 5', opponent: 'Minersville', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
-  { date: 'Sep 12', opponent: 'Mahanoy Area Golden Bears', homeAway: 'AWAY', location: 'Mahanoy Area Stadium', time: '7:00 PM' },
-  { date: 'Sep 19', opponent: 'Tamaqua Blue Raiders', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
-  { date: 'Sep 26', opponent: 'North Schuylkill Spartans', homeAway: 'AWAY', location: 'Ghosh Orthodontics Field', time: '7:00 PM' },
-  { date: 'Oct 3', opponent: 'Jim Thorpe Olympians', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
-  { date: 'Oct 10', opponent: 'Shenandoah Valley Blue Devils', homeAway: 'AWAY', location: 'Shenandoah Stadium', time: '7:00 PM' },
-  { date: 'Oct 17', opponent: 'Nativity BVM Green Wave', homeAway: 'HOME', location: 'Veterans Memorial Stadium', time: '7:00 PM' },
-  { date: 'Oct 24', opponent: 'Tri-Valley Bulldogs', homeAway: 'AWAY', location: 'Tri-Valley Stadium', time: '7:00 PM' },
+  { date: 'Aug 28', opponent: 'Shamokin Area', homeAway: 'HOME', location: 'Pottsville High School', time: '7:00 PM' },
+  { date: 'Sep 4', opponent: 'Mount Carmel', homeAway: 'HOME', location: 'Pottsville Area High School', time: '7:00 PM' },
+  { date: 'Sep 10', opponent: 'Pleasant Valley', homeAway: 'AWAY', location: 'Pleasant Valley High School', time: '7:00 PM' },
+  { date: 'Sep 18', opponent: 'Blue Mountain', homeAway: 'AWAY', location: 'Blue Mountain High School', time: '7:00 PM' },
+  { date: 'Sep 25', opponent: 'Berwick', homeAway: 'HOME', location: 'Pottsville Area High School', time: '7:00 PM' },
+  { date: 'Oct 1', opponent: 'Tamaqua', homeAway: 'HOME', location: 'Pottsville Area High School', time: '7:00 PM' },
+  { date: 'Oct 9', opponent: 'Panther Valley', homeAway: 'AWAY', location: 'Panther Valley Senior High School', time: '7:00 PM' },
+  { date: 'Oct 16', opponent: 'Pine Grove', homeAway: 'AWAY', location: 'Pine Grove Area High School', time: '7:00 PM' },
+  { date: 'Oct 23', opponent: 'North Schuylkill', homeAway: 'HOME', location: 'Pottsville High School', time: '7:00 PM' },
+  { date: 'Oct 30', opponent: 'Hazleton Area', homeAway: 'HOME', location: 'Pottsville High School', time: '7:00 PM' },
 ]
 
 export default function PAHSPage() {
@@ -181,7 +183,12 @@ export default function PAHSPage() {
       <section className="pahs-flyer" id="flyer">
         <div className="pahs-flyer-inner">
           <div className="section-label gold-label">Friday Night Lights</div>
-          <PahsSponsorGraphic className="pahs-flyer-image" />
+          <img
+            src="/pahs-sponsor-flyer.png"
+            alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
+            className="pahs-flyer-image"
+            style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
+          />
         </div>
       </section>
 

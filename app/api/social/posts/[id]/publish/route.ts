@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { publishSocialPostById } from '@/lib/social/publisher'
 import { requireAdminSession } from '@/lib/ai/shared'

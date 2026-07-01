@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1620" role="img" aria-labelledby="title desc">
+  <title id="title">Latimore Life and Legacy LLC Join Our Team poster</title>
+  <desc id="desc">Poster-style recruiting graphic with Join Our Team, Build Your Future Leave a Legacy, The Beat Goes On, benefit icons, and contact information.</desc>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2c14e"/><stop offset=".5" stop-color="#c88915"/><stop offset="1" stop-color="#f6d778"/></linearGradient>
+    <radialGradient id="paper" cx="50%" cy="35%" r="70%"><stop stop-color="#fff"/><stop offset=".72" stop-color="#f7f4ec"/><stop offset="1" stop-color="#eee9dd"/></radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#051126" flood-opacity=".18"/></filter>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2" fill="#c9972b" opacity=".28"/></pattern>
+  </defs>
+  <rect width="1080" height="1620" fill="url(#paper)"/>
+  <path d="M0 0h1080v120c-210-48-405-42-584 17C320 196 150 179 0 118z" fill="#071426"/>
+  <path d="M0 0h1080v22C770 18 580-12 382 58 230 112 106 105 0 78z" fill="url(#gold)"/>
+  <path d="M0 170c80-35 152-40 238-20v650c-82 12-168 50-238 101z" fill="url(#dots)" opacity=".45"/>
+  <path d="M1080 760c-95 4-180 36-240 112v310c68-53 148-82 240-85z" fill="url(#dots)" opacity=".45"/>
+
+  <g transform="translate(350 58)" filter="url(#shadow)">
+    <path d="M0 58 190 0l190 58v74H0z" fill="url(#gold)"/>
+    <path d="M190 0v132" stroke="#071426" stroke-width="3" opacity=".35"/>
+    <path d="M230 75h42l12-24 21 63 16-37h55" fill="none" stroke="#071426" stroke-width="8" stroke-linejoin="round"/>
+    <text x="18" y="42" fill="#071426" font-family="Arial, Helvetica, sans-serif" font-size="29" transform="rotate(-18 18 42)">#TheBeatGoesOn</text>
+  </g>
+
+  <g transform="translate(792 88)">
+    <rect x="0" y="0" width="210" height="210" rx="18" fill="#fff" stroke="url(#gold)" stroke-width="9"/>
+    <g fill="#071426">
+      <rect x="28" y="28" width="54" height="54"/><rect x="128" y="28" width="54" height="54"/><rect x="28" y="128" width="54" height="54"/>
+      <rect x="43" y="43" width="24" height="24" fill="#fff"/><rect x="143" y="43" width="24" height="24" fill="#fff"/><rect x="43" y="143" width="24" height="24" fill="#fff"/>
+      <rect x="96" y="30" width="12" height="12"/><rect x="112" y="46" width="18" height="18"/><rect x="92" y="72" width="22" height="12"/><rect x="132" y="92" width="16" height="16"/><rect x="158" y="112" width="22" height="12"/><rect x="92" y="130" width="14" height="32"/><rect x="116" y="118" width="12" height="12"/><rect x="138" y="142" width="42" height="18"/><rect x="110" y="174" width="18" height="10"/><rect x="160" y="170" width="20" height="14"/>
+    </g>
+    <rect x="20" y="224" width="220" height="56" rx="18" fill="#071426"/><text x="42" y="262" fill="url(#gold)" font-family="Arial Black, Arial, sans-serif" font-size="25">SCAN TO CONNECT!</text>
+  </g>
+
+  <text x="540" y="292" text-anchor="middle" fill="#13233a" font-family="Arial Black, Arial, sans-serif" font-size="112" letter-spacing="6">LATIMORE</text>
+  <text x="540" y="360" text-anchor="middle" fill="#bd8125" font-family="Arial Black, Arial, sans-serif" font-size="48" letter-spacing="18">LIFE &amp; LEGACY LLC</text>
+
+  <text x="540" y="528" text-anchor="middle" fill="#061126" font-family="Arial Black, Arial, sans-serif" font-size="130" letter-spacing="12">JOIN OUR</text>
+  <text x="540" y="735" text-anchor="middle" fill="url(#gold)" font-family="Arial Black, Arial, sans-serif" font-size="210" letter-spacing="4">TEAM!</text>
+  <line x1="152" y1="775" x2="470" y2="775" stroke="#071426" stroke-width="4"/><text x="540" y="795" text-anchor="middle" fill="#071426" font-family="Arial Black, Arial, sans-serif" font-size="35">★</text><line x1="610" y1="775" x2="928" y2="775" stroke="#071426" stroke-width="4"/>
+  <text x="540" y="835" text-anchor="middle" fill="#071426" font-family="Arial Black, Arial, sans-serif" font-size="50" letter-spacing="5">BUILD YOUR FUTURE.</text>
+  <text x="540" y="885" text-anchor="middle" fill="#c88d24" font-family="Arial Black, Arial, sans-serif" font-size="48" letter-spacing="5">LEAVE A LEGACY.</text>
+
+  <path d="M245 922c174-34 408-34 590 0 4 43-6 78-25 110-164-27-380-29-545 0-24-32-33-68-20-110z" fill="#071426"/>
+  <text x="540" y="965" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="30">We’re looking for driven individuals</text>
+  <text x="540" y="1005" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="30">who want <tspan fill="#d99b2a">MORE</tspan> out of life and are</text>
+  <text x="540" y="1045" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="30">ready to help families <tspan fill="#d99b2a">PROTECT THEIR FUTURE.</tspan></text>
+
+  <g transform="translate(75 1100)" font-family="Arial, Helvetica, sans-serif">
+    <g transform="translate(0 0)"><circle cx="45" cy="45" r="42" fill="#071426" stroke="url(#gold)" stroke-width="7"/><text x="45" y="61" text-anchor="middle" fill="url(#gold)" font-size="46">●●●</text><text x="45" y="118" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">WINNING</text><text x="45" y="146" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">CULTURE</text><text x="45" y="176" text-anchor="middle" fill="#071426" font-size="17">Work with a team</text><text x="45" y="199" text-anchor="middle" fill="#071426" font-size="17">that supports you.</text></g>
+    <g transform="translate(205 0)"><circle cx="45" cy="45" r="42" fill="#071426" stroke="url(#gold)" stroke-width="7"/><text x="45" y="62" text-anchor="middle" fill="url(#gold)" font-size="52">↗</text><text x="45" y="118" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">UNLIMITED</text><text x="45" y="146" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">POTENTIAL</text><text x="45" y="176" text-anchor="middle" fill="#071426" font-size="17">No limits on</text><text x="45" y="199" text-anchor="middle" fill="#071426" font-size="17">your future.</text></g>
+    <g transform="translate(410 0)"><circle cx="45" cy="45" r="42" fill="#071426" stroke="url(#gold)" stroke-width="7"/><text x="45" y="62" text-anchor="middle" fill="url(#gold)" font-size="48">▰</text><text x="45" y="118" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">MENTORSHIP &amp;</text><text x="45" y="146" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">TRAINING</text><text x="45" y="176" text-anchor="middle" fill="#071426" font-size="17">Learn, grow, and</text><text x="45" y="199" text-anchor="middle" fill="#071426" font-size="17">become your best.</text></g>
+    <g transform="translate(615 0)"><circle cx="45" cy="45" r="42" fill="#071426" stroke="url(#gold)" stroke-width="7"/><text x="45" y="61" text-anchor="middle" fill="url(#gold)" font-size="50">♜</text><text x="45" y="118" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">LEGACY</text><text x="45" y="146" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">BUILDERS</text><text x="45" y="176" text-anchor="middle" fill="#071426" font-size="17">Make a difference</text><text x="45" y="199" text-anchor="middle" fill="#071426" font-size="17">for families.</text></g>
+    <g transform="translate(820 0)"><circle cx="45" cy="45" r="42" fill="#071426" stroke="url(#gold)" stroke-width="7"/><text x="45" y="61" text-anchor="middle" fill="url(#gold)" font-size="47">🤝</text><text x="45" y="118" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">FLEXIBILITY</text><text x="45" y="146" text-anchor="middle" fill="#071426" font-family="Arial Black" font-size="24">&amp; FREEDOM</text><text x="45" y="176" text-anchor="middle" fill="#071426" font-size="17">Be your own boss.</text><text x="45" y="199" text-anchor="middle" fill="#071426" font-size="17">Impact your terms.</text></g>
+  </g>
+
+  <path d="M70 1305h940c20 28 20 64 0 98H70c-20-34-20-70 0-98z" fill="#071426"/>
+  <text x="255" y="1350" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="38">YOUR PURPOSE.</text>
+  <text x="255" y="1392" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="38">OUR MISSION.</text>
+  <text x="255" y="1434" fill="url(#gold)" font-family="Arial Black, Arial, sans-serif" font-size="38">THEIR LEGACY.</text>
+  <line x1="535" y1="1324" x2="535" y2="1424" stroke="url(#gold)" stroke-width="5"/>
+  <text x="655" y="1362" fill="#fff" font-family="Brush Script MT, Segoe Script, cursive" font-size="58">Take the step.</text>
+  <text x="655" y="1425" fill="url(#gold)" font-family="Arial Black, Arial, sans-serif" font-size="56">JOIN ME TODAY!</text>
+
+  <rect x="0" y="1460" width="1080" height="160" fill="#071426"/>
+  <text x="70" y="1527" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="36">#The<tspan fill="url(#gold)">BeatGoesOn</tspan></text>
+  <line x1="365" y1="1485" x2="365" y2="1588" stroke="url(#gold)" stroke-width="3"/>
+  <text x="425" y="1515" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="27">☎ 717-615-2613</text>
+  <text x="425" y="1555" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="27">🌐 www.latimorelifelegacy.com</text>
+  <text x="425" y="1592" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="27">▣ card.latimorelifelegacy.com</text>
+  <line x1="730" y1="1485" x2="730" y2="1588" stroke="url(#gold)" stroke-width="3"/>
+  <text x="780" y="1538" fill="url(#gold)" font-family="Arial Black, Arial, sans-serif" font-size="34">A $898 VALUE</text>
+  <text x="780" y="1578" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="24">AT NO ADDITIONAL COST*</text>
+</svg>

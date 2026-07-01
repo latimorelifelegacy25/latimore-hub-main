@@ -104,7 +104,7 @@ export function PahsSponsorGraphic({ className, compact = false }: GraphicProps)
               fontWeight: 900,
               lineHeight: .88,
               letterSpacing: '.02em',
-              color: '#C9A25F',
+              color: '#C49A6C',
               textTransform: 'uppercase' as const,
               textShadow: '0 4px 18px rgba(196,154,108,.3)',
             }}
@@ -179,7 +179,7 @@ export function PahsFreeReviewGraphic({ className }: GraphicProps) {
       }}
     >
       <div style={{ padding: 'clamp(1.25rem, 4vw, 2.25rem)', background: '#111', color: '#fff' }}>
-        <div style={{ color: '#C9A25F', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' as const }}>Proud Sponsor of</div>
+        <div style={{ color: '#C49A6C', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' as const }}>Proud Sponsor of</div>
         <div style={{ marginTop: 8, display: 'inline-block', padding: '.25rem .65rem', background: '#7b1d2d', color: '#fff', fontWeight: 900, letterSpacing: '.06em' }}>Pottsville Area Crimson Tide</div>
         <div style={{ marginTop: 22, fontSize: 'clamp(3rem, 12vw, 6.5rem)', lineHeight: .85, fontWeight: 900, letterSpacing: '.02em' }}>FREE</div>
         <div style={{ fontSize: 'clamp(1.2rem, 4vw, 2rem)', fontWeight: 900, letterSpacing: '.08em' }}>PROTECTION REVIEW</div>

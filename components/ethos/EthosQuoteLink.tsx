@@ -6,18 +6,30 @@ import { buildFilloutParams } from '@/lib/lead'
 type Props = React.PropsWithChildren<{
   style?: React.CSSProperties
   className?: string
+  intent?: string
 }>
 
-export default function EthosQuoteLink({ children, style, className }: Props) {
+export default function EthosQuoteLink({
+  children,
+  style,
+  className,
+  intent = 'quick_term',
+}: Props) {
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    // Use tracked redirect with lead_session_id when JS is available
+    // Enhanced tracking via server-side redirect when JS is available
     e.preventDefault()
-    const qs = buildFilloutParams({ intent: 'quick_term' })
-    const url = `/api/redirect/ethos?${qs}&intent=quick_term`
-    window.open(url, '_blank', 'noopener,noreferrer')
+    try {
+      const qs = buildFilloutParams({ intent })
+      const url = `/api/redirect/ethos?${qs}&intent=${encodeURIComponent(intent)}`
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      // If tracking fails, still open the direct Ethos link
+      window.open(BRAND.ethosUrl, '_blank', 'noopener,noreferrer')
+    }
   }
 
-  // Fallback href still logs (but without lead_session_id)
+  // Primary href is the direct Ethos URL — works even if /api/redirect/ethos is unavailable
+  // onClick enhances with tracking when JS loads successfully
   return (
     <a
       href={BRAND.ethosQuoteUrl}

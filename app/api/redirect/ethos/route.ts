@@ -12,8 +12,12 @@ function copyUtmParams(from: URL, to: URL) {
 }
 
 export async function GET(req: NextRequest) {
-  const limited = await rateLimit(req, 'ethos_redirect')
-  if (limited) return limited
+  try {
+    const limited = await rateLimit(req, 'ethos_redirect')
+    if (limited) return limited
+  } catch (error) {
+    console.error('[ethos_redirect] rate limit check failed; continuing to redirect', error)
+  }
 
   const url = new URL(req.url)
   const ethos = new URL(BRAND.ethosQuoteUrl)

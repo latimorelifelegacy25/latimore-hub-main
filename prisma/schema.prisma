@@ -86,6 +86,7 @@ model Contact {
   notes                Note[]
   systemEvents         SystemEvent[]
   tasks                Task[]
+  joinApplications     JoinApplication[]
 
   @@index([createdAt])
   @@index([county])
@@ -129,6 +130,7 @@ model Inquiry {
   notesEntries    Note[]
   systemEvents    SystemEvent[]
   tasks           Task[]
+  joinApplications JoinApplication[]
 
   @@index([createdAt])
   @@index([stage])
@@ -363,6 +365,78 @@ model Note {
   @@index([inquiryId, createdAt])
 }
 
+model JoinApplication {
+  id                    String          @id @default(uuid())
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  contactId             String
+  inquiryId             String?
+  fullName              String
+  firstName             String?
+  lastName              String?
+  phone                 String
+  email                 String
+  cityState             String?
+  bestContactMethod     String?
+  bestContactTime       String?
+  interestReason        String?
+  lookingFor            String[]        @default([])
+  selfDescription       String?
+  licenseStatus         String?
+  licensesHeld          String[]        @default([])
+  priorExperience       String?
+  experienceDescription String?
+  incomeGoal            String?
+  hoursPerWeek          String?
+  comfortLevel          Int?
+  willingToTrain        String?
+  motivation            String?
+  values                String[]        @default([])
+  mentorshipNeeds       String?
+  availableForCall      String?
+  preferredCallTime     String?
+  questions             String?
+  consentAccepted       Boolean         @default(false)
+  consentText           String?
+  leadSessionId         String?
+  pageUrl               String?
+  referrer              String?
+  source                String?
+  medium                String?
+  campaign              String?
+  status                String          @default("New")
+  contact               Contact         @relation(fields: [contactId], references: [id])
+  inquiry               Inquiry?        @relation(fields: [inquiryId], references: [id])
+  events                JoinFormEvent[]
+
+  @@index([createdAt])
+  @@index([contactId])
+  @@index([inquiryId])
+  @@index([status])
+  @@index([source, medium, campaign])
+  @@index([leadSessionId])
+}
+
+model JoinFormEvent {
+  id            String           @id @default(uuid())
+  createdAt     DateTime         @default(now())
+  applicationId String?
+  leadSessionId String?
+  eventType     String
+  pageUrl       String?
+  referrer      String?
+  source        String?
+  medium        String?
+  campaign      String?
+  metadata      Json?
+  application   JoinApplication? @relation(fields: [applicationId], references: [id])
+
+  @@index([createdAt])
+  @@index([applicationId])
+  @@index([leadSessionId])
+  @@index([eventType])
+}
+
 model InquiryStageHistory {
   id        String         @id @default(uuid())
   changedAt DateTime       @default(now())
@@ -521,6 +595,14 @@ enum EventType {
   post_created
   post_published
   reaction_added
+  legacy_checkup_started
+  legacy_checkup_step_completed
+  legacy_checkup_completed
+  lead_submitted
+  book_consultation_clicked
+  instant_quote_clicked
+  service_card_clicked
+  gbp_service_visit
 }
 
 enum ThreadChannel {
@@ -701,6 +783,24 @@ model SocialMetric {
 
   @@unique([postId, metricDate])
   @@index([platform, metricDate])
+}
+
+model SocialAccountMetric {
+  id           String   @id @default(cuid())
+  provider     SocialProvider
+  externalId   String
+  metricDate   DateTime
+  followers    Int      @default(0)
+  impressions  Int      @default(0)
+  reach        Int      @default(0)
+  profileViews Int      @default(0)
+  engagedUsers Int      @default(0)
+  raw          Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([provider, externalId, metricDate])
+  @@index([provider, metricDate])
 }
 
 model SocialComment {

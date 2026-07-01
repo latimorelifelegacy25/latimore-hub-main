@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/funnel
  * Generate a 3-stage Legacy Funnel strategy.

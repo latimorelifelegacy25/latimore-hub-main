@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/review-script
  * Generate a Legacy Review Script for an annual client review call.

@@ -1,28 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
+import { AnalyticsJobStatus } from '@prisma/client'
+import { syncFacebookAccountMetrics, syncInstagramAccountMetrics } from '@/lib/social/account-metrics-sync'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-
-const PLATFORMS = ['facebook', 'instagram', 'linkedin', 'twitter', 'website'] as const
 
 export async function GET(req: NextRequest) {
   const unauthorized = requireCronAuth(req)
   if (unauthorized) return unauthorized
 
-  const startedAt = new Date()
-  const platforms = await Promise.all(
-    PLATFORMS.map(async (platform) => {
-      const configured = await prisma.socialAccount.count({ where: { platform, isActive: true } }).catch(() => 0)
-      if (!configured) {
-        return { platform, status: 'skipped' as const, posts: 0, metrics: 0, comments: 0, error: 'No active account configured' }
-      }
-      return { platform, status: 'skipped' as const, posts: 0, metrics: 0, comments: 0, error: 'Adapter ingestion not connected in this PR' }
-    })
-  )
+  const jobRun = await prisma.analyticsJobRun.create({
+    data: { jobKey: 'social_account_metrics_sync', status: AnalyticsJobStatus.running },
+  })
 
-  await prisma.systemEvent.create({ data: { type: 'social_sync_checked', source: 'cron', payload: { platforms } } }).catch(() => null)
+  const results = await Promise.all([
+    syncFacebookAccountMetrics().catch((err) => ({
+      platform: 'facebook' as const,
+      status: 'failed' as const,
+      error: err instanceof Error ? err.message : String(err),
+    })),
+    syncInstagramAccountMetrics().catch((err) => ({
+      platform: 'instagram' as const,
+      status: 'failed' as const,
+      error: err instanceof Error ? err.message : String(err),
+    })),
+  ])
 
-  return NextResponse.json({ ok: true, startedAt: startedAt.toISOString(), completedAt: new Date().toISOString(), platforms })
+  const rowsProcessed = results.filter((r) => r.status === 'synced').length
+  const failed = results.find((r) => r.status === 'failed')
+
+  await prisma.analyticsJobRun.update({
+    where: { id: jobRun.id },
+    data: {
+      status: failed ? AnalyticsJobStatus.failed : AnalyticsJobStatus.succeeded,
+      finishedAt: new Date(),
+      rowsProcessed,
+      error: failed?.error,
+      metadata: { results },
+    },
+  })
+
+  return NextResponse.json({ ok: true, jobRunId: jobRun.id, results })
 }

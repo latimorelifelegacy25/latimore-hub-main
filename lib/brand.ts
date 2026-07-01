@@ -47,6 +47,9 @@ export const COLORS = {
   trackC: '#7a4f2e',
 } as const
 
+const DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL =
+  'https://calendar.google.com/calendar/appointments/schedules/AcZssZ0RjEKuPGf76zHTJE0p3E_oOL0FJnPi5s28JlVnXPTHTdXkMJWqUWpbup9FNP_bOg6Z-4Zv_8Ph?gv=true'
+
 export const BRAND = {
   // Public-facing name (use in headings/metadata)
   name: 'Latimore Life & Legacy',

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/generate-content
  * Generate AI-powered social media content using Gemini or OpenAI

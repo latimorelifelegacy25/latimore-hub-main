@@ -32,12 +32,20 @@ export async function GET(req: NextRequest) {
   const limited = await rateLimit(req, 'inquiries')
   if (limited) return limited
 
+  const page = Math.max(1, Number(req.nextUrl.searchParams.get('page')) || 1)
+  const pageSize = Math.min(100, Math.max(1, Number(req.nextUrl.searchParams.get('pageSize')) || 25))
+
   try {
-    const workflows = await prisma.workflowTemplate.findMany({
-      include: { steps: { orderBy: { order: 'asc' } } },
-      orderBy: [{ isPreset: 'desc' }, { createdAt: 'desc' }],
-    })
-    return NextResponse.json({ ok: true, workflows })
+    const [workflows, total] = await Promise.all([
+      prisma.workflowTemplate.findMany({
+        include: { steps: { orderBy: { order: 'asc' } } },
+        orderBy: [{ isPreset: 'desc' }, { createdAt: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      prisma.workflowTemplate.count(),
+    ])
+    return NextResponse.json({ ok: true, workflows, pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) } })
   } catch {
     return NextResponse.json({ ok: false, error: 'Failed to load workflows' }, { status: 500 })
   }

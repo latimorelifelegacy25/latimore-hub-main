@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 /**
  * POST /api/admin/ai/asset
  * Analyze an uploaded carrier document (PDF/image) and generate social content from it.

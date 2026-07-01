@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { publishDueSocialPosts } from '@/lib/social/publisher'
 import { requireCronAuth } from '@/lib/ai/shared'

@@ -1,36 +1,66 @@
 import { LeadStatus } from '@prisma/client'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 
-export async function GET() {
+export const dynamic = 'force-dynamic'
+
+const PAGE_SIZE = 50
+
+const CreateContactSchema = z.object({
+  name: z.string().trim().max(200).optional().nullable(),
+  email: z.string().trim().email().max(200).optional().nullable(),
+  phone: z.string().trim().max(40).optional().nullable(),
+  status: z.string().trim().max(50).optional().nullable(),
+})
+
+export async function GET(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
-  const contacts = await prisma.contact.findMany({
-    orderBy: { createdAt: 'desc' },
-  })
+  try {
+    const page = Math.max(1, Number(req.nextUrl.searchParams.get('page') ?? '1') || 1)
 
-  return NextResponse.json(contacts)
+    const contacts = await prisma.contact.findMany({
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    })
+
+    return NextResponse.json({ contacts, page, hasMore: contacts.length === PAGE_SIZE })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ ok: false, error: 'Failed to load contacts.' }, { status: 500 })
+  }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
-  const data = await req.json()
-  const name = typeof data.name === 'string' ? data.name.trim() : ''
+  try {
+    const body = await req.json()
+    const parsed = CreateContactSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 400 })
+    }
+    const { name, email, phone, status } = parsed.data
 
-  const created = await prisma.contact.create({
-    data: {
-      fullName: name || null,
-      email: data.email ?? null,
-      phone: data.phone ?? null,
-      status: normalizeLeadStatus(data.status),
-    },
-  })
+    const created = await prisma.contact.create({
+      data: {
+        fullName: name?.trim() || null,
+        email: email ?? null,
+        phone: phone ?? null,
+        status: normalizeLeadStatus(status),
+      },
+    })
 
-  return NextResponse.json(created)
+    return NextResponse.json(created, { status: 201 })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ ok: false, error: 'Failed to create contact.' }, { status: 500 })
+  }
 }
 
 function normalizeLeadStatus(status: unknown): LeadStatus {
