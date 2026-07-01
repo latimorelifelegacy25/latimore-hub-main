@@ -1,5 +1,6 @@
 'use client'
 
+import { BRAND } from '@/lib/brand'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import './pahs.css'
 import './pahs-override.css'
@@ -366,7 +367,7 @@ export default function PAHSPage() {
             )}
 
             <a
-              href="https://latimorelifelegacy.fillout.com/latimorelifelegacy"
+              href={BRAND.bookingUrl}
               className="pahs-detail-link"
               target="_blank"
               rel="noopener noreferrer"

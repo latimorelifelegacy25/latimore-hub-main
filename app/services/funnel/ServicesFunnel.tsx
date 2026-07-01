@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { hydrateLeadContext } from '@/lib/lead'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 
 const GOLD = COLORS.gold
 const GOLD_LIGHT = COLORS.goldLight
@@ -43,7 +44,7 @@ const SERVICES: Service[] = [
     tag: 'Working professionals & high earners',
     bestFor: 'Best for: Working professionals, self-employed individuals, and high earners.',
     bullets: [
-      'Indexed and fixed strategies that grow without market risk',
+      'Some indexed and fixed strategies may offer principal protection from market loss, subject to contract terms, caps, participation rates, surrender charges, and carrier rules.',
       'Tax-deferred accumulation inside annuities and permanent life policies',
       'Tax-free distributions via policy loans for retirement income',
       'Reduces your taxable estate over time',
@@ -131,10 +132,10 @@ const SERVICES: Service[] = [
     icon: LineChart,
     title: 'Indexed Growth Strategies',
     tag: 'Savers & pre-retirees',
-    bestFor: 'Best for: Savers and pre-retirees who want market-linked growth without market risk.',
+    bestFor: 'Best for: Savers and pre-retirees who want market-linked crediting with contractual downside protections.',
     bullets: [
       'Cash value linked to indexes like the S&P 500',
-      'Zero-loss floor — market drops cannot reduce your balance',
+      'Some fixed indexed products may offer a floor against direct market-index losses, subject to contract terms and charges.',
       'Participation rates and cap rates determine your share of gains',
       'Available inside both indexed universal life and fixed indexed annuities',
       'Tax-deferred growth throughout the accumulation phase',
@@ -176,10 +177,10 @@ const SERVICES: Service[] = [
     icon: Wallet,
     title: 'Retirement Income Strategies',
     tag: 'Pre-retirees & retirees',
-    bestFor: 'Best for: Pre-retirees and retirees wanting guaranteed income they cannot outlive.',
+    bestFor: 'Best for: Pre-retirees and retirees evaluating contract-based lifetime income options.',
     bullets: [
       'Fixed and fixed-indexed annuities for principal-protected accumulation',
-      'Guaranteed lifetime income riders — payments you cannot outlive',
+      'Optional lifetime income riders may provide payments for life when contract conditions are met',
       'Structured to complement Social Security and other income',
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',
@@ -250,11 +251,12 @@ export default function ServicesFunnel() {
         }),
       })
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        throw new Error(data?.error || 'Submission failed.')
+      const result = await res.json().catch(() => null)
+      if (!res.ok || !result?.ok) {
+        throw new Error(result?.error || 'Submission failed.')
       }
 
+      trackLeadConversion({ eventId: result.conversionEventId, source: context.source, campaign: context.campaign, formName: 'services_funnel' })
       setStep(3)
     } catch (err: any) {
       setError(err?.message || 'Something went wrong. Please try again.')

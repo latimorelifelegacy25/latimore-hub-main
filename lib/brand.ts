@@ -62,15 +62,17 @@ export const BRAND = {
 
   phone: '(717) 615-2613',
   phoneRaw: '7176152613',
+  phoneHref: 'tel:+17176152613',
   email: 'jackson1989@latimorelegacy.com',
 
   nipr: '21638507',
   paLicense: '1268820',
 
-  // Primary CTAs — all booking buttons route directly to the Fillout consultation form
-  bookingUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
-  filloutUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
+  // Primary CTAs — all public booking buttons route through the owned booking page.
+  bookingUrl: '/book',
+  filloutUrl: '/book',
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
+  ethosQuoteUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
   // Social
   instagram: 'https://www.instagram.com/latimorelifelegacy25/',

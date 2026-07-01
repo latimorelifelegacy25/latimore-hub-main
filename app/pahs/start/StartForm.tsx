@@ -3,6 +3,7 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BRAND } from '@/lib/brand'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 import { ensureLeadSessionId, getCurrentPageUrl } from '@/lib/lead'
 
 const navyDark = '#16222d'
@@ -74,7 +75,10 @@ export default function StartForm() {
         body: JSON.stringify(payload),
       })
 
-      if (!leadRes.ok) throw new Error('Lead capture failed')
+      const leadResult = await leadRes.json().catch(() => null)
+      if (!leadRes.ok || !leadResult?.ok) throw new Error('Lead capture failed')
+
+      trackLeadConversion({ eventId: leadResult.conversionEventId, source: utm.source, campaign: utm.campaign, formName: 'pahs_start' })
 
       await fetch('/api/event', {
         method: 'POST',

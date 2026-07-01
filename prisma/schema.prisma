@@ -8,6 +8,24 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model AdminUser {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  email     String    @unique
+  role      AdminRole @default(AGENT)
+  active    Boolean   @default(true)
+
+  @@index([role])
+  @@index([active])
+}
+
+enum AdminRole {
+  ADMIN
+  REVIEWER
+  AGENT
+}
+
 model LeadSession {
   id              String           @id
   createdAt       DateTime         @default(now())

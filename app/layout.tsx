@@ -61,7 +61,8 @@ export const viewport: Viewport = {
   themeColor: '#0B0F17',
 }
 
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '988841003848131'
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || ''
+const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || ''
 
 const GA4_MAIN = process.env.NEXT_PUBLIC_MAIN_GA4_ID || process.env.NEXT_PUBLIC_GA4_ID || process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID || ''
 const GA4_CAMPAIGN = process.env.NEXT_PUBLIC_CAMPAIGN_GA4_ID || ''
@@ -88,6 +89,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <script
             dangerouslySetInnerHTML={{
               __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
+            }}
+          />
+        ) : null}
+
+        {TIKTOK_PIXEL_ID ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=['page','track','identify'];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments)))}};for(var i=0;i<ttq.methods.length;i++){ttq.setAndDefer(ttq,ttq.methods[i]);}ttq.load=function(e){var n='https://analytics.tiktok.com/i18n/pixel/events.js';ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=n;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]={};var a=d.createElement('script');a.type='text/javascript';a.async=!0;a.src=n+'?sdkid='+e+'&lib='+t;var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(a,s)};ttq.load('${TIKTOK_PIXEL_ID}');ttq.page();}(window,document,'ttq');`,
             }}
           />
         ) : null}

@@ -169,7 +169,7 @@ export default function ProductsPage() {
                   <div style={{ background: 'rgba(197,162,77,0.1)', borderRadius: 6, padding: '0.75rem 1rem', margin: '1rem 0' }}>
                     <p style={{ color: '#0E1A2B', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}> Best for: {s.bestFor}</p>
                   </div>
-                  <a href="https://latimorelifelegacy.fillout.com/latimorelifelegacy" target="_blank" rel="noopener noreferrer"
+                  <a href={BRAND.bookingUrl} target="_blank" rel="noopener noreferrer"
                     style={{ display: 'block', background: '#C9A24D', color: '#0E1A2B', textAlign: 'center', padding: '0.85rem', borderRadius: 6, fontWeight: 700, textDecoration: 'none', fontSize: '0.95rem' }}>
                     Schedule Consultation →
                   </a>

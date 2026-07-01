@@ -75,11 +75,11 @@ completely bypassing Next.js middleware, NextAuth, and Prisma.
 
 **Fixed in this PR:** migration
 `prisma/migrations/20260617000000_enable_row_level_security/migration.sql`
-enables RLS on all 41 application tables with no policies defined, which
+enables RLS on the original application tables, and `prisma/migrations/20260622000000_complete_rls_coverage/migration.sql` covers tables added after that first pass. Together, they keep all Prisma tables under RLS with no broad public policies, which
 makes them default-deny for `anon`/`authenticated` while leaving the
 service-role/BYPASSRLS-based app traffic completely unaffected. Apply via
 the normal `npm run db:deploy` flow described in
-`docs/rollback-playbook.md`.
+`docs/rollback-playbook.md`, and verify migration coverage with `npm run security:rls:check`.
 
 If any future feature needs the browser to talk to Supabase directly with
 the anon key (instead of going through a Next.js API route), it will need

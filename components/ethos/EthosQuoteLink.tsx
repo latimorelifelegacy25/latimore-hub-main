@@ -1,5 +1,6 @@
 'use client'
 
+import { BRAND } from '@/lib/brand'
 import { buildFilloutParams } from '@/lib/lead'
 
 type Props = React.PropsWithChildren<{
@@ -19,7 +20,7 @@ export default function EthosQuoteLink({ children, style, className }: Props) {
   // Fallback href still logs (but without lead_session_id)
   return (
     <a
-      href="/api/redirect/ethos?intent=quick_term"
+      href={BRAND.ethosQuoteUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}

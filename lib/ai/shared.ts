@@ -1,28 +1,14 @@
-import { getServerSession } from 'next-auth'
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'node:crypto'
 import { AgentStepStatus, AiRunStatus, AiRunType } from '@prisma/client'
-import { authOptions } from '@/lib/auth'
+import { requireAgentRole } from '@/lib/rbac'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import type { Prisma } from '@prisma/client'
 
 export async function requireAdminSession() {
-  if (process.env.DISABLE_ADMIN_AUTH === 'true') {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('DISABLE_ADMIN_AUTH=true is forbidden when NODE_ENV=production')
-    }
-    return { ok: true as const, session: null }
-  }
-  const session = await getServerSession(authOptions)
-  if (!session) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 }),
-    }
-  }
-  return { ok: true as const, session }
+  return requireAgentRole()
 }
 
 export async function applyAiRateLimit(req: NextRequest) {

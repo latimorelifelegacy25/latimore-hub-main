@@ -209,7 +209,7 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
 
   await insert('intake_scores', { lead_id: leadId, client_score: scored.clientScore, advisor_score: scored.advisorScore, urgency: scored.urgency, recommended_tracks: scored.tracks })
   await supabase.from('leads').update({ score_tier: tier(scored.urgency as any) }).eq('id', leadId)
-  await insert('booking_events', { lead_id: leadId, booking_url: process.env.BOOK_WITH_JACKSON_URL || 'https://latimorelifelegacy.fillout.com/latimorelifelegacy' })
+  await insert('booking_events', { lead_id: leadId, booking_url: process.env.BOOK_WITH_JACKSON_URL || '/book' })
 
   return { leadId }
 }
