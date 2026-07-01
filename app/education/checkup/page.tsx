@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { COLORS, BRAND } from '@/lib/brand'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
 const navy = COLORS.navy
@@ -386,10 +387,12 @@ export default function EducationPage() {
       }),
     })
 
-    if (!response.ok) {
-      const result = await response.json().catch(() => null)
+    const result = await response.json().catch(() => null)
+    if (!response.ok || !result?.ok) {
       throw new Error(result?.error ? JSON.stringify(result.error) : 'Unable to save your information.')
     }
+
+    trackLeadConversion({ eventId: result.conversionEventId, source: 'Education Funnel', campaign: 'legacy_checkup', formName: 'education_funnel' })
   }
 
   function validateStep(step: Step) {

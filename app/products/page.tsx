@@ -95,15 +95,11 @@ export default function ProductsPage() {
                     <p style={{ color: COLORS.gray600, margin: 0, maxWidth: 760, lineHeight: 1.7 }}>{settings.intro}</p>
                   </div>
                 </div>
-                <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <p style={{ color: '#444', lineHeight: 1.8, fontSize: '0.95rem', flex: 1 }}>{s.description}</p>
-                  <div style={{ background: 'rgba(197,162,77,0.1)', borderRadius: 6, padding: '0.75rem 1rem', margin: '1rem 0' }}>
-                    <p style={{ color: '#0E1A2B', fontSize: '0.85rem', fontWeight: 600, margin: 0 }}> Best for: {s.bestFor}</p>
-                  </div>
-                  <a href={BRAND.bookingUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'block', background: '#C9A24D', color: '#0E1A2B', textAlign: 'center', padding: '0.85rem', borderRadius: 6, fontWeight: 700, textDecoration: 'none', fontSize: '0.95rem' }}>
-                    Schedule Consultation →
-                  </a>
+
+                <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(285px, 1fr))', gap: '1.25rem' }}>
+                  {products.map((product) => (
+                    <ProductCard key={product.slug} product={product} />
+                  ))}
                 </div>
               </div>
             </section>

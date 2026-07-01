@@ -20,48 +20,66 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
 
 const upstashLimiters = new Map<string, Ratelimit>()
 
-function hasUpstashConfig(): boolean {
-  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN)
+// Env values here have historically arrived mangled from the Vercel dashboard
+// (extra quotes, smart quotes, or both `URL=`/`TOKEN=` lines pasted into one
+// field). Recover the usable parts instead of crashing every guarded route.
+function getUpstashConfig(): { url: string; token: string } | null {
+  const rawUrl = process.env.UPSTASH_REDIS_REST_URL ?? ''
+  const rawToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? ''
+
+  const url = rawUrl.match(/https:\/\/[^\s"'“”‘’]+/)?.[0] ?? ''
+
+  let token = rawToken.replace(/["'“”‘’\s]/g, '')
+  if (!token) {
+    token = rawUrl.match(/UPSTASH_REDIS_REST_TOKEN=["'“”‘’]?([^\s"'“”‘’]+)/)?.[1] ?? ''
+  }
+
+  if (!url || !token) return null
+  return { url, token }
 }
 
-function isProduction(): boolean {
-  return process.env.NODE_ENV === 'production'
-}
+let warnedUpstashFailure = false
 
 function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  if (!url || !token) return null
+  const config = getUpstashConfig()
+  if (!config) return null
 
   const key = `${limit}:${windowSec}`
   const cached = upstashLimiters.get(key)
   if (cached) return cached
 
-  const redis = new Redis({ url, token })
-  const limiter = new Ratelimit({
-    redis,
-    limiter: Ratelimit.slidingWindow(limit, `${windowSec} s`),
-  })
-  upstashLimiters.set(key, limiter)
-  return limiter
+  try {
+    const redis = new Redis({ url: config.url, token: config.token })
+    const limiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(limit, `${windowSec} s`),
+    })
+    upstashLimiters.set(key, limiter)
+    return limiter
+  } catch (error) {
+    if (!warnedUpstashFailure) {
+      warnedUpstashFailure = true
+      console.error('[rate-limit] Upstash client init failed; falling back to in-memory limiting. Check UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN.', error)
+    }
+    return null
+  }
 }
 
-async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean> {
+async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean | null> {
   const limiter = getUpstashLimiter(limit, windowSec)
-  if (!limiter) return isProduction()
+  if (!limiter) return null
 
   try {
     const { success } = await limiter.limit(key)
     return !success
   } catch {
-    // In production, a rate-limit backend failure should not silently disable
-    // protection on public intake/webhook routes. Local/dev keeps the old
-    // permissive behavior to avoid blocking work when Redis is unavailable.
-    return isProduction()
+    // Backend hiccup — let the in-memory fallback keep some protection
+    // instead of hard-failing or blanket-blocking every request.
+    return null
   }
 }
 
-// In-memory fallback (single-instance only — used outside production when Upstash is not configured).
+// In-memory fallback (single-instance only — used when Upstash is not configured or unavailable).
 const store = new Map<string, { count: number; reset: number }>()
 
 // Periodically evict expired entries to prevent unbounded memory growth.
@@ -89,9 +107,8 @@ export async function rateLimit(req: NextRequest, type = 'default'): Promise<Nex
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
   const key = `rl:${type}:${ip}`
 
-  const limited = hasUpstashConfig()
-    ? await upstashLimit(key, limit, windowSec)
-    : memoryLimit(key, limit, windowSec * 1000)
+  const limited =
+    (await upstashLimit(key, limit, windowSec)) ?? memoryLimit(key, limit, windowSec * 1000)
 
   if (!limited) return null
   return NextResponse.json(
