@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { ensureLeadSessionId, getEventContext } from '@/lib/lead';
+import { trackLeadConversion } from '@/lib/tracking/client-conversions';
 
 export type LeadFormData = {
   firstName?: string; lastName?: string; email?: string;
@@ -26,6 +27,7 @@ export function useLeadForm() {
       });
       const result = await res.json();
       if (!res.ok || !result.ok) throw new Error(result.error ?? 'Submission failed');
+      trackLeadConversion({ eventId: result.conversionEventId, source: context.source, campaign: context.campaign, formName: 'api_lead_form' });
       setState({ status: 'success', contactId: result.contactId, inquiryId: result.inquiryId });
       return result;
     } catch (err: unknown) {

@@ -3,7 +3,7 @@
 This build locks the hub around one pipeline:
 
 - every click posts to `POST /api/event`
-- every lead posts to `POST /api/lead`
+- every public lead posts to `POST /api/leads`; `POST /api/lead` remains only as a temporary compatibility wrapper
 - Fillout, booking, and digital-card routes are adapters that normalize into the same service layer
 - the admin reads from unified `Event`, `Inquiry`, `Appointment`, and `Task` records
 
@@ -44,11 +44,12 @@ This build locks the hub around one pipeline:
 
 1. Back up the current database.
 2. Run `prisma generate`.
-3. Run `prisma db push`.
+3. Run `prisma migrate deploy` for production-like environments; reserve `prisma db push` for local throwaway databases only.
 4. Seed or migrate any old `CardEvent` data into `Event`.
 5. Verify:
    - `/api/event`
-   - `/api/lead`
+   - `/api/leads`
+   - `/api/lead` compatibility wrapper
    - `/api/webhooks/fillout`
    - `/api/webhooks/booking`
    - `/api/webhooks/card`

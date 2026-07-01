@@ -1,6 +1,6 @@
 import type { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
-import { isAdminEmail } from '@/lib/admin-access'
+import { getAdminRoleForEmail } from '@/lib/admin-access'
 import { logger } from '@/lib/logger'
 import '@/lib/env'
 
@@ -15,11 +15,12 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ profile }) {
       const email = (profile?.email ?? '').toLowerCase()
-      const allowed = isAdminEmail(email)
+      const role = await getAdminRoleForEmail(email)
+      const allowed = Boolean(role)
       // Keyed `attemptedEmail` (not `email`) so the logger's PII redaction
       // doesn't strip it — this is the access-control audit trail and the
       // operator allowlist, not customer PII.
-      logger.info({ attemptedEmail: email, allowed }, '[auth] signIn attempt')
+      logger.info({ attemptedEmail: email, allowed, role }, '[auth] signIn attempt')
       return allowed
     },
   },

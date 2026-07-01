@@ -62,7 +62,7 @@ const services: Service[] = [
     summary:
       'Build wealth using vehicles that may grow tax-deferred or provide generally income-tax-advantaged access when properly structured — reducing avoidable tax drag over your lifetime.',
     points: [
-      'Indexed and fixed strategies that grow without market risk',
+      'Some indexed and fixed strategies may offer principal protection from market loss, subject to contract terms, caps, participation rates, surrender charges, and carrier rules.',
       'Tax-deferred accumulation inside annuities and permanent life policies',
       'Tax-free distributions via policy loans for retirement income',
       'Reduces your taxable estate over time',
@@ -154,12 +154,12 @@ const services: Service[] = [
     number: '07',
     icon: <LineChart size={28} aria-hidden="true" />,
     title: 'Indexed Growth Strategies',
-    who: 'Savers and pre-retirees who want market-linked growth without market risk',
+    who: 'Savers and pre-retirees who want market-linked crediting with contractual downside protections',
     summary:
       'Indexed products credit interest from market-index formulas while offering protection from direct index losses, subject to product terms and charges.',
     points: [
       'Cash value linked to indexes like the S&P 500',
-      'Zero-loss floor — market drops cannot reduce your credited interest*',
+      'Some fixed indexed products may offer a floor against direct market-index losses, subject to contract terms and charges.',
       'Participation rates and cap rates determine your share of gains',
       'Available inside both indexed universal life and fixed indexed annuities',
       'Tax-deferred growth throughout the accumulation phase',
@@ -202,12 +202,12 @@ const services: Service[] = [
     number: '10',
     icon: <Wallet size={28} aria-hidden="true" />,
     title: 'Retirement Income Strategies',
-    who: 'Pre-retirees and retirees wanting guaranteed income they cannot outlive',
+    who: 'Pre-retirees and retirees evaluating contract-based lifetime income options',
     summary:
-      'Running out of money in retirement is one of the greatest financial risks. Guaranteed income strategies can provide predictable payments for life.*',
+      'Running out of money in retirement is one of the greatest financial risks. Certain annuity riders may create contract-based lifetime income when conditions are met.',
     points: [
       'Fixed and fixed-indexed annuities for principal-protection strategies, subject to product terms',
-      'Guaranteed lifetime income riders — backed by carrier claims-paying ability*',
+      'Optional lifetime income riders may provide payments for life when contract conditions are met',
       'Structured to complement Social Security and other income',
       'Eliminate sequence-of-returns risk in your portfolio',
       'Joint life options to protect a surviving spouse',

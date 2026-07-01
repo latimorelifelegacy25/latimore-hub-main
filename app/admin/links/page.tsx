@@ -1,5 +1,6 @@
 'use client'
 
+import { BRAND } from '@/lib/brand'
 import { useState } from 'react'
 import PageHeader from '@/app/admin/_components/PageHeader'
 
@@ -22,7 +23,7 @@ const DEFAULT_LINKS: LinkItem[] = [
   { id: 'l6', title: 'Corebridge Financial (AGL) — Agent Portal', url: 'https://www.corebridgefinancial.com/agent', category: 'Carrier Portal', description: 'Broad market protection portfolio' },
   { id: 'l7', title: 'Latimore Life & Legacy — Main Website', url: 'https://www.latimorelifelegacy.com', category: 'Client Portal', description: 'Public-facing brand site' },
   { id: 'l8', title: 'Digital Business Card', url: 'https://card.latimorelifelegacy.com', category: 'Client Portal', description: 'NFC/QR share card' },
-  { id: 'l9', title: 'Fillout Consultation Form', url: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy', category: 'Client Portal', description: 'Primary booking and intake form' },
+  { id: 'l9', title: 'Booking Page', url: BRAND.bookingUrl, category: 'Client Portal', description: 'Owned booking and consultation fallback page' },
   { id: 'l10', title: 'PAHS Sponsorship Page', url: 'https://pahs.latimorelifelegacy.com', category: 'Community', description: 'Pottsville Area High School 2026 sponsorship' },
   { id: 'l11', title: 'Global Financial Impact (GFI)', url: 'https://www.globalfinancialimpact.com', category: 'Tools', description: 'Upline affiliation and training resources' },
   { id: 'l12', title: 'PA DOI License Lookup', url: 'https://pls.pa.gov/pals', category: 'Compliance', description: 'PA Department of Insurance — verify license #1268820' },

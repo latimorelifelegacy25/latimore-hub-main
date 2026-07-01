@@ -64,7 +64,7 @@ All code is in: **`/home/user/webapp/`**
    - Create project
    - Get DATABASE_URL (port 6543)
    - Get DIRECT_URL (port 5432)
-   - Apply RLS security SQL
+   - Run checked-in Prisma migrations and verify RLS coverage (`npm run db:deploy`, `npm run security:rls:check`)
 
 2. **Resend** (Email)
    - Add domain: latimorelegacy.com

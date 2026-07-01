@@ -58,7 +58,7 @@ git push -u origin main
 ```bash
 npm run db:deploy
 ```
-4. In SQL Editor → paste + run `supabase-rls.sql`
+4. Verify RLS migration coverage with `npm run security:rls:check` (RLS is deployed by checked-in Prisma migrations; do not paste ad-hoc SQL as a normal deploy step).
 
 ### 3. Resend
 1. Add domain `latimorelegacy.com`

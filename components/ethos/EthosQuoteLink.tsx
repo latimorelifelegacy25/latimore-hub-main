@@ -32,7 +32,7 @@ export default function EthosQuoteLink({
   // onClick enhances with tracking when JS loads successfully
   return (
     <a
-      href={BRAND.ethosUrl}
+      href={BRAND.ethosQuoteUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
