@@ -3,7 +3,7 @@ import { ingestEvent } from './ingest-event'
 import { cleanString, normalizePhone, normalizeProductInterest, normalizeStage } from './normalizers'
 import { captureException } from '@/lib/error-tracking'
 import { upsertLead } from './upsert-lead'
-import type { CalendarProvider, Prisma } from '@prisma/client'
+import type { CalendarEventStatus, CalendarProvider, Prisma } from '@prisma/client'
 
 type RecordAppointmentInput = {
   inquiryId?: string | null
@@ -303,7 +303,7 @@ export async function recordAppointment(input: RecordAppointmentInput) {
           timezone: timezone ?? undefined,
           location: location ?? undefined,
           meetingUrl: meetingUrl ?? undefined,
-          status: 'scheduled',
+          status: 'scheduled' as CalendarEventStatus,
           payload: {
             bookingSource,
             gcalId,
