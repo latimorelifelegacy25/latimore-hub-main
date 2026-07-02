@@ -1,7 +1,8 @@
 /**
  * POST /api/admin/ai/agent
- * Real tool-calling agent mode: web search (OpenAI hosted), sandboxed JS execution,
- * and read-only repo file access. All execution happens server-side — no client API keys.
+ * Real tool-calling agent mode: web search, sandboxed JS execution, read-only repo
+ * file and CRM database access. Runs on OpenAI or Gemini depending on AI_PROVIDER
+ * and available keys. All execution happens server-side — no client API keys.
  */
 
 export const dynamic = 'force-dynamic'
