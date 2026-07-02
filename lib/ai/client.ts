@@ -123,7 +123,7 @@ async function createGeminiTextCompletion({
   temperature: number
 }): Promise<string> {
   if (!process.env.GEMINI_API_KEY) throw new Error('Missing GEMINI_API_KEY')
-  const model = process.env.GEMINI_MODEL ?? 'gemini-1.5-flash'
+  const model = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash'
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
   const res = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
@@ -177,7 +177,7 @@ export async function createOpenAIJsonCompletion<T>({
 
   if (provider === 'gemini') {
     return createGeminiJsonCompletion<T>({
-      model: model ?? process.env.GEMINI_MODEL ?? 'gemini-1.5-flash',
+      model: model ?? process.env.GEMINI_MODEL ?? 'gemini-2.0-flash',
       system,
       user,
       schemaName,
