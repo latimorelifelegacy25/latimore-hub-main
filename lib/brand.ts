@@ -65,20 +65,17 @@ export const BRAND = {
 
   phone: '(717) 615-2613',
   phoneRaw: '7176152613',
+  phoneHref: 'tel:+17176152613',
   email: 'jackson1989@latimorelegacy.com',
 
   nipr: '21638507',
   paLicense: '1268820',
 
-  // Primary CTAs — keep public booking traffic on-site for stable tracking and fallback handling.
+  // Primary CTAs — all public booking buttons route through the owned booking page.
   bookingUrl: '/book',
-  googleAppointmentScheduleUrl:
-    process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_SCHEDULE_URL ??
-    DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL,
-
-  // Legacy fallback only. Do not use this for primary public CTAs.
-  filloutUrl: 'https://latimorelifelegacy.fillout.com/latimorelifelegacy',
+  filloutUrl: '/book',
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
+  ethosQuoteUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
   // Social
   instagram: 'https://www.instagram.com/latimorelifelegacy25/',

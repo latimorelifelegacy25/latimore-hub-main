@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { FileText, Landmark, PenLine, Loader2, LockOpen, Check, X, Calendar, Zap } from 'lucide-react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { hydrateLeadContext } from '@/lib/lead'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 
 const GOLD = COLORS.gold
 const NAVY = COLORS.navy
@@ -85,11 +86,12 @@ export default function EstatePlanningPerk() {
         }),
       })
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        throw new Error(data?.error || 'Submission failed.')
+      const result = await res.json().catch(() => null)
+      if (!res.ok || !result?.ok) {
+        throw new Error(result?.error || 'Submission failed.')
       }
 
+      trackLeadConversion({ eventId: result.conversionEventId, source: context.source, campaign: context.campaign, formName: 'estate_planning_perk' })
       setSuccess(true)
     } catch (err: any) {
       setError(err?.message || 'Something went wrong. Please try again.')
