@@ -3,8 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { encryptToken } from "@/lib/crypto";
+import { requireAdminSession } from "@/lib/ai/shared";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   const baseUrl = process.env.NEXTAUTH_URL;
   const code = req.nextUrl.searchParams.get("code");
   const error = req.nextUrl.searchParams.get("error");
