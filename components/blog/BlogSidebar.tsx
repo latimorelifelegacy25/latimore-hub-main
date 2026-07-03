@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import BlogCTA from './BlogCTA'
+import NewsletterSignup from './NewsletterSignup'
 import { getAllPosts } from '@/lib/blog'
 
 interface Props {
@@ -49,44 +50,13 @@ export default function BlogSidebar({ categories, currentCategory, currentTag }:
       {/* CTA */}
       <BlogCTA />
 
-      {/* Newsletter placeholder */}
+      {/* Newsletter signup — captured into the CRM via /api/lead */}
       <div className="blog-sidebar__card">
         <h3>Stay Informed</h3>
         <p style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '1rem', lineHeight: 1.6 }}>
           Get plain-language financial insights delivered to your inbox. No spam — ever.
         </p>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-        >
-          <input
-            type="email"
-            placeholder="your@email.com"
-            style={{
-              padding: '0.6rem 0.9rem',
-              border: '1px solid #e5e7eb',
-              borderRadius: 6,
-              fontSize: '0.85rem',
-              width: '100%',
-              boxSizing: 'border-box',
-            }}
-          />
-          <button
-            type="submit"
-            style={{
-              background: 'var(--gold)',
-              color: 'var(--navy)',
-              border: 'none',
-              padding: '0.6rem',
-              borderRadius: 6,
-              fontWeight: 700,
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-            }}
-          >
-            Subscribe
-          </button>
-        </form>
+        <NewsletterSignup />
       </div>
     </aside>
   )
