@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import MarkdownContent from '@/components/admin/MarkdownContent'
 
 const brand = {
   navy: '#000835',
@@ -151,9 +152,13 @@ function MessageBubble({ msg }: { msg: Message }) {
             boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
           }}
         >
-          <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-            {msg.content || (msg.streaming ? 'Working…' : '')}
-          </div>
+          {isUser ? (
+            <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{msg.content}</div>
+          ) : msg.content ? (
+            <MarkdownContent content={msg.content} />
+          ) : (
+            <div>{msg.streaming ? 'Working…' : ''}</div>
+          )}
           {!isUser && msg.content && !msg.streaming && (
             <button
               onClick={copy}

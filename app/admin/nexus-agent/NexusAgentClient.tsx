@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import MarkdownContent from '@/components/admin/MarkdownContent'
 import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
@@ -350,7 +351,9 @@ export default function NexusAgentClient() {
                     <button onClick={copyOutput} className="rounded-xl border border-white/10 p-2 text-[#A9B1BE] hover:text-white" aria-label="Copy output"><Copy size={16} /></button>
                   </div>
                   {error && <div className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 p-3 text-sm text-red-100">{error}</div>}
-                  <pre className="mt-4 max-h-[520px] overflow-auto whitespace-pre-wrap rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-[#E8EDF5]">{output}</pre>
+                  <div className="mt-4 max-h-[520px] overflow-auto rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-[#E8EDF5]">
+                    {output ? <MarkdownContent content={output} /> : <span className="text-[#A9B1BE]">Run the agent to see output here.</span>}
+                  </div>
                 </section>
               </div>
             )}
