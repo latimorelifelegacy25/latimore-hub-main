@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
-import { isAdminEmail } from '@/lib/admin-access'
+import { getAdminRoleForEmail } from '@/lib/admin-access'
 import { prisma } from '@/lib/prisma'
 
 const SOCIAL_PROVIDERS = ['facebook', 'instagram', 'twitter', 'linkedin'] as const
@@ -22,7 +22,8 @@ function emptyStatus(): Record<Provider, boolean> {
 export async function GET() {
   const session = await getServerSession(authOptions)
   const email = session?.user?.email ?? null
-  const admin = isAdminEmail(email)
+  const role = await getAdminRoleForEmail(email)
+  const admin = Boolean(role)
   const providers = emptyStatus()
 
   if (admin) {
@@ -54,6 +55,7 @@ export async function GET() {
     ok: true,
     authenticated: Boolean(session),
     admin,
+    role,
     email,
     ...providers,
     providers,

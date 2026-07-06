@@ -1,6 +1,6 @@
 import { getToken } from 'next-auth/jwt'
 import { NextResponse, type NextRequest } from 'next/server'
-import { isAdminEmail } from '@/lib/admin-access'
+import { hasAnyAdminRole } from '@/lib/admin-roles'
 
 // Set DISABLE_ADMIN_AUTH=true in .env.local for local/debug access without Google OAuth.
 // Never set this true in production.
@@ -147,6 +147,7 @@ export default async function middleware(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   const email = typeof token?.email === 'string' ? token.email : null
+  const role = typeof token?.role === 'string' ? token.role : null
 
   if (!token || !email) {
     return isApiPath(pathname)
@@ -154,7 +155,7 @@ export default async function middleware(req: NextRequest) {
       : redirectToSignIn(req)
   }
 
-  if (!isAdminEmail(email)) {
+  if (!hasAnyAdminRole(role)) {
     return isApiPath(pathname)
       ? unauthorizedJson(403, 'Forbidden.')
       : notFound()

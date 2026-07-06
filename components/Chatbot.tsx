@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useRef, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 
 type Message = {
   role: 'user' | 'assistant'
@@ -20,14 +20,51 @@ const SUGGESTED_PROMPTS = [
   'How do I get a quote?',
 ]
 
+function getRetryDelayMs(retryAfterHeader: string | null) {
+  const retryAfterSec = Number(retryAfterHeader)
+  if (!Number.isFinite(retryAfterSec) || retryAfterSec <= 0) return 60_000
+  return retryAfterSec * 1000
+}
+
+function getSecondsRemaining(retryUntil: number | null) {
+  if (!retryUntil) return 0
+  return Math.max(0, Math.ceil((retryUntil - Date.now()) / 1000))
+}
+
 export default function Chatbot() {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Message[]>(STARTER_MESSAGES)
+  const [retryUntil, setRetryUntil] = useState<number | null>(null)
+  const [retrySecondsRemaining, setRetrySecondsRemaining] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const rateLimited = retrySecondsRemaining > 0
+
+  useEffect(() => {
+    if (!retryUntil) {
+      setRetrySecondsRemaining(0)
+      return
+    }
+
+    setRetrySecondsRemaining(getSecondsRemaining(retryUntil))
+
+    const timer = window.setInterval(() => {
+      const nextSeconds = getSecondsRemaining(retryUntil)
+      setRetrySecondsRemaining(nextSeconds)
+
+      if (nextSeconds <= 0) {
+        setRetryUntil(null)
+      }
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [retryUntil])
+
   async function sendMessage(nextInput = input) {
+    if (rateLimited) return
+
     const trimmed = nextInput.trim()
     if (!trimmed || loading) return
 
@@ -46,8 +83,25 @@ export default function Chatbot() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: nextMessages }),
       })
-      const data = await res.json() as { reply?: string }
+      const data = await res.json().catch(() => ({})) as { reply?: string }
 
+      if (res.status === 429) {
+        setRetryUntil(Date.now() + getRetryDelayMs(res.headers.get('retry-after')))
+        setMessages(prev => ([
+          ...prev,
+          {
+            role: 'assistant',
+            content: data.reply || 'You’re sending messages too quickly. Please wait a minute and try again.',
+          },
+        ] as Message[]).slice(-12))
+        return
+      }
+
+      if (!res.ok) {
+        throw new Error(`Chat request failed with status ${res.status}`)
+      }
+
+      setRetryUntil(null)
       setMessages(prev => ([
         ...prev,
         {
@@ -119,6 +173,16 @@ export default function Chatbot() {
           </div>
 
           <div className="border-t border-slate-200 bg-white p-3">
+            {rateLimited ? (
+              <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                You’ve hit the message limit. Try again in{' '}
+                <span className="font-semibold">
+                  {retrySecondsRemaining}s
+                </span>
+                .
+              </div>
+            ) : null}
+
             <div className="mb-2 flex flex-wrap gap-2">
               {SUGGESTED_PROMPTS.map(prompt => (
                 <button
@@ -126,7 +190,7 @@ export default function Chatbot() {
                   type="button"
                   onClick={() => void sendMessage(prompt)}
                   className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-700 transition hover:border-[#C9A24D]"
-                  disabled={loading}
+                  disabled={loading || rateLimited}
                 >
                   {prompt}
                 </button>
@@ -139,15 +203,16 @@ export default function Chatbot() {
                 value={input}
                 onChange={event => setInput(event.target.value)}
                 placeholder="Ask a question..."
+                disabled={rateLimited}
                 className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-[#C9A24D]"
                 maxLength={1200}
               />
               <button
                 type="submit"
-                disabled={loading || !input.trim()}
+                disabled={loading || rateLimited || !input.trim()}
                 className="rounded-xl bg-[#0E1A2B] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Send
+                {rateLimited ? `Wait ${retrySecondsRemaining}s` : 'Send'}
               </button>
             </form>
           </div>

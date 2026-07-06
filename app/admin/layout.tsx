@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { isAdminEmail } from '@/lib/admin-access'
+import { getAdminRoleForEmail } from '@/lib/admin-access'
 import { authOptions } from '@/lib/auth'
 import AdminMobileNav from './_components/AdminMobileNav'
 import NotificationCenter from './_components/NotificationCenter'
@@ -38,15 +38,24 @@ const navItems = [
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions)
-  const email = session?.user?.email
+  const disableAuth = process.env.DISABLE_ADMIN_AUTH === 'true'
 
-  if (!email) {
-    redirect('/api/auth/signin?callbackUrl=/os')
-  }
+  if (disableAuth) {
+    if (process.env.NODE_ENV === 'production') {
+      notFound()
+    }
+  } else {
+    const session = await getServerSession(authOptions)
+    const email = session?.user?.email ?? null
 
-  if (!isAdminEmail(email)) {
-    notFound()
+    if (!email) {
+      redirect('/api/auth/signin?callbackUrl=/admin')
+    }
+
+    const role = await getAdminRoleForEmail(email)
+    if (!role) {
+      notFound()
+    }
   }
 
   return (

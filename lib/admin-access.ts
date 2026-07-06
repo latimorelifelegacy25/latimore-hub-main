@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { normalizeEmail, type AdminRoleName } from '@/lib/admin-roles'
 
 export function getAdminEmails(): string[] {
   return (process.env.ADMIN_EMAILS ?? '')
@@ -18,12 +19,7 @@ export function isAdminEmail(email?: string | null): boolean {
   return allowedEmails.includes(email.trim().toLowerCase())
 }
 
-export const ADMIN_ROLES = ['ADMIN', 'REVIEWER', 'AGENT'] as const
-export type AdminRoleName = (typeof ADMIN_ROLES)[number]
-
-function normalizeEmail(email?: string | null) {
-  return email?.trim().toLowerCase() || null
-}
+export { ADMIN_ROLES, type AdminRoleName } from '@/lib/admin-roles'
 
 export async function getAdminRoleForEmail(email?: string | null): Promise<AdminRoleName | null> {
   const normalizedEmail = normalizeEmail(email)
