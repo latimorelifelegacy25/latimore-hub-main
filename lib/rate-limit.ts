@@ -7,6 +7,7 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   analytics: { limit: 120, windowSec: 60 },
   booking: { limit: 10, windowSec: 60 },
   cardEvents: { limit: 200, windowSec: 60 },
+  chat: { limit: 10, windowSec: 60 },
   fillout: { limit: 20, windowSec: 60 },
   intake: { limit: 20, windowSec: 60 },
   inquiries: { limit: 60, windowSec: 60 },
@@ -102,17 +103,68 @@ function memoryLimit(key: string, limit: number, windowMs: number): boolean {
   return false
 }
 
-export async function rateLimit(req: NextRequest, type = 'default'): Promise<NextResponse | null> {
-  const { limit, windowSec } = LIMITS[type] ?? LIMITS.default
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const key = `rl:${type}:${ip}`
+function getLimitConfig(type = 'default') {
+  return LIMITS[type] ?? LIMITS.default
+}
 
-  const limited =
-    (await upstashLimit(key, limit, windowSec)) ?? memoryLimit(key, limit, windowSec * 1000)
+function sanitizeIdentifierPart(value?: string | null) {
+  if (!value) return 'unknown'
+  return value.trim().toLowerCase().replace(/[^a-z0-9:._-]+/g, '_').slice(0, 160) || 'unknown'
+}
 
-  if (!limited) return null
-  return NextResponse.json(
-    { ok: false, error: 'Too many requests — please slow down.' },
-    { status: 429, headers: { 'Retry-After': String(windowSec), 'X-RateLimit-Limit': String(limit) } },
+export function getClientIp(req: Pick<NextRequest, 'headers'>) {
+  return (
+    req.headers.get('cf-connecting-ip') ??
+    req.headers.get('x-real-ip') ??
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    'unknown'
   )
+}
+
+export function getClientFingerprint(req: Pick<NextRequest, 'headers'>) {
+  const ip = sanitizeIdentifierPart(getClientIp(req))
+  const ua = sanitizeIdentifierPart(req.headers.get('user-agent'))
+  return `${ip}:${ua}`
+}
+
+function buildRateLimitKey(req: NextRequest, type: string, identifier?: string) {
+  return `rl:${type}:${sanitizeIdentifierPart(identifier) || sanitizeIdentifierPart(getClientIp(req))}`
+}
+
+export function createRateLimitResponse(
+  type = 'default',
+  body: Record<string, unknown> = { ok: false, error: 'Too many requests — please slow down.' },
+) {
+  const { limit, windowSec } = getLimitConfig(type)
+  return NextResponse.json(body, {
+    status: 429,
+    headers: {
+      'Cache-Control': 'no-store',
+      'Retry-After': String(windowSec),
+      'X-RateLimit-Limit': String(limit),
+    },
+  })
+}
+
+export async function isRateLimited(
+  req: NextRequest,
+  type = 'default',
+  identifier?: string,
+): Promise<boolean> {
+  const { limit, windowSec } = getLimitConfig(type)
+  const key = buildRateLimitKey(req, type, identifier)
+
+  return (
+    (await upstashLimit(key, limit, windowSec)) ?? memoryLimit(key, limit, windowSec * 1000)
+  )
+}
+
+export async function rateLimit(
+  req: NextRequest,
+  type = 'default',
+  identifier?: string,
+): Promise<NextResponse | null> {
+  const limited = await isRateLimited(req, type, identifier)
+  if (!limited) return null
+  return createRateLimitResponse(type)
 }

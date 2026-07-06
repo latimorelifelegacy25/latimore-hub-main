@@ -1,8 +1,26 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import {
+  createRateLimitResponse,
+  getClientFingerprint,
+  isRateLimited,
+} from '@/lib/rate-limit'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+
+const MAX_REQUEST_BYTES = 10_000
+const OPENAI_TIMEOUT_MS = 15_000
+
+const ALLOWED_CHAT_ORIGINS = new Set([
+  'https://www.latimorelifelegacy.com',
+  'https://latimorelifelegacy.com',
+  'https://lifeandlegacy.vercel.app',
+  ...(process.env.NODE_ENV === 'development'
+    ? ['http://localhost:3000', 'http://localhost:3001']
+    : []),
+])
 
 const ChatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -95,24 +113,78 @@ Rules:
 - Never claim to bind coverage or submit an application from chat.
 - Encourage booking or contacting Jackson when the user shows purchase intent.`
 
-export async function POST(req: Request) {
+function jsonReply(reply: string, init?: ResponseInit) {
+  return NextResponse.json(
+    { reply },
+    {
+      ...init,
+      headers: {
+        'Cache-Control': 'no-store',
+        ...(init?.headers ?? {}),
+      },
+    },
+  )
+}
+
+function getContentLength(req: NextRequest) {
+  const value = Number(req.headers.get('content-length'))
+  return Number.isFinite(value) && value > 0 ? value : null
+}
+
+function getOriginFromReferer(referer: string | null) {
+  if (!referer) return null
+  try {
+    return new URL(referer).origin
+  } catch {
+    return null
+  }
+}
+
+function isAllowedChatOrigin(req: NextRequest) {
+  if (req.headers.get('sec-fetch-site') === 'cross-site') {
+    return false
+  }
+
+  const origin = req.headers.get('origin') ?? getOriginFromReferer(req.headers.get('referer'))
+  if (!origin) return true
+  return ALLOWED_CHAT_ORIGINS.has(origin)
+}
+
+export async function POST(req: NextRequest) {
+  if (!isAllowedChatOrigin(req)) {
+    return jsonReply('This chat can only be used from the Latimore Life & Legacy website.', {
+      status: 403,
+    })
+  }
+
+  const contentLength = getContentLength(req)
+  if (contentLength && contentLength > MAX_REQUEST_BYTES) {
+    return jsonReply('Please send a shorter message and try again.', { status: 413 })
+  }
+
+  const clientKey = getClientFingerprint(req)
+  if (await isRateLimited(req, 'chat', clientKey)) {
+    return createRateLimitResponse('chat', {
+      reply: 'You’re sending messages too quickly. Please wait a minute and try again.',
+    })
+  }
+
   try {
     const json = await req.json()
     const parsed = ChatRequestSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { reply: 'Please send a shorter message and try again.' },
-        { status: 400 },
-      )
+      return jsonReply('Please send a shorter message and try again.', { status: 400 })
     }
 
     const latestUserMessage = [...parsed.data.messages].reverse().find(message => message.role === 'user')
 
+    if (!latestUserMessage) {
+      return jsonReply('Please send a message to start the chat.', { status: 400 })
+    }
+
     if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json({
-        reply: createLocalReply(latestUserMessage?.content ?? ''),
-      })
+      return jsonReply(createLocalReply(latestUserMessage.content))
     }
 
     const input = [
@@ -123,33 +195,44 @@ export async function POST(req: Request) {
       })),
     ]
 
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_CHAT_MODEL ?? 'gpt-5.5',
-        input,
-        max_output_tokens: 500,
-      }),
-    })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), OPENAI_TIMEOUT_MS)
+
+    let response: Response
+    try {
+      response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: process.env.OPENAI_CHAT_MODEL ?? 'gpt-5.5',
+          input,
+          max_output_tokens: 350,
+        }),
+        cache: 'no-store',
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeout)
+    }
 
     if (!response.ok) {
+      logger.warn({ status: response.status }, '[chat] OpenAI API returned non-OK status')
       throw new Error(`OpenAI API returned ${response.status}`)
     }
 
     const data = await response.json() as { output_text?: string }
     const reply = data.output_text?.trim()
 
-    return NextResponse.json({
-      reply: reply || 'I can help with general insurance questions. For personalized guidance, please contact Jackson at 717-615-2613.',
-    })
+    return jsonReply(
+      reply || 'I can help with general insurance questions. For personalized guidance, please contact Jackson at 717-615-2613.',
+    )
   } catch (error) {
-    console.error('[chat] request failed', error)
-    return NextResponse.json(
-      { reply: 'Sorry, chat is having trouble right now. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.' },
+    logger.error({ error }, '[chat] request failed')
+    return jsonReply(
+      'Sorry, chat is having trouble right now. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.',
       { status: 500 },
     )
   }
