@@ -345,7 +345,6 @@ async function createGeminiJsonCompletion<T>({
   model,
   system,
   user,
-  schemaName,
   schema,
   temperature = 0.2,
 }: {
@@ -360,38 +359,45 @@ async function createGeminiJsonCompletion<T>({
     throw new Error('Missing GEMINI_API_KEY')
   }
 
-  const prompt = [
-    system,
-    '',
-    `Return ONLY valid JSON for schema "${schemaName}". Do not include markdown fences or commentary.`,
-    '',
-    'JSON Schema:',
-    JSON.stringify(schema),
-    '',
-    'User request:',
-    user,
-  ].join('\n')
-
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
+
+  // Build a Gemini-compatible responseSchema by stripping unsupported keys.
+  // Gemini does not support: $schema, $ref, definitions, additionalProperties,
+  // or the "const" keyword. Strip them recursively before sending.
+  function toGeminiSchema(node: JsonSchema): JsonSchema {
+    if (Array.isArray(node)) return node.map(toGeminiSchema) as unknown as JsonSchema
+    if (node === null || typeof node !== 'object') return node
+
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(node)) {
+      if (k === 'additionalProperties' || k === '$schema' || k === '$ref' || k === 'definitions') continue
+      out[k] = typeof v === 'object' && v !== null ? toGeminiSchema(v as JsonSchema) : v
+    }
+    return out
+  }
+
+  // Gemini responseSchema does not support root-level arrays.
+  // Wrap in an object envelope and unwrap after parsing.
+  const rootIsArray = (schema as Record<string, unknown>).type === 'array'
+  const wrappedSchema = rootIsArray
+    ? { type: 'object', properties: { items: schema }, required: ['items'] }
+    : schema
+
+  const geminiSchema = toGeminiSchema(wrappedSchema)
 
   const response = await fetchWithTimeout(
     `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        systemInstruction: { parts: [{ text: system }] },
         generationConfig: {
           temperature,
           responseMimeType: 'application/json',
+          responseSchema: geminiSchema,
         },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
+        contents: [{ role: 'user', parts: [{ text: user }] }],
       }),
       cache: 'no-store',
     }
@@ -423,9 +429,13 @@ async function createGeminiJsonCompletion<T>({
 
   let parsed: T
   try {
-    parsed = JSON.parse(text) as T
+    const raw = JSON.parse(text)
+    // Unwrap the array envelope if we wrapped it above
+    parsed = (rootIsArray && raw && typeof raw === 'object' && 'items' in raw
+      ? raw.items
+      : raw) as T
   } catch {
-    throw new Error(`Gemini returned invalid JSON: ${text}`)
+    throw new Error(`Gemini returned invalid JSON: ${text.slice(0, 300)}`)
   }
 
   return {
