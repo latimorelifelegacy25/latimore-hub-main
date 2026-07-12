@@ -252,6 +252,12 @@
 }
 
 @media (max-width: 680px) {
+  .pahs-free-review-card {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 680px) {
   .pahs-hero {
     min-height: 92svh;
     padding: 4rem 0 2rem;

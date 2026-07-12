@@ -47,7 +47,7 @@ export function PahsSponsorGraphic({ className, compact = false }: GraphicProps)
       className={className}
       style={{
         ...baseCard,
-        aspectRatio: '1 / 1',
+        aspectRatio: compact ? 'auto' : '1 / 1',
         width: '100%',
         minHeight: compact ? 320 : undefined,
         padding: compact ? '1.35rem' : '1.8rem',
@@ -166,7 +166,7 @@ export function PahsSponsorGraphic({ className, compact = false }: GraphicProps)
 export function PahsFreeReviewGraphic({ className }: GraphicProps) {
   return (
     <div
-      className={className}
+      className={`pahs-free-review-card${className ? ` ${className}` : ''}`}
       style={{
         ...baseCard,
         width: 'min(100%, 960px)',
@@ -178,7 +178,7 @@ export function PahsFreeReviewGraphic({ className }: GraphicProps) {
         border: '1px solid rgba(196,154,108,.55)',
       }}
     >
-      <div style={{ padding: 'clamp(1.25rem, 4vw, 2.25rem)', background: '#111', color: '#fff' }}>
+      <div style={{ padding: 'clamp(1.25rem, 4vw, 2.25rem)', background: '#111', color: '#fff', minWidth: 0 }}>
         <div style={{ color: '#C49A6C', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' as const }}>Proud Sponsor of</div>
         <div style={{ marginTop: 8, display: 'inline-block', padding: '.25rem .65rem', background: '#7b1d2d', color: '#fff', fontWeight: 900, letterSpacing: '.06em' }}>Pottsville Area Crimson Tide</div>
         <div style={{ marginTop: 22, fontSize: 'clamp(3rem, 12vw, 6.5rem)', lineHeight: .85, fontWeight: 900, letterSpacing: '.02em' }}>FREE</div>
