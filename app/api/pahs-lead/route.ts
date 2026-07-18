@@ -9,6 +9,8 @@ import { LeadSchema } from '@/lib/schemas';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+const LEAD_SESSION_PATTERN = /^[A-Za-z0-9._:-]{1,191}$/;
+
 type LeadBody = {
   name?: string;
   phone?: string;
@@ -20,6 +22,8 @@ type LeadBody = {
   bestTime?: string;
   state?: string;
   priority?: string;
+  leadSessionId?: string;
+  lead_session_id?: string;
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
@@ -44,6 +48,7 @@ type ValidatedLead = {
   bestTime: string;
   state: string;
   priority: string;
+  leadSessionId: string;
   utmSource: string;
   utmMedium: string;
   utmCampaign: string;
@@ -68,6 +73,21 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
 
+function requestLeadSessionId(body: LeadBody, req: NextRequest): string {
+  const explicit = clean(body.leadSessionId || body.lead_session_id, 191);
+  if (LEAD_SESSION_PATTERN.test(explicit)) return explicit;
+
+  const referer = req.headers.get('referer');
+  if (!referer) return '';
+
+  try {
+    const fromReferer = clean(new URL(referer).searchParams.get('lead_session_id'), 191);
+    return LEAD_SESSION_PATTERN.test(fromReferer) ? fromReferer : '';
+  } catch {
+    return '';
+  }
+}
+
 function leadSummary(lead: ValidatedLead, crm?: CrmSave) {
   return [
     `Name: ${lead.name}`,
@@ -82,6 +102,7 @@ function leadSummary(lead: ValidatedLead, crm?: CrmSave) {
     lead.utmTerm ? `Term: ${lead.utmTerm}` : null,
     lead.utmContent ? `Content: ${lead.utmContent}` : null,
     lead.referrer ? `Referrer: ${lead.referrer}` : null,
+    lead.leadSessionId ? `Lead session: ${lead.leadSessionId}` : null,
     `Page: ${lead.page}`,
     crm?.contact ? `CRM Contact: ${crm.contact}` : null,
     crm?.inquiry ? `CRM Inquiry: ${crm.inquiry}` : null,
@@ -114,6 +135,7 @@ async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
     email: lead.email || null,
     phone: lead.phone || null,
     productInterest: lead.interest,
+    leadSessionId: lead.leadSessionId || null,
     source: lead.utmSource || lead.source,
     medium: lead.utmMedium || null,
     campaign: lead.utmCampaign || null,
@@ -126,6 +148,7 @@ async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
       form: 'pahs-lead',
       promo: lead.promo || null,
       bestTime: lead.bestTime || null,
+      leadSessionId: lead.leadSessionId || null,
       utmTerm: lead.utmTerm || null,
       utmContent: lead.utmContent || null,
       referrer: lead.referrer || null,
@@ -151,6 +174,7 @@ Campaign: ${lead.utmCampaign || 'Not provided'}
 Term: ${lead.utmTerm || 'Not provided'}
 Content: ${lead.utmContent || 'Not provided'}
 Referrer: ${lead.referrer || 'Not provided'}
+Lead session: ${lead.leadSessionId || 'Not provided'}
 Page: ${lead.page}
 Notify: ${notifyTo}`
 
@@ -187,6 +211,7 @@ export async function POST(req: NextRequest) {
       bestTime: clean(body.bestTime, 50),
       state: clean(body.state || 'PA', 50),
       priority: clean(body.priority || 'standard', 50),
+      leadSessionId: requestLeadSessionId(body, req),
       utmSource: clean(body.utmSource || body.utm_source, 100),
       utmMedium: clean(body.utmMedium || body.utm_medium, 100),
       utmCampaign: clean(body.utmCampaign || body.utm_campaign, 150),
@@ -207,6 +232,7 @@ export async function POST(req: NextRequest) {
       email: lead.email || null,
       phone: lead.phone,
       productInterest: lead.interest,
+      leadSessionId: lead.leadSessionId || null,
       source: lead.utmSource || lead.source,
       medium: lead.utmMedium || null,
       campaign: lead.utmCampaign || null,
@@ -222,7 +248,6 @@ export async function POST(req: NextRequest) {
     }
 
     const save = await saveToCRM(lead);
-    const crm = save;
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
       createCalendarReminder(lead, save),
@@ -233,6 +258,7 @@ export async function POST(req: NextRequest) {
       leadId: save.inquiry,
       contactId: save.contact,
       inquiryId: save.inquiry,
+      leadSessionId: lead.leadSessionId || null,
       deduped: save.deduped,
       save,
     };
