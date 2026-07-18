@@ -5,6 +5,7 @@ function browserSafeUUID(): string {
 
 const LEAD_SESSION_KEY = 'lead_session_id'
 const LEAD_ATTRIBUTION_KEY = 'lead_attribution_v1'
+const LEAD_SESSION_PATTERN = /^[A-Za-z0-9._:-]{1,191}$/
 
 type StoredAttribution = Partial<{
   utm_source: string
@@ -58,17 +59,32 @@ function isExternalReferrer(referrer: string): boolean {
   }
 }
 
+function incomingLeadSessionId(): string | null {
+  if (typeof window === 'undefined') return null
+  const candidate = new URLSearchParams(window.location.search).get('lead_session_id')?.trim() || ''
+  return LEAD_SESSION_PATTERN.test(candidate) ? candidate : null
+}
+
 export function getCurrentPageUrl(): string {
   if (typeof window === 'undefined') return ''
   const search = window.location.search || ''
   return `${window.location.pathname}${search}`
 }
 
-// Client-side lead session ID (persisted in localStorage)
+// Client-side lead session ID (persisted in localStorage). A validated session
+// supplied by the QR redirect takes precedence so scan, page view, and form
+// submission remain attached to the same acquisition session.
 export function ensureLeadSessionId(): string {
   if (typeof window === 'undefined') return ''
+
+  const incoming = incomingLeadSessionId()
+  if (incoming) {
+    safeStorageSet(LEAD_SESSION_KEY, incoming)
+    return incoming
+  }
+
   let value = safeStorageGet(LEAD_SESSION_KEY)
-  if (!value) {
+  if (!value || !LEAD_SESSION_PATTERN.test(value)) {
     value = `sess_${browserSafeUUID()}`
     safeStorageSet(LEAD_SESSION_KEY, value)
   }
