@@ -28,7 +28,13 @@ function loadCampaignData() {
     }),
 
     prisma.leadSession.count({
-      where: { landingPage: { contains: 'pahs', mode: 'insensitive' } },
+      where: {
+        landingPage: { contains: 'pahs', mode: 'insensitive' },
+        OR: [
+          { medium: { contains: 'qr', mode: 'insensitive' } },
+          { source: { contains: 'qr', mode: 'insensitive' } },
+        ],
+      },
     }),
 
     prisma.appointment.count({
