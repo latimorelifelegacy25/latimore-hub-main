@@ -215,7 +215,7 @@ export async function POST(req: NextRequest) {
       { status: 201 },
     )
   } catch (error) {
-    await captureException(error, { source: 'native-intake-request' })
+    await captureException(error, { source: 'api' })
     return NextResponse.json(
       { ok: false, error: 'We could not save your request. Please call or text us.' },
       { status: 500 },
