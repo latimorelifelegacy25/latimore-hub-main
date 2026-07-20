@@ -1,5 +1,5 @@
 import { BOOKING_CONFIG } from '@/lib/booking/config'
-import { getValidGoogleAccessToken } from '@/lib/calendar/google'
+import { fetchGoogleCalendarApi } from '@/lib/calendar/authenticated-fetch'
 
 export async function createGoogleCalendarEvent(input: {
   summary: string
@@ -11,16 +11,14 @@ export async function createGoogleCalendarEvent(input: {
   location?: string | null
   timeoutMs?: number
 }) {
-  const accessToken = await getValidGoogleAccessToken()
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 8_000)
 
-  const res = await fetch(
+  const res = await fetchGoogleCalendarApi(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BOOKING_CONFIG.calendarId)}/events`,
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -44,9 +42,8 @@ export async function createGoogleCalendarEvent(input: {
             ]
           : undefined,
       }),
-      cache: 'no-store',
       signal: controller.signal,
-    }
+    },
   ).finally(() => clearTimeout(timeout))
 
   const data = await res.json()
