@@ -451,7 +451,7 @@ export default function ConsultBookingFlow() {
                 Protect today. Secure tomorrow.
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
-                Complete this private consultation intake and select a time with Jackson. Your submission goes directly into Latimore OS—no external form webhook required.
+                Complete this private consultation intake and select a time with Jackson.
               </p>
               <p className="mt-4 text-sm font-semibold text-[#E1B54B]">#TheBeatGoesOn</p>
             </div>
