@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { BRAND, COLORS } from '@/lib/brand'
 import { MobileNav } from './mobile-nav'
 
@@ -76,16 +75,7 @@ export function SiteHeader({
             minWidth: 0,
           }}
         >
-          <Image
-            src="/logo.jpg"
-            alt="Latimore Life & Legacy logo"
-            width={44}
-            height={44}
-            priority
-            sizes="44px"
-            style={{ borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
-          />
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-.01em' }}>
             {BRAND.name}
           </span>
         </Link>
