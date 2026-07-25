@@ -42,7 +42,16 @@ function firePostViewed(input: {
       campaign: ctx.campaign,
       term: ctx.term,
       content: ctx.content,
-      metadata: { slug: input.slug, title: input.title, category: input.category, depth: input.depth },
+      // /api/event ingests utm term/content from metadata only — the Event
+      // model has no columns for them, so persist them here.
+      metadata: {
+        slug: input.slug,
+        title: input.title,
+        category: input.category,
+        depth: input.depth,
+        term: ctx.term ?? null,
+        content: ctx.content ?? null,
+      },
     }),
     keepalive: true,
     cache: 'no-store',
