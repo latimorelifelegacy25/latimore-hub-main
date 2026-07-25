@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { getEventContext } from '@/lib/lead'
 
 interface ArticleAnalyticsProps {
   slug: string
@@ -21,6 +22,33 @@ function pushEvent(event: Record<string, unknown>) {
   }
 }
 
+function firePostViewed(input: {
+  slug: string
+  title: string
+  category: string
+  depth: 'entry' | '50pct' | '95pct'
+}) {
+  const ctx = getEventContext({ pageUrl: `/blog/${input.slug}` })
+  fetch('/api/event', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      eventType: 'post_viewed',
+      leadSessionId: ctx.leadSessionId,
+      pageUrl: ctx.pageUrl,
+      referrer: ctx.referrer,
+      source: ctx.source,
+      medium: ctx.medium,
+      campaign: ctx.campaign,
+      term: ctx.term,
+      content: ctx.content,
+      metadata: { slug: input.slug, title: input.title, category: input.category, depth: input.depth },
+    }),
+    keepalive: true,
+    cache: 'no-store',
+  }).catch(() => undefined)
+}
+
 export default function ArticleAnalytics({
   slug,
   title,
@@ -29,6 +57,8 @@ export default function ArticleAnalytics({
   readingTime,
 }: ArticleAnalyticsProps) {
   const firedRef = useRef<Set<number>>(new Set())
+  const fired50 = useRef(false)
+  const fired95 = useRef(false)
 
   useEffect(() => {
     pushEvent({
@@ -39,6 +69,7 @@ export default function ArticleAnalytics({
       article_author: author,
       reading_time: readingTime,
     })
+    firePostViewed({ slug, title, category, depth: 'entry' })
   }, [slug, title, category, author, readingTime])
 
   useEffect(() => {
@@ -62,6 +93,15 @@ export default function ArticleAnalytics({
             percent_scrolled: threshold,
           })
         }
+      }
+
+      if (!fired50.current && pct >= 50) {
+        fired50.current = true
+        firePostViewed({ slug, title, category, depth: '50pct' })
+      }
+      if (!fired95.current && pct >= 95) {
+        fired95.current = true
+        firePostViewed({ slug, title, category, depth: '95pct' })
       }
     }
 
