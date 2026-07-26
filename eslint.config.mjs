@@ -66,6 +66,13 @@ export default [
   },
 
   {
+    files: ['components/booking/ConsultBookingFlow.tsx'],
+    rules: {
+      '@next/next/no-html-link-for-pages': 'off',
+    },
+  },
+
+  {
     files: ['next.config.js', 'postcss.config.js', 'tailwind.config.ts', '**/*.mjs'],
     languageOptions: {
       globals: {

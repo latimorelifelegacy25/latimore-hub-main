@@ -1,10 +1,11 @@
 'use client'
 
 import { BRAND } from '@/lib/brand'
+import { ensureLeadSessionId } from '@/lib/lead'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import './pahs.css'
 import './pahs-override.css'
-import { PahsFreeReviewGraphic, PahsSponsorGraphic, PahsThrowbackGraphic } from './PahsCampaignGraphics'
+import { PahsThrowbackGraphic } from './PahsCampaignGraphics'
 
 type LeadForm = {
   name: string
@@ -118,6 +119,7 @@ export default function PAHSPage() {
           source: 'PAHS_QR',
           page: '/pahs',
           bestTime: cleanLead.bestTime,
+          leadSessionId: ensureLeadSessionId(),
           utmSource: tracking.utmSource,
           utmMedium: tracking.utmMedium,
           utmCampaign: tracking.utmCampaign,
@@ -147,8 +149,7 @@ export default function PAHSPage() {
 
   return (
     <main className="pahs-page" id="top">
-      <section className="pahs-hero pahs-hero--sponsor-bg" aria-labelledby="pahs-hero-title">
-        <div className="pahs-hero__bg" />
+      <section className="pahs-hero" aria-labelledby="pahs-hero-title">
         <div className="pahs-shell pahs-hero__grid">
           <div className="pahs-hero__copy">
             <p className="pahs-kicker">PAHS Protect · Pottsville Football 2026</p>
@@ -174,7 +175,12 @@ export default function PAHSPage() {
           </div>
 
           <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
-            <PahsSponsorGraphic compact />
+            <img
+              src="/pahs-protect-go.png"
+              alt="Protect What You Play For — Pottsville Area Crimson Tide 2026"
+              decoding="async"
+              fetchPriority="high"
+            />
             <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
           </aside>
         </div>
@@ -187,7 +193,8 @@ export default function PAHSPage() {
             src="/pahs-sponsor-flyer.png"
             alt="Friday Night Lights — Pottsville Area Crimson Tide Sponsor Flyer"
             className="pahs-flyer-image"
-            style={{ width: '100%', height: 'auto', borderRadius: 16, display: 'block' }}
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </section>
@@ -211,7 +218,7 @@ export default function PAHSPage() {
             <div className="video-wrap">
               <video
                 src="/pahs-campaign-video.mp4"
-                poster="/pahs-latimore-logo.png"
+                poster="/pahs-protect-go.png"
                 controls
                 playsInline
                 preload="metadata"
@@ -247,8 +254,13 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section style={{ padding: '3rem 1rem', background: '#f7f3ec' }}>
-        <PahsFreeReviewGraphic />
+      <section className="spgfx" aria-label="PAHS free consultation coupon">
+        <img
+          src="/pahs-free-consult.png"
+          alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide"
+          loading="lazy"
+          decoding="async"
+        />
       </section>
 
       <section className="pahs-review" ref={sectionRef} id="intakeFormSection" aria-labelledby="pahs-review-title">

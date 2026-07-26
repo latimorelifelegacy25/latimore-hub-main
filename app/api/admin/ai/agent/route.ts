@@ -7,14 +7,64 @@
 
 export const dynamic = 'force-dynamic'
 
-import { runAgentTurn } from '@/lib/ai/agent-runtime'
+import { runAgentTurn, type AgentToolConfig } from '@/lib/ai/agent-runtime'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
 
-const SYSTEM_PROMPT = withAdminAiGuardrails(
-  `You are Nexus Agent Mode, a tool-using assistant inside the Latimore Hub admin workspace.
-You have optional tools available: web search, a sandboxed JavaScript executor (no filesystem/network access inside it), read-only access to repository files, read-only access to the CRM database, and a static business/carrier reference lookup.
-Only use a tool when it is actually needed to answer the request. Explain your reasoning briefly before tool calls when helpful, and always give a clear final answer. When asked to write a document (proposal, email, report, compliance note, client summary), just write it directly in your final answer — no tool call is needed for that.`
-)
+function normalizeTools(tools: Record<string, unknown>): AgentToolConfig {
+  return {
+    webSearch: Boolean(tools.webSearch),
+    code: Boolean(tools.code),
+    files: Boolean(tools.files),
+    database: Boolean(tools.database),
+    business: Boolean(tools.business),
+  }
+}
+
+function buildSystemPrompt(tools: AgentToolConfig): string {
+  const enabledTools = [
+    tools.webSearch
+      ? '`web_search` — live web / Google-grounded search for current public information, news, rates, trends, and compliance references that may have changed.'
+      : null,
+    tools.code
+      ? '`execute_js` — sandboxed JavaScript for math, calculations, logic checks, and safe data transforms. No filesystem or network access.'
+      : null,
+    tools.files
+      ? '`read_file` — read-only repository file inspection by repo-relative path.'
+      : null,
+    tools.database
+      ? '`read_database` — read-only Latimore Hub CRM database access for allowed tables only.'
+      : null,
+    tools.business
+      ? '`business_lookup` — static Latimore Life & Legacy business, carrier, territory, and reference lookup.'
+      : null,
+  ].filter((tool): tool is string => Boolean(tool))
+
+  const disabledTools = [
+    !tools.webSearch ? '`web_search`' : null,
+    !tools.code ? '`execute_js`' : null,
+    !tools.files ? '`read_file`' : null,
+    !tools.database ? '`read_database`' : null,
+    !tools.business ? '`business_lookup`' : null,
+  ].filter((tool): tool is string => Boolean(tool))
+
+  const enabledBlock = enabledTools.length > 0
+    ? `Currently enabled tools:\n${enabledTools.map((tool) => `- ${tool}`).join('\n')}`
+    : 'Currently enabled tools: none. Answer from existing conversation context only.'
+
+  const disabledBlock = disabledTools.length > 0
+    ? `Currently disabled tools: ${disabledTools.join(', ')}. If the user asks for one of these, state that it is disabled in the toolbar and identify the button to enable it. Do not claim you have access to disabled tools.`
+    : 'No tools are disabled in the toolbar.'
+
+  return withAdminAiGuardrails(
+    `You are Nexus Agent Mode, a tool-using assistant inside the Latimore Hub admin workspace.
+${enabledBlock}
+${disabledBlock}
+
+Use only the exact tool names listed as enabled above. Do not say a tool is available unless it is listed in the enabled tools block. Only use a tool when it is actually needed to answer the request. When asked for current public information and \`web_search\` is enabled, use \`web_search\` instead of refusing.
+
+When asked to write a document, proposal, email, report, compliance note, client summary, or social post, write it directly in your final answer unless the request specifically requires live web, CRM, repo, code, or business lookup data.`
+  )
+}
 
 export async function POST(req: Request) {
   const auth = await requireAdminSession()
@@ -28,17 +78,13 @@ export async function POST(req: Request) {
       return Response.json({ error: 'message is required' }, { status: 400 })
     }
 
+    const enabledTools = normalizeTools(tools)
+
     const result = await runAgentTurn({
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(enabledTools),
       message,
       history: Array.isArray(history) ? history : [],
-      tools: {
-        webSearch: Boolean(tools.webSearch),
-        code: Boolean(tools.code),
-        files: Boolean(tools.files),
-        database: Boolean(tools.database),
-        business: Boolean(tools.business),
-      },
+      tools: enabledTools,
     })
 
     return Response.json({ reply: result.text, actions: result.actions })

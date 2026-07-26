@@ -82,6 +82,7 @@ export async function getDashboardOverview() {
     SELECT "pageUrl" AS page, COUNT(*) AS count
     FROM "Event"
     WHERE "pageUrl" IS NOT NULL
+      AND "eventType" = 'page_view'
     GROUP BY 1
     ORDER BY COUNT(*) DESC
     LIMIT 1

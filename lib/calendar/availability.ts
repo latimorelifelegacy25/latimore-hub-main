@@ -1,5 +1,5 @@
 import { BOOKING_CONFIG } from '@/lib/booking/config'
-import { getValidGoogleAccessToken } from '@/lib/calendar/google'
+import { fetchGoogleCalendarApi } from '@/lib/calendar/authenticated-fetch'
 
 type BusyInterval = {
   start: string
@@ -11,13 +11,11 @@ export async function fetchGoogleFreeBusy(input: {
   timeMax: string
   calendarId?: string
 }) {
-  const accessToken = await getValidGoogleAccessToken()
   const calendarId = input.calendarId || BOOKING_CONFIG.calendarId
 
-  const res = await fetch('https://www.googleapis.com/calendar/v3/freeBusy', {
+  const res = await fetchGoogleCalendarApi('https://www.googleapis.com/calendar/v3/freeBusy', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -26,7 +24,6 @@ export async function fetchGoogleFreeBusy(input: {
       timeZone: BOOKING_CONFIG.timezone,
       items: [{ id: calendarId }],
     }),
-    cache: 'no-store',
   })
 
   const data = await res.json()

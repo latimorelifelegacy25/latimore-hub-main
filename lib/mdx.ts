@@ -24,6 +24,8 @@ export interface PostFrontmatter {
   format?: string
   num?: string
   draft?: boolean
+  productInterest?: string
+  county?: string
 }
 
 export type Track = NonNullable<PostFrontmatter['track']>
