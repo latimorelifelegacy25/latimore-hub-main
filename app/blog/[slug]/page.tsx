@@ -108,7 +108,12 @@ function renderBlogComponents(content: string) {
       const text = getAttribute(attrs, 'text') ?? 'Ready to talk through your options?'
       const href = getAttribute(attrs, 'href') ?? '/contact'
       const buttonText = getAttribute(attrs, 'buttonText') ?? 'Book Consultation'
-      return `<div class="blog-inline-cta"><p>${escapeHtml(text)}</p><a href="${escapeAttribute(href)}" data-cta="article-inline-cta">${escapeHtml(buttonText)}</a></div>`
+      const productInterest = getAttribute(attrs, 'productInterest')
+      const county = getAttribute(attrs, 'county')
+      const trackingAttrs =
+        (productInterest ? ` data-product-interest="${escapeAttribute(productInterest)}"` : '') +
+        (county ? ` data-county="${escapeAttribute(county)}"` : '')
+      return `<div class="blog-inline-cta"><p>${escapeHtml(text)}</p><a href="${escapeAttribute(href)}" data-cta="article-inline-cta"${trackingAttrs}>${escapeHtml(buttonText)}</a></div>`
     })
 }
 
@@ -339,8 +344,13 @@ export default async function ArticlePage({
           </div>
         </div>
 
-        {/* Article body */}
-        <main className="max-w-3xl mx-auto px-8 py-12">
+        {/* Article body — data attributes let PublicTracker attribute every
+            click inside the article to the post's product/county */}
+        <main
+          className="max-w-3xl mx-auto px-8 py-12"
+          {...(post.productInterest ? { 'data-product-interest': post.productInterest } : {})}
+          {...(post.county ? { 'data-county': post.county } : {})}
+        >
           <article className="prose-article" dangerouslySetInnerHTML={{ __html: htmlContent }} />
 
           {/* CTA box */}
