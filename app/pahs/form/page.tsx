@@ -142,7 +142,7 @@ export default function PahsForm() {
           />
           <div className="pf-spotlight-text">
             <h3>Where the Journey Began</h3>
-            <p>Before sponsoring the 2026 PAHS Football season, Jackson&apos;s dedication started on the local gridiron as a 2005 Co-Defensive Player of the Year. Today, he brings that same relentless drive to protecting your family&apos;s future.</p>
+            <p>Before sponsoring the 2026 PAHS Football season, Jackson&apos;s dedication started on the local gridiron as the 2005 Republican &amp; Herald All-Area Offensive Player of the Year. Today, he brings that same relentless drive to protecting your family&apos;s future.</p>
           </div>
         </div>
 

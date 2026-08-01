@@ -209,7 +209,7 @@ export function PahsThrowbackGraphic({ className }: GraphicProps) {
       </div>
       <img src={throwbackImageUrl} alt="2005 Coal Region All-Area Football — Where the Journey Began" style={{ display: 'block', width: '100%', height: 'auto' }} />
       <div style={{ padding: '.65rem 1rem 1rem', fontFamily: 'Georgia, serif', fontSize: 'clamp(.85rem, 2.4vw, 1.05rem)', fontWeight: 700, lineHeight: 1.25 }}>
-        Pictured from left: Coach Kevin Keating, Dave DeMarkis, Jackson Latimore, and Andy Buziak. Latimore was named Co-Defensive Player of the Year.
+        Pictured from left: Coach Kevin Keating, Dave DeMarkis, Jackson Latimore, and Andy Buziak. Latimore was named Offensive Player of the Year.
       </div>
     </div>
   )
