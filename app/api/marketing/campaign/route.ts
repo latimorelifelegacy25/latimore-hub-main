@@ -114,7 +114,7 @@ Brand voice: ${tone === 'professional' ? 'Professional and authoritative' : tone
 
 Core tagline: "Protecting Today. Securing Tomorrow." | Hashtag: #TheBeatGoesOn
 Primary CTA: Scan the QR code OR DM "PROTECT"
-Phone: (717) 615-2613 | NIPR #21638507
+Phone: (570) 900-1799 | NIPR #21638507
 Target audience: ${audience}
 Products: Life insurance, final expense, mortgage protection, IUL, annuities (F&G Safe Income Advantage)
 

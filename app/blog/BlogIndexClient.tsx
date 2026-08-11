@@ -71,7 +71,7 @@ export default function BlogIndexClient({ articles }: BlogIndexClientProps) {
               ))}
               <Link href="/blog" style={{ color: C.gold, textDecoration: 'none', fontSize: 13, fontFamily: "'DM Mono',monospace", letterSpacing: '0.06em', textTransform: 'uppercase' }}>Blog</Link>
             </nav>
-            <a href="tel:7176152613" style={{ background: C.gold, color: C.navyDeep, fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, padding: '8px 16px', borderRadius: 2, textDecoration: 'none', whiteSpace: 'nowrap' }}>(717) 615-2613</a>
+            <a href="tel:5709001799" style={{ background: C.gold, color: C.navyDeep, fontFamily: "'DM Mono',monospace", fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 500, padding: '8px 16px', borderRadius: 2, textDecoration: 'none', whiteSpace: 'nowrap' }}>(570) 900-1799</a>
           </div>
         </header>
 
@@ -145,7 +145,7 @@ export default function BlogIndexClient({ articles }: BlogIndexClientProps) {
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: '2rem', fontWeight: 700, color: C.navy, marginBottom: '1rem' }}>Ready to close the gap?</h2>
           <p style={{ color: C.muted, maxWidth: 500, margin: '0 auto 2rem', fontSize: 16 }}>Schedule a free 20-minute protection review. We look at what you have, what you owe, and what your family would actually need.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <a href="tel:7176152613" style={{ background: C.navy, color: C.white, fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '14px 28px', borderRadius: 2, textDecoration: 'none' }}>(717) 615-2613 — Call Now</a>
+            <a href="tel:5709001799" style={{ background: C.navy, color: C.white, fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '14px 28px', borderRadius: 2, textDecoration: 'none' }}>(570) 900-1799 — Call Now</a>
             <a href="mailto:jackson1989@latimorelegacy.com" style={{ background: 'transparent', color: C.navy, fontFamily: "'DM Mono',monospace", fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '13px 28px', borderRadius: 2, textDecoration: 'none', border: `1px solid ${C.navy}` }}>Email Jackson</a>
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function BlogIndexClient({ articles }: BlogIndexClientProps) {
           <div style={{ maxWidth: 1200, margin: '0 auto' }}>
             <div style={{ fontFamily: "'DM Mono',monospace", fontSize: 12, color: C.gold, marginBottom: '0.75rem', letterSpacing: '0.08em' }}>#TheBeatGoesOn</div>
             <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
-              {([['/', 'Home'], ['/blog', 'Blog'], ['tel:7176152613', '(717) 615-2613'], ['mailto:jackson1989@latimorelegacy.com', 'Email']] as [string, string][]).map(([href, label]) => (
+              {([['/', 'Home'], ['/blog', 'Blog'], ['tel:5709001799', '(570) 900-1799'], ['mailto:jackson1989@latimorelegacy.com', 'Email']] as [string, string][]).map(([href, label]) => (
                 <a key={href} href={href} style={{ color: 'rgba(255,255,255,0.5)', fontFamily: "'DM Mono',monospace", fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', textDecoration: 'none' }}>{label}</a>
               ))}
             </div>

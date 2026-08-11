@@ -109,7 +109,7 @@ export default function PahsForm() {
       if (!res.ok) throw new Error('Submission failed')
       setDone(true)
     } catch {
-      setSubmitError('Something went wrong. Please try again or call Jackson at (717) 615-2613.')
+      setSubmitError('Something went wrong. Please try again or call Jackson at (570) 900-1799.')
     } finally {
       setSubmitting(false)
     }
@@ -162,8 +162,8 @@ export default function PahsForm() {
               <div className="pf-success-title">You&apos;re All Set!</div>
               <p className="pf-success-body">Jackson will reach out within 24 hours. In the meantime, feel free to explore your options or connect on social.</p>
               <div className="pf-success-links">
-                <a href="tel:+17176152613" className="pf-success-link primary">
-                  <i className="fas fa-phone" /> Call Now — (717) 615-2613
+                <a href="tel:+15709001799" className="pf-success-link primary">
+                  <i className="fas fa-phone" /> Call Now — (570) 900-1799
                 </a>
                 <a href="https://www.latimorelifelegacy.com" className="pf-success-link secondary" target="_blank" rel="noopener noreferrer">
                   <i className="fas fa-globe" /> Visit Our Website
@@ -321,7 +321,7 @@ export default function PahsForm() {
         Jackson M. Latimore Sr. · Latimore Life &amp; Legacy LLC · Independent Financial Consultant<br />
         Affiliated with Global Financial Impact (GFI)<br />
         <a href="https://www.latimorelifelegacy.com" target="_blank" rel="noopener noreferrer">www.latimorelifelegacy.com</a> ·{' '}
-        <a href="tel:+17176152613">(717) 615-2613</a>
+        <a href="tel:+15709001799">(570) 900-1799</a>
       </div>
     </div>
   )

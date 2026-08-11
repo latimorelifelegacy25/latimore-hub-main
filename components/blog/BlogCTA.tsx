@@ -10,7 +10,7 @@ export default function BlogCTA() {
         Book Free Consultation
       </a>
       <p className="sidebar-cta__phone">
-        Or call: <a href="tel:7176152613">(717) 615-2613</a>
+        Or call: <a href="tel:5709001799">(570) 900-1799</a>
       </p>
     </div>
   )

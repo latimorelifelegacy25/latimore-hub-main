@@ -290,7 +290,7 @@ function buildBookingConfirmationEmail(firstName: string, formattedTime: string,
           <p style="color:#555;font-size:16px;line-height:1.6;margin:0 0 16px;">
             To prepare, think about: your current coverage, your family\'s financial needs, and any questions you have about life insurance or retirement planning.
           </p>
-          <p style="color:#555;font-size:14px;">Questions? Call or text: <strong>(717) 615-2613</strong></p>
+          <p style="color:#555;font-size:14px;">Questions? Call or text: <strong>(570) 900-1799</strong></p>
           <p style="color:#0E1A2B;font-weight:bold;margin-top:24px;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</p>
         </td></tr>
       </table>

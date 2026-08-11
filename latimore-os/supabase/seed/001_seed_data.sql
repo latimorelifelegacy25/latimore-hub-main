@@ -11,7 +11,7 @@ INSERT INTO contacts (
   'a0000000-0000-0000-0000-000000000001',
   'Jackson', 'Latimore',
   'Jackson1989@latimorelegacy.com',
-  '7176152613',
+  '5709001799',
   'agent', 'closed_won',
   'Pottsville', 'PA', 'Schuylkill'
 );

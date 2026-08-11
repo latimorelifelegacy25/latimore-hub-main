@@ -957,7 +957,7 @@ export default function PAHSCampaignClient({ stats }: { stats: Stats }) {
       </div>
 
       <div style={{ background:N, color:G, textAlign:'center', padding:'10px 20px', fontSize:12, fontStyle:'italic', fontFamily:'Arial' }}>
-        Protecting Today. Securing Tomorrow. — #TheBeatGoesOn · latimorelifelegacy.com · 717-615-2613
+        Protecting Today. Securing Tomorrow. — #TheBeatGoesOn · latimorelifelegacy.com · 570-900-1799
       </div>
     </div>
   )

@@ -31,7 +31,7 @@ const ChatRequestSchema = z.object({
   messages: z.array(ChatMessageSchema).min(1).max(12),
 })
 
-const CONTACT_REPLY = 'For personalized guidance, contact Jackson at 717-615-2613 or jackson1989@latimorelegacy.com. He can help you review options and next steps.'
+const CONTACT_REPLY = 'For personalized guidance, contact Jackson at 570-900-1799 or jackson1989@latimorelegacy.com. He can help you review options and next steps.'
 
 function createLocalReply(message: string) {
   const normalized = message.toLowerCase()
@@ -62,7 +62,7 @@ function createLocalReply(message: string) {
     return [
       'To get a quote, Jackson will usually need a few basics: your age range, county, coverage goal,',
       'approximate amount of protection, and preferred contact method.',
-      'You can call 717-615-2613 or email jackson1989@latimorelegacy.com to start.',
+      'You can call 570-900-1799 or email jackson1989@latimorelegacy.com to start.',
     ].join(' ')
   }
 
@@ -84,7 +84,7 @@ function createLocalReply(message: string) {
   }
 
   if (normalized.includes('contact') || normalized.includes('phone') || normalized.includes('email') || normalized.includes('jackson')) {
-    return 'You can reach Jackson M. Latimore Sr. by phone at 717-615-2613 or by email at jackson1989@latimorelegacy.com.'
+    return 'You can reach Jackson M. Latimore Sr. by phone at 570-900-1799 or by email at jackson1989@latimorelegacy.com.'
   }
 
   return [
@@ -101,7 +101,7 @@ Business context:
 - Services include term life, mortgage protection, final expense, indexed universal life, fixed indexed annuities, retirement income, juvenile life policies, business protection, college funding education, debt management education, and estate or legacy basics through referral partners.
 - Founder: Jackson M. Latimore Sr.
 - Website: https://www.latimorelifelegacy.com
-- Phone: 717-615-2613
+- Phone: 570-900-1799
 - Email: jackson1989@latimorelegacy.com
 
 Rules:
@@ -227,12 +227,12 @@ export async function POST(req: NextRequest) {
     const reply = data.output_text?.trim()
 
     return jsonReply(
-      reply || 'I can help with general insurance questions. For personalized guidance, please contact Jackson at 717-615-2613.',
+      reply || 'I can help with general insurance questions. For personalized guidance, please contact Jackson at 570-900-1799.',
     )
   } catch (error) {
     logger.error({ error }, '[chat] request failed')
     return jsonReply(
-      'Sorry, chat is having trouble right now. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.',
+      'Sorry, chat is having trouble right now. Please call 570-900-1799 or email jackson1989@latimorelegacy.com.',
       { status: 500 },
     )
   }

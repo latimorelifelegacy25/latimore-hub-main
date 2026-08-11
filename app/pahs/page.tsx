@@ -162,8 +162,8 @@ export default function PAHSPage() {
               <button type="button" onClick={scrollToReview} className="pahs-button pahs-button--primary">
                 Start Free Protection Review
               </button>
-              <a className="pahs-button pahs-button--ghost" href="tel:17176152613">
-                Call 717-615-2613
+              <a className="pahs-button pahs-button--ghost" href="tel:15709001799">
+                Call 570-900-1799
               </a>
             </div>
 
@@ -287,7 +287,7 @@ export default function PAHSPage() {
               <div className="pahs-success-box" role="status">
                 <strong>Request received.</strong>
                 <span>Jackson will follow up directly. Your PAHS Protect review is now in the pipeline.</span>
-                <a href="tel:17176152613">Need faster help? Call 717-615-2613.</a>
+                <a href="tel:15709001799">Need faster help? Call 570-900-1799.</a>
               </div>
             ) : (
               <form ref={formRef} className="pahs-lead-form" onSubmit={submitLead}>
@@ -314,7 +314,7 @@ export default function PAHSPage() {
                     inputMode="tel"
                     value={lead.phone}
                     onChange={(e) => updateLead('phone', e.target.value)}
-                    placeholder="(717) 615-2613"
+                    placeholder="(570) 900-1799"
                     autoComplete="tel"
                     required
                   />
@@ -404,7 +404,7 @@ export default function PAHSPage() {
             <span>Protecting Today. Securing Tomorrow.</span>
           </div>
           <div>
-            <a href="tel:17176152613">717-615-2613</a>
+            <a href="tel:15709001799">570-900-1799</a>
             <a href="https://www.latimorelifelegacy.com">latimorelifelegacy.com</a>
           </div>
         </div>

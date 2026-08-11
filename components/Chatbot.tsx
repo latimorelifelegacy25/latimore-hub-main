@@ -114,7 +114,7 @@ export default function Chatbot() {
         ...prev,
         {
           role: 'assistant',
-          content: 'Something went wrong. Please call 717-615-2613 or email jackson1989@latimorelegacy.com.',
+          content: 'Something went wrong. Please call 570-900-1799 or email jackson1989@latimorelegacy.com.',
         },
       ] as Message[]).slice(-12))
     } finally {
