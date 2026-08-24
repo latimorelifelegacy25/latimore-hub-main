@@ -273,7 +273,7 @@ function DocumentPreview({
           </div>
           <div>
             <div style={{ color: '#C9A25F', fontWeight: 'bold', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Contact</div>
-            <div>(717) 615-2613</div>
+            <div>(570) 900-1977</div>
             <div>jackson1989@latimorelegacy.com</div>
             <div>latimorelifelegacy.com</div>
             <div style={{ marginTop: '8px' }}>
