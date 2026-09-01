@@ -145,7 +145,7 @@ export default function PahsProtectForm() {
       'FN:Jackson M. Latimore Sr.',
       'ORG:Latimore Life & Legacy LLC',
       'TITLE:Licensed Life, Health, Accident & Annuities',
-      'TEL;TYPE=CELL,VOICE:(570) 900-1799',
+      'TEL;TYPE=CELL,VOICE:(570) 900-1977',
       'EMAIL:jackson1989@latimorelegacy.com',
       'URL:https://www.latimorelifelegacy.com',
       'NOTE:Protecting Today. Securing Tomorrow. #TheBeatGoesOn',
@@ -353,7 +353,7 @@ export default function PahsProtectForm() {
                 <em>Protecting Today. Securing Tomorrow.</em>
               </p>
               <div className="pwyp-success-actions">
-                <a className="pwyp-btn-call" href="tel:5709001799">📞 Call Jackson Now — (570) 900-1799</a>
+                <a className="pwyp-btn-call" href="tel:5709001977">📞 Call Jackson Now — (570) 900-1977</a>
                 <a className="pwyp-btn-vcard" href="#" onClick={(e) => { e.preventDefault(); downloadVCard() }}>💾 Save Jackson&rsquo;s Contact</a>
                 <a className="pwyp-btn-share" href="#" onClick={(e) => { e.preventDefault(); shareReview() }}>📤 Share With a Friend</a>
               </div>
@@ -433,7 +433,7 @@ export default function PahsProtectForm() {
         <div className="pwyp-footer-name">Jackson M. Latimore Sr.</div>
         <div className="pwyp-footer-title">Licensed Life, Health, Accident &amp; Annuities · Pennsylvania</div>
         <div className="pwyp-footer-links">
-          <a href="tel:5709001799">(570) 900-1799</a>
+          <a href="tel:5709001977">(570) 900-1977</a>
           <a href="mailto:jackson1989@latimorelegacy.com">jackson1989@latimorelegacy.com</a>
           <a href="https://www.latimorelifelegacy.com" rel="noopener" target="_blank">latimorelifelegacy.com</a>
         </div>
@@ -451,7 +451,7 @@ export default function PahsProtectForm() {
           Jackson follows up in 24hrs
         </div>
         <div className="pwyp-sticky-btns">
-          <a className="pwyp-sticky-btn-call" href="tel:5709001799">Call</a>
+          <a className="pwyp-sticky-btn-call" href="tel:5709001977">Call</a>
           <a className="pwyp-sticky-btn-review" href="#pahs-review-form">Get Review</a>
         </div>
       </div>

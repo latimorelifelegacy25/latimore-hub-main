@@ -5,7 +5,7 @@ export const metadata = {
 }
 
 const contactLinks = [
-  { label: 'Phone', value: '570-900-1799', href: 'tel:5709001799' },
+  { label: 'Phone', value: '570-900-1977', href: 'tel:5709001977' },
   { label: 'Email', value: 'jackson1989@latimorelegacy.com', href: 'mailto:jackson1989@latimorelegacy.com' },
   { label: 'Website', value: 'www.latimorelifelegacy.com', href: 'https://www.latimorelifelegacy.com' },
   { label: 'Card', value: 'card.latimorelifelegacy.com', href: 'https://card.latimorelifelegacy.com' },

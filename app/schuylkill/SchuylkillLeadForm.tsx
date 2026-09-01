@@ -123,7 +123,7 @@ export default function SchuylkillLeadForm() {
             id="sk-phone"
             type="tel"
             required
-            placeholder="(570) 900-1799"
+            placeholder="(570) 900-1977"
             value={form.phone}
             onChange={e => setForm({ ...form, phone: e.target.value })}
             style={{

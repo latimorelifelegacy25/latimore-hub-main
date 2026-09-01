@@ -63,9 +63,9 @@ export const BRAND = {
   advisor: 'Jackson M. Latimore Sr., Founder & CEO',
   affiliation: 'In Affiliation with Global Financial Impact',
 
-  phone: '(570) 900-1799',
-  phoneRaw: '5709001799',
-  phoneHref: 'tel:+15709001799',
+  phone: '(570) 900-1977',
+  phoneRaw: '5709001977',
+  phoneHref: 'tel:+15709001977',
   email: 'jackson1989@latimorelegacy.com',
 
   nipr: '21638507',

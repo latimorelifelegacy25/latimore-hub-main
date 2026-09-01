@@ -286,10 +286,10 @@ export default async function ArticlePage({
             </nav>
 
             <a
-              href="tel:5709001799"
+              href="tel:5709001977"
               className="bg-[#C49A6C] text-[#1a2530] font-mono text-[11px] tracking-[0.08em] uppercase font-medium px-4 py-2 rounded-sm no-underline whitespace-nowrap"
             >
-              (570) 900-1799
+              (570) 900-1977
             </a>
           </div>
         </header>
@@ -363,11 +363,11 @@ export default async function ArticlePage({
                 </span>
               </div>
               <a
-                href="tel:5709001799"
+                href="tel:5709001977"
                 data-cta="article-phone-cta"
                 className="bg-[#C49A6C] text-[#1a2530] font-mono text-[11px] tracking-[0.1em] uppercase px-6 py-3 rounded-sm no-underline font-medium whitespace-nowrap"
               >
-                (570) 900-1799
+                (570) 900-1977
               </a>
             </div>
           )}
@@ -427,7 +427,7 @@ export default async function ArticlePage({
               {[
                 ['/', 'Home'],
                 ['/blog', 'Blog'],
-                ['tel:5709001799', '(570) 900-1799'],
+                ['tel:5709001977', '(570) 900-1977'],
                 ['mailto:jackson1989@latimorelegacy.com', 'Email'],
               ].map(([href, label]) => (
                 <a

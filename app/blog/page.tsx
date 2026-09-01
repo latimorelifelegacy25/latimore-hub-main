@@ -196,10 +196,10 @@ export default async function BlogPage({
             </nav>
 
             <a
-              href="tel:5709001799"
+              href="tel:5709001977"
               className="bg-[#C49A6C] text-[#1a2530] font-mono text-[11px] tracking-[0.08em] uppercase font-medium px-4 py-2 rounded-sm no-underline whitespace-nowrap"
             >
-              (570) 900-1799
+              (570) 900-1977
             </a>
           </div>
         </header>
@@ -333,11 +333,11 @@ export default async function BlogPage({
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <a
-                href="tel:5709001799"
+                href="tel:5709001977"
                 data-cta="phone-cta"
                 className="bg-[#2C3E50] text-white font-mono text-[12px] tracking-[0.1em] uppercase px-7 py-4 rounded-sm no-underline"
               >
-                (570) 900-1799 — Call Now
+                (570) 900-1977 — Call Now
               </a>
               <a
                 href="mailto:jackson1989@latimorelegacy.com"
@@ -360,7 +360,7 @@ export default async function BlogPage({
               {[
                 ['/', 'Home'],
                 ['/blog', 'Blog'],
-                ['tel:5709001799', '(570) 900-1799'],
+                ['tel:5709001977', '(570) 900-1977'],
                 ['mailto:jackson1989@latimorelegacy.com', 'Email'],
               ].map(([href, label]) => (
                 <a
