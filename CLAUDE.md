@@ -202,7 +202,7 @@ Protected by Google OAuth. Key areas:
 - Colors: Navy `#0E1A2B`, Gold `#C9A25F`, Gold Light `#E5C882`
 - Service area: Schuylkill, Luzerne, Northumberland Counties, PA
 - Founder: Jackson M. Latimore Sr.
-- Phone: 717-615-2613
+- Phone: 570-900-1977
 
 ## Key env vars
 
