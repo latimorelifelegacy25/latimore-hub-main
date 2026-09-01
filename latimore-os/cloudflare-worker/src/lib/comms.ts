@@ -128,7 +128,7 @@ export function buildLeadConfirmationEmail(firstName: string): string {
                   <td style="padding:20px 24px;">
                     <p style="margin:0 0 4px;color:#0E1A2B;font-weight:bold;font-size:16px;">Jackson M. Latimore Sr., MBA</p>
                     <p style="margin:0 0 4px;color:#555;font-size:14px;">Founder & CEO, Latimore Life & Legacy</p>
-                    <p style="margin:0 0 4px;color:#555;font-size:14px;">📞 (570) 900-1799</p>
+                    <p style="margin:0 0 4px;color:#555;font-size:14px;">📞 (570) 900-1977</p>
                     <p style="margin:0 0 4px;color:#555;font-size:14px;">📧 Jackson1989@latimorelegacy.com</p>
                     <p style="margin:0;color:#555;font-size:14px;">🌐 latimorelifelegacy.com</p>
                   </td>

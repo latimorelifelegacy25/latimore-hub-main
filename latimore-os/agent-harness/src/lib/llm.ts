@@ -140,7 +140,7 @@ Agency Details:
 - Tagline: "Protecting Today. Securing Tomorrow." | #TheBeatGoesOn
 - Carriers: North American Company, Corebridge Financial/American General Life, American Equity, F&G, Ethos Life, Foresters Financial
 - Territory: Schuylkill, Luzerne & Northumberland Counties, PA
-- Business phone: (570) 900-1799
+- Business phone: (570) 900-1977
 - Admin/leads email: leads@latimorelegacy.com
 
 Your role is to assist with:

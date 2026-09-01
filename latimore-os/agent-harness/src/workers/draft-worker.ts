@@ -82,7 +82,7 @@ Requirements:
 - Educational value — teach something useful, don't just pitch
 - Soft CTA: invite them to schedule a free 15-minute consultation
 - Booking link placeholder: [BOOKING_LINK]
-- Signature: Jackson M. Latimore Sr., MBA | (570) 900-1799 | latimorelifelegacy.com
+- Signature: Jackson M. Latimore Sr., MBA | (570) 900-1977 | latimorelifelegacy.com
 - Tone: warm, professional, non-pressured
 - Length: 150-200 words
 - End with: "Protecting Today. Securing Tomorrow."
@@ -98,7 +98,7 @@ Return JSON with keys: subject (string), body (string, plain text with line brea
     } catch {
       return {
         subject: `Following up — Latimore Life & Legacy`,
-        body: `Hi ${firstName},\n\nThank you for reaching out to Latimore Life & Legacy. I'd love to connect and learn more about your ${interest} needs.\n\nWould you be available for a free 15-minute consultation? Book here: [BOOKING_LINK]\n\nProtecting Today. Securing Tomorrow.\n\nJackson M. Latimore Sr., MBA\n(570) 900-1799`,
+        body: `Hi ${firstName},\n\nThank you for reaching out to Latimore Life & Legacy. I'd love to connect and learn more about your ${interest} needs.\n\nWould you be available for a free 15-minute consultation? Book here: [BOOKING_LINK]\n\nProtecting Today. Securing Tomorrow.\n\nJackson M. Latimore Sr., MBA\n(570) 900-1977`,
         sms: `Hi ${firstName}! Jackson Latimore here. Thanks for your interest in ${interest}. Book your free consultation: [BOOKING_LINK] #TheBeatGoesOn`,
       };
     }
@@ -200,7 +200,7 @@ Return JSON with key: body (string)`
     try {
       return JSON.parse(response.content) as { body: string };
     } catch {
-      return { body: `Protecting families in Schuylkill County with life insurance and retirement solutions. Free consultations available. Call (570) 900-1799 or visit latimorelifelegacy.com. #TheBeatGoesOn` };
+      return { body: `Protecting families in Schuylkill County with life insurance and retirement solutions. Free consultations available. Call (570) 900-1977 or visit latimorelifelegacy.com. #TheBeatGoesOn` };
     }
   }
 
