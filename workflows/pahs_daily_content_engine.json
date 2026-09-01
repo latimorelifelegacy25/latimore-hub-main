@@ -1,0 +1,307 @@
+{
+  "source": "gptcha.in",
+  "version": "4.2.0",
+  "metadata": {
+    "name": "PAHS Daily Content Engine",
+    "description": "Generates a seven-day branded content campaign for the Pottsville Crimson Tide and Lattimore Life & Legacy partnership, including captions, visual directions, calls to action, and final quality control.",
+    "tags": [
+      "daily-content",
+      "social-media",
+      "insurance-marketing",
+      "school-partnership",
+      "PAHS"
+    ]
+  },
+  "workflow": {
+    "nodes": [
+      {
+        "id": "1",
+        "type": "START",
+        "position": {
+          "x": 0,
+          "y": 420
+        }
+      },
+      {
+        "id": "2",
+        "type": "CHAIN",
+        "position": {
+          "x": 250,
+          "y": 420
+        },
+        "label": "Campaign Foundation",
+        "prompt": "Build the strategic foundation for a seven-day partnership content campaign beginning {week_start_date}.\n\nBrand: {business_name}\nSchool partner: {school_partner}\nTeam identity: {team_name}\nAudience: {audience}\nCampaign goal: {campaign_goal}\nOffer or primary action: {offer}\nPhone: {phone}\nLanding page: {landing_page}\nPublishing platforms: {platforms}\nBrand voice: {brand_voice}\nApproved assets: {approved_assets}\nCompliance requirements: {compliance_notes}\n\nCreate a campaign foundation that all later daily-content branches can follow.\n\nOutput format:\n1. Campaign objective\n2. Core audience insight\n3. Partnership positioning\n4. Three message pillars\n5. Brand voice rules\n6. Visual identity rules\n7. Approved call-to-action language\n8. Claims and compliance restrictions\n9. Weekly narrative arc\n\nThe campaign should connect school pride, family protection, financial preparedness, community strength, and legacy planning. Keep the tone supportive and community-centered. Do not imply school endorsement beyond the supplied partnership information. Do not invent statistics, guarantees, policy benefits, athlete endorsements, or financial outcomes."
+      },
+      {
+        "id": "3",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 0
+        },
+        "label": "Monday Momentum",
+        "prompt": "Using the campaign foundation above, create the Monday content pack.\n\nDaily theme: Monday Momentum\nCore message: Start strong. Protect what matters.\n\nDevelop content that connects the beginning of the week, preparation, discipline, and protecting family goals. Reference {business_name}, {school_partner}, and {team_name} naturally without overstating the partnership.\n\nOutput format:\n1. Content objective\n2. Main hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Story or reel text in three frames\n6. Visual headline\n7. Visual subheadline\n8. Detailed square-post visual brief\n9. Fifteen-second video concept\n10. Call to action using {offer}, {phone}, and {landing_page}\n11. Five relevant hashtags\n12. Compliance review\n\nMatch the voice described in {brand_voice}. Use only assets listed in {approved_assets}. Avoid fear-based selling, guaranteed outcomes, and unsupported claims."
+      },
+      {
+        "id": "4",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 140
+        },
+        "label": "Tuesday Teamwork",
+        "prompt": "Using the campaign foundation above, create the Tuesday content pack.\n\nDaily theme: Tuesday Teamwork\nCore message: Build winning momentum.\n\nFocus on teamwork, coaches, parents, students, local businesses, and financial professionals working together to strengthen the community. Connect teamwork on the field with teamwork in family protection and planning.\n\nOutput format:\n1. Content objective\n2. Main hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Story or reel text in three frames\n6. Visual headline\n7. Visual subheadline\n8. Detailed square-post visual brief\n9. Fifteen-second video concept\n10. Call to action using {offer}, {phone}, and {landing_page}\n11. Five relevant hashtags\n12. Compliance review\n\nUse the strategy and visual rules from the previous output. Maintain {brand_voice}. Do not invent player names, testimonials, sponsorship terms, or insurance outcomes."
+      },
+      {
+        "id": "5",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 280
+        },
+        "label": "Wealth Wednesday",
+        "prompt": "Using the campaign foundation above, create the Wednesday content pack.\n\nDaily theme: Wealth Wednesday\nCore message: Turn income into lasting protection.\n\nCreate educational content about protecting income, preparing for unexpected events, reducing financial vulnerability, and building a responsible legacy. Keep the explanation accessible to {audience} and avoid personalized financial advice.\n\nOutput format:\n1. Content objective\n2. Educational hook\n3. Primary social caption of 100 to 170 words\n4. Short caption of no more than 40 words\n5. Three simple educational takeaways\n6. Story or reel text in three frames\n7. Visual headline\n8. Visual subheadline\n9. Detailed square-post visual brief\n10. Fifteen-second educational video concept\n11. Call to action using {offer}, {phone}, and {landing_page}\n12. Five relevant hashtags\n13. Compliance review\n\nUse the campaign foundation and prior brand guidance. Clearly distinguish general education from individual financial or insurance recommendations. Do not promise wealth, returns, approval, savings, or specific policy performance."
+      },
+      {
+        "id": "6",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 420
+        },
+        "label": "Thrive Thursday",
+        "prompt": "Using the campaign foundation above, create the Thursday content pack.\n\nDaily theme: Thrive Thursday\nCore message: Plan today. Strengthen tomorrow.\n\nFocus on proactive planning, reviewing current protection, strengthening financial foundations, and taking one manageable next step. Connect athletic preparation with thoughtful family and legacy planning.\n\nOutput format:\n1. Content objective\n2. Main hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Three-step action checklist\n6. Story or reel text in three frames\n7. Visual headline\n8. Visual subheadline\n9. Detailed square-post visual brief\n10. Fifteen-second video concept\n11. Call to action using {offer}, {phone}, and {landing_page}\n12. Five relevant hashtags\n13. Compliance review\n\nBase the content on the campaign foundation. Keep the message encouraging rather than urgent or alarming. Follow {compliance_notes} and do not imply that one product is suitable for everyone."
+      },
+      {
+        "id": "7",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 560
+        },
+        "label": "Family Friday",
+        "prompt": "Using the campaign foundation above, create the Friday content pack.\n\nDaily theme: Family Friday\nCore message: Protect the people behind your purpose.\n\nCreate emotionally resonant but responsible content about parents, children, caregivers, family goals, and the people who depend on us. Connect family support in the stands with protection away from the field.\n\nOutput format:\n1. Content objective\n2. Main hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Story or reel text in three frames\n6. Visual headline\n7. Visual subheadline\n8. Detailed square-post visual brief\n9. Fifteen-second family-centered video concept\n10. Call to action using {offer}, {phone}, and {landing_page}\n11. Five relevant hashtags\n12. Compliance review\n\nUse the established partnership narrative and {brand_voice}. Avoid exploiting grief, illness, injury, or fear. Do not describe coverage, pricing, or benefits that have not been supplied."
+      },
+      {
+        "id": "8",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 700
+        },
+        "label": "Sponsor Saturday",
+        "prompt": "Using the campaign foundation above, create the Saturday content pack.\n\nDaily theme: Sponsor Saturday\nCore message: Community strong. Legacy stronger.\n\nHighlight local partnership, school pride, shared values, and responsible community support. Explain why businesses supporting youth, families, and local programs can help strengthen the broader community.\n\nOutput format:\n1. Content objective\n2. Partnership-focused hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Community appreciation statement\n6. Story or reel text in three frames\n7. Visual headline\n8. Visual subheadline\n9. Detailed square-post visual brief\n10. Fifteen-second partnership video concept\n11. Call to action using {offer}, {phone}, and {landing_page}\n12. Five relevant hashtags\n13. Compliance review\n\nUse only confirmed details from the campaign inputs and {approved_assets}. Do not imply that players, families, coaches, or the school recommend specific insurance or financial products."
+      },
+      {
+        "id": "9",
+        "type": "CHAIN",
+        "position": {
+          "x": 520,
+          "y": 840
+        },
+        "label": "Security Sunday",
+        "prompt": "Using the campaign foundation above, create the Sunday content pack.\n\nDaily theme: Security Sunday\nCore message: Protect the people who matter most.\n\nCreate reflective Sunday content centered on family security, reviewing responsibilities, preparing for the week, and scheduling a no-pressure protection review. Connect the message to community, purpose, and long-term legacy.\n\nOutput format:\n1. Content objective\n2. Reflective hook\n3. Primary social caption of 90 to 150 words\n4. Short caption of no more than 40 words\n5. Sunday reflection question\n6. Story or reel text in three frames\n7. Visual headline\n8. Visual subheadline\n9. Detailed square-post visual brief\n10. Fifteen-second reflective video concept\n11. Call to action using {offer}, {phone}, and {landing_page}\n12. Five relevant hashtags\n13. Compliance review\n\nFollow the campaign foundation and {brand_voice}. Keep the invitation helpful and low-pressure. Do not use religious claims unless they are explicitly included in the campaign inputs."
+      },
+      {
+        "id": "10",
+        "type": "CHAIN",
+        "position": {
+          "x": 820,
+          "y": 420
+        },
+        "label": "Weekly Synthesis",
+        "prompt": "Using the campaign foundation and all seven daily content packs above, assemble one coordinated weekly publishing package for the week beginning {week_start_date}.\n\nEnsure the seven posts form a connected narrative without repeating the same opening, call to action, example, or sentence structure.\n\nOutput format:\n1. Weekly campaign title\n2. Weekly campaign summary\n3. Publishing table with day, theme, recommended platform, recommended format, primary hook, and call to action\n4. Final Monday content\n5. Final Tuesday content\n6. Final Wednesday content\n7. Final Thursday content\n8. Final Friday content\n9. Final Saturday content\n10. Final Sunday content\n11. Seven visual production prompts\n12. Seven short-form video scripts\n13. Weekly hashtag bank\n14. Asset checklist\n15. Contact and landing-page block\n\nStandardize all references to {business_name}, {school_partner}, {team_name}, {phone}, and {landing_page}. Preserve the approved daily themes while improving variety, clarity, and campaign flow."
+      },
+      {
+        "id": "11",
+        "type": "CHAIN",
+        "position": {
+          "x": 1080,
+          "y": 420
+        },
+        "label": "Brand and Compliance QA",
+        "prompt": "Review the complete weekly package above as a final brand editor, social media strategist, and insurance-marketing compliance checker.\n\nValidate the following:\n1. Every day has a distinct hook and purpose.\n2. The weekly narrative progresses logically.\n3. All contact information exactly matches {phone} and {landing_page}.\n4. The school and team references remain respectful and accurate.\n5. The partnership is not described beyond the information provided.\n6. No unsupported statistics, testimonials, guarantees, savings claims, policy claims, or financial outcomes appear.\n7. The content follows {compliance_notes}.\n8. All visual recommendations use only {approved_assets}.\n9. Calls to action consistently support {campaign_goal} and {offer}.\n10. Captions are clear, readable, and suitable for {platforms}.\n\nCorrect every issue you find. Return only the final approved weekly content package, followed by a brief section titled Final QA Notes that lists any statements requiring human legal, carrier, school, or brand approval before publication."
+      },
+      {
+        "id": "12",
+        "type": "END",
+        "position": {
+          "x": 1330,
+          "y": 420
+        }
+      }
+    ],
+    "edges": [
+      {
+        "sourceNode": "1",
+        "targetNode": "2"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "3"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "4"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "5"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "6"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "7"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "8"
+      },
+      {
+        "sourceNode": "2",
+        "targetNode": "9"
+      },
+      {
+        "sourceNode": "3",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "4",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "5",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "6",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "7",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "8",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "9",
+        "targetNode": "10"
+      },
+      {
+        "sourceNode": "10",
+        "targetNode": "11"
+      },
+      {
+        "sourceNode": "11",
+        "targetNode": "12"
+      }
+    ],
+    "state": {
+      "keys": [
+        {
+          "name": "week_start_date",
+          "type": "INPUT",
+          "values": [
+            ""
+          ]
+        },
+        {
+          "name": "business_name",
+          "type": "INPUT",
+          "values": [
+            "Lattimore Life & Legacy LLC"
+          ]
+        },
+        {
+          "name": "school_partner",
+          "type": "INPUT",
+          "values": [
+            "Pottsville Area High School"
+          ]
+        },
+        {
+          "name": "team_name",
+          "type": "INPUT",
+          "values": [
+            "Pottsville Crimson Tide"
+          ]
+        },
+        {
+          "name": "audience",
+          "type": "INPUT",
+          "values": [
+            "PAHS families, alumni, supporters, local businesses, and community members"
+          ]
+        },
+        {
+          "name": "campaign_goal",
+          "type": "INPUT",
+          "values": [
+            "Increase community awareness and generate appointments for family protection and legacy reviews"
+          ]
+        },
+        {
+          "name": "offer",
+          "type": "INPUT",
+          "values": [
+            "Schedule a complimentary protection and legacy review"
+          ]
+        },
+        {
+          "name": "phone",
+          "type": "INPUT",
+          "values": [
+            "717-615-2613"
+          ]
+        },
+        {
+          "name": "landing_page",
+          "type": "INPUT",
+          "values": [
+            "card.latimorelifelegacy.com/pahs"
+          ]
+        },
+        {
+          "name": "platforms",
+          "type": "INPUT",
+          "values": [
+            "Facebook, Instagram, LinkedIn, and short-form vertical video"
+          ]
+        },
+        {
+          "name": "brand_voice",
+          "type": "INPUT",
+          "values": [
+            "Confident, encouraging, family-centered, educational, community-minded, and professional"
+          ]
+        },
+        {
+          "name": "approved_assets",
+          "type": "INPUT",
+          "values": [
+            "Approved Lattimore Life & Legacy logo, approved Pottsville Crimson Tide partnership graphics, supplied football imagery, approved QR code, navy, gold, crimson, white, and black brand colors"
+          ]
+        },
+        {
+          "name": "compliance_notes",
+          "type": "INPUT",
+          "values": [
+            "Use general educational language, avoid guarantees and unsupported claims, do not provide individualized insurance or financial advice, and require human approval before publication"
+          ]
+        },
+        {
+          "name": "weekly_content_package",
+          "type": "OUTPUT",
+          "values": [
+            ""
+          ]
+        }
+      ]
+    }
+  }
+}
