@@ -112,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   name: 'Latimore Life & Legacy LLC',
                   description: 'Independent insurance agency serving Central PA families and employers.',
                   url: BASE_URL,
-                  telephone: '+17176152613',
+                  telephone: '+15709001977',
                   email: 'jackson1989@latimorelegacy.com',
                   founder: { '@type': 'Person', name: 'Jackson M. Latimore Sr.' },
                   areaServed: [

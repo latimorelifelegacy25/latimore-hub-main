@@ -59,7 +59,7 @@ async function readDatabaseTable(table: string, filter: Record<string, unknown> 
 
 const BUSINESS_KNOWLEDGE: Record<string, string> = {
   general:
-    'Latimore Life & Legacy LLC | PA DOI #1268820 | NIPR #21638507 | Territory: Schuylkill, Luzerne, Northumberland Counties, PA | GFI Affiliation | Founder: Jackson M. Latimore Sr. | Phone: 717-615-2613.',
+    'Latimore Life & Legacy LLC | PA DOI #1268820 | NIPR #21638507 | Territory: Schuylkill, Luzerne, Northumberland Counties, PA | GFI Affiliation | Founder: Jackson M. Latimore Sr. | Phone: 570-900-1977.',
   'north american company':
     'North American Company for Life and Health — IUL and fixed annuity carrier appointment. Confirm current product guides and rate sheets with the carrier portal before quoting; this tool does not have live rate data.',
   'corebridge financial':
