@@ -106,7 +106,7 @@ wrangler secret put TWILIO_AUTH_TOKEN
 # Enter: [your twilio auth token]
 
 wrangler secret put TWILIO_PHONE_NUMBER
-# Enter: +17176152613
+# Enter: +15709001977
 
 wrangler secret put WORKER_SECRET
 # Enter: [generate a random 32-char secret]
@@ -167,7 +167,7 @@ ANTHROPIC_API_KEY=sk-ant-[your key]  # optional
 RESEND_API_KEY=re_[your key]
 TWILIO_ACCOUNT_SID=AC[your sid]
 TWILIO_AUTH_TOKEN=[your token]
-TWILIO_PHONE_NUMBER=+17176152613
+TWILIO_PHONE_NUMBER=+15709001977
 
 # Analytics
 NEXT_PUBLIC_GA4_ID=G-S0Q3E4DEBJ
@@ -383,7 +383,7 @@ Use UptimeRobot (free) or Better Uptime:
 ## Support
 
 **Jackson M. Latimore Sr., MBA**  
-📞 (717) 615-2613  
+📞 (570) 900-1977  
 📧 Jackson1989@latimorelegacy.com  
 🌐 latimorelifelegacy.com  
 PA DOI #1268820 | NIPR #21638507  
