@@ -15,18 +15,36 @@
 -- run_due_crm_automations_sql and by service-role backend code, both
 -- unaffected -- postgres and service_role retain EXECUTE via their own
 -- direct grants, separate from the PUBLIC grant being revoked here.
-REVOKE EXECUTE ON FUNCTION public.create_crm_task_once(text, text, text, text, text, timestamptz, text, jsonb) FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.run_due_crm_automations_sql() FROM PUBLIC;
+--
+-- Every step below is guarded on the target object existing: these
+-- functions/view were created by migrations applied directly to the
+-- production project and not fully mirrored as files under
+-- supabase/migrations/, so a fresh database built from just this repo's
+-- tracked migrations (e.g. the Supabase Preview branch this PR spins up)
+-- won't have them yet. Guarding keeps this migration a no-op there instead
+-- of failing, while still applying cleanly against production.
+DO $$
+BEGIN
+  IF to_regprocedure('public.create_crm_task_once(text, text, text, text, text, timestamptz, text, jsonb)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.create_crm_task_once(text, text, text, text, text, timestamptz, text, jsonb) FROM PUBLIC';
+    EXECUTE 'ALTER FUNCTION public.create_crm_task_once(text, text, text, text, text, timestamptz, text, jsonb) SET search_path = public, pg_temp';
+  END IF;
 
--- Pin search_path on SECURITY DEFINER (and other) functions so a caller
--- can't shadow an unqualified identifier by creating a same-named object
--- earlier in their session's search_path.
-ALTER FUNCTION public.create_crm_task_once(text, text, text, text, text, timestamptz, text, jsonb) SET search_path = public, pg_temp;
-ALTER FUNCTION public.run_due_crm_automations_sql() SET search_path = public, pg_temp;
-ALTER FUNCTION public.touch_updated_at() SET search_path = public, pg_temp;
+  IF to_regprocedure('public.run_due_crm_automations_sql()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.run_due_crm_automations_sql() FROM PUBLIC';
+    EXECUTE 'ALTER FUNCTION public.run_due_crm_automations_sql() SET search_path = public, pg_temp';
+  END IF;
 
--- funnel_daily_performance was created SECURITY DEFINER, so it queried
--- "events" with the view owner's privileges rather than the querying role's.
--- Switch to SECURITY INVOKER (PG15+) so it respects the querying role's own
--- RLS/grants instead.
-ALTER VIEW public.funnel_daily_performance SET (security_invoker = true);
+  -- touch_updated_at: mutable-search_path fix only, no EXECUTE grant to touch.
+  IF to_regprocedure('public.touch_updated_at()') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION public.touch_updated_at() SET search_path = public, pg_temp';
+  END IF;
+
+  -- funnel_daily_performance was created SECURITY DEFINER, so it queried
+  -- "events" with the view owner's privileges rather than the querying
+  -- role's. Switch to SECURITY INVOKER (PG15+) so it respects the querying
+  -- role's own RLS/grants instead.
+  IF to_regclass('public.funnel_daily_performance') IS NOT NULL THEN
+    EXECUTE 'ALTER VIEW public.funnel_daily_performance SET (security_invoker = true)';
+  END IF;
+END $$;
