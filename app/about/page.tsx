@@ -114,7 +114,7 @@ export default function AboutPage() {
             {[
               { icon: <BadgeCheck size={32} color={navy} />, title: 'Licensed in Pennsylvania', body: 'PA DOI License #1268820 | NIPR #21638507 — Independent contractor. I work for you, not a captive company.' },
               { icon: <GraduationCap size={32} color={navy} />, title: 'MBA — American InterContinental University', body: 'Master of Business Administration (2026). Also holds an MS in Management & Leadership with Public Administration concentration from East Stroudsburg University.' },
-              { icon: <FileText size={32} color={navy} />, title: 'Political Science & Public Admin', body: 'B.S. Political Science. Background in Social Security paralegal work and home health aide services — I understand real families.' },
+              { icon: <FileText size={32} color={navy} />, title: 'Political Science & Public Admin', body: 'B.A. Political Science, Pre-Law Concentration — East Stroudsburg University. Background in Social Security paralegal work and home health aide services — I understand real families.' },
               { icon: '', title: 'Affiliated with Global Financial Impact', body: 'Independent contractor operating under GFI — giving me access to top-tier carriers without the limitations of captive agents.' },
               { icon: '', title: 'Youth Sports Coach', body: 'Active coach in Schuylkill County. Community is everything. I serve the same families I root for on the sidelines.' },
               { icon: '', title: 'Cardiac Arrest Survivor', body: 'Survived sudden cardiac arrest at age 22. This isn\'t a job — it\'s a calling born from personal experience with life\'s fragility.' },
