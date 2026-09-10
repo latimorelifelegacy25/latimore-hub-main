@@ -13,12 +13,9 @@ const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 export const metadata: Metadata = {
   title: 'Latimore Life & Legacy | Education-First Insurance Protection',
   description:
-    'Clear, education-first life insurance, annuity, and legacy planning guidance for Schuylkill, Luzerne, and Northumberland County families.',
+    'Clear, education-first life insurance, annuity, and financial-protection guidance for families across Schuylkill, Luzerne, and Northumberland Counties.',
   alternates: { canonical: '/' },
 }
-
-
-
 
 export default function HomePage() {
   return (
@@ -35,9 +32,9 @@ export default function HomePage() {
                 Life Insurance & Financial Protection for Central Pennsylvania Families
               </h1>
               <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem', lineHeight: 1.7, maxWidth: '65ch' }}>
-                Serving <strong>Schuylkill, Luzerne & Northumberland Counties</strong> with education-first strategies for life insurance, annuities, and legacy planning.
+                Serving <strong>Schuylkill, Luzerne & Northumberland Counties</strong> with education-first strategies for life insurance, annuities, and legacy protection.
               </p>
-              
+
               <div style={{ background: 'rgba(229,200,130,0.15)', borderLeft: `4px solid ${goldLight}`, padding: '16px 18px', borderRadius: 14, margin: '1.5rem 0', fontStyle: 'italic' }}>
                 "December 7, 2010 — an AED saved my life at ESU's Koehler Fieldhouse. That second chance became a mission: helping families protect what matters most."
               </div>
@@ -48,18 +45,18 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA', '560K+ Residents in Our Service Area'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA · MS', '560K+ Residents in Our Service Area'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
             </div>
 
             <div>
-              <Image src="/jackson-library.jpg" alt="Jackson M. Latimore Sr. — Independent Insurance Consultant" width={900} height={600} priority sizes="(max-width: 960px) 100vw, 50vw" style={{ width: '100%', borderRadius: 18, boxShadow: '0 14px 40px rgba(0,0,0,0.3)', objectFit: 'cover', maxHeight: 500, height: 'auto' }} />
+              <Image src="/jackson-library.jpg" alt="Jackson M. Latimore Sr. — Independent Life, Health, Accident and Annuities Broker" width={900} height={600} priority sizes="(max-width: 960px) 100vw, 50vw" style={{ width: '100%', borderRadius: 18, boxShadow: '0 14px 40px rgba(0,0,0,0.3)', objectFit: 'cover', maxHeight: 500, height: 'auto' }} />
               <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '1.5rem', borderRadius: 14, marginTop: '1rem', textAlign: 'center' }}>
                 <h3 style={{ color: goldLight, marginBottom: '0.5rem', fontSize: '1.3rem' }}>Jackson M. Latimore Sr.</h3>
                 <p style={{ color: 'rgba(255,255,255,0.8)', margin: '0.25rem 0', fontSize: '0.95rem' }}>Founder & CEO</p>
-                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', margin: '0.25rem 0' }}>Independent Insurance Consultant</p>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', margin: '0.25rem 0' }}>Independent Life, Health, Accident & Annuities Broker</p>
               </div>
             </div>
           </div>
@@ -71,7 +68,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.5rem,2.5vw,2rem)', color: navy, margin: '0 0 1rem' }}>Our Mission</h2>
           <p style={{ fontSize: '1.15rem', color: '#475467', maxWidth: '80ch', margin: '0 auto', lineHeight: 1.8 }}>
-            We don't just sell insurance — we educate, prepare, and protect. Every client conversation starts with understanding your goals, your family, and your future. Then we build strategies that work.
+            We don't just sell insurance — we educate, prepare, and protect. Every client conversation starts with understanding your goals, your family, and your future. Then we build insurance and protection strategies around those needs.
           </p>
         </div>
       </section>
@@ -89,7 +86,7 @@ export default function HomePage() {
                 icon: '📈',
                 color: '#e8f4fd',
                 border: '#bee3f8',
-                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Roth & Traditional IRAs', 'College Education Funding']
+                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
               },
               {
                 title: 'Protection & Risk',
@@ -103,7 +100,7 @@ export default function HomePage() {
                 icon: '🏛️',
                 color: '#f0fdf4',
                 border: '#bbf7d0',
-                items: ['Estate & Wealth Transfer', 'Business Continuity Planning', 'Retirement Income Strategies', 'Debt Elimination']
+                items: ['Estate & Wealth Transfer Coordination', 'Business Continuity Planning', 'Retirement Income Strategies', 'Debt Education']
               }
             ].map(({ title, icon, color, border, items }) => (
               <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, padding: '1.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
@@ -131,7 +128,7 @@ export default function HomePage() {
       <section style={{ padding: '4rem 0', background: '#f9fafb' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 2.5rem', textAlign: 'center' }}>Why Families Choose {BRAND.name}</h2>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }} className="grid-2">
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Education-First Approach</h3>
@@ -143,21 +140,21 @@ export default function HomePage() {
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Local & Independent</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                Born and raised in Pennsylvania. Serving the tri-county area with unbiased advice. No corporate quotas — just honest recommendations based on your needs.
+                Born and raised in Pennsylvania. Serving the tri-county area with independent insurance guidance. No captive-company product quota — recommendations are based on your protection needs and available carrier options.
               </p>
             </div>
 
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Carrier Diversity</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can shop the market to find the right fit for your family's needs and budget.
+                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can compare available options to find an appropriate fit for your family's needs and budget.
               </p>
             </div>
 
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Lifetime Support</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                We don't disappear after the sale. Annual reviews, claims assistance, policy adjustments — we're with you for the long haul. Your success is our success.
+                We don't disappear after the sale. Annual reviews, claims assistance, and policy adjustments remain part of the relationship as your protection needs change.
               </p>
             </div>
           </div>
@@ -169,7 +166,7 @@ export default function HomePage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 1rem' }}>Proudly Serving Central Pennsylvania</h2>
           <p style={{ fontSize: '1.1rem', color: '#475467', marginBottom: '2rem' }}>
-            560,000+ residents across three counties trust local advisors like {BRAND.name} for their protection needs.
+            Serving a three-county Central Pennsylvania region of more than 560,000 residents.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginTop: '2rem' }} className="stats-grid">
@@ -193,9 +190,9 @@ export default function HomePage() {
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.8rem,3vw,2.5rem)', margin: '0 0 1rem' }}>Ready to Protect Your Family's Future?</h2>
           <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.85)', marginBottom: '2rem', lineHeight: 1.7 }}>
-            Book a free consultation or get an instant quote in minutes. No pressure, just honest education and guidance.
+            Book a free consultation or get an instant quote in minutes. No pressure, just insurance education and protection guidance.
           </p>
-          
+
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem' }} className="btn-hover">Book Free Consultation</a>
             <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
@@ -222,16 +219,34 @@ export default function HomePage() {
       </section>
 
       {/* Community Sponsorship */}
-      <section style={{ padding: '3rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
-          <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
-          <Image
-            src="/pahs-sponsor-flyer.png"
-            alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
-            width={560}
-            height={700}
-            style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 12px 36px rgba(0,0,0,0.12)' }}
-          />
+      <section style={{ padding: '4rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
+          <div className="sponsor-feature" style={{ display: 'grid', gridTemplateColumns: '.9fr 1.1fr', overflow: 'hidden', borderRadius: 24, background: navy, boxShadow: '0 18px 50px rgba(14,26,43,0.18)' }}>
+            <div style={{ position: 'relative', minHeight: 430 }}>
+              <Image
+                src="/jackson-founder-photo.jpg"
+                alt="Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC"
+                fill
+                sizes="(max-width: 960px) 100vw, 45vw"
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+              />
+            </div>
+            <div style={{ padding: 'clamp(2rem,4vw,3.5rem)', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <Image src="/pahs-tide-logo.png" alt="Pottsville Area Crimson Tide" width={72} height={72} style={{ objectFit: 'contain' }} />
+                <span style={{ color: goldLight, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontSize: '.82rem' }}>Proud All-Star Sponsor</span>
+              </div>
+              <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={520} height={210} sizes="(max-width: 960px) 90vw, 45vw" style={{ width: '100%', maxWidth: 520, height: 'auto', objectFit: 'contain', objectPosition: 'left center', marginBottom: '1.5rem' }} />
+              <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.8rem)', lineHeight: 1.12, margin: '0 0 1rem' }}>Protect What Matters Most.</h2>
+              <p style={{ color: 'rgba(255,255,255,0.82)', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 1.5rem' }}>
+                Supporting Pottsville Area football while giving Coal Region families a direct path to education-first insurance protection.
+              </p>
+              <p style={{ color: goldLight, fontWeight: 700, margin: '0 0 1.5rem' }}>{BRAND.phone} · {BRAND.tagline}</p>
+              <div>
+                <Link href="/pahs" style={{ display: 'inline-block', background: gold, color: navy, padding: '13px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }} className="btn-hover">Explore the PAHS Campaign</Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -243,7 +258,7 @@ export default function HomePage() {
           transition: transform .18s ease;
         }
         @media (max-width: 960px) {
-          .hero-grid, .grid-3, .grid-2 { grid-template-columns: 1fr !important; }
+          .hero-grid, .grid-3, .grid-2, .sponsor-feature { grid-template-columns: 1fr !important; }
           .stats-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>

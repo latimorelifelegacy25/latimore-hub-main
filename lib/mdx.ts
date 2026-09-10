@@ -85,9 +85,11 @@ export function getPostBySlug(slug: string): Post {
   }
 
   const stats = readingTime(content)
+  const frontmatter = data as PostFrontmatter
   return {
     slug,
-    ...(data as PostFrontmatter),
+    ...frontmatter,
+    excerpt: frontmatter.excerpt ?? frontmatter.description ?? '',
     readingTime: stats.text,
     content,
   }

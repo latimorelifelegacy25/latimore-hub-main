@@ -151,7 +151,7 @@ export function SiteFooter({ navLinks = DEFAULT_NAV_LINKS }: { navLinks?: readon
               {BRAND.fullName}
             </h4>
             <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '0.9rem', lineHeight: 1.7 }}>
-              Independent Insurance Advisor
+              Independent Life, Health, Accident &amp; Annuities Broker
               <br />
               {BRAND.affiliation}
             </p>
