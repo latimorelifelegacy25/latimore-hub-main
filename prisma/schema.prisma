@@ -503,10 +503,28 @@ model MarketingContent {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // Content Repository fields (link/doc import + article composer)
+  sourceUrl     String? // external URL for links, Blob URL for uploaded files, or internal article path
+  domain        String? // display line: hostname, "Uploaded · 2.4 MB", or "Authored · Category"
+  utmMedium     String?
+  utmContent    String?
+  author        String? // display byline ("by")
+  category      String? // article category id
+  coverImageUrl String? // article cover image (Vercel Blob URL)
+  slug          String?
+  fileName      String?
+  fileSizeBytes Int?
+  scheduledFor  DateTime?
+  publishedAt   DateTime?
+  deployId      String?
+  deployStatus  String?
+  deployUrl     String?
+
   @@index([status])
   @@index([type])
   @@index([campaign])
   @@index([createdAt])
+  @@index([slug])
 }
 
 model CalendarConnection {
