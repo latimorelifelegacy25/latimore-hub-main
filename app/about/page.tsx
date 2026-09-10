@@ -21,7 +21,7 @@ export default function AboutPage() {
           <div>
             <p style={{ color: '#E5C882', fontWeight: 600, marginBottom: '0.5rem', letterSpacing: 2, fontSize: '0.85rem', textTransform: 'uppercase' }}>About Jackson</p>
             <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', marginBottom: '1.5rem', lineHeight: 1.2 }}>
-              Father. Survivor.<br /><span style={{ color: '#E5C882' }}>Your Trusted Advisor.</span>
+              Father. Survivor.<br /><span style={{ color: '#E5C882' }}>Independent Insurance Professional.</span>
             </h1>
             <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.85)', lineHeight: 1.8, marginBottom: '1.5rem' }}>
               I didn't get into insurance to sell policies. I got into it because I know firsthand that life can change in a single heartbeat — and most families aren't prepared when it does.
@@ -88,10 +88,10 @@ export default function AboutPage() {
               Rooted in the <span style={{ color: '#E5C882' }}>Community I Serve</span>
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.85)', lineHeight: 1.9, fontSize: '1.05rem', marginBottom: '1.25rem' }}>
-              I coach youth baseball in Frackville through the Black Diamond program. The same kids I coach on the diamond are the ones whose families I help protect with life insurance and financial planning.
+              I coach youth baseball in Frackville through the Black Diamond program. The same kids I coach on the diamond are the ones whose families I help protect with life insurance and financial protection strategies.
             </p>
             <p style={{ color: 'rgba(255,255,255,0.75)', lineHeight: 1.9, fontSize: '1rem' }}>
-              When I sit across from a client, I'm not just their advisor — I'm their neighbor. That changes everything about how I work.
+              When I sit across from a client, I'm not just their insurance professional — I'm their neighbor. That changes everything about how I work.
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -112,10 +112,10 @@ export default function AboutPage() {
           <h2 style={{ textAlign: 'center', fontSize: 'clamp(1.8rem,4vw,2.3rem)', color: '#0E1A2B', marginBottom: '3rem' }}>Credentials & Background</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }} className="creds-grid">
             {[
-              { icon: <BadgeCheck size={32} color={navy} />, title: 'Licensed in Pennsylvania', body: 'PA DOI License #1268820 | NIPR #21638507 — Independent contractor. I work for you, not a captive company.' },
-              { icon: <GraduationCap size={32} color={navy} />, title: 'MBA — American InterContinental University', body: 'Master of Business Administration (2026). Also holds an MS in Management & Leadership with Public Administration concentration from East Stroudsburg University.' },
-              { icon: <FileText size={32} color={navy} />, title: 'Political Science & Public Admin', body: 'B.A. Political Science, Pre-Law Concentration — East Stroudsburg University. Background in Social Security paralegal work and home health aide services — I understand real families.' },
-              { icon: '', title: 'Affiliated with Global Financial Impact', body: 'Independent contractor operating under GFI — giving me access to top-tier carriers without the limitations of captive agents.' },
+              { icon: <BadgeCheck size={32} color={navy} />, title: 'Licensed in Pennsylvania', body: 'PA DOI License #1268820 | NIPR #21638507 — Independent contractor and non-captive insurance professional.' },
+              { icon: <GraduationCap size={32} color={navy} />, title: 'MBA & MPA', body: 'Master of Business Administration (2026) — American InterContinental University. Master of Public Administration — East Stroudsburg University.' },
+              { icon: <FileText size={32} color={navy} />, title: 'Political Science — Pre-Law', body: 'B.A. Political Science, Pre-Law Concentration — East Stroudsburg University. Background in Social Security paralegal work and home health aide services.' },
+              { icon: '', title: 'Affiliated with Global Financial Impact', body: 'Independent contractor operating under GFI — providing access to multiple insurance carriers without the limitations of a captive agency model.' },
               { icon: '', title: 'Youth Sports Coach', body: 'Active coach in Schuylkill County. Community is everything. I serve the same families I root for on the sidelines.' },
               { icon: '', title: 'Cardiac Arrest Survivor', body: 'Survived sudden cardiac arrest at age 22. This isn\'t a job — it\'s a calling born from personal experience with life\'s fragility.' },
             ].map((c, i) => (
@@ -149,7 +149,7 @@ export default function AboutPage() {
       <section style={{ background: 'linear-gradient(135deg, #C9A24D 0%, #E5C882 100%)', padding: '4rem 0', textAlign: 'center' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontSize: 'clamp(1.8rem,4vw,2.3rem)', color: '#0E1A2B', marginBottom: '1rem' }}>Ready to Work with Jackson?</h2>
-          <p style={{ fontSize: '1.1rem', color: '#0E1A2B', marginBottom: '2rem' }}>No pressure. No jargon. Just honest guidance built around your family's needs.</p>
+          <p style={{ fontSize: '1.1rem', color: '#0E1A2B', marginBottom: '2rem' }}>No pressure. No jargon. Just insurance education and protection guidance built around your family's needs.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={BRAND.bookingUrl} target="_blank" rel="noopener noreferrer"
               style={{ background: '#0E1A2B', color: '#fff', padding: '1rem 2rem', borderRadius: 5, fontWeight: 700, textDecoration: 'none', fontSize: '1rem' }}>
