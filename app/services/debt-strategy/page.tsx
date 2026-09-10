@@ -2,110 +2,111 @@ import type { Metadata } from 'next'
 import { ServiceLandingPage, type ServiceLandingContent } from '../_components/landing-template'
 
 export const metadata: Metadata = {
-  title: 'Strategic Debt Action Plan | Latimore Life & Legacy',
+  title: 'Debt Education & Cash-Flow Review | Latimore Life & Legacy',
   description:
-    'A free Financial Home Makeover that audits your debt, insurance, and cash flow — then builds a Strategic Debt Action Plan to redirect toxic interest into lasting wealth.',
+    'Insurance-focused review of debt pressure, cash flow, and existing coverage. Understand protection priorities and policy-loan mechanics without debt-settlement or credit-repair promises.',
 }
 
 const content: ServiceLandingContent = {
   path: '/services/debt-strategy',
-  eyebrow: 'Cash Flow & Debt Elimination',
+  eyebrow: 'Cash Flow & Protection Review',
   heroTitle: (
     <>
-      Strategic Debt
+      Debt &amp; Cash-Flow
       <br />
-      <span style={{ color: '#E5C882' }}>Action Plan</span>
+      <span style={{ color: '#E5C882' }}>Protection Review</span>
     </>
   ),
   heroSubtitle:
-    'A free Financial Home Makeover that turns high-interest debt into the foundation of your long-term wealth.',
+    'An education-first review of how debt obligations interact with emergency savings and insurance protection — without promising debt elimination or credit outcomes.',
   solvesIntro:
-    'High-interest debt acts as an anchor holding back long-term wealth accumulation. Our Strategic Debt Action Plan uses smart cash flow mechanics and specific insurance tools to systematically redirect toxic interest margins back into your personal household.',
+    'High-interest debt can strain household cash flow and make it harder to maintain emergency reserves and essential insurance coverage. Latimore Life & Legacy reviews the insurance side of that equation: protection gaps, existing policy features, and the potential consequences of loans or withdrawals. We do not provide debt settlement, credit repair, lending, or investment advice.',
   solvesColumns: [
     {
-      heading: 'Traditional Debt Pitfalls',
+      heading: 'Common Cash-Flow Pressure Points',
       items: [
-        'High compounding interest on credit cards and medical accounts eating your savings',
-        'Paying recurring bank charges, maintenance minimums, and hidden transaction fees',
-        'Making minimum payments that take decades to pay off your baseline principal',
-        'Fragmented financial products that conflict with your long-term protection goals',
+        'High-interest consumer debt reducing the amount available for emergency savings and protection',
+        'Minimum-payment obligations that limit monthly financial flexibility',
+        'Insufficient emergency reserves creating greater dependence on credit after an unexpected expense',
+        'Insurance coverage or premiums that no longer fit the household budget or current protection need',
       ],
     },
     {
-      heading: 'Strategic Debt Action Layout',
+      heading: 'Insurance & Protection Review',
       items: [
-        'Consolidating liabilities via customized financial tools carrying low 0–5% baseline loan rates',
-        'Isolating gaps, overlapping products, and inefficiencies through a deep policy checkup',
-        'Acquiring early access to tax-advantaged cash value accounts to clear commercial debt',
-        'Turning toxic outlays into compounding retirement assets you own completely',
+        'Prioritize essential household protection and emergency-reserve needs before considering additional insurance funding',
+        'Review existing life-insurance coverage, beneficiaries, premiums, and available policy features',
+        'If an existing permanent policy has cash value, explain how policy loans or withdrawals work and what they can cost',
+        'Identify debt, tax, legal, or credit questions that should be taken to the appropriate qualified professional',
       ],
     },
   ],
-  whoIntro: 'A custom Financial Makeover is ideal for:',
+  whoIntro: 'A debt and protection review may be useful for:',
   whoCards: [
     {
-      title: 'Over-Leveraged Households',
+      title: 'Households Under Debt Pressure',
       description:
-        'Families working hard to balance standard living expenses against aggressive card structures or high consumer balances.',
+        'Families balancing debt payments, emergency savings, and the need to keep essential life-insurance protection affordable.',
     },
     {
-      title: 'Fragmented Planners',
+      title: 'Permanent Policyholders',
       description:
-        'Individuals with disconnected accounts scattered across old companies who need to maximize efficiency.',
+        'Clients who already own cash-value life insurance and want to understand policy-loan, withdrawal, interest, and lapse consequences before using policy value.',
     },
     {
-      title: 'Wealth-Building Trainees',
-      description: 'Anyone who wants an honest financial blueprint to eliminate debt and stop wealth erosion.',
+      title: 'Families Building a Protection Base',
+      description:
+        'Households that want a clear order of operations for emergency savings, debt priorities, and insurance protection without a product-first sales pitch.',
     },
   ],
   howItWorks: [
     {
-      title: 'Financial Home Makeover',
+      title: 'Household Protection Review',
       description:
-        'We audit your existing outlays, open debt positions, and mismatched insurance accounts to find wasted capital leaks.',
+        'We review your current life-insurance coverage, major household obligations, emergency-reserve position, and the people who depend on your income.',
     },
     {
-      title: 'Restructuring Blueprint',
+      title: 'Policy Mechanics Education',
       description:
-        'We build a prioritized Debt Action Plan that shifts high-interest lines into efficient wealth structures.',
+        'If you own permanent life insurance, we explain available cash value, loan interest, withdrawals, surrender provisions, and how accessing policy value can affect coverage.',
     },
     {
-      title: 'Legacy Redirection',
+      title: 'Priorities & Professional Referrals',
       description:
-        'We clean up your cash flow to accelerate debt elimination, protecting your family and building lasting savings.',
+        'We identify insurance actions within our licensed scope and flag debt-management, tax, credit, or legal issues that should be handled by the appropriate qualified professional.',
     },
   ],
   faqs: [
     {
-      question: 'What exactly is a Financial Home Makeover Analysis?',
+      question: 'What is a Debt & Cash-Flow Protection Review?',
       answer:
-        'It is a comprehensive review of your active coverage, savings accounts, and payment lines to identify overlaps and clear up your cash flow.',
+        'It is a free educational review of your household obligations, existing life-insurance protection, emergency-reserve pressure, and any relevant policy features. It is not a debt-settlement, credit-repair, lending, or investment-management service.',
     },
     {
-      question: 'How do permanent insurance products interact with debt management?',
+      question: 'Can permanent life insurance cash value be used to address debt?',
       answer:
-        'Certain permanent life insurance policies accumulate tax-advantaged cash value that can be accessed early via low-interest policy loans to pay off high-interest debt.',
+        'Some permanent life-insurance policies allow loans or withdrawals from available cash value. That does not make borrowing automatically appropriate. Policy loans accrue interest, reduce available cash value and death benefits, and can create tax consequences if a policy lapses or is surrendered. Modified Endowment Contract rules may also change tax treatment.',
     },
     {
-      question: 'Is this a debt settlement program that hurts my credit rating?',
+      question: 'Is this a debt settlement or credit repair program?',
       answer:
-        'No, this is a strategic asset reorganization and acceleration approach. We work to improve your overall cash flow structure without damaging your credit profile.',
+        'No. Latimore Life & Legacy LLC does not negotiate debts, promise reductions in balances or interest rates, repair credit, or guarantee credit-score outcomes. The service is limited to insurance education and protection planning within our licensed scope.',
     },
     {
-      question: 'What are the ongoing costs for this audit analysis?',
+      question: 'What does the review cost?',
       answer:
-        'Our initial Financial Home Makeover Analysis is provided as a free, educational service to help you find clarity with zero long-term pressure.',
+        'The initial educational insurance and protection review is free. If you later consider an insurance product, its premiums, charges, underwriting, policy terms, and suitability will be explained before you decide whether to apply.',
     },
   ],
   closingTitle: (
     <>
-      Turn Your Debt
+      Protect Cash Flow
       <br />
-      <span style={{ color: '#E5C882' }}>Into Your Legacy</span>
+      <span style={{ color: '#E5C882' }}>While You Address Debt</span>
     </>
   ),
   closingSubtitle:
-    'No pressure. No product quotas. Just an honest conversation about where your money is going and where it could be going instead.',
+    'No pressure. No debt-settlement promises. Just a clear insurance-focused review of protection needs, existing policy features, and the tradeoffs that matter.',
 }
 
 export default function DebtStrategyPage() {
