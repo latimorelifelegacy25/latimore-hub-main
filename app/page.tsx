@@ -17,9 +17,6 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 }
 
-
-
-
 export default function HomePage() {
   return (
     <>
@@ -37,7 +34,7 @@ export default function HomePage() {
               <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem', lineHeight: 1.7, maxWidth: '65ch' }}>
                 Serving <strong>Schuylkill, Luzerne & Northumberland Counties</strong> with education-first strategies for life insurance, annuities, and legacy protection.
               </p>
-              
+
               <div style={{ background: 'rgba(229,200,130,0.15)', borderLeft: `4px solid ${goldLight}`, padding: '16px 18px', borderRadius: 14, margin: '1.5rem 0', fontStyle: 'italic' }}>
                 "December 7, 2010 — an AED saved my life at ESU's Koehler Fieldhouse. That second chance became a mission: helping families protect what matters most."
               </div>
@@ -48,7 +45,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA · MPA', '560K+ Residents in Our Service Area'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA · MS', '560K+ Residents in Our Service Area'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -131,7 +128,7 @@ export default function HomePage() {
       <section style={{ padding: '4rem 0', background: '#f9fafb' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 2.5rem', textAlign: 'center' }}>Why Families Choose {BRAND.name}</h2>
-          
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }} className="grid-2">
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Education-First Approach</h3>
@@ -195,7 +192,7 @@ export default function HomePage() {
           <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.85)', marginBottom: '2rem', lineHeight: 1.7 }}>
             Book a free consultation or get an instant quote in minutes. No pressure, just insurance education and protection guidance.
           </p>
-          
+
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem' }} className="btn-hover">Book Free Consultation</a>
             <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
