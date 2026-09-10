@@ -219,16 +219,34 @@ export default function HomePage() {
       </section>
 
       {/* Community Sponsorship */}
-      <section style={{ padding: '3rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
-        <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
-          <p style={{ color: '#667085', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.8rem', marginBottom: '1.25rem' }}>Community Sponsorship</p>
-          <Image
-            src="/pahs-sponsor-flyer.png"
-            alt="Latimore Life & Legacy LLC — Official All-Star Sponsor of the Pottsville Area Crimson Tide"
-            width={560}
-            height={700}
-            style={{ width: '100%', height: 'auto', borderRadius: 18, boxShadow: '0 12px 36px rgba(0,0,0,0.12)' }}
-          />
+      <section style={{ padding: '4rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
+          <div className="sponsor-feature" style={{ display: 'grid', gridTemplateColumns: '.9fr 1.1fr', overflow: 'hidden', borderRadius: 24, background: navy, boxShadow: '0 18px 50px rgba(14,26,43,0.18)' }}>
+            <div style={{ position: 'relative', minHeight: 430 }}>
+              <Image
+                src="/jackson-founder-photo.jpg"
+                alt="Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC"
+                fill
+                sizes="(max-width: 960px) 100vw, 45vw"
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+              />
+            </div>
+            <div style={{ padding: 'clamp(2rem,4vw,3.5rem)', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <Image src="/pahs-tide-logo.png" alt="Pottsville Area Crimson Tide" width={72} height={72} style={{ objectFit: 'contain' }} />
+                <span style={{ color: goldLight, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontSize: '.82rem' }}>Proud All-Star Sponsor</span>
+              </div>
+              <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={520} height={210} sizes="(max-width: 960px) 90vw, 45vw" style={{ width: '100%', maxWidth: 520, height: 'auto', objectFit: 'contain', objectPosition: 'left center', marginBottom: '1.5rem' }} />
+              <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.8rem)', lineHeight: 1.12, margin: '0 0 1rem' }}>Protect What Matters Most.</h2>
+              <p style={{ color: 'rgba(255,255,255,0.82)', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 1.5rem' }}>
+                Supporting Pottsville Area football while giving Coal Region families a direct path to education-first insurance protection.
+              </p>
+              <p style={{ color: goldLight, fontWeight: 700, margin: '0 0 1.5rem' }}>{BRAND.phone} · {BRAND.tagline}</p>
+              <div>
+                <Link href="/pahs" style={{ display: 'inline-block', background: gold, color: navy, padding: '13px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }} className="btn-hover">Explore the PAHS Campaign</Link>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -240,7 +258,7 @@ export default function HomePage() {
           transition: transform .18s ease;
         }
         @media (max-width: 960px) {
-          .hero-grid, .grid-3, .grid-2 { grid-template-columns: 1fr !important; }
+          .hero-grid, .grid-3, .grid-2, .sponsor-feature { grid-template-columns: 1fr !important; }
           .stats-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
