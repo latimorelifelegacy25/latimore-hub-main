@@ -70,18 +70,11 @@ function ComparisonCard({ column, variant }: { column: ComparisonColumn; variant
   const Icon = variant === 'risk' ? X : Check
   return (
     <article className="bg-white rounded-xl shadow-md border border-black/5 p-6">
-      <h3 className="text-lg font-semibold mb-4" style={{ color: GOLD }}>
-        {column.heading}
-      </h3>
+      <h3 className="text-lg font-semibold mb-4" style={{ color: GOLD }}>{column.heading}</h3>
       <ul className="space-y-3">
         {column.items.map((item) => (
           <li key={item} className="flex gap-3 text-gray-700 text-sm leading-relaxed">
-            <Icon
-              size={16}
-              className="flex-shrink-0 mt-0.5"
-              style={{ color: variant === 'risk' ? '#94a3b8' : GOLD }}
-              aria-hidden="true"
-            />
+            <Icon size={16} className="flex-shrink-0 mt-0.5" style={{ color: variant === 'risk' ? '#94a3b8' : GOLD }} aria-hidden="true" />
             <span>{item}</span>
           </li>
         ))}
@@ -93,9 +86,7 @@ function ComparisonCard({ column, variant }: { column: ComparisonColumn; variant
 function InfoCard({ step }: { step: StepItem }) {
   return (
     <article className="bg-white rounded-xl shadow-md border border-black/5 p-6">
-      <h3 className="text-lg font-semibold mb-2" style={{ color: NAVY }}>
-        {step.title}
-      </h3>
+      <h3 className="text-lg font-semibold mb-2" style={{ color: NAVY }}>{step.title}</h3>
       <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
     </article>
   )
@@ -104,15 +95,10 @@ function InfoCard({ step }: { step: StepItem }) {
 function NumberedStepCard({ step, number }: { step: StepItem; number: number }) {
   return (
     <article className="bg-white rounded-xl shadow-md border border-black/5 p-6">
-      <div
-        className="flex items-center justify-center w-10 h-10 rounded-full font-extrabold mb-4"
-        style={{ background: NAVY, color: GOLD }}
-      >
+      <div className="flex items-center justify-center w-10 h-10 rounded-full font-extrabold mb-4" style={{ background: NAVY, color: GOLD }}>
         {number}
       </div>
-      <h3 className="text-lg font-semibold mb-2" style={{ color: NAVY }}>
-        {step.title}
-      </h3>
+      <h3 className="text-lg font-semibold mb-2" style={{ color: NAVY }}>{step.title}</h3>
       <p className="text-gray-700 text-sm leading-relaxed">{step.description}</p>
     </article>
   )
@@ -124,32 +110,19 @@ export function ServiceLandingPage({ content }: { content: ServiceLandingContent
       <SiteHeader currentPath={content.path} navLinks={DEFAULT_NAV_LINKS} />
 
       <main className="font-sans">
-        {/* Hero */}
-        <section
-          className="text-center text-white py-16"
-          style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_HERO} 100%)` }}
-        >
+        <section className="text-center text-white py-16" style={{ background: `linear-gradient(135deg, ${NAVY} 0%, ${NAVY_HERO} 100%)` }}>
           <div className="max-w-3xl mx-auto px-5">
-            <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: GOLD_LIGHT }}>
-              {content.eyebrow}
-            </p>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-5 leading-tight">
-              {content.heroTitle}
-            </h1>
+            <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: GOLD_LIGHT }}>{content.eyebrow}</p>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-5 leading-tight">{content.heroTitle}</h1>
             <p className="text-white/85 text-lg leading-relaxed mb-8">{content.heroSubtitle}</p>
             <CtaButtons centered large />
           </div>
         </section>
 
-        {/* What This Solves */}
         <section className="py-16 bg-gray-100">
           <div className="max-w-5xl mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-6" style={{ color: NAVY }}>
-              What This Solves
-            </h2>
-            <p className="text-gray-700 text-lg leading-relaxed text-center max-w-3xl mx-auto mb-10">
-              {content.solvesIntro}
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-6" style={{ color: NAVY }}>What This Solves</h2>
+            <p className="text-gray-700 text-lg leading-relaxed text-center max-w-3xl mx-auto mb-10">{content.solvesIntro}</p>
             <div className="grid md:grid-cols-2 gap-6">
               <ComparisonCard column={content.solvesColumns[0]} variant="risk" />
               <ComparisonCard column={content.solvesColumns[1]} variant="solution" />
@@ -157,39 +130,28 @@ export function ServiceLandingPage({ content }: { content: ServiceLandingContent
           </div>
         </section>
 
-        {/* Who It's For */}
         <section className="py-16" style={{ background: NAVY }}>
           <div className="max-w-5xl mx-auto px-5">
             <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-3">Who It&apos;s For</h2>
             <p className="text-white/75 text-lg text-center max-w-2xl mx-auto mb-10">{content.whoIntro}</p>
             <div className="grid md:grid-cols-3 gap-6">
-              {content.whoCards.map((card) => (
-                <InfoCard key={card.title} step={card} />
-              ))}
+              {content.whoCards.map((card) => <InfoCard key={card.title} step={card} />)}
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
         <section className="py-16 bg-gray-100">
           <div className="max-w-5xl mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: NAVY }}>
-              How It Works: 3 Steps
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: NAVY }}>How It Works: 3 Steps</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              {content.howItWorks.map((step, i) => (
-                <NumberedStepCard key={step.title} step={step} number={i + 1} />
-              ))}
+              {content.howItWorks.map((step, i) => <NumberedStepCard key={step.title} step={step} number={i + 1} />)}
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
         <section className="py-16" style={{ background: NAVY }}>
           <div className="max-w-3xl mx-auto px-5">
-            <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">
-              Frequently Asked Questions
-            </h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-10">Frequently Asked Questions</h2>
             <div className="space-y-6">
               {content.faqs.map((faq) => (
                 <div key={faq.question} className="rounded-xl p-6 border border-white/10" style={{ background: 'rgba(255,255,255,0.05)' }}>
@@ -201,18 +163,21 @@ export function ServiceLandingPage({ content }: { content: ServiceLandingContent
           </div>
         </section>
 
-        {/* Closing CTA */}
-        <section
-          className="py-16 text-center text-white"
-          style={{ background: `linear-gradient(135deg, ${NAVY_HERO} 0%, ${NAVY} 100%)` }}
-        >
+        <section className="py-16 text-center text-white" style={{ background: `linear-gradient(135deg, ${NAVY_HERO} 0%, ${NAVY} 100%)` }}>
           <div className="max-w-2xl mx-auto px-5">
-            <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD_LIGHT }}>
-              Ready to Start?
-            </p>
+            <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: GOLD_LIGHT }}>Ready to Start?</p>
             <h2 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">{content.closingTitle}</h2>
             <p className="text-white/75 text-lg mb-8 leading-relaxed">{content.closingSubtitle}</p>
             <CtaButtons centered large />
+          </div>
+        </section>
+
+        <section className="bg-[#060D1B] border-t border-white/5 py-8 px-5">
+          <div className="max-w-4xl mx-auto">
+            <p className="text-xs text-white/45 leading-relaxed text-center">
+              <strong className="text-white/60 font-semibold">Important:</strong>{' '}
+              Insurance-product guarantees are subject to contract terms and the claims-paying ability of the issuing insurer. Indexed products do not directly invest in a market index. Caps, participation rates, spreads, charges, loans, withdrawals, surrender schedules, and optional rider costs can affect results. Tax treatment depends on applicable law and individual circumstances. Policy loans and withdrawals reduce cash value and death benefits and may create tax consequences. Estate documents, debt restructuring, tax matters, and financial-aid rules may require qualified legal, tax, credit, plan-administration, or other professionals. Latimore Life &amp; Legacy LLC provides insurance education and licensed insurance services, not legal, tax, securities, investment, or debt-settlement advice.
+            </p>
           </div>
         </section>
       </main>
