@@ -12,16 +12,9 @@ export const metadata = {
 
 const commandCenterLinks = [
   {
-    title: 'Content Composer',
-    description:
-      'Draft campaign copy with metadata, previews, and one-click repository saving.',
-    href: '/admin/marketing/composer',
-    cta: 'Open Content Composer →',
-  },
-  {
     title: 'Content Repository',
     description:
-      'Create, store, and manage all content assets for campaigns, social, email, and landing pages.',
+      'Import links & documents or write articles, tag everything with UTMs, and publish straight to latimorelifelegacy.com.',
     href: '/admin/marketing/repository',
     cta: 'Open Content Repository →',
   },
