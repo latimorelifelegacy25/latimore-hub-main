@@ -28,7 +28,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <img src="/jackson-blue.jpg" alt="Jackson M. Latimore Sr." style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', objectFit: 'cover', objectPosition: 'center 15%', height: 480 }} />
+            <img src="/jackson-founder-photo.jpg" alt="Jackson M. Latimore Sr." style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', objectFit: 'cover', objectPosition: 'center 15%', height: 480 }} />
           </div>
         </div>
         <style>{`@media(max-width:768px){.about-grid{grid-template-columns:1fr !important;}}`}</style>
