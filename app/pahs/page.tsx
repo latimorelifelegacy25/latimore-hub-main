@@ -189,22 +189,26 @@ export default function PAHSPage() {
       <section className="pahs-flyer" id="flyer">
         <div className="pahs-flyer-inner">
           <div className="section-label gold-label">Proud All-Star Sponsor</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px,.85fr) minmax(0,1.15fr)', background: '#0E1A2B', borderRadius: 24, overflow: 'hidden', boxShadow: '0 18px 50px rgba(0,0,0,.18)', maxWidth: 1100, margin: '1rem auto 0' }} className="pahs-live-sponsor-card">
-            <div style={{ minHeight: 420, backgroundImage: "url('/jackson-founder-photo.jpg')", backgroundSize: 'cover', backgroundPosition: 'center top' }} role="img" aria-label="Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC" />
-            <div style={{ padding: 'clamp(2rem,5vw,4rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'left', color: '#fff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <img src="/pahs-tide-logo.png" alt="Pottsville Area Crimson Tide" style={{ width: 72, height: 72, objectFit: 'contain' }} />
-                <span style={{ color: '#E5C882', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', fontSize: '.82rem' }}>Pottsville Area Football · 2026</span>
-              </div>
-              <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" style={{ width: '100%', maxWidth: 500, height: 'auto', objectFit: 'contain', objectPosition: 'left center', marginBottom: '1.5rem' }} />
-              <h2 style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.08, margin: '0 0 1rem' }}>Protect What Matters Most.</h2>
-              <p style={{ color: 'rgba(255,255,255,.82)', lineHeight: 1.75, fontSize: '1.05rem', margin: '0 0 1.25rem' }}>
-                Education-first life insurance and protection guidance for families across Schuylkill, Luzerne, and Northumberland Counties.
-              </p>
-              <p style={{ color: '#E5C882', fontWeight: 800, fontSize: '1.05rem', margin: '0 0 1.5rem' }}>{BRAND.phone} · Protecting Today. Securing Tomorrow.</p>
-              <div>
-                <button type="button" onClick={scrollToReview} className="pahs-button pahs-button--primary">Start Free Protection Review</button>
-              </div>
+          <img
+            className="pahs-flyer-image"
+            src="/pahs-all-star-sponsor.webp"
+            alt="Latimore Life & Legacy LLC — Proud PAHS All-Star Sponsor"
+            decoding="async"
+            fetchPriority="high"
+          />
+          <div className="pahs-flyer-qr-card">
+            <img
+              src="/pahs-tide-qr.jpg"
+              alt="Scan the Crimson Tide QR code to start the PAHS Protect review"
+              loading="lazy"
+              decoding="async"
+            />
+            <div>
+              <h2>Scan to Start Your Free Protection Review</h2>
+              <p>Connect directly with Latimore Life &amp; Legacy LLC for an education-first review.</p>
+              <button type="button" onClick={scrollToReview} className="pahs-button pahs-button--primary">
+                Start Free Protection Review
+              </button>
             </div>
           </div>
         </div>
