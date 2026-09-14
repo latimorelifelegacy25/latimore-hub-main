@@ -620,3 +620,68 @@ a:hover {
   border-top: 1px solid rgba(127, 127, 127, 0.3);
   margin: 0.9em 0;
 }
+
+
+/* ══════════════════════════════════════════════════════════════
+   PUBLIC ANNOUNCEMENT TICKER
+   ══════════════════════════════════════════════════════════════ */
+
+.announcement-ticker {
+  position: relative;
+  z-index: 1100;
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid rgba(229, 200, 130, 0.45);
+  border-bottom: 2px solid var(--color-gold-500);
+  background: var(--color-navy-800);
+  color: var(--color-gold-300);
+}
+
+.announcement-ticker__track {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  animation: announcementTickerScroll 32s linear infinite;
+  will-change: transform;
+}
+
+.announcement-ticker__message {
+  flex: 0 0 auto;
+  padding: 0.55rem 3rem 0.5rem 0;
+  color: var(--color-gold-300);
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  font-weight: var(--weight-extrabold);
+  line-height: 1.2;
+  letter-spacing: 0.09em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.announcement-ticker__message:hover {
+  color: var(--color-white);
+}
+
+.announcement-ticker:hover .announcement-ticker__track,
+.announcement-ticker:focus-within .announcement-ticker__track {
+  animation-play-state: paused;
+}
+
+@keyframes announcementTickerScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 640px) {
+  .announcement-ticker__track {
+    animation-duration: 24s;
+  }
+
+  .announcement-ticker__message {
+    padding-block: 0.5rem 0.45rem;
+    padding-right: 2.25rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.075em;
+  }
+}
