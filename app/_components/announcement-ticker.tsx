@@ -9,7 +9,7 @@ const announcement =
 export default function AnnouncementTicker() {
   const pathname = usePathname()
 
-  if (pathname.startsWith('/admin')) return null
+  if (pathname?.startsWith('/admin')) return null
 
   return (
     <aside className="announcement-ticker" aria-label="Latimore Life & Legacy announcements">
