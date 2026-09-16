@@ -12,16 +12,21 @@ function pct(current: number, base: number) {
   return base > 0 ? (current / base) * 100 : 0
 }
 
+function eventMetadata(metadata: unknown): Record<string, unknown> {
+  return metadata && typeof metadata === 'object' ? (metadata as Record<string, unknown>) : {}
+}
+
 function eventDescription(event: {
   eventType: string
   pageUrl: string | null
   metadata: unknown
 }) {
-  const metadata = event.metadata && typeof event.metadata === 'object' ? (event.metadata as Record<string, unknown>) : {}
+  const metadata = eventMetadata(event.metadata)
   const label = typeof metadata.label === 'string' ? metadata.label : null
   const title = typeof metadata.title === 'string' ? metadata.title : null
   const semantic = typeof metadata.latimoreEvent === 'string' ? metadata.latimoreEvent : null
-  if (semantic) return `${semantic}${label ? ` — ${label}` : ''}`
+  const tool = typeof metadata.tool === 'string' ? metadata.tool : null
+  if (semantic) return `${semantic}${tool ? ` — ${tool}` : ''}${label ? ` — ${label}` : ''}`
   if (label) return `${event.eventType} — ${label}`
   if (title) return `${event.eventType} — ${title}`
   return `${event.eventType}${event.pageUrl ? ` — ${event.pageUrl}` : ''}`
@@ -148,6 +153,65 @@ export async function GET(req: NextRequest) {
       .slice(0, 20)
       .map(([dimensionValue, value]) => ({ dimension: 'source', dimensionValue, value, unit: 'page_views', metricKey: 'page_view_count' }))
 
+    const toolMap = new Map<string, {
+      tool: string
+      category: string | null
+      events: number
+      opens: number
+      starts: number
+      completions: number
+      ctaClicks: number
+      leadSubmissions: number
+      bookingClicks: number
+      sessions: Set<string>
+    }>()
+
+    for (const event of events) {
+      const metadata = eventMetadata(event.metadata)
+      const tool = typeof metadata.tool === 'string' ? metadata.tool : null
+      if (!tool) continue
+      const semantic = typeof metadata.latimoreEvent === 'string' ? metadata.latimoreEvent : null
+      const category = typeof metadata.category === 'string' ? metadata.category : null
+      const row = toolMap.get(tool) ?? {
+        tool,
+        category,
+        events: 0,
+        opens: 0,
+        starts: 0,
+        completions: 0,
+        ctaClicks: 0,
+        leadSubmissions: 0,
+        bookingClicks: 0,
+        sessions: new Set<string>(),
+      }
+      row.events += 1
+      if (!row.category && category) row.category = category
+      if (event.leadSessionId) row.sessions.add(event.leadSessionId)
+      if (semantic === 'tool_opened') row.opens += 1
+      if (semantic === 'tool_started') row.starts += 1
+      if (semantic === 'tool_completed') row.completions += 1
+      if (semantic === 'tool_cta_clicked' || semantic === 'referral_clicked') row.ctaClicks += 1
+      if (semantic === 'lead_submitted') row.leadSubmissions += 1
+      if (semantic === 'booking_clicked') row.bookingClicks += 1
+      toolMap.set(tool, row)
+    }
+
+    const toolPerformance = Array.from(toolMap.values())
+      .map(row => ({
+        tool: row.tool,
+        category: row.category,
+        events: row.events,
+        sessions: row.sessions.size,
+        opens: row.opens,
+        starts: row.starts,
+        completions: row.completions,
+        ctaClicks: row.ctaClicks,
+        leadSubmissions: row.leadSubmissions,
+        bookingClicks: row.bookingClicks,
+        completionRate: row.starts > 0 ? (row.completions / row.starts) * 100 : 0,
+      }))
+      .sort((a, b) => b.events - a.events)
+
     const funnel = [
       { stageKey: 'sessions', stageOrder: 1, count: sessionCount, conversionRate: 100, dropOffRate: 0, avgHoursFromPrevStage: null },
       { stageKey: 'cta_clicks', stageOrder: 2, count: ctaClickCount, conversionRate: pct(ctaClickCount, sessionCount), dropOffRate: Math.max(0, 100 - pct(ctaClickCount, sessionCount)), avgHoursFromPrevStage: null },
@@ -207,6 +271,7 @@ export async function GET(req: NextRequest) {
         funnel,
         timeSeries,
         breakdowns,
+        toolPerformance,
         recentEvents,
         opportunities,
         ai: { totalRuns: 0, successCount: 0, failedCount: 0, successRate: 0, avgLatencyMs: 0, byType: [], recentRuns: [] },
