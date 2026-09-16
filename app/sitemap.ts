@@ -12,6 +12,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/depth`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/group`,               lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${BASE}/retirement`,          lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE}/solutions`,           lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/solutions/family-protection`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/solutions/retirement-income`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${BASE}/solutions/legacy-planning`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
     { url: `${BASE}/consult`,             lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.9 },
     { url: `${BASE}/book`,                lastModified: new Date(), changeFrequency: 'yearly',  priority: 0.9 },
 
