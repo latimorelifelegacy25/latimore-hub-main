@@ -4,6 +4,7 @@ export const runtime = 'nodejs'
 import { timingSafeEqual } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { WorkflowOrchestrator } from '@/latimore-os/agent-harness/src/orchestrator'
+import { recordWorkflowAudit } from '@/latimore-os/agent-harness/src/audit'
 import { getWorkflow, listRegisteredWorkflowNames } from '@/latimore-os/agent-harness/src/workflows/registry'
 import type { WorkerEnv } from '@/latimore-os/agent-harness/src/types'
 
@@ -89,6 +90,10 @@ export async function POST(req: NextRequest) {
     const orchestrator = new WorkflowOrchestrator(env)
     const payload = { ...registered.defaults, ...body.payload }
     const run = await orchestrator.run(registered.definition, body.trigger, payload)
+
+    await recordWorkflowAudit(env, run).catch(error => {
+      console.error('[AgentRun] Workflow audit failed', error)
+    })
 
     return NextResponse.json({
       ok: run.status === 'completed',
