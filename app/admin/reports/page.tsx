@@ -37,8 +37,8 @@ export default function Reports() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="bg-[#1a2535] border border-[#F7F7F5]/6 rounded-xl p-5">
-          <h2 className="font-semibold text-[#F7F7F5] mb-4">Pipeline by Stage</h2>
-          <div className="h-64">
+          <h2 className="font-semibold text-[#F7F7F5] mb-4 text-center">Pipeline by Stage</h2>
+          <div className="mx-auto h-64 w-full max-w-4xl">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={overview.pipeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F7F7F5" strokeOpacity={0.05} />
