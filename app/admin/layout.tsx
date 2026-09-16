@@ -19,6 +19,7 @@ const navItems = [
   { href: '/admin/documents', label: 'Document Builder', icon: 'fa-file-pen' },
   { href: '/admin/inbox', label: 'Inbox (Intake)', icon: 'fa-inbox' },
   { href: '/admin/crm/hub', label: 'Life Hub CRM', icon: 'fa-users-gear' },
+  { href: '/admin/advisor', label: 'Advisor Workspace', icon: 'fa-user-tie' },
   { href: '/admin/library', label: 'Strategy Library', icon: 'fa-book-bookmark' },
   { href: '/admin/annuity-platform', label: 'Annuity Platform', icon: 'fa-shield-halved' },
   { href: '/admin/vault', label: 'Asset Vault', icon: 'fa-vault' },
