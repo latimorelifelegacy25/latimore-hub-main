@@ -57,6 +57,25 @@ export async function PATCH(req: NextRequest) {
         data,
       })
 
+      await prisma.event.create({
+        data: {
+          eventType: 'post_created',
+          source: 'latimore_os',
+          medium: 'content_repository',
+          campaign: campaign ?? null,
+          pageUrl: '/admin/marketing/repository',
+          metadata: {
+            latimoreEvent: 'repository_bulk_utm_applied',
+            tool: 'content_repository',
+            category: 'Marketing Operations',
+            itemCount: result.count,
+            changedCampaign: Boolean(campaign),
+            changedSource: Boolean(source),
+            changedMedium: Boolean(medium),
+          },
+        },
+      })
+
       return NextResponse.json({ ok: true, updated: result.count })
     }
 
@@ -74,6 +93,22 @@ export async function PATCH(req: NextRequest) {
         deployId: deploy.deployId ?? null,
         deployUrl: deploy.deployUrl ?? null,
         deployStatus: deploy.ok ? (deploy.status ?? 'queued') : deploy.mechanism === 'not_configured' ? 'not_configured' : 'failed',
+      },
+    })
+
+    await prisma.event.create({
+      data: {
+        eventType: 'post_published',
+        source: 'latimore_os',
+        medium: 'content_repository',
+        pageUrl: '/admin/marketing/repository',
+        metadata: {
+          latimoreEvent: 'repository_bulk_published',
+          tool: 'content_repository',
+          category: 'Marketing Operations',
+          itemCount: ids.length,
+          deployStatus: deploy.ok ? (deploy.status ?? 'queued') : deploy.mechanism === 'not_configured' ? 'not_configured' : 'failed',
+        },
       },
     })
 
