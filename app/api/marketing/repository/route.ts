@@ -95,6 +95,25 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    await prisma.event.create({
+      data: {
+        eventType: publishNow ? 'post_published' : 'post_created',
+        source: 'latimore_os',
+        medium: 'content_repository',
+        campaign: data.campaign,
+        pageUrl: '/admin/marketing/repository',
+        metadata: {
+          latimoreEvent: publishNow ? 'repository_item_published' : 'repository_item_created',
+          tool: 'content_repository',
+          category: 'Marketing Operations',
+          contentId: created.id,
+          contentType: data.type,
+          destination: data.destination,
+          status: data.status,
+        },
+      },
+    })
+
     if (!publishNow) {
       return NextResponse.json(created, { status: 201 })
     }
