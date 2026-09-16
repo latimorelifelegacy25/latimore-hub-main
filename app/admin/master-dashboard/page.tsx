@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Activity, Bot, BriefcaseBusiness, ChartNoAxesCombined, FileText, Megaphone, Network, PanelsTopLeft, ShieldCheck, Workflow } from 'lucide-react'
+import { Activity, BarChart3, Bot, BriefcaseBusiness, FileText, Megaphone, Network, PanelsTopLeft, ShieldCheck, Workflow } from 'lucide-react'
 import DailyBrief from '../dashboard/DailyBrief'
 import EngagementDashboardClient from '../engagement-dashboard/EngagementDashboardClient'
 import { LATIMORE_TOOL_REGISTRY, type LatimoreToolArea } from '@/lib/os/tool-registry'
@@ -11,7 +11,7 @@ const areaMeta: Record<LatimoreToolArea, { label: string; icon: typeof Activity 
   crm: { label: 'CRM', icon: PanelsTopLeft },
   marketing: { label: 'Marketing', icon: Megaphone },
   content: { label: 'Content', icon: FileText },
-  analytics: { label: 'Analytics', icon: ChartNoAxesCombined },
+  analytics: { label: 'Analytics', icon: BarChart3 },
   automation: { label: 'Automation', icon: Workflow },
   documents: { label: 'Documents', icon: FileText },
   integrations: { label: 'Integrations', icon: Network },
@@ -40,7 +40,7 @@ export default function MasterDashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { href: '/admin/advisor', label: 'Advisor Workspace', detail: 'PFR · Appointment Guide · Knowledge · Coaching', icon: BriefcaseBusiness },
-          { href: '/analytics', label: 'Tracking Command Center', detail: 'Visitors · Tools · Leads · Appointments · Conversion', icon: ChartNoAxesCombined },
+          { href: '/analytics', label: 'Tracking Command Center', detail: 'Visitors · Tools · Leads · Appointments · Conversion', icon: BarChart3 },
           { href: '/admin/workflow-runs', label: 'Workflow Operations', detail: 'Runs · Compliance · Cost · Audit · Failures', icon: Workflow },
           { href: '/admin/nexus-agent', label: 'Latimore Automation', detail: 'Agent runtime · Tools · Workflow execution', icon: Bot },
         ].map(card => {
