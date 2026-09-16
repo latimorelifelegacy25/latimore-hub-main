@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { BarChart3, BookOpenCheck, ClipboardList, MessageSquareText } from 'lucide-react'
+import { BarChart3, BookOpenCheck, ClipboardList, MessageSquareText, Presentation } from 'lucide-react'
 import { COLORS } from '@/lib/brand'
 
 const tools = [
@@ -9,6 +9,13 @@ const tools = [
     description: 'Structured client discovery, protection gap, retirement context, priorities, and persistent intake records.',
     icon: ClipboardList,
     label: 'Client Discovery',
+  },
+  {
+    href: '/admin/advisor/appointment-guide',
+    title: 'Appointment Guide',
+    description: 'The complete 16-step PFR appointment framework rebuilt as a Latimore-only, carrier-neutral guided workflow.',
+    icon: Presentation,
+    label: 'Appointment Flow',
   },
   {
     href: '/admin/advisor/knowledge-center',
@@ -40,7 +47,7 @@ export default function AdvisorWorkspacePage() {
         <p className="text-xs font-black uppercase tracking-[0.26em]" style={{ color: COLORS.gold }}>Latimore Advisor OS</p>
         <h1 className="mt-2 text-3xl font-black text-white md:text-4xl">Advisor Workspace</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6" style={{ color: COLORS.inkMuted }}>
-          One operating layer for client discovery, advisor training, conversation coaching, and measurable outcomes. The workspace remains Latimore-branded and carrier-neutral.
+          One operating layer for client discovery, appointment execution, advisor training, conversation coaching, and measurable outcomes. The workspace remains Latimore-branded and carrier-neutral.
         </p>
       </div>
 
