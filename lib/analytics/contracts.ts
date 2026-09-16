@@ -37,7 +37,7 @@ export const analyticsDimensions = [
 export type AnalyticsMetricKey = (typeof analyticsMetricKeys)[number]
 export type AnalyticsDimension = (typeof analyticsDimensions)[number]
 
-export const analyticsRangeEnum = z.enum(['7d', '30d', '90d', 'custom'])
+export const analyticsRangeEnum = z.enum(['1d', '7d', '30d', '90d', 'custom'])
 
 const analyticsRangeFields = {
   range: analyticsRangeEnum.optional(),
@@ -112,7 +112,7 @@ export function parseAnalyticsDateRange(input: AnalyticsFiltersInput): { from: D
     }
   }
 
-  const daysBack = selectedRange === '7d' ? 6 : selectedRange === '90d' ? 89 : 29
+  const daysBack = selectedRange === '1d' ? 0 : selectedRange === '7d' ? 6 : selectedRange === '90d' ? 89 : 29
   const start = new Date(end)
   start.setUTCDate(start.getUTCDate() - daysBack)
   start.setUTCHours(0, 0, 0, 0)
@@ -129,7 +129,7 @@ export type AnalyticsApiEnvelope<TData> = {
   data: TData
   meta: {
     generatedAt: string
-    source: 'analytics_mart' | 'operational_fallback'
+    source: 'analytics_mart' | 'operational_fallback' | 'operational_live'
     warnings: string[]
   }
 }

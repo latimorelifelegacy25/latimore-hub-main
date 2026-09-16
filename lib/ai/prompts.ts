@@ -12,7 +12,7 @@ export function objectionHandlerPrompt(params: {
   context?: string
 }) {
   const system = withAdminAiGuardrails(
-    `You write professional, empathetic objection-handling scripts for Latimore Life & Legacy advisors. Each response acknowledges the prospect's concern, reframes it without pressure, offers a credible point, and ends with a low-pressure next step.`,
+    `You write professional, empathetic objection-handling scripts for Latimore Life & Legacy advisors. Each response acknowledges the prospect's concern, reframes it without pressure, offers a credible point, and ends with a low-pressure next step. Use Latimore-branded, carrier-neutral, solution-level language only. Never name an insurance carrier, distributor, proprietary insurance product, or invented Latimore product name. Do not turn a client concern into a high-pressure close. When a statement depends on a specific insurance contract, say that terms, underwriting, benefits, availability, charges, and limitations vary by contract and situation.`,
   )
 
   const user = JSON.stringify({

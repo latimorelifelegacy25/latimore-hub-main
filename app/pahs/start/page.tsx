@@ -4,8 +4,8 @@ import Image from 'next/image'
 import StartForm from './StartForm'
 
 export const metadata: Metadata = {
-  title: 'Start Your Quote',
-  description: 'Capture the PAHS QR lead inside the Latimore Hub before routing to Ethos.',
+  title: 'Start Your Protection Review | Latimore Life & Legacy',
+  description: 'Begin the PAHS protection review inside the Latimore Life & Legacy experience.',
 }
 
 const navy = '#223446'
@@ -68,7 +68,7 @@ export default function PahsStartPage() {
             Protect What You Play For.
           </h1>
           <p style={{ margin: '14px auto 0', maxWidth: 520, color: text, lineHeight: 1.7, fontSize: '1.05rem' }}>
-            Watch the PAHS Protect story, then start your free quick quote. The hub captures your info first, then routes you to Ethos to finish.
+            Watch the PAHS Protect story, then begin a complimentary Latimore family protection review built around the people, income, home, and goals that matter most.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
@@ -112,10 +112,10 @@ export default function PahsStartPage() {
       >
         <div style={{ padding: '30px 22px 34px' }}>
           <h2 style={{ margin: 0, textAlign: 'center', color: white, fontSize: 'clamp(1.6rem, 5vw, 2.2rem)', lineHeight: 1.1 }}>
-            Start Your Quick Quote.
+            Start Your Protection Review.
           </h2>
           <p style={{ margin: '14px auto 0', maxWidth: 520, textAlign: 'center', color: text, lineHeight: 1.7, fontSize: '1.05rem' }}>
-            This page captures the lead in your hub first. After that, the visitor routes to Ethos to finish the quote flow.
+            Your information stays inside the Latimore lead and tracking system. After submission, you will continue to the Latimore Family Protection Snapshot.
           </p>
 
           <div style={{ maxWidth: 500, margin: '28px auto 0' }}>

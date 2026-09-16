@@ -14,23 +14,28 @@ export default function FilterBar({
   onRefresh: () => void
   loading: boolean
 }) {
-  const ranges: Range[] = ['7d', '30d', '90d']
+  const ranges: Array<{ value: Range; label: string }> = [
+    { value: '1d', label: 'Today' },
+    { value: '7d', label: '7 Days' },
+    { value: '30d', label: '30 Days' },
+    { value: '90d', label: '90 Days' },
+  ]
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-3">
-      <div className="flex gap-2">
-        {ranges.map(r => (
+      <div className="flex flex-wrap gap-2">
+        {ranges.map(({ value, label }) => (
           <button
-            key={r}
+            key={value}
             type="button"
-            onClick={() => onRange(r)}
+            onClick={() => onRange(value)}
             className={`rounded-md border px-3 py-1.5 text-sm transition ${
-              range === r
+              range === value
                 ? 'border-[#C9A25F] bg-[#C9A25F]/20 font-semibold text-[#C9A25F]'
                 : 'border-white/10 text-[#A9B1BE] hover:border-white/20 hover:text-white'
             }`}
           >
-            {r}
+            {label}
           </button>
         ))}
       </div>
