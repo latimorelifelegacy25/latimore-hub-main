@@ -43,19 +43,21 @@ export default function RevenueAnalytics() {
 
   return (
     <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-[400px]">
-      <h2 className="text-lg font-semibold mb-4 text-slate-800">
+      <h2 className="text-center text-lg font-semibold mb-4 text-slate-800">
         Product Stream Conversion Performance
       </h2>
-      <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-          <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
-          <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-          <Tooltip cursor={{ fill: '#f8fafc' }} />
-          <Legend />
-          <Bar dataKey="Inquiries" fill="#0f172a" radius={[4, 4, 0, 0]} barSize={32} />
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="mx-auto h-[330px] w-full max-w-5xl">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+            <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
+            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+            <Tooltip cursor={{ fill: '#f8fafc' }} />
+            <Legend />
+            <Bar dataKey="Inquiries" fill="#0f172a" radius={[4, 4, 0, 0]} barSize={32} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }
