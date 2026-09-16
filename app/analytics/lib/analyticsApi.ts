@@ -32,7 +32,7 @@ async function getJson<T>(url: string, init?: RequestInit): Promise<ApiEnvelope<
 
 export const analyticsApi = {
   dashboard: (qs: string) =>
-    getJson<DashboardData>(`/api/analytics/v1/dashboard?${qs}`, {
+    getJson<DashboardData>(`/api/analytics/v1/live?${qs}`, {
       cache: 'no-store',
     }),
 
