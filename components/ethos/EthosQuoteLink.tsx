@@ -1,7 +1,6 @@
 'use client'
 
-import { BRAND } from '@/lib/brand'
-import { buildFilloutParams } from '@/lib/lead'
+import { trackLatimoreEvent } from '@/lib/tracking/client-events'
 
 type Props = React.PropsWithChildren<{
   style?: React.CSSProperties
@@ -9,32 +8,28 @@ type Props = React.PropsWithChildren<{
   intent?: string
 }>
 
+/**
+ * Legacy component name retained so existing pages do not break.
+ * Public behavior is now fully Latimore-branded and carrier-neutral.
+ */
 export default function EthosQuoteLink({
   children,
   style,
   className,
   intent = 'quick_term',
 }: Props) {
-  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    // Enhanced tracking via server-side redirect when JS is available
-    e.preventDefault()
-    try {
-      const qs = buildFilloutParams({ intent })
-      const url = `/api/redirect/ethos?${qs}&intent=${encodeURIComponent(intent)}`
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } catch {
-      // If tracking fails, still open the direct Ethos link
-      window.open(BRAND.ethosUrl, '_blank', 'noopener,noreferrer')
-    }
+  function handleClick() {
+    void trackLatimoreEvent({
+      action: 'tool_cta_clicked',
+      tool: 'family_protection_snapshot',
+      category: 'Life Protection',
+      metadata: { placement: 'legacy_quote_cta', intent },
+    })
   }
 
-  // Primary href is the direct Ethos URL — works even if /api/redirect/ethos is unavailable
-  // onClick enhances with tracking when JS loads successfully
   return (
     <a
-      href={BRAND.ethosQuoteUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+      href="/solutions/family-protection?utm_source=latimore_site&utm_medium=internal_cta&utm_campaign=family_protection&utm_content=legacy_quote_cta"
       onClick={handleClick}
       style={style}
       className={className}
