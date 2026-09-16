@@ -59,6 +59,20 @@ export type BreakdownRow = {
   metricKey: string
 }
 
+export type ToolPerformanceRow = {
+  tool: string
+  category: string | null
+  events: number
+  sessions: number
+  opens: number
+  starts: number
+  completions: number
+  ctaClicks: number
+  leadSubmissions: number
+  bookingClicks: number
+  completionRate: number
+}
+
 export type RecentEvent = {
   id: string
   type: string
@@ -106,6 +120,7 @@ export type DashboardData = {
   funnel: FunnelStage[]
   timeSeries: TimeSeriesPoint[]
   breakdowns: BreakdownRow[]
+  toolPerformance: ToolPerformanceRow[]
   recentEvents: RecentEvent[]
   opportunities: Opportunity[]
   ai: AiAnalyticsData
