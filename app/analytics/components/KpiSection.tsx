@@ -11,6 +11,9 @@ import {
   Clock,
   Zap,
   Activity,
+  Eye,
+  Gauge,
+  ClipboardCheck,
 } from 'lucide-react'
 
 function fmt(n: number, decimals = 0) {
@@ -62,23 +65,22 @@ export default function KpiSection({
 
   return (
     <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      <KpiCard label="Page Views" value={fmt(overview.pageViewCount)} icon={<Eye size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="Tracked Sessions" value={fmt(overview.sessionCount)} icon={<Gauge size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="CTA Clicks" value={fmt(overview.ctaClickCount)} icon={<MousePointerClick size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="Booking Clicks" value={fmt(overview.bookingClickCount)} icon={<Calendar size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="Tool Starts" value={fmt(overview.toolStartCount)} icon={<Activity size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="Tool Completions" value={fmt(overview.toolCompleteCount)} icon={<ClipboardCheck size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Total Leads" value={fmt(overview.leadCount)} icon={<Users size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Contacts" value={fmt(overview.contactCount)} icon={<Activity size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Booked" value={fmt(overview.appointmentBookedCount)} icon={<Calendar size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Sold" value={fmt(overview.soldCount)} icon={<Target size={18} className="text-[#C9A25F]" />} />
-      <KpiCard label="CTA Clicks" value={fmt(overview.ctaClickCount)} icon={<MousePointerClick size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Lead → Booking" value={pct(overview.leadToBookingRate)} icon={<TrendingUp size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Lead → Sold" value={pct(overview.leadToSoldRate)} icon={<TrendingUp size={18} className="text-[#C9A25F]" />} />
+      <KpiCard label="Form Submits" value={fmt(overview.formSubmitCount)} icon={<ClipboardCheck size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Avg Score" value={fmt(overview.avgLeadScore, 1)} icon={<Zap size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Stale Leads" value={fmt(overview.staleLeadCount)} icon={<Clock size={18} className="text-[#C9A25F]" />} />
       <KpiCard label="Overdue Tasks" value={fmt(overview.taskOverdueCount)} icon={<Clock size={18} className="text-[#C9A25F]" />} />
-      <KpiCard label="Social Clicks" value={fmt(overview.socialClickCount)} icon={<MousePointerClick size={18} className="text-[#C9A25F]" />} />
-      <KpiCard
-        label="AI Success"
-        value={pct(overview.aiSuccessRate)}
-        icon={<Zap size={18} className="text-[#C9A25F]" />}
-        sub={`${fmt(overview.aiAvgLatencyMs)}ms avg latency`}
-      />
     </div>
   )
 }
