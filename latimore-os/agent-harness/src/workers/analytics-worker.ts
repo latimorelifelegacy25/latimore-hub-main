@@ -52,7 +52,7 @@ export class AnalyticsWorker extends BaseWorker {
     env: WorkerEnv,
   ): Promise<WorkerOutput> {
     const [contactsResult, inquiriesResult, appointmentsResult] = await Promise.all([
-      db.raw('Contact').select('id,createdAt,status,lastActivityAt').order('createdAt', { ascending: false }).limit(500).execute(),
+      db.raw('Contact').select('id,createdAt,status,lastActivityAt,nextFollowUpAt').order('createdAt', { ascending: false }).limit(500).execute(),
       db.raw('Inquiry').select('id,createdAt,status,stage,source,leadScore').order('createdAt', { ascending: false }).limit(500).execute(),
       db.raw('Appointment').select('id,createdAt,scheduledFor,status').order('createdAt', { ascending: false }).limit(500).execute(),
     ]);
