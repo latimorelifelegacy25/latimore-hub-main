@@ -28,6 +28,7 @@ export type LatimoreEventInput = {
 function canonicalEventType(action: LatimoreEventAction): string {
   switch (action) {
     case 'tool_opened':
+      return 'legacy_checkup_step_completed'
     case 'tool_started':
       return 'legacy_checkup_started'
     case 'tool_step_completed':
