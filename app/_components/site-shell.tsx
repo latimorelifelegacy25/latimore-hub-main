@@ -20,6 +20,7 @@ export const DEFAULT_NAV_LINKS = [
   ['/about', 'About'],
   ['/products', 'Products'],
   ['/services', 'Services'],
+  ['/solutions', 'Planning Tools'],
   ['/education', 'Education'],
   ['/blog', 'Blog'],
   ['/join', 'Join Our Team'],
