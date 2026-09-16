@@ -27,8 +27,20 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Typecheck
+      - name: Typecheck app
         run: npm run typecheck
+
+      - name: Install agent harness dependencies
+        run: npm run agent-harness:setup
+
+      - name: Typecheck agent harness
+        run: npm run agent-harness:typecheck
+
+      - name: Install edge worker dependencies
+        run: npm run worker:setup
+
+      - name: Typecheck edge worker
+        run: npm run worker:typecheck
 
       - name: Build
         run: npm run build

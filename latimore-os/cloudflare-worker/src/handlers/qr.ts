@@ -109,7 +109,7 @@ export async function handleQRTrack(
         source,
         medium,
         campaign,
-      }, { onConflict: 'id' }),
+      }),
     ]);
 
     if (scanResult.error) {

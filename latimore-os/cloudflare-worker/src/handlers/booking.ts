@@ -6,36 +6,28 @@
 
 import type { Env } from '../index';
 import { createSupabaseClient } from '../lib/supabase';
+import { findOrCreateCanonicalContact, markCanonicalBooking } from '../lib/canonical-crm';
 import { sendEmail, sendSMS } from '../lib/comms';
 import { jsonResponse, errorResponse } from '../lib/response';
 import { verifyWebhookSecret } from '../lib/auth';
 
 interface BookingPayload {
-  // Generic booking fields (normalized from any booking provider)
-  event_type?: string;       // 'booking.created' | 'booking.cancelled' | 'booking.rescheduled'
+  event_type?: string;
   booking_id?: string;
-  appointment_type?: string; // 'discovery_call' | 'life_insurance_consultation' | etc.
-
-  // Attendee
+  appointment_type?: string;
   attendee_name?: string;
   attendee_email?: string;
   attendee_phone?: string;
-
-  // Scheduling
-  start_time?: string;       // ISO 8601
+  start_time?: string;
   end_time?: string;
   timezone?: string;
   duration_minutes?: number;
   location?: string;
   meeting_url?: string;
-
-  // Notes
   notes?: string;
   utm_source?: string;
   utm_campaign?: string;
-
-  // Raw provider payload
-  provider?: string;         // 'google' | 'calendly' | 'cal'
+  provider?: string;
   raw?: Record<string, unknown>;
 }
 
@@ -56,129 +48,164 @@ export async function handleBookingWebhook(
     return errorResponse(400, 'Invalid JSON body');
   }
 
-  // Normalize payload from different providers
   const booking = normalizeBooking(payload);
-
   if (!booking.attendeeEmail && !booking.attendeeName) {
     return errorResponse(400, 'Missing attendee information');
   }
 
   console.log(`[Booking] ${booking.eventType}: booking ${booking.bookingId || 'unknown'} at ${booking.startTime}`);
-
   const db = createSupabaseClient(env);
-
-  // Find or create contact
   let contactId: string | null = null;
-  if (booking.attendeeEmail) {
-    const { data } = await db
-      .from('contacts')
-      .select('id, first_name, lead_status')
-      .eq('email', booking.attendeeEmail)
-      .single();
+  let inquiryId: string | null = null;
 
-    if (data) {
-      const contact = data as { id: string; first_name: string; lead_status: string };
-      contactId = contact.id;
-
-      // Update contact status to assessment_scheduled
-      if (booking.eventType === 'booking.created') {
-        ctx.waitUntil(
-          db.from('contacts').update({
-            lead_status: 'assessment_scheduled',
-            next_follow_up_at: booking.startTime,
-          }).eq('id', contactId).execute()
-        );
+  try {
+    if (booking.eventType === 'booking.cancelled' && booking.bookingId) {
+      const existing = await db.from('Appointment')
+        .select('id,contactId,inquiryId')
+        .eq('calendlyEventId', booking.bookingId)
+        .single();
+      if (existing.error) throw new Error(`Appointment lookup failed: ${existing.error.message}`);
+      if (existing.data) {
+        const appointment = existing.data as { id: string; contactId: string; inquiryId?: string | null };
+        contactId = appointment.contactId;
+        inquiryId = appointment.inquiryId || null;
       }
     }
-  }
 
-  // Write appointment to DB
-  if (booking.eventType === 'booking.created' || booking.eventType === 'booking.rescheduled') {
-    const { data: appt, error } = await db.from('appointments').insert({
-      contact_id: contactId,
-      appointment_type: booking.appointmentType || 'discovery_call',
-      status: 'scheduled',
-      channel: booking.meetingUrl ? 'video_call' : 'phone_call',
-      scheduled_at: booking.startTime,
-      duration_minutes: booking.durationMinutes || 30,
-      timezone: booking.timezone || 'America/New_York',
-      location: booking.location || booking.meetingUrl || null,
-      notes: booking.notes || null,
-    });
-
-    if (error) {
-      console.error('[Booking] DB insert error:', error);
+    if (!contactId && booking.attendeeEmail) {
+      const existing = await db.from('Contact').select('id').eq('email', booking.attendeeEmail).single();
+      if (existing.error) throw new Error(`Contact lookup failed: ${existing.error.message}`);
+      if (existing.data) contactId = (existing.data as { id: string }).id;
     }
 
-    // Send confirmation to attendee
+    if (!contactId && booking.eventType !== 'booking.cancelled') {
+      const nameParts = booking.attendeeName.trim().split(/\s+/).filter(Boolean);
+      contactId = await findOrCreateCanonicalContact(db, {
+        firstName: nameParts[0] || 'Unknown',
+        lastName: nameParts.slice(1).join(' '),
+        email: booking.attendeeEmail || null,
+        phone: booking.attendeePhone || null,
+        source: payload.utm_source || booking.provider || 'booking',
+        campaign: payload.utm_campaign || null,
+        landingPage: 'booking-webhook',
+        message: booking.notes || null,
+        raw: payload as unknown as Record<string, unknown>,
+      });
+    }
+
+    if ((booking.eventType === 'booking.created' || booking.eventType === 'booking.rescheduled') && contactId) {
+      inquiryId = await markCanonicalBooking(db, contactId, booking.startTime || null);
+
+      let existingAppointmentId: string | null = null;
+      if (booking.bookingId) {
+        const existing = await db.from('Appointment').select('id').eq('calendlyEventId', booking.bookingId).single();
+        if (existing.error) throw new Error(`Appointment lookup failed: ${existing.error.message}`);
+        if (existing.data) existingAppointmentId = (existing.data as { id: string }).id;
+      }
+
+      const appointmentData = {
+        contactId,
+        inquiryId,
+        bookingSource: booking.provider || 'webhook',
+        source: payload.utm_source || null,
+        campaign: payload.utm_campaign || null,
+        scheduledFor: booking.startTime || null,
+        status: booking.eventType === 'booking.rescheduled' ? 'Rescheduled' : 'Booked',
+        location: booking.location || booking.meetingUrl || null,
+        calendlyEventId: booking.bookingId || null,
+        metadata: {
+          appointmentType: booking.appointmentType,
+          endTime: booking.endTime,
+          timezone: booking.timezone,
+          durationMinutes: booking.durationMinutes,
+          meetingUrl: booking.meetingUrl,
+          notes: booking.notes,
+          provider: booking.provider,
+          raw: payload.raw || null,
+        },
+      };
+
+      if (existingAppointmentId) {
+        const updated = await db.from('Appointment').update(appointmentData).eq('id', existingAppointmentId).execute();
+        if (updated.error) throw new Error(`Appointment update failed: ${updated.error.message}`);
+      } else {
+        const created = await db.from('Appointment').insert(appointmentData);
+        if (created.error) throw new Error(`Appointment create failed: ${created.error.message}`);
+      }
+
+      const event = await db.from('SystemEvent').insert({
+        type: booking.eventType,
+        contactId,
+        inquiryId,
+        source: booking.provider || 'booking_webhook',
+        campaign: payload.utm_campaign || null,
+        payload: appointmentData,
+        occurredAt: new Date().toISOString(),
+      });
+      if (event.error) console.error('[Booking] SystemEvent write failed:', event.error);
+    } else if (booking.eventType === 'booking.cancelled') {
+      if (booking.bookingId) {
+        const cancelled = await db.from('Appointment')
+          .update({ status: 'Cancelled' })
+          .eq('calendlyEventId', booking.bookingId)
+          .execute();
+        if (cancelled.error) throw new Error(`Appointment cancellation failed: ${cancelled.error.message}`);
+      }
+
+      if (contactId) {
+        const contactUpdate = await db.from('Contact').update({
+          status: 'CONTACTED',
+          nextFollowUpAt: new Date(Date.now() + 2 * 3600000).toISOString(),
+          lastActivityAt: new Date().toISOString(),
+        }).eq('id', contactId).execute();
+        if (contactUpdate.error) throw new Error(`Contact cancellation update failed: ${contactUpdate.error.message}`);
+
+        if (inquiryId) {
+          const inquiryUpdate = await db.from('Inquiry').update({ status: 'CONTACTED', stage: 'Follow_Up' }).eq('id', inquiryId).execute();
+          if (inquiryUpdate.error) throw new Error(`Inquiry cancellation update failed: ${inquiryUpdate.error.message}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[Booking] Canonical CRM write failed:', error);
+    return errorResponse(500, 'Failed to save booking');
+  }
+
+  if (booking.eventType === 'booking.created' || booking.eventType === 'booking.rescheduled') {
     if (booking.attendeeEmail) {
       const firstName = booking.attendeeName?.split(' ')[0] || 'Friend';
       const formattedTime = formatAppointmentTime(booking.startTime, booking.timezone);
-
-      ctx.waitUntil(
-        sendEmail(env, {
-          to: booking.attendeeEmail,
-          subject: `Your Consultation is Confirmed — ${formattedTime}`,
-          html: buildBookingConfirmationEmail(firstName, formattedTime, booking.meetingUrl),
-          tags: [{ name: 'type', value: 'booking_confirmation' }],
-        })
-      );
+      ctx.waitUntil(sendEmail(env, {
+        to: booking.attendeeEmail,
+        subject: `Your Consultation is Confirmed — ${formattedTime}`,
+        html: buildBookingConfirmationEmail(firstName, formattedTime, booking.meetingUrl),
+        tags: [{ name: 'type', value: 'booking_confirmation' }],
+      }));
 
       if (booking.attendeePhone) {
-        ctx.waitUntil(
-          sendSMS(env, {
-            to: booking.attendeePhone,
-            body: `Hi ${firstName}! Your consultation with Jackson Latimore is confirmed for ${formattedTime}. ${booking.meetingUrl ? `Join here: ${booking.meetingUrl}` : 'We\'ll call you at this number.'} #TheBeatGoesOn`,
-          })
-        );
+        ctx.waitUntil(sendSMS(env, {
+          to: booking.attendeePhone,
+          body: `Hi ${firstName}! Your consultation with Jackson Latimore is confirmed for ${formattedTime}. ${booking.meetingUrl ? `Join here: ${booking.meetingUrl}` : 'We\'ll call you at this number.'} #TheBeatGoesOn`,
+        }));
       }
     }
 
-    // Notify Jackson
-    ctx.waitUntil(
-      sendEmail(env, {
-        to: 'Jackson1989@latimorelegacy.com',
-        subject: `📅 New Appointment: ${booking.attendeeName} — ${formatAppointmentTime(booking.startTime, booking.timezone)}`,
-        html: buildAgentBookingEmail(booking),
-        tags: [{ name: 'type', value: 'booking_notification' }],
-      })
-    );
+    ctx.waitUntil(sendEmail(env, {
+      to: 'Jackson1989@latimorelegacy.com',
+      subject: `📅 New Appointment: ${booking.attendeeName} — ${formatAppointmentTime(booking.startTime, booking.timezone)}`,
+      html: buildAgentBookingEmail(booking),
+      tags: [{ name: 'type', value: 'booking_notification' }],
+    }));
 
-    ctx.waitUntil(
-      sendSMS(env, {
-        to: env.TWILIO_PHONE_NUMBER,
-        body: `📅 New appt: ${booking.attendeeName} | ${formatAppointmentTime(booking.startTime, booking.timezone)} | ${booking.appointmentType || 'discovery_call'}`,
-      })
-    );
-
+    ctx.waitUntil(sendSMS(env, {
+      to: env.TWILIO_PHONE_NUMBER,
+      body: `📅 New appt: ${booking.attendeeName} | ${formatAppointmentTime(booking.startTime, booking.timezone)} | ${booking.appointmentType || 'discovery_call'}`,
+    }));
   } else if (booking.eventType === 'booking.cancelled') {
-    // Update appointment status
-    if (booking.bookingId) {
-      ctx.waitUntil(
-        db.from('appointments')
-          .update({ status: 'cancelled' })
-          .eq('google_event_id', booking.bookingId)
-          .execute()
-      );
-    }
-
-    // Update contact status back to contacted
-    if (contactId) {
-      ctx.waitUntil(
-        db.from('contacts').update({
-          lead_status: 'contacted',
-          next_follow_up_at: new Date(Date.now() + 2 * 3600000).toISOString(), // 2h follow-up
-        }).eq('id', contactId).execute()
-      );
-    }
-
-    // Notify Jackson of cancellation
-    ctx.waitUntil(
-      sendSMS(env, {
-        to: env.TWILIO_PHONE_NUMBER,
-        body: `❌ Cancelled: ${booking.attendeeName} | ${formatAppointmentTime(booking.startTime, booking.timezone)}`,
-      })
-    );
+    ctx.waitUntil(sendSMS(env, {
+      to: env.TWILIO_PHONE_NUMBER,
+      body: `❌ Cancelled: ${booking.attendeeName} | ${formatAppointmentTime(booking.startTime, booking.timezone)}`,
+    }));
   }
 
   return jsonResponse({ success: true, event_type: booking.eventType });
@@ -187,7 +214,6 @@ export async function handleBookingWebhook(
 // ── NORMALIZER ────────────────────────────────────────────────────────────────
 
 function normalizeBooking(payload: BookingPayload) {
-  // Handle Cal.com format
   if (payload.provider === 'cal' || payload.raw?.type) {
     const raw = payload.raw || {};
     return {
@@ -204,10 +230,10 @@ function normalizeBooking(payload: BookingPayload) {
       location: String(raw.location || payload.location || ''),
       meetingUrl: String(raw.videoCallUrl || payload.meeting_url || ''),
       notes: String(raw.description || payload.notes || ''),
+      provider: payload.provider || 'cal',
     };
   }
 
-  // Default / generic format
   return {
     eventType: payload.event_type || 'booking.created',
     bookingId: payload.booking_id || '',
@@ -222,6 +248,7 @@ function normalizeBooking(payload: BookingPayload) {
     location: payload.location || '',
     meetingUrl: payload.meeting_url || '',
     notes: payload.notes || '',
+    provider: payload.provider || 'manual',
   };
 }
 

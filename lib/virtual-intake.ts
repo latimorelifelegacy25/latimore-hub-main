@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
+import { LeadSource, LeadStatus, PipelineStage, ProductInterest } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export type Journey = 'client' | 'business_partner' | 'both'
 export type VirtualIntakeInput = Record<string, any> & { journey?: Journey }
@@ -44,15 +46,28 @@ function journeyLabel(value?: Journey) {
   return 'Client'
 }
 
-function tier(urgency: 'low' | 'medium' | 'high') {
-  return urgency === 'high' ? 'hot' : urgency === 'medium' ? 'warm' : 'cold'
-}
-
 function splitName(fullName?: string | null) {
   const clean = (fullName || '').trim()
   if (!clean) return { firstName: 'Client', lastName: '' }
   const [firstName, ...rest] = clean.split(/\s+/)
   return { firstName, lastName: rest.join(' ') }
+}
+
+function productInterestFromPriorities(priorities: string[]): ProductInterest {
+  const first = priorities[0]
+  if (first === 'mortgage_protection') return ProductInterest.Mortgage_Protection
+  if (first === 'life_insurance') return ProductInterest.Term_Life
+  if (first === 'college_funding') return ProductInterest.Retirement
+  if (first === 'business_owner_strategies') return ProductInterest.Business
+  if (first === 'tax_advantage' || first === 'indexed_growth' || first === 'infinite_banking') return ProductInterest.IUL
+  return ProductInterest.General
+}
+
+function journeyFromNotes(notes?: string | null): Journey {
+  if (!notes) return 'client'
+  if (notes.includes('Journey: Client + Business Partner')) return 'both'
+  if (notes.includes('Journey: Business Partner')) return 'business_partner'
+  return 'client'
 }
 
 function dimeGap(input: { debt: number; annualIncome: number; mortgageBalance: number; educationGoal: number; currentCoverage: number }) {
@@ -109,31 +124,70 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
   if (!input.journey) throw new Error('Please choose a journey.')
   if (!input.firstName || !input.lastName || !input.email) throw new Error('First name, last name, and email are required.')
 
-  const supabase = supabaseAdmin()
   const priorities = (input.selectedPriorities || []).filter((p: string) => PRIORITY_LABELS[p]).slice(0, 3)
   const fullName = `${input.firstName} ${input.lastName}`.trim()
   const topPriority = priorities[0]
-  const productInterest = topPriority ? PRIORITY_LABELS[topPriority] : journeyLabel(input.journey)
-  const notes = ['Latimore virtual interactive intake', `Journey: ${journeyLabel(input.journey)}`, input.state ? `State: ${input.state}` : null, input.topPriorityWhy ? `Top priority why: ${input.topPriorityWhy}` : null].filter(Boolean).join('\n')
+  const productInterestLabel = topPriority ? PRIORITY_LABELS[topPriority] : journeyLabel(input.journey)
+  const notes = [
+    'Latimore virtual interactive intake',
+    `Journey: ${journeyLabel(input.journey)}`,
+    `Priority: ${productInterestLabel}`,
+    input.state ? `State: ${input.state}` : null,
+    input.topPriorityWhy ? `Top priority why: ${input.topPriorityWhy}` : null,
+  ].filter(Boolean).join('\n')
 
-  const { data: lead, error } = await supabase.from('leads').insert({
-    full_name: fullName,
-    email: input.email,
-    phone: input.phone || null,
-    state: input.state || null,
-    journey: input.journey,
-    product_interest: productInterest,
-    lead_source: 'latimore_virtual_intake',
-    page_source: '/intake',
-    status: 'New',
-    utm_source: 'latimore_os',
-    utm_medium: 'intake',
-    utm_campaign: 'virtual_interactive_intake',
-    notes,
-  }).select('id').single()
+  const byEmail = await prisma.contact.findUnique({ where: { email: String(input.email) } })
+  const existingContact = byEmail || (input.phone ? await prisma.contact.findUnique({ where: { phone: String(input.phone) } }) : null)
 
-  if (error || !lead) throw new Error(error?.message || 'Could not create lead.')
-  const leadId = String(lead.id)
+  const contact = existingContact
+    ? await prisma.contact.update({
+        where: { id: existingContact.id },
+        data: {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          fullName,
+          email: input.email,
+          phone: input.phone || existingContact.phone,
+          primarySource: 'latimore_virtual_intake',
+          primaryMedium: 'intake',
+          primaryCampaign: 'virtual_interactive_intake',
+          primarySourceType: LeadSource.WEBSITE_DIRECT,
+          lastActivityAt: new Date(),
+          notesSummary: notes,
+        },
+      })
+    : await prisma.contact.create({
+        data: {
+          firstName: input.firstName,
+          lastName: input.lastName,
+          fullName,
+          email: input.email,
+          phone: input.phone || null,
+          primarySource: 'latimore_virtual_intake',
+          primaryMedium: 'intake',
+          primaryCampaign: 'virtual_interactive_intake',
+          primarySourceType: LeadSource.WEBSITE_DIRECT,
+          status: LeadStatus.NEW,
+          lastActivityAt: new Date(),
+          notesSummary: notes,
+        },
+      })
+
+  const inquiry = await prisma.inquiry.create({
+    data: {
+      contactId: contact.id,
+      stage: PipelineStage.New,
+      productInterest: productInterestFromPriorities(priorities),
+      source: 'latimore_virtual_intake',
+      medium: 'intake',
+      campaign: 'virtual_interactive_intake',
+      sourceType: LeadSource.WEBSITE_DIRECT,
+      status: LeadStatus.NEW,
+      landingPage: '/intake',
+      notes,
+    },
+  })
+  const leadId = inquiry.id
 
   await insert('intake_profiles', {
     lead_id: leadId,
@@ -187,10 +241,31 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
     additional_income_interest: input.additionalIncomeInterest ?? null,
   })
 
-  if (priorities.length) await insert('client_priorities', priorities.map((priority: string, index: number) => ({ lead_id: leadId, priority, importance_rank: index + 1, why_important: index === 0 ? input.topPriorityWhy || null : null })))
+  if (priorities.length) {
+    await insert('client_priorities', priorities.map((priority: string, index: number) => ({
+      lead_id: leadId,
+      priority,
+      importance_rank: index + 1,
+      why_important: index === 0 ? input.topPriorityWhy || null : null,
+    })))
+  }
 
-  const dime = dimeGap({ debt: n(input.debt), annualIncome: monthlyIncome * 12, mortgageBalance: n(input.mortgageBalance), educationGoal: n(input.educationGoal), currentCoverage: coverageAmount })
-  await insert('dime_calculations', { lead_id: leadId, debt: n(input.debt), annual_income: monthlyIncome * 12, income_multiplier: dime.incomeMultiplier, mortgage_balance: n(input.mortgageBalance), education_goal: n(input.educationGoal), current_coverage: coverageAmount })
+  const dime = dimeGap({
+    debt: n(input.debt),
+    annualIncome: monthlyIncome * 12,
+    mortgageBalance: n(input.mortgageBalance),
+    educationGoal: n(input.educationGoal),
+    currentCoverage: coverageAmount,
+  })
+  await insert('dime_calculations', {
+    lead_id: leadId,
+    debt: n(input.debt),
+    annual_income: monthlyIncome * 12,
+    income_multiplier: dime.incomeMultiplier,
+    mortgage_balance: n(input.mortgageBalance),
+    education_goal: n(input.educationGoal),
+    current_coverage: coverageAmount,
+  })
 
   const scored = score({
     hasLifeInsurance: !!input.hasLifeInsurance,
@@ -207,26 +282,80 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
     selectedPriorities: priorities,
   })
 
-  await insert('intake_scores', { lead_id: leadId, client_score: scored.clientScore, advisor_score: scored.advisorScore, urgency: scored.urgency, recommended_tracks: scored.tracks })
-  await supabase.from('leads').update({ score_tier: tier(scored.urgency as any) }).eq('id', leadId)
-  await insert('booking_events', { lead_id: leadId, booking_url: process.env.BOOK_WITH_JACKSON_URL || '/book' })
+  await insert('intake_scores', {
+    lead_id: leadId,
+    client_score: scored.clientScore,
+    advisor_score: scored.advisorScore,
+    urgency: scored.urgency,
+    recommended_tracks: scored.tracks,
+  })
 
+  await prisma.$transaction([
+    prisma.inquiry.update({ where: { id: leadId }, data: { leadScore: scored.advisorScore } }),
+    prisma.contact.update({ where: { id: contact.id }, data: { leadScore: scored.advisorScore, lastActivityAt: new Date() } }),
+    prisma.systemEvent.create({
+      data: {
+        type: 'virtual_intake.completed',
+        contactId: contact.id,
+        inquiryId: leadId,
+        source: 'latimore_virtual_intake',
+        medium: 'intake',
+        campaign: 'virtual_interactive_intake',
+        payload: {
+          journey: input.journey,
+          clientScore: scored.clientScore,
+          advisorScore: scored.advisorScore,
+          urgency: scored.urgency,
+          recommendedTracks: scored.tracks,
+          coverageGap: dime.coverageGap,
+        },
+      },
+    }),
+  ])
+
+  await insert('booking_events', { lead_id: leadId, booking_url: process.env.BOOK_WITH_JACKSON_URL || '/book' })
   return { leadId }
 }
 
 export async function getVirtualIntakeResult(leadId: string) {
   const supabase = supabaseAdmin()
-  const [{ data: lead }, { data: result }, { data: priorities }, { data: dime }] = await Promise.all([
-    supabase.from('leads').select('id, full_name, journey').eq('id', leadId).single(),
+  const [{ data: result }, { data: priorities }, { data: dime }] = await Promise.all([
     supabase.from('intake_scores').select('client_score, advisor_score, urgency, recommended_tracks').eq('lead_id', leadId).single(),
     supabase.from('client_priorities').select('priority, importance_rank').eq('lead_id', leadId).order('importance_rank', { ascending: true }),
     supabase.from('dime_calculations').select('calculated_need, coverage_gap').eq('lead_id', leadId).maybeSingle(),
   ])
-  if (!lead || !result) return null
-  const name = splitName(lead.full_name)
+  if (!result) return null
+
+  const canonicalInquiry = await prisma.inquiry.findUnique({
+    where: { id: leadId },
+    select: {
+      notes: true,
+      contact: { select: { firstName: true, lastName: true, fullName: true } },
+    },
+  })
+
+  let name = canonicalInquiry?.contact
+    ? {
+        firstName: canonicalInquiry.contact.firstName || splitName(canonicalInquiry.contact.fullName).firstName,
+        lastName: canonicalInquiry.contact.lastName || splitName(canonicalInquiry.contact.fullName).lastName,
+      }
+    : null
+  let journey: Journey = journeyFromNotes(canonicalInquiry?.notes)
+
+  // Read-only compatibility for intake results created before canonical CRM consolidation.
+  if (!canonicalInquiry) {
+    const { data: legacyLead } = await supabase.from('leads').select('id, full_name, journey').eq('id', leadId).maybeSingle()
+    if (legacyLead) {
+      name = splitName(legacyLead.full_name)
+      journey = (legacyLead.journey || 'client') as Journey
+    }
+  }
+
+  if (!name) name = { firstName: 'Client', lastName: '' }
+
   return {
     ...name,
-    journey: lead.journey || 'client',
+    journey,
     clientScore: Number(result.client_score),
     advisorScore: Number(result.advisor_score),
     urgency: result.urgency as string,

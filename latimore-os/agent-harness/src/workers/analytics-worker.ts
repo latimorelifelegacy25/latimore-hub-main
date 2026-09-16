@@ -1,6 +1,6 @@
 /**
  * Analytics Worker
- * Aggregates KPI data and generates insights using LLM
+ * Calculates workflow KPIs from the canonical Prisma-managed Latimore CRM.
  */
 
 import { BaseWorker } from '../types';
@@ -8,26 +8,36 @@ import type { WorkerInput, WorkerOutput, WorkerEnv } from '../types';
 import { createDBClient } from '../lib/supabase';
 import { callOpenAI, LATIMORE_SYSTEM_PROMPT } from '../lib/llm';
 
+function asRows(data: unknown): Record<string, unknown>[] {
+  return Array.isArray(data) ? data as Record<string, unknown>[] : [];
+}
+
+function dateMs(value: unknown): number {
+  if (!value) return 0;
+  const ms = new Date(String(value)).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
 export class AnalyticsWorker extends BaseWorker {
   name = 'AnalyticsWorker';
-  description = 'Aggregates KPI data and generates AI-powered insights';
+  description = 'Calculates KPI and pipeline analytics from canonical Latimore CRM tables';
 
   async execute(input: WorkerInput, env: WorkerEnv): Promise<WorkerOutput> {
     const db = createDBClient(env);
-    const reportType = input.report_type as string || 'weekly_summary';
+    const reportType = (input.report_type as string) || 'weekly_summary';
 
-    this.log(`Generating analytics: ${reportType}`);
+    this.log(`Generating canonical analytics: ${reportType}`);
 
     try {
       switch (reportType) {
         case 'weekly_summary':
           return await this.generateWeeklySummary(db, env);
         case 'pipeline_health':
-          return await this.generatePipelineHealth(db, env);
+          return await this.generatePipelineHealth(db);
         case 'lead_source_analysis':
-          return await this.generateLeadSourceAnalysis(db, env);
+          return await this.generateLeadSourceAnalysis(db);
         case 'agent_performance':
-          return await this.generateAgentPerformance(db, env);
+          return await this.generateAgencyPerformance(db);
         default:
           return await this.generateWeeklySummary(db, env);
       }
@@ -37,109 +47,120 @@ export class AnalyticsWorker extends BaseWorker {
     }
   }
 
-  // ── WEEKLY SUMMARY ─────────────────────────────────────────────────────────
-
   private async generateWeeklySummary(
     db: ReturnType<typeof createDBClient>,
-    env: WorkerEnv
+    env: WorkerEnv,
   ): Promise<WorkerOutput> {
-    // Fetch recent KPI snapshots
-    const { data: snapshots } = await db.raw('kpi_snapshots')
-      .select('*')
-      .eq('period_type', 'weekly')
-      .order('snapshot_date', { ascending: false })
-      .limit(4)
-      .execute();
+    const [contactsResult, inquiriesResult, appointmentsResult] = await Promise.all([
+      db.raw('Contact').select('id,createdAt,status,lastActivityAt,nextFollowUpAt').order('createdAt', { ascending: false }).limit(500).execute(),
+      db.raw('Inquiry').select('id,createdAt,status,stage,source,leadScore').order('createdAt', { ascending: false }).limit(500).execute(),
+      db.raw('Appointment').select('id,createdAt,scheduledFor,status').order('createdAt', { ascending: false }).limit(500).execute(),
+    ]);
 
-    const snapshotList = Array.isArray(snapshots) ? snapshots as Record<string, unknown>[] : [];
+    if (contactsResult.error) throw new Error(`Contact analytics failed: ${JSON.stringify(contactsResult.error)}`);
+    if (inquiriesResult.error) throw new Error(`Inquiry analytics failed: ${JSON.stringify(inquiriesResult.error)}`);
+    if (appointmentsResult.error) throw new Error(`Appointment analytics failed: ${JSON.stringify(appointmentsResult.error)}`);
 
-    // Fetch pipeline summary
-    const { data: pipeline } = await db.raw('v_active_pipeline')
-      .select('lead_status, count(*)')
-      .limit(100)
-      .execute();
+    const contacts = asRows(contactsResult.data);
+    const inquiries = asRows(inquiriesResult.data);
+    const appointments = asRows(appointmentsResult.data);
+    const now = Date.now();
+    const week = 7 * 24 * 3600000;
+    const currentStart = now - week;
+    const previousStart = now - (2 * week);
 
-    // Build data summary for LLM
-    const dataSummary = buildKPISummary(snapshotList);
-
-    // Generate AI insights
-    const insightsResponse = await callOpenAI(env, [
-      { role: 'system', content: LATIMORE_SYSTEM_PROMPT },
-      {
-        role: 'user',
-        content: `Analyze this weekly KPI data for Latimore Life & Legacy and provide actionable insights.
-
-${dataSummary}
-
-Provide:
-1. Top 3 wins this week
-2. Top 3 areas needing attention
-3. One specific action recommendation for next week
-4. One motivational insight tied to the mission "Protecting Today. Securing Tomorrow."
-
-Keep it concise, specific, and actionable. Return JSON with keys:
-- wins: string[] (3 items)
-- attention_areas: string[] (3 items)
-- next_week_action: string
-- mission_insight: string`
-      }
-    ], { json: true, temperature: 0.4, max_tokens: 600 });
-
-    let insights = {
-      wins: ['Production is on track', 'Lead pipeline is growing', 'Community presence is building'],
-      attention_areas: ['Follow-up cadence needs consistency', 'Annuity pipeline needs attention', 'Recruiting conversations need to increase'],
-      next_week_action: 'Focus on converting assessment_scheduled contacts to proposal_sent',
-      mission_insight: 'Every policy placed is a family protected. Keep going. #TheBeatGoesOn',
+    const createdIn = (row: Record<string, unknown>, start: number, end: number) => {
+      const created = dateMs(row.createdAt);
+      return created >= start && created < end;
     };
 
-    try {
-      insights = JSON.parse(insightsResponse.content);
-    } catch {
-      this.log('Using default insights (LLM parse failed)');
+    const current = {
+      new_contacts: contacts.filter(row => createdIn(row, currentStart, now)).length,
+      new_inquiries: inquiries.filter(row => createdIn(row, currentStart, now)).length,
+      appointments_created: appointments.filter(row => createdIn(row, currentStart, now)).length,
+      appointments_completed: appointments.filter(row => createdIn(row, currentStart, now) && String(row.status).toLowerCase() === 'completed').length,
+      closed_won_contacts: contacts.filter(row => String(row.status).toUpperCase() === 'CLOSED_WON').length,
+      overdue_follow_ups: contacts.filter(row => dateMs(row.nextFollowUpAt) > 0 && dateMs(row.nextFollowUpAt) < now).length,
+    };
+
+    const previous = {
+      new_contacts: contacts.filter(row => createdIn(row, previousStart, currentStart)).length,
+      new_inquiries: inquiries.filter(row => createdIn(row, previousStart, currentStart)).length,
+      appointments_created: appointments.filter(row => createdIn(row, previousStart, currentStart)).length,
+      appointments_completed: appointments.filter(row => createdIn(row, previousStart, currentStart) && String(row.status).toLowerCase() === 'completed').length,
+    };
+
+    const dataSummary = [
+      `Current 7 days: ${JSON.stringify(current)}`,
+      `Previous 7 days: ${JSON.stringify(previous)}`,
+      'Source limitation: the canonical CRM currently has no policy/premium ledger, so premium and issued-policy totals are intentionally omitted.',
+    ].join('\n');
+
+    let insights = {
+      wins: [`${current.new_inquiries} new inquiries`, `${current.appointments_created} appointments created`, `${current.appointments_completed} appointments completed`],
+      attention_areas: [`${current.overdue_follow_ups} overdue follow-ups`, 'Review inquiry-to-booking conversion', 'Keep CRM activity dates current'],
+      next_week_action: 'Work overdue follow-ups first, then move qualified inquiries toward booked consultations.',
+      mission_insight: 'Use the operating data to keep protection conversations moving consistently. #TheBeatGoesOn',
+    };
+    let tokensUsed = 0;
+
+    if (env.GEMINI_API_KEY) {
+      const response = await callOpenAI(env, [
+        { role: 'system', content: LATIMORE_SYSTEM_PROMPT },
+        {
+          role: 'user',
+          content: `Analyze this canonical Latimore CRM weekly data without inventing policy, premium, or carrier metrics.\n\n${dataSummary}\n\nReturn JSON with keys wins (3 strings), attention_areas (3 strings), next_week_action, mission_insight.`,
+        },
+      ], { json: true, temperature: 0.3, max_tokens: 500 });
+
+      tokensUsed = response.tokens_used;
+      try {
+        insights = JSON.parse(response.content) as typeof insights;
+      } catch {
+        this.log('Using deterministic weekly insights because AI JSON parsing failed');
+      }
     }
 
     return {
       success: true,
       data: {
         report_type: 'weekly_summary',
-        snapshots: snapshotList,
+        source: 'canonical_prisma_crm',
+        current_7_days: current,
+        previous_7_days: previous,
         insights,
+        policy_metrics_available: false,
         generated_at: new Date().toISOString(),
       },
-      tokens_used: insightsResponse.tokens_used,
-      actions_taken: ['fetched_kpi_snapshots', 'generated_ai_insights'],
+      tokens_used: tokensUsed,
+      actions_taken: ['fetched_canonical_contacts', 'fetched_canonical_inquiries', 'fetched_canonical_appointments', 'calculated_weekly_metrics'],
     };
   }
 
-  // ── PIPELINE HEALTH ────────────────────────────────────────────────────────
-
-  private async generatePipelineHealth(
-    db: ReturnType<typeof createDBClient>,
-    env: WorkerEnv
-  ): Promise<WorkerOutput> {
-    const { data: pipeline } = await db.raw('v_active_pipeline')
-      .select('id, full_name, lead_status, lead_source, next_follow_up_at, last_contacted_at, lead_created_at')
-      .limit(200)
+  private async generatePipelineHealth(db: ReturnType<typeof createDBClient>): Promise<WorkerOutput> {
+    const result = await db.raw('Contact')
+      .select('id,fullName,status,primarySource,nextFollowUpAt,lastActivityAt,createdAt')
+      .order('createdAt', { ascending: false })
+      .limit(1000)
       .execute();
+    if (result.error) throw new Error(`Pipeline read failed: ${JSON.stringify(result.error)}`);
 
-    const contacts = Array.isArray(pipeline) ? pipeline as Record<string, unknown>[] : [];
-
-    // Identify stale contacts (no follow-up in 7+ days)
+    const allContacts = asRows(result.data);
+    const terminal = new Set(['CLOSED_WON', 'CLOSED_LOST', 'DORMANT']);
+    const contacts = allContacts.filter(contact => !terminal.has(String(contact.status).toUpperCase()));
     const now = Date.now();
-    const staleContacts = contacts.filter(c => {
-      const lastContact = c.last_contacted_at ? new Date(c.last_contacted_at as string).getTime() : new Date(c.lead_created_at as string).getTime();
-      return (now - lastContact) > 7 * 24 * 3600000;
-    });
+    const staleAfter = 7 * 24 * 3600000;
 
-    // Identify overdue follow-ups
-    const overdueFollowUps = contacts.filter(c => {
-      if (!c.next_follow_up_at) return false;
-      return new Date(c.next_follow_up_at as string).getTime() < now;
+    const staleContacts = contacts.filter(contact => {
+      const last = dateMs(contact.lastActivityAt) || dateMs(contact.createdAt);
+      return last > 0 && now - last > staleAfter;
     });
-
-    // Status distribution
-    const statusDist = contacts.reduce<Record<string, number>>((acc, c) => {
-      const status = c.lead_status as string;
+    const overdue = contacts.filter(contact => {
+      const due = dateMs(contact.nextFollowUpAt);
+      return due > 0 && due < now;
+    });
+    const statusDistribution = contacts.reduce<Record<string, number>>((acc, contact) => {
+      const status = String(contact.status || 'UNKNOWN');
       acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {});
@@ -148,127 +169,97 @@ Keep it concise, specific, and actionable. Return JSON with keys:
       success: true,
       data: {
         report_type: 'pipeline_health',
+        source: 'canonical_prisma_crm',
         total_active: contacts.length,
         stale_contacts: staleContacts.length,
-        overdue_follow_ups: overdueFollowUps.length,
-        status_distribution: statusDist,
-        health_score: calculateHealthScore(contacts.length, staleContacts.length, overdueFollowUps.length),
+        overdue_follow_ups: overdue.length,
+        status_distribution: statusDistribution,
+        health_score: calculateHealthScore(contacts.length, staleContacts.length, overdue.length),
         generated_at: new Date().toISOString(),
       },
-      actions_taken: ['fetched_pipeline', 'calculated_health_score'],
+      actions_taken: ['fetched_canonical_pipeline', 'calculated_health_score'],
     };
   }
 
-  // ── LEAD SOURCE ANALYSIS ───────────────────────────────────────────────────
-
-  private async generateLeadSourceAnalysis(
-    db: ReturnType<typeof createDBClient>,
-    env: WorkerEnv
-  ): Promise<WorkerOutput> {
-    const { data: leads } = await db.raw('leads')
-      .select('id, source, created_at, is_processed, contact_id')
-      .order('created_at', { ascending: false })
-      .limit(500)
+  private async generateLeadSourceAnalysis(db: ReturnType<typeof createDBClient>): Promise<WorkerOutput> {
+    const result = await db.raw('Inquiry')
+      .select('id,source,medium,campaign,createdAt,status,stage,contactId')
+      .order('createdAt', { ascending: false })
+      .limit(1000)
       .execute();
+    if (result.error) throw new Error(`Inquiry source analysis failed: ${JSON.stringify(result.error)}`);
 
-    const leadList = Array.isArray(leads) ? leads as Record<string, unknown>[] : [];
-
-    // Source breakdown
-    const sourceBreakdown = leadList.reduce<Record<string, { total: number; converted: number }>>((acc, l) => {
-      const source = l.source as string || 'unknown';
+    const inquiries = asRows(result.data);
+    const convertedStatuses = new Set(['QUALIFIED', 'BOOKED', 'IN_CONSULT', 'CLOSED_WON']);
+    const breakdown = inquiries.reduce<Record<string, { total: number; converted: number }>>((acc, inquiry) => {
+      const source = String(inquiry.source || 'unknown');
       if (!acc[source]) acc[source] = { total: 0, converted: 0 };
-      acc[source].total++;
-      if (l.contact_id) acc[source].converted++;
+      acc[source].total += 1;
+      if (convertedStatuses.has(String(inquiry.status).toUpperCase())) acc[source].converted += 1;
       return acc;
     }, {});
 
-    // Calculate conversion rates
-    const sourceAnalysis = Object.entries(sourceBreakdown).map(([source, data]) => ({
-      source,
-      total_leads: data.total,
-      converted: data.converted,
-      conversion_rate: data.total > 0 ? ((data.converted / data.total) * 100).toFixed(1) + '%' : '0%',
-    })).sort((a, b) => b.total_leads - a.total_leads);
+    const sourceAnalysis = Object.entries(breakdown)
+      .map(([source, data]) => ({
+        source,
+        total_inquiries: data.total,
+        qualified_or_better: data.converted,
+        conversion_rate: data.total ? Number(((data.converted / data.total) * 100).toFixed(1)) : 0,
+      }))
+      .sort((a, b) => b.total_inquiries - a.total_inquiries);
 
     return {
       success: true,
       data: {
         report_type: 'lead_source_analysis',
-        total_leads: leadList.length,
+        source: 'canonical_prisma_crm',
+        total_inquiries: inquiries.length,
         source_breakdown: sourceAnalysis,
         top_source: sourceAnalysis[0]?.source || 'unknown',
         generated_at: new Date().toISOString(),
       },
-      actions_taken: ['fetched_leads', 'calculated_source_breakdown'],
+      actions_taken: ['fetched_canonical_inquiries', 'calculated_source_breakdown'],
     };
   }
 
-  // ── AGENT PERFORMANCE ──────────────────────────────────────────────────────
+  private async generateAgencyPerformance(db: ReturnType<typeof createDBClient>): Promise<WorkerOutput> {
+    const [contactsResult, inquiriesResult, appointmentsResult] = await Promise.all([
+      db.raw('Contact').select('id,status').limit(2000).execute(),
+      db.raw('Inquiry').select('id,status,stage').limit(2000).execute(),
+      db.raw('Appointment').select('id,status').limit(2000).execute(),
+    ]);
+    if (contactsResult.error || inquiriesResult.error || appointmentsResult.error) {
+      throw new Error(`Agency performance read failed: ${JSON.stringify(contactsResult.error || inquiriesResult.error || appointmentsResult.error)}`);
+    }
 
-  private async generateAgentPerformance(
-    db: ReturnType<typeof createDBClient>,
-    env: WorkerEnv
-  ): Promise<WorkerOutput> {
-    const { data: leaderboard } = await db.raw('v_agent_leaderboard')
-      .select('agent_id, agent_name, status, ytd_premium, ytd_policies, ytd_annuity, total_contacts, closed_clients')
-      .limit(20)
-      .execute();
-
-    const agents = Array.isArray(leaderboard) ? leaderboard as Record<string, unknown>[] : [];
-
-    const totalAgencyPremium = agents.reduce((sum, a) => sum + (Number(a.ytd_premium) || 0), 0);
-    const activeAgents = agents.filter(a => a.status === 'active').length;
+    const contacts = asRows(contactsResult.data);
+    const inquiries = asRows(inquiriesResult.data);
+    const appointments = asRows(appointmentsResult.data);
 
     return {
       success: true,
       data: {
         report_type: 'agent_performance',
-        total_agents: agents.length,
-        active_agents: activeAgents,
-        total_agency_premium: totalAgencyPremium,
-        leaderboard: agents,
+        source: 'canonical_prisma_crm',
+        scope: 'agency',
+        agent_dimension_available: false,
+        total_contacts: contacts.length,
+        closed_won_contacts: contacts.filter(row => String(row.status).toUpperCase() === 'CLOSED_WON').length,
+        total_inquiries: inquiries.length,
+        booked_or_better_inquiries: inquiries.filter(row => ['BOOKED', 'IN_CONSULT', 'CLOSED_WON'].includes(String(row.status).toUpperCase())).length,
+        total_appointments: appointments.length,
+        completed_appointments: appointments.filter(row => String(row.status).toLowerCase() === 'completed').length,
+        note: 'No canonical Agent production/premium ledger is present, so individual-agent, premium, and annuity production figures are not fabricated.',
         generated_at: new Date().toISOString(),
       },
-      actions_taken: ['fetched_agent_leaderboard'],
+      actions_taken: ['calculated_canonical_agency_performance'],
     };
   }
-}
-
-// ── HELPERS ───────────────────────────────────────────────────────────────────
-
-function buildKPISummary(snapshots: Record<string, unknown>[]): string {
-  if (snapshots.length === 0) return 'No KPI data available yet.';
-
-  const latest = snapshots[0];
-  const previous = snapshots[1];
-
-  const lines = [
-    `Latest week (${latest.snapshot_date}):`,
-    `  New Leads: ${latest.new_leads || 0}`,
-    `  Appointments Set: ${latest.appointments_set || 0}`,
-    `  Appointments Held: ${latest.appointments_held || 0}`,
-    `  Policies Issued: ${latest.policies_issued || 0}`,
-    `  Premium Written: $${Number(latest.premium_written || 0).toLocaleString()}`,
-    `  Annuity Premium: $${Number(latest.annuity_premium || 0).toLocaleString()}`,
-    `  Active Agents: ${latest.active_agents || 0}`,
-  ];
-
-  if (previous) {
-    lines.push('');
-    lines.push(`Previous week (${previous.snapshot_date}):`,
-      `  New Leads: ${previous.new_leads || 0}`,
-      `  Policies Issued: ${previous.policies_issued || 0}`,
-      `  Premium Written: $${Number(previous.premium_written || 0).toLocaleString()}`
-    );
-  }
-
-  return lines.join('\n');
 }
 
 function calculateHealthScore(total: number, stale: number, overdue: number): number {
   if (total === 0) return 100;
   const staleRatio = stale / total;
   const overdueRatio = overdue / total;
-  const score = 100 - (staleRatio * 40) - (overdueRatio * 30);
-  return Math.max(0, Math.min(100, Math.round(score)));
+  return Math.max(0, Math.min(100, Math.round(100 - (staleRatio * 40) - (overdueRatio * 30))));
 }
