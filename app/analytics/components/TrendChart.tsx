@@ -35,8 +35,8 @@ export default function TrendChart({
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-white">Lead Trend</h2>
-        <p className="text-sm text-[#A9B1BE]">Daily lead, contact, booking, and CTA activity.</p>
+        <h2 className="text-lg font-semibold text-white">Live Activity Trend</h2>
+        <p className="text-sm text-[#A9B1BE]">Daily page views, tracked sessions, CTA activity, and bookings.</p>
       </div>
 
       <div className="h-72">
@@ -64,10 +64,10 @@ export default function TrendChart({
               }}
             />
             <Legend />
-            <Line type="monotone" dataKey="lead_count" stroke={G} strokeWidth={2} dot={{ r: 3 }} name="Leads" />
-            <Line type="monotone" dataKey="contact_count" stroke="#E5E7EB" strokeWidth={2} dot={{ r: 3 }} name="Contacts" />
-            <Line type="monotone" dataKey="appointment_booked_count" stroke="#93C5FD" strokeWidth={2} dot={{ r: 3 }} name="Booked" />
+            <Line type="monotone" dataKey="page_view_count" stroke={G} strokeWidth={2} dot={{ r: 3 }} name="Page Views" />
+            <Line type="monotone" dataKey="session_count" stroke="#E5E7EB" strokeWidth={2} dot={{ r: 3 }} name="Sessions" />
             <Line type="monotone" dataKey="cta_click_count" stroke="#86EFAC" strokeWidth={2} dot={{ r: 3 }} name="CTA Clicks" />
+            <Line type="monotone" dataKey="appointment_booked_count" stroke="#93C5FD" strokeWidth={2} dot={{ r: 3 }} name="Booked" />
           </LineChart>
         </ResponsiveContainer>
       </div>
