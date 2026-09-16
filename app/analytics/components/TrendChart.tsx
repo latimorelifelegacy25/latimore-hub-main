@@ -34,12 +34,12 @@ export default function TrendChart({
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="mb-4">
+      <div className="mb-4 text-center">
         <h2 className="text-lg font-semibold text-white">Live Activity Trend</h2>
         <p className="text-sm text-[#A9B1BE]">Daily page views, tracked sessions, CTA activity, and bookings.</p>
       </div>
 
-      <div className="h-72">
+      <div className="mx-auto h-72 w-full max-w-5xl">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
