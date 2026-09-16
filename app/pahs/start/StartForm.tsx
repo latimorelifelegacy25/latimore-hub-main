@@ -4,6 +4,7 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BRAND } from '@/lib/brand'
 import { trackLeadConversion } from '@/lib/tracking/client-conversions'
+import { trackLatimoreEvent } from '@/lib/tracking/client-events'
 import { ensureLeadSessionId, getCurrentPageUrl } from '@/lib/lead'
 
 const navyDark = '#16222d'
@@ -40,7 +41,7 @@ export default function StartForm() {
 
     if (!email && !phone) {
       setStatus('error')
-      setError('Add an email or phone number so the hub can capture your info before quote transfer.')
+      setError('Add an email or phone number so Latimore can save your review request.')
       return
     }
 
@@ -64,7 +65,7 @@ export default function StartForm() {
       metadata: {
         campaignName: 'PAHS Football 2026',
         asset: 'sponsorship_qr',
-        handoff: 'ethos',
+        handoff: 'latimore_family_protection_snapshot',
       },
     }
 
@@ -93,22 +94,33 @@ export default function StartForm() {
           productInterest: 'Term_Life',
           metadata: {
             county: county || null,
-            handoff: 'ethos',
+            handoff: 'latimore_family_protection_snapshot',
+            latimoreEvent: 'lead_submitted',
+            tool: 'pahs_protection_funnel',
+            category: 'Life Protection',
           },
         }),
       }).catch(() => null)
 
-      const ethosUrl = new URL(BRAND.ethosUrl)
-      ethosUrl.searchParams.set('utm_source', utm.source)
-      ethosUrl.searchParams.set('utm_medium', utm.medium)
-      ethosUrl.searchParams.set('utm_campaign', utm.campaign)
-      if (utm.content) ethosUrl.searchParams.set('utm_content', utm.content)
-      if (utm.term) ethosUrl.searchParams.set('utm_term', utm.term)
+      void trackLatimoreEvent({
+        action: 'lead_submitted',
+        tool: 'pahs_protection_funnel',
+        category: 'Life Protection',
+        metadata: { campaign: utm.campaign, placement: 'pahs_start' },
+      })
 
-      router.push(ethosUrl.toString())
+      const next = new URLSearchParams({
+        utm_source: utm.source,
+        utm_medium: utm.medium,
+        utm_campaign: utm.campaign,
+        utm_content: 'pahs_review_handoff',
+      })
+      if (utm.term) next.set('utm_term', utm.term)
+
+      router.push(`/solutions/family-protection?${next.toString()}`)
     } catch {
       setStatus('error')
-      setError('The lead did not save to your hub. Fix the API before routing traffic here.')
+      setError('Your review request could not be saved. Please try again or contact Latimore Life & Legacy directly.')
     }
   }
 
@@ -145,7 +157,7 @@ export default function StartForm() {
           opacity: status === 'submitting' ? 0.8 : 1,
         }}
       >
-        {status === 'submitting' ? 'Saving to hub…' : 'Continue to Quick Quote →'}
+        {status === 'submitting' ? 'Saving to Latimore…' : 'Continue to My Protection Snapshot →'}
       </button>
 
       <a
@@ -166,7 +178,7 @@ export default function StartForm() {
       </a>
 
       <div style={{ color: 'rgba(255,255,255,0.62)', fontSize: '0.84rem', textAlign: 'center' }}>
-        Your info hits the hub first, then routes to Ethos.
+        Your information stays in the Latimore lead system and continues into your protection review.
       </div>
 
       {error ? (
