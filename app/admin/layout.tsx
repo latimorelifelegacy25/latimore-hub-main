@@ -12,6 +12,7 @@ const navItems = [
   { href: '/admin/nexus-agent', label: 'Nexus Agent', icon: 'fa-robot' },
   { href: '/admin/latimore-agent', label: 'Latimore Agent', icon: 'fa-comments' },
   { href: '/admin/workflow', label: 'Workflow Builder', icon: 'fa-diagram-project' },
+  { href: '/admin/workflow-runs', label: 'Workflow Operations', icon: 'fa-wave-square' },
   { href: '/admin/autonomous-monitor', label: 'Auto Monitor', icon: 'fa-tower-broadcast' },
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
