@@ -1,7 +1,7 @@
 /**
  * Weekly KPI Report Handler
- * Runs Monday 9am ET via cron
- * Generates weekly production summary and sends to Jackson
+ * Runs Monday 9am ET via cron.
+ * Uses canonical Contact, Inquiry, Appointment, and WeeklyReport records only.
  */
 
 import type { Env } from '../index';
@@ -12,116 +12,140 @@ import { jsonResponse } from '../lib/response';
 export async function handleWeeklyKPI(
   request: Request | null,
   env: Env,
-  ctx: ExecutionContext
+  ctx: ExecutionContext,
 ): Promise<Response> {
-  console.log('[WeeklyKPI] Generating weekly KPI report...');
-
+  console.log('[WeeklyKPI] Generating canonical weekly KPI report...');
   const db = createSupabaseClient(env);
 
-  // Calculate last week's date range
   const now = new Date();
-  const lastMonday = new Date(now);
-  lastMonday.setDate(now.getDate() - 7);
-  const lastSunday = new Date(now);
-  lastSunday.setDate(now.getDate() - 1);
+  const weekEndDate = new Date(now);
+  weekEndDate.setDate(now.getDate() - 1);
+  weekEndDate.setHours(23, 59, 59, 999);
+  const weekStartDate = new Date(weekEndDate);
+  weekStartDate.setDate(weekEndDate.getDate() - 6);
+  weekStartDate.setHours(0, 0, 0, 0);
 
-  const weekStart = lastMonday.toISOString().split('T')[0];
-  const weekEnd = lastSunday.toISOString().split('T')[0];
+  const weekStart = weekStartDate.toISOString().slice(0, 10);
+  const weekEnd = weekEndDate.toISOString().slice(0, 10);
 
   try {
-    // Fetch weekly production data
-    const { data: weeklyProduction } = await db.rpc('get_monthly_production', {
-      p_year: lastMonday.getFullYear(),
-      p_month: lastMonday.getMonth() + 1,
-    });
+    const [inquiryResult, appointmentResult, contactResult] = await Promise.all([
+      db.from('Inquiry').select('id,source,status,stage,createdAt').order('createdAt', { ascending: false }).limit(1000).execute(),
+      db.from('Appointment').select('id,status,scheduledFor,createdAt').order('createdAt', { ascending: false }).limit(1000).execute(),
+      db.from('Contact').select('id,status,createdAt,nextFollowUpAt,lastActivityAt').limit(2000).execute(),
+    ]);
 
-    // Fetch new leads this week
-    const { data: weekLeads } = await db
-      .from('leads')
-      .select('id, source, created_at')
-      .order('created_at', { ascending: false })
-      .limit(100);
+    if (inquiryResult.error) throw new Error(`Inquiry read failed: ${inquiryResult.error.message}`);
+    if (appointmentResult.error) throw new Error(`Appointment read failed: ${appointmentResult.error.message}`);
+    if (contactResult.error) throw new Error(`Contact read failed: ${contactResult.error.message}`);
 
-    // Fetch appointments this week
-    const { data: weekAppts } = await db
-      .from('appointments')
-      .select('id, status, appointment_type, scheduled_at')
-      .order('scheduled_at', { ascending: false })
-      .limit(50);
+    const inquiries = (Array.isArray(inquiryResult.data) ? inquiryResult.data : []) as Array<{ id: string; source?: string | null; status: string; stage: string; createdAt: string }>;
+    const appointments = (Array.isArray(appointmentResult.data) ? appointmentResult.data : []) as Array<{ id: string; status: string; scheduledFor?: string | null; createdAt: string }>;
+    const contacts = (Array.isArray(contactResult.data) ? contactResult.data : []) as Array<{ id: string; status: string; createdAt: string; nextFollowUpAt?: string | null; lastActivityAt?: string | null }>;
 
-    // Fetch pipeline summary
-    const { data: pipeline } = await db.rpc('get_pipeline_summary');
-
-    // Fetch agent leaderboard
-    const { data: leaderboard } = await db
-      .from('v_agent_leaderboard')
-      .select('agent_name, ytd_premium, ytd_policies, status')
-      .limit(10);
-
-    const production = weeklyProduction as {
-      policies_issued: number;
-      premium_written: number;
-      annuity_premium: number;
-      apps_submitted: number;
-      commission_earned: number;
-    } || {
-      policies_issued: 0, premium_written: 0, annuity_premium: 0,
-      apps_submitted: 0, commission_earned: 0,
+    const startMs = weekStartDate.getTime();
+    const endMs = weekEndDate.getTime();
+    const inRange = (value?: string | null) => {
+      if (!value) return false;
+      const ms = new Date(value).getTime();
+      return ms >= startMs && ms <= endMs;
     };
 
-    const leads = weekLeads as Array<{ id: string; source: string; created_at: string }> || [];
-    const appts = weekAppts as Array<{ id: string; status: string; appointment_type: string }> || [];
-    const pipelineData = pipeline as Array<{ status: string; count: number }> || [];
-    const agents = leaderboard as Array<{ agent_name: string; ytd_premium: number; ytd_policies: number }> || [];
+    const weeklyInquiries = inquiries.filter(item => inRange(item.createdAt));
+    const weeklyAppointments = appointments.filter(item => inRange(item.createdAt) || inRange(item.scheduledFor));
+    const appointmentsSet = weeklyAppointments.filter(item => !['cancelled', 'canceled'].includes(String(item.status).toLowerCase())).length;
+    const appointmentsHeld = weeklyAppointments.filter(item => ['completed', 'held'].includes(String(item.status).toLowerCase())).length;
+    const bookedOrBetter = weeklyInquiries.filter(item => ['BOOKED', 'IN_CONSULT', 'CLOSED_WON'].includes(String(item.status).toUpperCase())).length;
+    const conversionRate = weeklyInquiries.length ? Number(((bookedOrBetter / weeklyInquiries.length) * 100).toFixed(1)) : 0;
 
-    // Calculate conversion rates
-    const apptHeld = appts.filter(a => a.status === 'held').length;
-    const apptSet = appts.filter(a => ['scheduled', 'confirmed', 'held'].includes(a.status)).length;
-    const conversionRate = apptSet > 0 ? ((production.policies_issued / apptSet) * 100).toFixed(1) : '0.0';
+    const sourceBreakdown = weeklyInquiries.reduce<Record<string, number>>((acc, inquiry) => {
+      const source = inquiry.source || 'unknown';
+      acc[source] = (acc[source] || 0) + 1;
+      return acc;
+    }, {});
 
-    // Write KPI snapshot to DB
-    ctx.waitUntil(
-      db.from('kpi_snapshots').upsert({
-        snapshot_date: weekStart,
-        period_type: 'weekly',
-        agent_id: null,
-        new_leads: leads.length,
-        appointments_set: apptSet,
-        appointments_held: apptHeld,
-        apps_submitted: production.apps_submitted,
-        policies_issued: production.policies_issued,
-        premium_written: production.premium_written,
-        annuity_premium: production.annuity_premium,
-        commission_earned: production.commission_earned,
-      })
-    );
+    const pipelineMap = contacts.reduce<Record<string, number>>((acc, contact) => {
+      const status = String(contact.status || 'UNKNOWN');
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+    const pipeline = Object.entries(pipelineMap).map(([status, count]) => ({ status, count }));
 
-    // Build and send report
-    const reportHtml = buildWeeklyKPIEmail({
-      weekStart,
-      weekEnd,
-      production,
-      leads,
-      appts,
-      pipeline: pipelineData,
-      agents,
-      conversionRate,
-    });
+    const overdueFollowUps = contacts.filter(contact => {
+      if (!contact.nextFollowUpAt) return false;
+      return new Date(contact.nextFollowUpAt).getTime() < Date.now();
+    }).length;
+
+    const kpis = {
+      new_inquiries: weeklyInquiries.length,
+      appointments_set: appointmentsSet,
+      appointments_held: appointmentsHeld,
+      booked_or_better_inquiries: bookedOrBetter,
+      inquiry_to_booked_rate: conversionRate,
+      overdue_follow_ups: overdueFollowUps,
+      source_breakdown: sourceBreakdown,
+      pipeline,
+      policy_metrics_available: false,
+    };
+
+    const existing = await db.from('WeeklyReport')
+      .select('id')
+      .eq('weekStart', weekStartDate.toISOString())
+      .eq('weekEnd', weekEndDate.toISOString())
+      .single();
+    if (existing.error) throw new Error(`WeeklyReport lookup failed: ${existing.error.message}`);
+
+    const reportPayload = {
+      weekStart: weekStartDate.toISOString(),
+      weekEnd: weekEndDate.toISOString(),
+      kpis,
+      insights: {
+        source: 'canonical_prisma_crm',
+        note: 'Policy, premium, commission, and individual-agent production metrics are omitted because the canonical CRM currently has no production ledger.',
+      },
+      opportunities: {
+        overdue_follow_ups: overdueFollowUps,
+        booked_or_better_inquiries: bookedOrBetter,
+      },
+      recommendations: {
+        next_action: 'Work overdue follow-ups first, then move qualified inquiries toward booked consultations.',
+      },
+    };
+
+    if (existing.data) {
+      const updated = await db.from('WeeklyReport').update(reportPayload).eq('id', (existing.data as { id: string }).id).execute();
+      if (updated.error) throw new Error(`WeeklyReport update failed: ${updated.error.message}`);
+    } else {
+      const created = await db.from('WeeklyReport').insert(reportPayload);
+      if (created.error) throw new Error(`WeeklyReport create failed: ${created.error.message}`);
+    }
 
     await sendEmail(env, {
       to: 'Jackson1989@latimorelegacy.com',
-      subject: `📊 Weekly KPI Report — Week of ${weekStart} | ${leads.length} leads, ${production.policies_issued} policies`,
-      html: reportHtml,
+      subject: `📊 Weekly KPI Report — ${weekStart} to ${weekEnd} | ${weeklyInquiries.length} inquiries`,
+      html: buildWeeklyKPIEmail({
+        weekStart,
+        weekEnd,
+        inquiries: weeklyInquiries.length,
+        appointmentsSet,
+        appointmentsHeld,
+        bookedOrBetter,
+        conversionRate,
+        overdueFollowUps,
+        sourceBreakdown,
+        pipeline,
+      }),
       tags: [{ name: 'type', value: 'weekly_kpi' }],
     });
 
-    console.log(`[WeeklyKPI] Report sent for week ${weekStart}–${weekEnd}`);
+    ctx.waitUntil(env.WORKFLOW_QUEUE.send({
+      workflow: 'weekly-kpi-report',
+      trigger: 'scheduled',
+      payload: { week_start: weekStart, week_end: weekEnd },
+    }));
 
-    if (request) {
-      return jsonResponse({ success: true, week_start: weekStart, week_end: weekEnd });
-    }
-    return jsonResponse({ success: true });
-
+    console.log(`[WeeklyKPI] Canonical report sent for ${weekStart}–${weekEnd}`);
+    return request ? jsonResponse({ success: true, week_start: weekStart, week_end: weekEnd }) : jsonResponse({ success: true });
   } catch (err) {
     console.error('[WeeklyKPI] Error:', err);
     if (request) return jsonResponse({ success: false, error: String(err) }, 500);
@@ -132,147 +156,45 @@ export async function handleWeeklyKPI(
 function buildWeeklyKPIEmail(data: {
   weekStart: string;
   weekEnd: string;
-  production: { policies_issued: number; premium_written: number; annuity_premium: number; apps_submitted: number; commission_earned: number };
-  leads: Array<{ id: string; source: string }>;
-  appts: Array<{ id: string; status: string }>;
+  inquiries: number;
+  appointmentsSet: number;
+  appointmentsHeld: number;
+  bookedOrBetter: number;
+  conversionRate: number;
+  overdueFollowUps: number;
+  sourceBreakdown: Record<string, number>;
   pipeline: Array<{ status: string; count: number }>;
-  agents: Array<{ agent_name: string; ytd_premium: number; ytd_policies: number }>;
-  conversionRate: string;
 }): string {
-  const sourceBreakdown = data.leads.reduce((acc, l) => {
-    acc[l.source] = (acc[l.source] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const sourceRows = Object.entries(sourceBreakdown)
+  const sourceRows = Object.entries(data.sourceBreakdown)
     .sort(([, a], [, b]) => b - a)
-    .map(([source, count]) => `
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-transform:capitalize;">${source}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#0E1A2B;">${count}</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;color:#888;">${((count / data.leads.length) * 100).toFixed(0)}%</td>
-      </tr>`).join('');
+    .map(([source, count]) => `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;text-transform:capitalize;">${source}</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:bold;">${count}</td></tr>`)
+    .join('') || '<tr><td colspan="2" style="padding:12px;color:#888;text-align:center;">No inquiries this week</td></tr>';
 
-  const agentRows = data.agents.length > 0
-    ? data.agents.map((a, i) => `
-        <tr>
-          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">${i + 1}. ${a.agent_name}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#C9A25F;">$${(a.ytd_premium || 0).toLocaleString()}</td>
-          <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;">${a.ytd_policies || 0}</td>
-        </tr>`).join('')
-    : '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center;">No agent data yet</td></tr>';
+  const pipelineRows = data.pipeline
+    .map(item => `<tr><td style="padding:8px 12px;border-bottom:1px solid #eee;">${item.status.replace(/_/g, ' ')}</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-weight:bold;">${item.count}</td></tr>`)
+    .join('');
 
-  const pipelineRows = data.pipeline.map(p => `
-    <tr>
-      <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;text-transform:capitalize;">${p.status.replace(/_/g, ' ')}</td>
-      <td style="padding:8px 12px;border-bottom:1px solid #f0f0f0;font-weight:bold;color:#0E1A2B;">${p.count}</td>
-    </tr>`).join('');
+  const cards = [
+    ['New Inquiries', data.inquiries],
+    ['Appointments Set', data.appointmentsSet],
+    ['Appointments Held', data.appointmentsHeld],
+    ['Booked or Better', data.bookedOrBetter],
+    ['Inquiry → Booked', `${data.conversionRate}%`],
+    ['Overdue Follow-ups', data.overdueFollowUps],
+  ];
 
-  return `
-<!DOCTYPE html>
-<html>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:30px 20px;">
-    <tr><td align="center">
-      <table width="680" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
-
-        <!-- Header -->
-        <tr><td style="background:#0E1A2B;padding:28px 36px;">
-          <h1 style="color:#C9A25F;font-size:22px;margin:0;">📊 Weekly KPI Report — Latimore OS</h1>
-          <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:6px 0 0;">Week of ${data.weekStart} → ${data.weekEnd}</p>
-        </td></tr>
-
-        <!-- Production KPIs -->
-        <tr><td style="padding:28px 36px 0;">
-          <h3 style="color:#0E1A2B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">💼 Personal Production</h3>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              ${[
-                ['Policies Issued', data.production.policies_issued, '#276221'],
-                ['Premium Written', `$${(data.production.premium_written || 0).toLocaleString()}`, '#0E1A2B'],
-                ['Annuity Premium', `$${(data.production.annuity_premium || 0).toLocaleString()}`, '#C9A25F'],
-                ['Apps Submitted', data.production.apps_submitted, '#555'],
-                ['Commission', `$${(data.production.commission_earned || 0).toLocaleString()}`, '#276221'],
-              ].map(([label, value, color]) => `
-                <td style="text-align:center;padding:16px 8px;background:#f8f8f8;border-radius:8px;margin:4px;">
-                  <div style="font-size:24px;font-weight:bold;color:${color};">${value}</div>
-                  <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">${label}</div>
-                </td>`).join('<td style="width:8px;"></td>')}
-            </tr>
-          </table>
-        </td></tr>
-
-        <!-- Lead Activity -->
-        <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#0E1A2B;margin:0 0 16px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🔔 Lead Activity</h3>
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              ${[
-                ['Total Leads', data.leads.length, '#0E1A2B'],
-                ['Appts Set', data.appts.filter(a => ['scheduled','confirmed','held'].includes(a.status)).length, '#C9A25F'],
-                ['Appts Held', data.appts.filter(a => a.status === 'held').length, '#276221'],
-                ['Conversion', `${data.conversionRate}%`, '#9C5700'],
-              ].map(([label, value, color]) => `
-                <td style="text-align:center;padding:16px 8px;background:#f8f8f8;border-radius:8px;">
-                  <div style="font-size:24px;font-weight:bold;color:${color};">${value}</div>
-                  <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">${label}</div>
-                </td>`).join('<td style="width:8px;"></td>')}
-            </tr>
-          </table>
-        </td></tr>
-
-        <!-- Lead Sources -->
-        <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">📡 Lead Sources</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Source</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Leads</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Share</th>
-            </tr>
-            ${sourceRows || '<tr><td colspan="3" style="padding:12px;color:#888;text-align:center;">No leads this week</td></tr>'}
-          </table>
-        </td></tr>
-
-        <!-- Pipeline -->
-        <tr><td style="padding:24px 36px 0;">
-          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🔄 Pipeline Status</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Status</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Count</th>
-            </tr>
-            ${pipelineRows || '<tr><td colspan="2" style="padding:12px;color:#888;text-align:center;">No pipeline data</td></tr>'}
-          </table>
-        </td></tr>
-
-        <!-- Agent Leaderboard -->
-        <tr><td style="padding:24px 36px;">
-          <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;border-bottom:2px solid #C9A25F;padding-bottom:8px;">🏆 Agent Leaderboard (YTD)</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Agent</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">YTD Premium</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Policies</th>
-            </tr>
-            ${agentRows}
-          </table>
-
-          <div style="text-align:center;margin-top:24px;">
-            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
-              Open Full Dashboard →
-            </a>
-          </div>
-        </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="background:#f0f0f0;padding:16px 36px;text-align:center;border-top:1px solid #e0e0e0;">
-          <p style="color:#888;font-size:12px;margin:0;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn<br>
-          Latimore Life & Legacy LLC | PA DOI #1268820</p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`;
+  return `<!DOCTYPE html><html><body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:30px 20px;"><tr><td align="center">
+    <table width="680" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
+      <tr><td style="background:#0E1A2B;padding:28px 36px;"><h1 style="color:#C9A25F;font-size:22px;margin:0;">📊 Weekly KPI Report — Latimore OS</h1><p style="color:rgba(255,255,255,.7);margin:6px 0 0;">${data.weekStart} → ${data.weekEnd}</p></td></tr>
+      <tr><td style="padding:28px 36px;">
+        <table width="100%" cellpadding="0" cellspacing="8"><tr>${cards.slice(0,3).map(([label,value]) => `<td style="text-align:center;padding:16px;background:#f8f8f8;border-radius:8px;"><div style="font-size:24px;font-weight:bold;color:#0E1A2B;">${value}</div><div style="font-size:11px;color:#888;text-transform:uppercase;">${label}</div></td>`).join('')}</tr><tr>${cards.slice(3).map(([label,value]) => `<td style="text-align:center;padding:16px;background:#f8f8f8;border-radius:8px;"><div style="font-size:24px;font-weight:bold;color:#C9A25F;">${value}</div><div style="font-size:11px;color:#888;text-transform:uppercase;">${label}</div></td>`).join('')}</tr></table>
+        <h3 style="color:#0E1A2B;border-bottom:2px solid #C9A25F;padding-bottom:8px;">Lead Sources</h3><table width="100%">${sourceRows}</table>
+        <h3 style="color:#0E1A2B;border-bottom:2px solid #C9A25F;padding-bottom:8px;margin-top:24px;">Pipeline</h3><table width="100%">${pipelineRows || '<tr><td style="padding:12px;color:#888;">No pipeline data</td></tr>'}</table>
+        <div style="margin-top:24px;padding:16px;background:#f8f6f0;border-left:4px solid #C9A25F;"><strong>Data scope:</strong> canonical CRM activity only. Policy, premium, commission, and individual-agent production figures are not shown until a canonical production ledger exists.</div>
+        <div style="text-align:center;margin-top:24px;"><a href="https://hub.latimorelifelegacy.com/admin/master-dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;">Open Latimore OS →</a></div>
+      </td></tr>
+      <tr><td style="background:#f0f0f0;padding:16px 36px;text-align:center;"><p style="color:#888;font-size:12px;margin:0;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn | PA DOI #1268820</p></td></tr>
+    </table>
+  </td></tr></table></body></html>`;
 }
