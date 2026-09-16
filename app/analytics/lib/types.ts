@@ -1,12 +1,17 @@
 export type Range = '7d' | '30d' | '90d'
 
 export type OverviewData = {
+  pageViewCount: number
+  sessionCount: number
   leadCount: number
   contactCount: number
   appointmentBookedCount: number
   soldCount: number
   ctaClickCount: number
+  bookingClickCount: number
   formSubmitCount: number
+  toolStartCount: number
+  toolCompleteCount: number
   leadToBookingRate: number
   leadToSoldRate: number
   avgLeadScore: number
@@ -30,14 +35,20 @@ export type FunnelStage = {
   stageOrder: number
   count: number
   conversionRate: number
+  dropOffRate?: number
+  avgHoursFromPrevStage?: number | null
 }
 
 export type TimeSeriesPoint = {
   date: string
+  page_view_count?: number
+  session_count?: number
   lead_count?: number
   contact_count?: number
   appointment_booked_count?: number
   cta_click_count?: number
+  tool_start_count?: number
+  tool_complete_count?: number
 }
 
 export type BreakdownRow = {
