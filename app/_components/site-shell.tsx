@@ -153,8 +153,6 @@ export function SiteFooter({ navLinks = DEFAULT_NAV_LINKS }: { navLinks?: readon
             </h4>
             <p style={{ color: 'rgba(255,255,255,0.72)', fontSize: '0.9rem', lineHeight: 1.7 }}>
               Independent Life, Health, Accident &amp; Annuities Broker
-              <br />
-              {BRAND.affiliation}
             </p>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
               {[
@@ -254,9 +252,7 @@ export function SiteFooter({ navLinks = DEFAULT_NAV_LINKS }: { navLinks?: readon
               margin: '0 auto 0.75rem',
             }}
           >
-            Licensed in Pennsylvania (DOI #{BRAND.paLicense}, NIPR #{BRAND.nipr}). Independent
-            contractor affiliated with Global Financial Impact. For educational purposes only; not
-            tax or legal advice.
+            Licensed in Pennsylvania (DOI #{BRAND.paLicense}, NIPR #{BRAND.nipr}). For educational purposes only; not tax or legal advice.
           </p>
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>
             © {new Date().getFullYear()} Latimore Life & Legacy LLC. All rights reserved.
