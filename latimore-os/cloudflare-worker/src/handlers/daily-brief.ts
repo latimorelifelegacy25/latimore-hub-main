@@ -1,7 +1,7 @@
 /**
  * Daily Brief Handler
  * Runs at 8am ET every day via cron
- * Sends Jackson a daily summary of pipeline, tasks, and appointments
+ * Sends Jackson a daily summary of canonical pipeline, tasks, and appointments.
  */
 
 import type { Env } from '../index';
@@ -12,80 +12,92 @@ import { jsonResponse } from '../lib/response';
 export async function handleDailyBrief(
   request: Request | null,
   env: Env,
-  ctx: ExecutionContext
+  _ctx: ExecutionContext
 ): Promise<Response> {
-  console.log('[DailyBrief] Starting daily brief generation...');
-
+  console.log('[DailyBrief] Starting canonical daily brief generation...');
   const db = createSupabaseClient(env);
-  const today = new Date().toISOString().split('T')[0];
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+  const tomorrow = new Date(Date.now() + 86400000).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
   try {
-    // Fetch today's appointments
-    const { data: appointments } = await db
-      .from('appointments')
-      .select('id, appointment_type, scheduled_at, status')
-      .eq('status', 'scheduled')
-      .order('scheduled_at', { ascending: true })
-      .limit(20);
+    const [appointmentResult, taskResult, inquiryResult, contactResult] = await Promise.all([
+      db.from('Appointment').select('id,bookingSource,scheduledFor,status,metadata').order('scheduledFor', { ascending: true }).limit(100).execute(),
+      db.from('Task').select('id,title,description,status,dueAt,contactId').order('dueAt', { ascending: true }).limit(100).execute(),
+      db.from('Inquiry').select('id,contactId,source,createdAt').order('createdAt', { ascending: false }).limit(100).execute(),
+      db.from('Contact').select('id,status').limit(1000).execute(),
+    ]);
 
-    // Fetch overdue tasks
-    const { data: overdueTasks } = await db
-      .from('tasks')
-      .select('id, title, priority, due_at, contact_id')
-      .eq('status', 'pending')
-      .order('priority', { ascending: false })
-      .limit(10);
+    if (appointmentResult.error) throw new Error(`Appointment read failed: ${appointmentResult.error.message}`);
+    if (taskResult.error) throw new Error(`Task read failed: ${taskResult.error.message}`);
+    if (inquiryResult.error) throw new Error(`Inquiry read failed: ${inquiryResult.error.message}`);
+    if (contactResult.error) throw new Error(`Contact read failed: ${contactResult.error.message}`);
 
-    // Fetch new leads (last 24h)
-    const { data: newLeads } = await db
-      .from('leads')
-      .select('id, first_name, last_name, source, created_at')
-      .eq('is_processed', false)
-      .order('created_at', { ascending: false })
-      .limit(20);
+    const appointmentsRaw = (Array.isArray(appointmentResult.data) ? appointmentResult.data : []) as Array<{
+      id: string; bookingSource?: string | null; scheduledFor?: string | null; status: string; metadata?: Record<string, unknown> | null;
+    }>;
+    const tasksRaw = (Array.isArray(taskResult.data) ? taskResult.data : []) as Array<{
+      id: string; title: string; description?: string | null; status: string; dueAt?: string | null; contactId?: string | null;
+    }>;
+    const inquiriesRaw = (Array.isArray(inquiryResult.data) ? inquiryResult.data : []) as Array<{
+      id: string; contactId: string; source?: string | null; createdAt: string;
+    }>;
+    const contactsRaw = (Array.isArray(contactResult.data) ? contactResult.data : []) as Array<{ id: string; status: string }>;
 
-    // Fetch pipeline summary
-    const { data: pipeline } = await db.rpc('get_pipeline_summary');
+    const apptList = appointmentsRaw
+      .filter(a => {
+        if (!a.scheduledFor || String(a.status).toLowerCase() === 'cancelled') return false;
+        const date = new Date(a.scheduledFor).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+        return date === today || date === tomorrow;
+      })
+      .map(a => ({
+        id: a.id,
+        appointment_type: String(a.metadata?.appointmentType || a.bookingSource || 'consultation'),
+        scheduled_at: a.scheduledFor || '',
+        status: a.status,
+      }));
 
-    const apptList = (appointments as Array<{
-      id: string;
-      appointment_type: string;
-      scheduled_at: string;
-      status: string;
-    }> || []).filter(a => {
-      const apptDate = a.scheduled_at.split('T')[0];
-      return apptDate === today || apptDate === tomorrow;
-    });
+    const now = Date.now();
+    const taskList = tasksRaw
+      .filter(t => String(t.status).toLowerCase() === 'open' && (!t.dueAt || new Date(t.dueAt).getTime() <= now + 86400000))
+      .slice(0, 10)
+      .map(t => ({
+        id: t.id,
+        title: t.title,
+        priority: priorityFromDescription(t.description),
+        due_at: t.dueAt || '',
+      }));
 
-    const taskList = overdueTasks as Array<{
-      id: string;
-      title: string;
-      priority: string;
-      due_at: string;
-    }> || [];
+    const recentCutoff = now - 24 * 3600000;
+    const recentInquiries = inquiriesRaw.filter(i => new Date(i.createdAt).getTime() >= recentCutoff).slice(0, 20);
+    const leadList = await Promise.all(recentInquiries.map(async inquiry => {
+      const contact = await db.from('Contact').select('firstName,lastName').eq('id', inquiry.contactId).single();
+      const person = contact.data as { firstName?: string | null; lastName?: string | null } | null;
+      return {
+        id: inquiry.id,
+        first_name: person?.firstName || 'Unknown',
+        last_name: person?.lastName || '',
+        source: inquiry.source || 'unknown',
+        created_at: inquiry.createdAt,
+      };
+    }));
 
-    const leadList = newLeads as Array<{
-      id: string;
-      first_name: string;
-      last_name: string;
-      source: string;
-      created_at: string;
-    }> || [];
+    const pipelineMap = contactsRaw.reduce<Record<string, number>>((acc, contact) => {
+      const status = String(contact.status || 'UNKNOWN');
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+    const pipeline = Object.entries(pipelineMap).map(([status, count]) => ({ status, count }));
 
-    // Build brief email
     const briefHtml = buildDailyBriefEmail({
       date: new Date().toLocaleDateString('en-US', {
-        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
-        timeZone: 'America/New_York',
+        weekday: 'long', month: 'long', day: 'numeric', year: 'numeric', timeZone: 'America/New_York',
       }),
       appointments: apptList,
       overdueTasks: taskList,
       newLeads: leadList,
-      pipeline: pipeline as Array<{ status: string; count: number }> || [],
+      pipeline,
     });
 
-    // Send email brief
     await sendEmail(env, {
       to: 'Jackson1989@latimorelegacy.com',
       subject: `☀️ Daily Brief — ${today} | ${apptList.length} appts, ${leadList.length} new leads`,
@@ -93,30 +105,26 @@ export async function handleDailyBrief(
       tags: [{ name: 'type', value: 'daily_brief' }],
     });
 
-    // Send SMS summary
-    const smsBody = buildDailyBriefSMS(apptList.length, leadList.length, taskList.length);
     await sendSMS(env, {
       to: env.TWILIO_PHONE_NUMBER,
-      body: smsBody,
+      body: buildDailyBriefSMS(apptList.length, leadList.length, taskList.length),
     });
 
-    console.log(`[DailyBrief] Sent: ${apptList.length} appts, ${leadList.length} leads, ${taskList.length} tasks`);
-
-    if (request) {
-      return jsonResponse({
-        success: true,
-        appointments: apptList.length,
-        new_leads: leadList.length,
-        overdue_tasks: taskList.length,
-      });
-    }
-    return jsonResponse({ success: true });
-
+    console.log(`[DailyBrief] Sent from canonical CRM: ${apptList.length} appts, ${leadList.length} leads, ${taskList.length} tasks`);
+    return request
+      ? jsonResponse({ success: true, appointments: apptList.length, new_leads: leadList.length, overdue_tasks: taskList.length })
+      : jsonResponse({ success: true });
   } catch (err) {
     console.error('[DailyBrief] Error:', err);
     if (request) return jsonResponse({ success: false, error: String(err) }, 500);
     return jsonResponse({ success: false });
   }
+}
+
+function priorityFromDescription(description?: string | null): string {
+  if (!description) return 'normal';
+  const match = description.match(/"priority":"([^"]+)"/i);
+  return match?.[1] || 'normal';
 }
 
 function buildDailyBriefSMS(appts: number, leads: number, tasks: number): string {
@@ -166,82 +174,28 @@ function buildDailyBriefEmail(data: {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:30px 20px;">
     <tr><td align="center">
       <table width="640" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:8px;overflow:hidden;">
-        <!-- Header -->
         <tr><td style="background:#0E1A2B;padding:24px 32px;">
           <h1 style="color:#C9A25F;font-size:22px;margin:0;">☀️ Daily Brief — Latimore OS</h1>
           <p style="color:rgba(255,255,255,0.7);font-size:14px;margin:6px 0 0;">${data.date}</p>
         </td></tr>
-
-        <!-- KPI Strip -->
         <tr><td style="background:#f8f6f0;padding:16px 32px;">
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr>
-              <td style="text-align:center;padding:0 16px;">
-                <div style="font-size:28px;font-weight:bold;color:#0E1A2B;">${data.appointments.length}</div>
-                <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Appointments</div>
-              </td>
-              <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;">
-                <div style="font-size:28px;font-weight:bold;color:#C9A25F;">${data.newLeads.length}</div>
-                <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">New Leads</div>
-              </td>
-              <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;">
-                <div style="font-size:28px;font-weight:bold;color:#9C5700;">${data.overdueTasks.length}</div>
-                <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Tasks Due</div>
-              </td>
-              <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;">
-                <div style="font-size:28px;font-weight:bold;color:#276221;">${data.pipeline.reduce((s, p) => s + (p.count || 0), 0)}</div>
-                <div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Pipeline</div>
-              </td>
-            </tr>
-          </table>
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td style="text-align:center;padding:0 16px;"><div style="font-size:28px;font-weight:bold;color:#0E1A2B;">${data.appointments.length}</div><div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Appointments</div></td>
+            <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;"><div style="font-size:28px;font-weight:bold;color:#C9A25F;">${data.newLeads.length}</div><div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">New Leads</div></td>
+            <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;"><div style="font-size:28px;font-weight:bold;color:#9C5700;">${data.overdueTasks.length}</div><div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Tasks Due</div></td>
+            <td style="text-align:center;padding:0 16px;border-left:1px solid #e0e0e0;"><div style="font-size:28px;font-weight:bold;color:#276221;">${data.pipeline.reduce((s, p) => s + (p.count || 0), 0)}</div><div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;">Pipeline</div></td>
+          </tr></table>
         </td></tr>
-
         <tr><td style="padding:24px 32px;">
-          <!-- Appointments -->
           <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">📅 Today's Appointments</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Time</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Type</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Status</th>
-            </tr>
-            ${apptRows}
-          </table>
-
-          <!-- New Leads -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;"><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Time</th><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Type</th><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Status</th></tr>${apptRows}</table>
           <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">🔔 New Leads (Last 24h)</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Name</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Source</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">When</th>
-            </tr>
-            ${leadRows}
-          </table>
-
-          <!-- Tasks -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;"><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Name</th><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Source</th><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">When</th></tr>${leadRows}</table>
           <h3 style="color:#0E1A2B;margin:0 0 12px;font-size:16px;">✅ Pending Tasks</h3>
-          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;">
-            <tr style="background:#f5f5f5;">
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Task</th>
-              <th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Priority</th>
-            </tr>
-            ${taskRows}
-          </table>
-
-          <!-- CTA -->
-          <div style="text-align:center;margin-top:8px;">
-            <a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
-              Open Latimore OS →
-            </a>
-          </div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;margin-bottom:24px;"><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Task</th><th style="padding:8px 12px;text-align:left;font-size:12px;color:#555;text-transform:uppercase;">Priority</th></tr>${taskRows}</table>
+          <div style="text-align:center;margin-top:8px;"><a href="https://hub.latimorelifelegacy.com/admin/dashboard" style="display:inline-block;background:#0E1A2B;color:#C9A25F;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">Open Latimore OS →</a></div>
         </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="background:#f0f0f0;padding:16px 32px;text-align:center;border-top:1px solid #e0e0e0;">
-          <p style="color:#888;font-size:12px;margin:0;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn<br>
-          PA DOI #1268820 | latimorelifelegacy.com</p>
-        </td></tr>
+        <tr><td style="background:#f0f0f0;padding:16px 32px;text-align:center;border-top:1px solid #e0e0e0;"><p style="color:#888;font-size:12px;margin:0;">Protecting Today. Securing Tomorrow. #TheBeatGoesOn<br>PA DOI #1268820 | latimorelifelegacy.com</p></td></tr>
       </table>
     </td></tr>
   </table>
@@ -251,9 +205,7 @@ function buildDailyBriefEmail(data: {
 
 function formatTime(iso: string): string {
   try {
-    return new Date(iso).toLocaleTimeString('en-US', {
-      hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
-    });
+    return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
   } catch { return iso; }
 }
 
