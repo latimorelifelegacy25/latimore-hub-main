@@ -83,33 +83,44 @@ export default function HomePage() {
             {[
               {
                 title: 'Wealth Accumulation',
+                image: '/blueprint_family_couch.jpg',
+                alt: 'Family discussing long-term financial planning at home',
                 color: '#e8f4fd',
                 border: '#bee3f8',
                 items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
               },
               {
                 title: 'Protection & Risk',
+                image: '/coverage_family_outdoors.jpg',
+                alt: 'Family together outdoors representing protection and financial security',
                 color: '#fef9e7',
                 border: '#fde68a',
                 items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']
               },
               {
                 title: 'Legacy & Planning',
+                image: '/closing_family_outdoors.jpg',
+                alt: 'Family outdoors representing legacy and long-term planning',
                 color: '#f0fdf4',
                 border: '#bbf7d0',
                 items: ['Estate & Wealth Transfer Coordination', 'Business Continuity Planning', 'Retirement Income Strategies', 'Debt Education']
               }
-            ].map(({ title, color, border, items }) => (
-              <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, padding: '1.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
-                <h3 style={{ color: navy, fontSize: '1.25rem', marginBottom: '1rem', textAlign: 'center' }}>{title}</h3>
-                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                  {items.map(item => (
-                    <li key={item} style={{ margin: '0.6rem 0', paddingLeft: 22, position: 'relative', color: '#333', fontSize: '0.92rem' }}>
-                      <span style={{ position: 'absolute', left: 0, top: 0, color: '#0b7a55', fontWeight: 700 }}>✓</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+            ].map(({ title, image, alt, color, border, items }) => (
+              <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+                <div style={{ position: 'relative', height: 190, width: '100%' }}>
+                  <Image src={image} alt={alt} fill sizes="(max-width: 960px) 100vw, 33vw" style={{ objectFit: 'cover' }} />
+                </div>
+                <div style={{ padding: '1.75rem' }}>
+                  <h3 style={{ color: navy, fontSize: '1.25rem', margin: '0 0 1rem', textAlign: 'center' }}>{title}</h3>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map(item => (
+                      <li key={item} style={{ margin: '0.6rem 0', paddingLeft: 22, position: 'relative', color: '#333', fontSize: '0.92rem' }}>
+                        <span style={{ position: 'absolute', left: 0, top: 0, color: '#0b7a55', fontWeight: 700 }}>✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </article>
             ))}
           </div>
