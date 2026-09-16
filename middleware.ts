@@ -13,6 +13,7 @@ const privateHubHosts = (process.env.HUB_PRIVATE_HOSTS || 'hub.latimorelifelegac
 
 const protectedPrefixes = [
   '/admin',
+  '/analytics',
   '/dashboard',
   '/crm',
   '/leads',
