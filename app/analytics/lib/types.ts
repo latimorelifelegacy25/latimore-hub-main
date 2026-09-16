@@ -1,4 +1,4 @@
-export type Range = '7d' | '30d' | '90d'
+export type Range = '1d' | '7d' | '30d' | '90d'
 
 export type OverviewData = {
   pageViewCount: number
