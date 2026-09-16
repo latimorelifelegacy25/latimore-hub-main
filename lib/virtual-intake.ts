@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { LeadStatus, PipelineStage, ProductInterest } from '@prisma/client'
+import { LeadSource, LeadStatus, PipelineStage, ProductInterest } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export type Journey = 'client' | 'business_partner' | 'both'
@@ -136,14 +136,8 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
     input.topPriorityWhy ? `Top priority why: ${input.topPriorityWhy}` : null,
   ].filter(Boolean).join('\n')
 
-  const existingContact = await prisma.contact.findFirst({
-    where: {
-      OR: [
-        { email: String(input.email) },
-        ...(input.phone ? [{ phone: String(input.phone) }] : []),
-      ],
-    },
-  })
+  const byEmail = await prisma.contact.findUnique({ where: { email: String(input.email) } })
+  const existingContact = byEmail || (input.phone ? await prisma.contact.findUnique({ where: { phone: String(input.phone) } }) : null)
 
   const contact = existingContact
     ? await prisma.contact.update({
@@ -157,6 +151,7 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
           primarySource: 'latimore_virtual_intake',
           primaryMedium: 'intake',
           primaryCampaign: 'virtual_interactive_intake',
+          primarySourceType: LeadSource.WEBSITE_DIRECT,
           lastActivityAt: new Date(),
           notesSummary: notes,
         },
@@ -171,6 +166,7 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
           primarySource: 'latimore_virtual_intake',
           primaryMedium: 'intake',
           primaryCampaign: 'virtual_interactive_intake',
+          primarySourceType: LeadSource.WEBSITE_DIRECT,
           status: LeadStatus.NEW,
           lastActivityAt: new Date(),
           notesSummary: notes,
@@ -185,7 +181,7 @@ export async function submitVirtualIntake(input: VirtualIntakeInput) {
       source: 'latimore_virtual_intake',
       medium: 'intake',
       campaign: 'virtual_interactive_intake',
-      sourceType: 'DIRECT',
+      sourceType: LeadSource.WEBSITE_DIRECT,
       status: LeadStatus.NEW,
       landingPage: '/intake',
       notes,
