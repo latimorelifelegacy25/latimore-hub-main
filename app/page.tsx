@@ -83,28 +83,24 @@ export default function HomePage() {
             {[
               {
                 title: 'Wealth Accumulation',
-                icon: '📈',
                 color: '#e8f4fd',
                 border: '#bee3f8',
                 items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
               },
               {
                 title: 'Protection & Risk',
-                icon: '🛡️',
                 color: '#fef9e7',
                 border: '#fde68a',
                 items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']
               },
               {
                 title: 'Legacy & Planning',
-                icon: '🏛️',
                 color: '#f0fdf4',
                 border: '#bbf7d0',
                 items: ['Estate & Wealth Transfer Coordination', 'Business Continuity Planning', 'Retirement Income Strategies', 'Debt Education']
               }
-            ].map(({ title, icon, color, border, items }) => (
+            ].map(({ title, color, border, items }) => (
               <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, padding: '1.75rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem', textAlign: 'center' }}>{icon}</div>
                 <h3 style={{ color: navy, fontSize: '1.25rem', marginBottom: '1rem', textAlign: 'center' }}>{title}</h3>
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {items.map(item => (
@@ -200,9 +196,9 @@ export default function HomePage() {
 
           <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.08)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)' }}>
             <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7 }}>
-              📍 <strong>Office:</strong> 1544 Route 61 Hwy S, Ste 6104, Pottsville, PA 17901<br />
-              📞 <strong>Phone:</strong> <a href={`tel:+1${BRAND.phoneRaw}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.phone}</a><br />
-              📧 <strong>Email:</strong> <a href={`mailto:${BRAND.email}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.email}</a>
+              <strong>Office:</strong> 1544 Route 61 Hwy S, Ste 6104, Pottsville, PA 17901<br />
+              <strong>Phone:</strong> <a href={`tel:+1${BRAND.phoneRaw}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.phone}</a><br />
+              <strong>Email:</strong> <a href={`mailto:${BRAND.email}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.email}</a>
             </p>
           </div>
         </div>
