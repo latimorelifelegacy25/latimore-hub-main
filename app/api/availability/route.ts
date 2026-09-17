@@ -48,20 +48,25 @@ export async function GET() {
     const message: string = error?.message ?? 'Failed to load availability'
     logger.error({ err: message }, 'availability: fetch failed')
 
-    // Distinguish calendar connectivity issues from generic errors
+    // Distinguish calendar connectivity/authentication issues from generic errors.
+    const lowerMessage = message.toLowerCase()
     const isDisconnected =
-      message.includes('not connected') ||
-      message.includes('refresh token is missing') ||
-      message.includes('Missing required env var: GOOGLE_CLIENT') ||
-      message.includes('invalid_client') ||
-      message.includes('invalid_grant') ||
-      message.includes('Token has been expired or revoked')
+      lowerMessage.includes('not connected') ||
+      lowerMessage.includes('refresh token is missing') ||
+      lowerMessage.includes('missing required env var: google_client') ||
+      lowerMessage.includes('invalid_client') ||
+      lowerMessage.includes('invalid_grant') ||
+      lowerMessage.includes('token has been expired or revoked') ||
+      lowerMessage.includes('unauthorized') ||
+      lowerMessage.includes('authentication')
 
     return NextResponse.json(
       {
         ok: false,
         errorCode: isDisconnected ? 'CALENDAR_DISCONNECTED' : 'CALENDAR_ERROR',
-        error: message,
+        error: isDisconnected
+          ? 'Calendar authorization needs to be refreshed.'
+          : 'Available times could not be loaded.',
       },
       { status: 503 }
     )
