@@ -74,6 +74,9 @@ export const BRAND = {
   // Primary CTAs — all public booking buttons route through the owned booking page.
   bookingUrl: '/book',
   filloutUrl: '/book',
+  // Used only when the owned live-availability integration cannot load.
+  externalBookingUrl:
+    process.env.NEXT_PUBLIC_GOOGLE_APPOINTMENT_SCHEDULE_URL ?? DEFAULT_GOOGLE_APPOINTMENT_SCHEDULE_URL,
   ethosUrl: 'https://agents.ethoslife.com/invite/29ad1',
   ethosQuoteUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
