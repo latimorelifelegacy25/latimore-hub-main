@@ -42,6 +42,7 @@ const eventEnum = z.enum([
   'service_card_clicked',
   'gbp_service_visit',
 ])
+const analyticsCountyEnum = z.enum(['Schuylkill', 'Luzerne', 'Northumberland'])
 
 export const FilloutSchema = z.object({
   email: z.string().email('Invalid email').optional().nullable(),
@@ -71,20 +72,23 @@ export const FilloutSchema = z.object({
 }).passthrough()
 
 export const EventIngestSchema = z.object({
-  eventType: z.string().min(1).max(100),
-  occurredAt: z.string().optional().nullable(),
-  leadSessionId: z.string().max(191).optional().nullable(),
-  contactId: z.string().max(191).optional().nullable(),
-  inquiryId: z.string().max(191).optional().nullable(),
-  pageUrl: z.string().max(500).optional().nullable(),
-  referrer: z.string().max(500).optional().nullable(),
-  source: z.string().max(100).optional().nullable(),
-  medium: z.string().max(100).optional().nullable(),
-  campaign: z.string().max(150).optional().nullable(),
-  county: z.string().max(100).optional().nullable(),
-  productInterest: z.string().max(100).optional().nullable(),
-  metadata: z.record(z.any()).optional().nullable(),
-})
+  eventType: eventEnum,
+  occurredAt: z.string().datetime({ offset: true }).optional().nullable(),
+  leadSessionId: z.string().trim().min(1).max(191).optional().nullable(),
+  contactId: z.string().trim().min(1).max(191).optional().nullable(),
+  inquiryId: z.string().trim().min(1).max(191).optional().nullable(),
+  pageUrl: z.string().trim().max(500).optional().nullable(),
+  landingPage: z.string().trim().max(500).optional().nullable(),
+  referrer: z.string().trim().max(500).optional().nullable(),
+  source: z.string().trim().max(100).optional().nullable(),
+  medium: z.string().trim().max(100).optional().nullable(),
+  campaign: z.string().trim().max(150).optional().nullable(),
+  term: z.string().trim().max(100).optional().nullable(),
+  content: z.string().trim().max(100).optional().nullable(),
+  county: analyticsCountyEnum.optional().nullable(),
+  productInterest: productEnum.optional().nullable(),
+  metadata: z.record(z.unknown()).optional().nullable(),
+}).strict()
 
 export const LeadSchema = z.object({
   firstName: z.string().max(100).optional().nullable(),

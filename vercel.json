@@ -1,6 +1,9 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build:safe",
+  "env": {
+    "ENABLE_OPERATIONAL_ANALYTICS_FALLBACK": "true"
+  },
   "crons": [
     {
       "path": "/api/cron/google-appointments-sync",

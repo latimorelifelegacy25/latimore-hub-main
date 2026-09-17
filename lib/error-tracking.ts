@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger'
 
 export type ErrorContext = {
-  source: 'webhook' | 'booking' | 'notification' | 'supabase' | 'api'
+  source: 'webhook' | 'booking' | 'notification' | 'supabase' | 'api' | 'cron'
   inquiryId?: string | null
   contactId?: string | null
   leadSessionId?: string | null
@@ -9,11 +9,11 @@ export type ErrorContext = {
 }
 
 /**
- * Single funnel for exception reporting across webhook, booking, notification
- * and Supabase call sites. Always logs locally via pino; additionally forwards
- * to Sentry's HTTP envelope endpoint when SENTRY_DSN is configured, without
- * requiring the Sentry SDK as a build dependency. Never throws — a failure to
- * report an error must not mask or replace the original error.
+ * Single funnel for exception reporting across webhook, booking, notification,
+ * Supabase, API, and cron call sites. Always logs locally via pino; additionally
+ * forwards to Sentry's HTTP envelope endpoint when SENTRY_DSN is configured,
+ * without requiring the Sentry SDK as a build dependency. Never throws — a
+ * failure to report an error must not mask or replace the original error.
  */
 export async function captureException(error: unknown, context: ErrorContext): Promise<void> {
   const message = error instanceof Error ? error.message : String(error)
