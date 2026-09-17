@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { rateLimit } from '@/lib/rate-limit'
-import { rebuildAnalyticsRange, rebuildTrailingAnalytics } from '@/lib/analytics/aggregation'
+import { rebuildAnalyticsRange } from '@/lib/analytics/aggregation'
+import { assertAnalyticsOverviewCoverage } from '@/lib/analytics/mart-health'
 import { logger } from '@/lib/logger'
 
 function isCronAuthed(req: NextRequest): boolean {
@@ -14,6 +15,15 @@ function isCronAuthed(req: NextRequest): boolean {
     req.headers.get('x-cron-secret') ??
     req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   return header === secret
+}
+
+function trailingWindow(days: number) {
+  const to = new Date()
+  const from = new Date(to)
+  from.setUTCDate(from.getUTCDate() - (days - 1))
+  from.setUTCHours(0, 0, 0, 0)
+  to.setUTCHours(23, 59, 59, 999)
+  return { from, to }
 }
 
 export async function POST(req: NextRequest) {
@@ -43,23 +53,32 @@ export async function POST(req: NextRequest) {
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
         return NextResponse.json({ ok: false, error: 'Invalid from/to dates.' }, { status: 400 })
       }
+
       await rebuildAnalyticsRange({ from: fromDate, to: toDate })
+      const coverage = await assertAnalyticsOverviewCoverage({ from: fromDate, to: toDate })
+
       return NextResponse.json({
         ok: true,
         message: `Analytics rebuilt for ${from} → ${to}`,
+        coverage,
       })
     }
 
-    // Default: trailing N days (default 7)
-    const trailingDays = typeof days === 'number' && days > 0 ? days : 7
-    await rebuildTrailingAnalytics(trailingDays)
+    // Default: trailing N days (default 7; capped to 90 for a single request).
+    const requestedDays = typeof days === 'number' && Number.isFinite(days) && days > 0 ? Math.floor(days) : 7
+    const trailingDays = Math.min(requestedDays, 90)
+    const window = trailingWindow(trailingDays)
+
+    await rebuildAnalyticsRange(window)
+    const coverage = await assertAnalyticsOverviewCoverage(window)
 
     return NextResponse.json({
       ok: true,
       message: `Analytics rebuilt for trailing ${trailingDays} days.`,
+      coverage,
     })
   } catch (err) {
     logger.error({ err }, 'analytics/v1/jobs/run POST error')
-    return NextResponse.json({ ok: false, error: 'Analytics rebuild failed.' }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Analytics rebuild or coverage verification failed.' }, { status: 500 })
   }
 }
