@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
+import { linkVisitorIdentityToContact, recordVisitorIntent } from '@/lib/hub/visitor-intent'
 import type { Prisma } from '@prisma/client'
 
 export type LeadUpsertInput = {
@@ -248,42 +249,13 @@ export async function upsertLead(input: LeadUpsertInput) {
       })
     }
 
-    // email and phone matched two different existing contacts — the one not chosen as
-    // `existing` was silently skipped above, so flag it for manual merge instead of
-    // letting a single person split into two contacts/pipelines.
-    const conflictingContact = email && emailContact && emailContact.id !== contact.id
-      ? emailContact
-      : phone && phoneContact && phoneContact.id !== contact.id
-        ? phoneContact
-        : null
-
-    if (conflictingContact) {
-      await tx.task.create({
-        data: {
-          title: `Possible duplicate contact: merge ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone} with contact ${conflictingContact.id}`,
-          dueAt: new Date(),
-          inquiryId: inquiry.id,
-          contactId: contact.id,
-        },
-      })
-      await tx.systemEvent.create({
-        data: {
-          type: 'lead.merge_conflict',
-          contactId: contact.id,
-          inquiryId: inquiry.id,
-          source,
-          medium,
-          campaign,
-          payload: {
-            keptContactId: contact.id,
-            conflictingContactId: conflictingContact.id,
-            reason: email && emailContact?.id !== contact.id ? 'email_matched_other_contact' : 'phone_matched_other_contact',
-          },
-        },
-      })
+    return {
+      contact: { ...contact, leadScore: score },
+      inquiry: { ...inquiry, leadScore: score, deduped },
+      score,
+      deduped,
+      event,
     }
-
-    return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score, deduped }, score, deduped }
     })
   }
 
@@ -298,6 +270,40 @@ export async function upsertLead(input: LeadUpsertInput) {
   }
 
   if (!result) throw new Error('Lead upsert failed')
+
+  if (leadSessionId) {
+    try {
+      await linkVisitorIdentityToContact(leadSessionId, result.contact.id)
+      await recordVisitorIntent({
+        eventId: result.event.id,
+        eventType: result.event.eventType,
+        leadSessionId,
+        contactId: result.contact.id,
+        pageUrl: result.event.pageUrl,
+        source: result.event.source,
+        medium: result.event.medium,
+        campaign: result.event.campaign,
+        referrer: result.event.referrer,
+        county: result.event.county,
+        productInterest: result.event.productInterest,
+        metadata: {
+          conversion: true,
+          inquiryId: result.inquiry.id,
+          deduped: result.deduped,
+        },
+        occurredAt: result.event.occurredAt,
+      })
+    } catch (intentError) {
+      logger.warn(
+        {
+          err: intentError instanceof Error ? intentError.message : String(intentError),
+          leadSessionId,
+          contactId: result.contact.id,
+        },
+        'Lead saved but visitor intent linkage failed',
+      )
+    }
+  }
 
   return result
 }
