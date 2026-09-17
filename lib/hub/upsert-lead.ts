@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
+import { linkVisitorIdentityToContact, recordVisitorIntent } from '@/lib/hub/visitor-intent'
 import type { Prisma } from '@prisma/client'
 
 export type LeadUpsertInput = {
@@ -248,7 +249,13 @@ export async function upsertLead(input: LeadUpsertInput) {
       })
     }
 
-    return { contact: { ...contact, leadScore: score }, inquiry: { ...inquiry, leadScore: score, deduped }, score, deduped }
+    return {
+      contact: { ...contact, leadScore: score },
+      inquiry: { ...inquiry, leadScore: score, deduped },
+      score,
+      deduped,
+      event,
+    }
     })
   }
 
@@ -263,6 +270,40 @@ export async function upsertLead(input: LeadUpsertInput) {
   }
 
   if (!result) throw new Error('Lead upsert failed')
+
+  if (leadSessionId) {
+    try {
+      await linkVisitorIdentityToContact(leadSessionId, result.contact.id)
+      await recordVisitorIntent({
+        eventId: result.event.id,
+        eventType: result.event.eventType,
+        leadSessionId,
+        contactId: result.contact.id,
+        pageUrl: result.event.pageUrl,
+        source: result.event.source,
+        medium: result.event.medium,
+        campaign: result.event.campaign,
+        referrer: result.event.referrer,
+        county: result.event.county,
+        productInterest: result.event.productInterest,
+        metadata: {
+          conversion: true,
+          inquiryId: result.inquiry.id,
+          deduped: result.deduped,
+        },
+        occurredAt: result.event.occurredAt,
+      })
+    } catch (intentError) {
+      logger.warn(
+        {
+          err: intentError instanceof Error ? intentError.message : String(intentError),
+          leadSessionId,
+          contactId: result.contact.id,
+        },
+        'Lead saved but visitor intent linkage failed',
+      )
+    }
+  }
 
   return result
 }
