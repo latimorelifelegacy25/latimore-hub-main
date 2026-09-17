@@ -104,6 +104,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.recalculate_lead_intent_score(p_visitor_id text)
 RETURNS void
 LANGUAGE plpgsql
+SET search_path = pg_catalog, public
 AS $$
 DECLARE
   total integer;
