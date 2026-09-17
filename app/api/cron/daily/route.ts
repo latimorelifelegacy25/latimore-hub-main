@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
+import { sendMail } from '@/lib/mailer'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -47,6 +48,24 @@ async function runTask(name: string, url: string, req: NextRequest, method: 'GET
   }
 }
 
+async function alertOnCronFailure(failed: TaskResult[]) {
+  const to = process.env.NOTIFY_TO
+  const from = process.env.THANKYOU_FROM
+  if (!to || !from) {
+    logger.warn('[cron/daily] NOTIFY_TO/THANKYOU_FROM not set — skipping cron failure email alert')
+    return
+  }
+  const rows = failed
+    .map(f => `<li><strong>${f.task}</strong> — ${f.error ?? `HTTP ${f.status}`}</li>`)
+    .join('')
+  await sendMail({
+    to,
+    from,
+    subject: `[Latimore Hub] Daily cron: ${failed.length} task(s) failed`,
+    html: `<p>The following daily cron tasks failed and may cause missing or stale dashboard data:</p><ul>${rows}</ul>`,
+  })
+}
+
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)
   if (authError) return authError
@@ -70,7 +89,10 @@ export async function GET(req: NextRequest) {
   const succeeded = results.filter(r => r.ok).length
   const failed    = results.filter(r => !r.ok)
 
-  if (failed.length > 0) logger.warn({ failed }, '[cron/daily] Some tasks failed')
+  if (failed.length > 0) {
+    logger.warn({ failed }, '[cron/daily] Some tasks failed')
+    await alertOnCronFailure(failed)
+  }
   logger.info({ succeeded, total: results.length, totalMs }, '[cron/daily] Complete')
 
   return NextResponse.json({
