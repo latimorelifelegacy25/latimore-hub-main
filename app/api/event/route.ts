@@ -10,6 +10,11 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import { captureException } from '@/lib/error-tracking'
 
+function isInternalPage(pageUrl?: string | null) {
+  const path = (pageUrl ?? '').split('?')[0].toLowerCase()
+  return path === '/admin' || path.startsWith('/admin/') || path === '/analytics' || path.startsWith('/analytics/')
+}
+
 export const POST = withCors(async (req: NextRequest) => {
   const limited = await rateLimit(req, 'event')
   if (limited) return limited
@@ -64,30 +69,32 @@ export const POST = withCors(async (req: NextRequest) => {
     })
 
     let intent: Awaited<ReturnType<typeof recordVisitorIntent>> = null
-    try {
-      intent = await recordVisitorIntent({
-        eventId: event.id,
-        eventType: event.eventType,
-        leadSessionId: event.leadSessionId,
-        contactId: event.contactId,
-        pageUrl: event.pageUrl,
-        source: event.source,
-        medium: event.medium,
-        campaign: event.campaign,
-        referrer: event.referrer,
-        county: event.county,
-        productInterest: event.productInterest,
-        metadata: metadata as Record<string, unknown>,
-        occurredAt: event.occurredAt,
-      })
-    } catch (intentError) {
-      await captureException(intentError, {
-        source: 'api',
-        route: '/api/event',
-        stage: 'visitor_intent',
-        eventId: event.id,
-        leadSessionId: event.leadSessionId,
-      })
+    if (!isInternalPage(event.pageUrl)) {
+      try {
+        intent = await recordVisitorIntent({
+          eventId: event.id,
+          eventType: event.eventType,
+          leadSessionId: event.leadSessionId,
+          contactId: event.contactId,
+          pageUrl: event.pageUrl,
+          source: event.source,
+          medium: event.medium,
+          campaign: event.campaign,
+          referrer: event.referrer,
+          county: event.county,
+          productInterest: event.productInterest,
+          metadata: metadata as Record<string, unknown>,
+          occurredAt: event.occurredAt,
+        })
+      } catch (intentError) {
+        await captureException(intentError, {
+          source: 'api',
+          route: '/api/event',
+          stage: 'visitor_intent',
+          eventId: event.id,
+          leadSessionId: event.leadSessionId,
+        })
+      }
     }
 
     return NextResponse.json({
