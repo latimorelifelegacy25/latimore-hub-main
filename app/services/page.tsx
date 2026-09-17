@@ -324,7 +324,8 @@ export default function ServicesPage() {
           <div className="max-w-3xl mx-auto px-5">
             <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: GOLD_LIGHT }}>What We Do</p>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-5 leading-tight">
-              Insurance Strategies to<br /><span style={{ color: GOLD_LIGHT }}>Protect Income, Assets &amp; Legacy</span>
+              <span className="block">Protect What You’ve Built.</span>
+              <span className="block" style={{ color: GOLD_LIGHT }}>Prepare for What’s Next.</span>
             </h1>
             <p className="text-white/85 text-lg leading-relaxed mb-8">
               As an independent insurance broker, I compare available insurance options around your family situation, protection needs, budget, and goals — without a captive-company product quota.
