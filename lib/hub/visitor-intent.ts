@@ -74,8 +74,17 @@ const EVENT_SCORES: Record<string, number> = {
   gbp_service_visit: 5,
 }
 
+function pagePath(pageUrl?: string | null) {
+  return (pageUrl ?? '').split('?')[0].toLowerCase()
+}
+
+function isInternalPage(pageUrl?: string | null) {
+  const path = pagePath(pageUrl)
+  return path === '/admin' || path.startsWith('/admin/') || path === '/analytics' || path.startsWith('/analytics/')
+}
+
 function pageIntentBonus(pageUrl?: string | null): number {
-  const path = (pageUrl ?? '').toLowerCase()
+  const path = pagePath(pageUrl)
   if (!path) return 0
   if (path.startsWith('/book')) return 15
   if (path.startsWith('/education/checkup')) return 10
@@ -85,6 +94,7 @@ function pageIntentBonus(pageUrl?: string | null): number {
 }
 
 export function scoreVisitorEvent(input: Pick<VisitorIntentInput, 'eventType' | 'pageUrl'>): number {
+  if (isInternalPage(input.pageUrl)) return 0
   return (EVENT_SCORES[input.eventType] ?? 0) + pageIntentBonus(input.pageUrl)
 }
 
@@ -114,7 +124,7 @@ export async function linkVisitorIdentityToContact(visitorId: string, contactId:
 
 export async function recordVisitorIntent(input: VisitorIntentInput): Promise<IntentScoreRow | null> {
   const visitorId = input.leadSessionId?.trim()
-  if (!visitorId) return null
+  if (!visitorId || isInternalPage(input.pageUrl)) return null
 
   const scoreDelta = scoreVisitorEvent(input)
   const occurredAt = input.occurredAt ? new Date(input.occurredAt) : new Date()
@@ -202,7 +212,7 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
       ON CONFLICT (id) DO NOTHING
     `
 
-    await tx.$executeRaw`SELECT public.recalculate_lead_intent_score(${visitorId})`
+    await tx.$queryRaw`SELECT public.recalculate_lead_intent_score(${visitorId})`
 
     if (contactId) {
       await tx.$executeRaw`
