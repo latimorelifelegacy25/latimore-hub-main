@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import ConsultBookingFlow from '@/components/booking/ConsultBookingFlow'
+import DirectCalendarFallback from '@/components/booking/DirectCalendarFallback'
 
 export const metadata: Metadata = {
   title: 'Book a Consultation | Latimore Life & Legacy',
@@ -11,5 +12,10 @@ export const metadata: Metadata = {
 }
 
 export default function BookPage() {
-  return <ConsultBookingFlow />
+  return (
+    <>
+      <DirectCalendarFallback />
+      <ConsultBookingFlow />
+    </>
+  )
 }
