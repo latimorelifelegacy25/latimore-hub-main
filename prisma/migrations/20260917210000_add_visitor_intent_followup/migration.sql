@@ -108,10 +108,13 @@ AS $$
 DECLARE
   total integer;
 BEGIN
-  SELECT COALESCE(SUM(score_delta), 0)
+  SELECT LEAST(100, COALESCE(SUM(score_delta), 0))::integer
     INTO total
   FROM public."VisitorIntentEvent"
-  WHERE visitor_id = p_visitor_id;
+  WHERE visitor_id = p_visitor_id
+    AND occurred_at >= now() - interval '30 days'
+    AND COALESCE(page_url, '') NOT LIKE '/admin%'
+    AND COALESCE(page_url, '') NOT LIKE '/analytics%';
 
   INSERT INTO public."LeadIntentScore" (
     id,
