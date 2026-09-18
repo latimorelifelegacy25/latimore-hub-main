@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { Briefcase, Shield, TrendingUp } from 'lucide-react'
@@ -8,6 +9,14 @@ import { ProductComparison } from './_components/ProductComparison'
 import { MobileStickyCta } from './_components/MobileStickyCta'
 
 const categoryOrder: ProductCategory[] = ['life', 'annuity', 'business']
+
+export const metadata: Metadata = {
+  title: 'Life Insurance & Annuity Options | Latimore Life & Legacy',
+  description:
+    'Compare life insurance, living benefits, annuity and business-protection options with an independent Pennsylvania insurance broker serving the Coal Region.',
+  alternates: { canonical: '/products' },
+}
+
 
 const categoryStyles: Record<ProductCategory, { icon: ReactNode; background: string; intro: string }> = {
   life: {

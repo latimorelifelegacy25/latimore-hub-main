@@ -237,6 +237,47 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
   const intentLevel = row.intent_level
   const resolvedContactId = row.contact_id ?? contactId
 
+  // A visitor may become hot while still anonymous. If they identify later,
+  // create the follow-up task then rather than requiring a second threshold crossing.
+  if (score >= 80 && resolvedContactId) {
+    const existingTask = await prisma.task.findFirst({
+      where: {
+        contactId: resolvedContactId,
+        status: 'Open',
+        title: { startsWith: 'Hot website visitor follow-up' },
+      },
+      select: { id: true },
+    })
+
+    if (!existingTask) {
+      await prisma.task.create({
+        data: {
+          title: 'Hot website visitor follow-up',
+          description: `High-intent website activity reached ${score} points. Last action: ${input.eventType}${input.pageUrl ? ` on ${input.pageUrl}` : ''}.`,
+          status: 'Open',
+          dueAt: new Date(Date.now() + 15 * 60 * 1000),
+          contactId: resolvedContactId,
+        },
+      })
+    }
+
+    const anonymousAlert = await prisma.systemEvent.findFirst({
+      where: {
+        type: 'visitor.intent.hot',
+        leadSessionId: visitorId,
+        contactId: null,
+      },
+      select: { id: true },
+    })
+
+    if (anonymousAlert) {
+      await prisma.systemEvent.update({
+        where: { id: anonymousAlert.id },
+        data: { contactId: resolvedContactId },
+      })
+    }
+  }
+
   if (previousScore < 80 && score >= 80) {
     const existingAlert = await prisma.systemEvent.findFirst({
       where: {
@@ -266,29 +307,6 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
           },
         },
       })
-
-      if (resolvedContactId) {
-        const existingTask = await prisma.task.findFirst({
-          where: {
-            contactId: resolvedContactId,
-            status: 'Open',
-            title: { startsWith: 'Hot website visitor follow-up' },
-          },
-          select: { id: true },
-        })
-
-        if (!existingTask) {
-          await prisma.task.create({
-            data: {
-              title: 'Hot website visitor follow-up',
-              description: `High-intent website activity reached ${score} points. Last action: ${input.eventType}${input.pageUrl ? ` on ${input.pageUrl}` : ''}.`,
-              status: 'Open',
-              dueAt: new Date(Date.now() + 15 * 60 * 1000),
-              contactId: resolvedContactId,
-            },
-          })
-        }
-      }
 
       void sendGoogleChatMessage(
         `🔥 Hot website visitor\nScore: ${score}\nStatus: ${resolvedContactId ? 'Known contact' : 'Anonymous visitor'}\nLast action: ${input.eventType}${input.pageUrl ? `\nPage: ${input.pageUrl}` : ''}${input.productInterest ? `\nInterest: ${input.productInterest}` : ''}`,

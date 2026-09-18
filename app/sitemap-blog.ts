@@ -1,7 +1,7 @@
 import { getAllPosts } from '@/lib/blog'
 import type { MetadataRoute } from 'next'
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com'
+const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com'
 
 export function getBlogSitemapEntries(): MetadataRoute.Sitemap {
   const posts = getAllPosts()

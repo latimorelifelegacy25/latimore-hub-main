@@ -1,4 +1,5 @@
 
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { BRAND, COLORS } from '@/lib/brand'
 import { BadgeCheck, GraduationCap, FileText } from 'lucide-react'
@@ -8,6 +9,14 @@ import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/sit
 const navy      = COLORS.navy
 const gold      = COLORS.gold
 const goldLight = COLORS.goldLight
+
+export const metadata: Metadata = {
+  title: 'About Jackson Latimore | Coal Region Insurance Broker',
+  description:
+    'Meet Jackson M. Latimore Sr., founder of Latimore Life & Legacy and a Pennsylvania-licensed independent insurance professional rooted in Schuylkill County.',
+  alternates: { canonical: '/about' },
+}
+
 
 export default function AboutPage() {
   return (

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { BRAND } from '@/lib/brand'
@@ -46,6 +47,14 @@ interface ClientSegment {
 const NAVY = '#0E1A2B'
 const GOLD = '#C9A24D'
 const GOLD_LIGHT = '#E5C882'
+
+export const metadata: Metadata = {
+  title: "Life Insurance, Annuities & Protection Services | Coal Region PA",
+  description:
+    'Explore life insurance, living benefits, mortgage protection, annuities, retirement income and business protection for families and businesses across the Coal Region.',
+  alternates: { canonical: '/services' },
+}
+
 
 const services: Service[] = [
   {
@@ -324,10 +333,11 @@ export default function ServicesPage() {
           <div className="max-w-3xl mx-auto px-5">
             <p className="text-sm font-semibold tracking-widest uppercase mb-4" style={{ color: GOLD_LIGHT }}>What We Do</p>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-5 leading-tight">
-              Insurance Strategies to<br /><span style={{ color: GOLD_LIGHT }}>Protect Income, Assets &amp; Legacy</span>
+              <span className="block">Protect What You’ve Built.</span>
+              <span className="block" style={{ color: GOLD_LIGHT }}>Prepare for What’s Next.</span>
             </h1>
             <p className="text-white/85 text-lg leading-relaxed mb-8">
-              As an independent insurance broker, I compare available insurance options around your family situation, protection needs, budget, and goals — without a captive-company product quota.
+              Around here, people work hard for what they have. I help Coal Region families, workers, retirees, and business owners understand their options and protect the income, home, business, and people depending on them — with straight answers and no pressure.
             </p>
             <CtaButtons centered large />
           </div>
