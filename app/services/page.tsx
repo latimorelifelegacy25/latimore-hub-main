@@ -337,7 +337,7 @@ export default function ServicesPage() {
               <span className="block" style={{ color: GOLD_LIGHT }}>Prepare for What’s Next.</span>
             </h1>
             <p className="text-white/85 text-lg leading-relaxed mb-8">
-              As an independent insurance broker, I compare available insurance options around your family situation, protection needs, budget, and goals — without a captive-company product quota.
+              Around here, people work hard for what they have. I help Coal Region families, workers, retirees, and business owners understand their options and protect the income, home, business, and people depending on them — with straight answers and no pressure.
             </p>
             <CtaButtons centered large />
           </div>
