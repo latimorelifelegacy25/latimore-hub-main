@@ -11,10 +11,17 @@ const gold     = COLORS.gold       // #C9A25F  --color-gold-500
 const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
 export const metadata: Metadata = {
-  title: 'Latimore Life & Legacy | Education-First Insurance Protection',
+  title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
   description:
-    'Clear, education-first life insurance, annuity, and financial-protection guidance for families across Schuylkill, Luzerne, and Northumberland Counties.',
+    'Local, education-first life insurance, annuity, mortgage protection and retirement-income guidance for Schuylkill, Luzerne and Northumberland County families.',
   alternates: { canonical: '/' },
+  openGraph: {
+    title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+    description:
+      'Protect what you have built and prepare for what comes next with local insurance guidance from Latimore Life & Legacy.',
+    url: '/',
+    type: 'website',
+  },
 }
 
 export default function HomePage() {
@@ -29,10 +36,10 @@ export default function HomePage() {
             <div>
               <div style={{ color: goldLight, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', fontSize: '.82rem', marginBottom: 10 }}>Protecting Today. Securing Tomorrow.</div>
               <h1 style={{ fontSize: 'clamp(2rem,4.5vw,3.6rem)', lineHeight: 1.1, margin: '0 0 1.5rem' }}>
-                Life Insurance & Financial Protection for Central Pennsylvania Families
+                Life Insurance & Financial Protection for Pennsylvania&apos;s Coal Region
               </h1>
               <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem', lineHeight: 1.7, maxWidth: '65ch' }}>
-                Serving <strong>Schuylkill, Luzerne & Northumberland Counties</strong> with education-first strategies for life insurance, annuities, and legacy protection.
+                Local, education-first guidance for <strong>Schuylkill, Luzerne & Northumberland Counties</strong> — built around the families, workers, retirees, and businesses that call the Coal Region home.
               </p>
 
               <div style={{ background: 'rgba(229,200,130,0.15)', borderLeft: `4px solid ${goldLight}`, padding: '16px 18px', borderRadius: 14, margin: '1.5rem 0', fontStyle: 'italic' }}>

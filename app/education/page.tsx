@@ -4,9 +4,10 @@ import { COLORS, BRAND } from '@/lib/brand'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
 export const metadata = {
-  title: 'Education Center | Latimore Life & Legacy',
+  title: 'Insurance Education Center | Coal Region PA',
   description:
-    'Plain-language guides to life insurance, annuities, retirement income, and estate planning. Education First. Pressure Never.',
+    'Plain-language life insurance, annuity, retirement-income and legacy-planning education for families across Schuylkill, Luzerne and Northumberland Counties.',
+  alternates: { canonical: '/education' },
 }
 
 const navy    = COLORS.navy
