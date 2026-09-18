@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { BRAND } from '@/lib/brand'
@@ -46,6 +47,14 @@ interface ClientSegment {
 const NAVY = '#0E1A2B'
 const GOLD = '#C9A24D'
 const GOLD_LIGHT = '#E5C882'
+
+export const metadata: Metadata = {
+  title: "Life Insurance, Annuities & Protection Services | Coal Region PA",
+  description:
+    'Explore life insurance, living benefits, mortgage protection, annuities, retirement income and business protection for families and businesses across the Coal Region.',
+  alternates: { canonical: '/services' },
+}
+
 
 const services: Service[] = [
   {
