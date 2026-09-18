@@ -11,10 +11,17 @@ const gold     = COLORS.gold       // #C9A25F  --color-gold-500
 const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
 export const metadata: Metadata = {
-  title: 'Latimore Life & Legacy | Education-First Insurance Protection',
+  title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
   description:
-    'Clear, education-first life insurance, annuity, and financial-protection guidance for families across Schuylkill, Luzerne, and Northumberland Counties.',
+    'Local, education-first life insurance, annuity, mortgage protection and retirement-income guidance for Schuylkill, Luzerne and Northumberland County families.',
   alternates: { canonical: '/' },
+  openGraph: {
+    title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+    description:
+      'Protect what you have built and prepare for what comes next with local insurance guidance from Latimore Life & Legacy.',
+    url: '/',
+    type: 'website',
+  },
 }
 
 export default function HomePage() {
