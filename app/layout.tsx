@@ -7,6 +7,7 @@ import AnnouncementTicker from './_components/announcement-ticker'
 import Chatbot from '@/components/Chatbot'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTagManager } from '@next/third-parties/google'
+import { BRAND } from '@/lib/brand'
 
 // Set the canonical base domain used for generating absolute URLs and OpenGraph metadata.
 // This value should match the production canonical domain. It can still be overridden via
@@ -16,11 +17,11 @@ const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifele
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'Latimore Life & Legacy | Education-First Insurance Protection',
+    default: "Life Insurance & Annuities in Pennsylvania's Coal Region | Latimore Life & Legacy",
     template: '%s | Latimore Life & Legacy',
   },
   description:
-    'Independent insurance guidance for families, pre-retirees, and local employers across Schuylkill, Luzerne, and Northumberland Counties, PA. Clear plans, no pressure.',
+    "Independent life insurance, annuity, mortgage protection and retirement-income guidance for families and businesses across Pennsylvania's Coal Region.",
   keywords: [
     'life insurance Schuylkill County',
     'life insurance Luzerne County',
@@ -42,14 +43,14 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: BASE_URL,
     siteName: 'Latimore Life & Legacy',
-    title: 'Latimore Life & Legacy | Education-First Protection',
-    description: 'Clear, honest insurance guidance for PA families. No pressure. No jargon.',
+    title: "Life Insurance & Annuities in Pennsylvania's Coal Region | Latimore Life & Legacy",
+    description: 'Local, education-first insurance guidance for families and businesses across Schuylkill, Luzerne, and Northumberland Counties.',
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Latimore Life & Legacy' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Latimore Life & Legacy',
-    description: 'Education-first insurance protection for PA families.',
+    description: "Local, education-first insurance guidance for Pennsylvania's Coal Region.",
     images: ['/og-image.jpg'],
   },
   alternates: { canonical: BASE_URL },
@@ -108,23 +109,74 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               '@context': 'https://schema.org',
               '@graph': [
                 {
-                  '@type': 'LocalBusiness',
+                  '@type': 'InsuranceAgency',
                   '@id': `${BASE_URL}/#business`,
-                  name: 'Latimore Life & Legacy LLC',
-                  description: 'Independent insurance agency serving Central PA families and employers.',
+                  name: BRAND.name,
+                  legalName: BRAND.fullName,
+                  description:
+                    "Independent, education-first insurance agency serving families, workers, retirees, and business owners across Pennsylvania's Coal Region.",
                   url: BASE_URL,
-                  telephone: '+15709001977',
-                  email: 'jackson1989@latimorelegacy.com',
-                  founder: { '@type': 'Person', name: 'Jackson M. Latimore Sr.' },
+                  logo: `${BASE_URL}/logo.jpg`,
+                  telephone: BRAND.phoneHref.replace('tel:', ''),
+                  email: BRAND.email,
+                  slogan: BRAND.tagline,
+                  sameAs: [BRAND.facebookUrl, BRAND.instagramUrl, BRAND.linkedinUrl],
+                  founder: {
+                    '@type': 'Person',
+                    '@id': `${BASE_URL}/about#jackson-latimore`,
+                    name: 'Jackson M. Latimore Sr.',
+                    jobTitle: 'Founder & Independent Insurance Broker',
+                    url: `${BASE_URL}/about`,
+                  },
+                  contactPoint: {
+                    '@type': 'ContactPoint',
+                    telephone: BRAND.phoneHref.replace('tel:', ''),
+                    contactType: 'customer service',
+                    areaServed: 'PA',
+                    availableLanguage: ['English'],
+                  },
                   areaServed: [
-                    { '@type': 'AdministrativeArea', name: 'Schuylkill County, PA' },
-                    { '@type': 'AdministrativeArea', name: 'Luzerne County, PA' },
-                    { '@type': 'AdministrativeArea', name: 'Northumberland County, PA' },
+                    { '@type': 'AdministrativeArea', name: 'Schuylkill County, Pennsylvania' },
+                    { '@type': 'AdministrativeArea', name: 'Luzerne County, Pennsylvania' },
+                    { '@type': 'AdministrativeArea', name: 'Northumberland County, Pennsylvania' },
                   ],
-                  serviceType: ['Life Insurance', 'Living Benefits', 'IUL', 'Annuities', 'Key Person Insurance', 'Retirement Planning'],
+                  serviceType: [
+                    'Life Insurance',
+                    'Living Benefits',
+                    'Mortgage Protection',
+                    'Final Expense Insurance',
+                    'Whole Life Insurance',
+                    'Indexed Universal Life Insurance',
+                    'Fixed Indexed Annuities',
+                    'Retirement Income Strategies',
+                    'Key Person Insurance',
+                    'Business Continuity Planning',
+                    'Estate and Legacy Planning Education',
+                  ],
+                  knowsAbout: [
+                    'Life insurance',
+                    'Living benefits',
+                    'Mortgage protection',
+                    'Final expense insurance',
+                    'Annuities',
+                    'Retirement income',
+                    'Business insurance',
+                    'Legacy planning',
+                  ],
+                  hasOfferCatalog: {
+                    '@type': 'OfferCatalog',
+                    name: 'Insurance and Protection Services',
+                    itemListElement: [
+                      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Life Insurance & Living Benefits', url: `${BASE_URL}/services/life-insurance` } },
+                      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Mortgage Protection', url: `${BASE_URL}/services/mortgage-protection` } },
+                      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Retirement Income Strategies', url: `${BASE_URL}/services/retirement-income` } },
+                      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Business & Key-Person Insurance', url: `${BASE_URL}/services/business-continuity` } },
+                      { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Estate & Legacy Coordination', url: `${BASE_URL}/services/estate-planning` } },
+                    ],
+                  },
                   hasCredential: [
-                    { '@type': 'EducationalOccupationalCredential', name: 'PA Insurance License #1268820' },
-                    { '@type': 'EducationalOccupationalCredential', name: 'NIPR #21638507' },
+                    { '@type': 'EducationalOccupationalCredential', name: `Pennsylvania Insurance License #${BRAND.paLicense}` },
+                    { '@type': 'EducationalOccupationalCredential', name: `NIPR #${BRAND.nipr}` },
                   ],
                 },
                 {
@@ -133,6 +185,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   url: BASE_URL,
                   name: 'Latimore Life & Legacy',
                   publisher: { '@id': `${BASE_URL}/#business` },
+                  inLanguage: 'en-US',
                 },
               ],
             }),
