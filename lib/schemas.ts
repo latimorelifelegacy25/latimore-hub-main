@@ -41,6 +41,7 @@ const eventEnum = z.enum([
   'instant_quote_clicked',
   'service_card_clicked',
   'gbp_service_visit',
+  'session_exit',
 ])
 const analyticsCountyEnum = z.enum(['Schuylkill', 'Luzerne', 'Northumberland'])
 
