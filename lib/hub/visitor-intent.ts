@@ -287,7 +287,10 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
       ON CONFLICT (id) DO NOTHING
     `
 
-    await tx.$queryRaw`SELECT public.recalculate_lead_intent_score(${visitorId})`
+    // PostgreSQL `void` cannot be deserialized by Prisma. Cast the function
+    // result to text so the scoring side effect completes without dropping the
+    // rest of the intent/follow-up pipeline.
+    await tx.$queryRaw`SELECT public.recalculate_lead_intent_score(${visitorId})::text AS result`
 
     if (contactId) {
       await tx.$executeRaw`
