@@ -213,15 +213,25 @@ export default function PublicTracker() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const lastPageRef = useRef('')
+  const sessionStartedAtRef = useRef(0)
+  const pageCountRef = useRef(0)
+  const maxScrollDepthRef = useRef(0)
+  const interactionCountRef = useRef(0)
+  const exitSentRef = useRef(false)
+  const sameOriginNavigationRef = useRef(false)
 
   useEffect(() => {
     if (!pathname) return
+    if (sessionStartedAtRef.current === 0) sessionStartedAtRef.current = Date.now()
 
     const search = searchParams?.toString()
     const pageUrl = search ? `${pathname}?${search}` : pathname
 
     if (lastPageRef.current === pageUrl) return
     lastPageRef.current = pageUrl
+    pageCountRef.current += 1
+    exitSentRef.current = false
+    sameOriginNavigationRef.current = false
 
     const context = hydrateLeadContext({ pageUrl })
     const metaEventId = createMetaEventId('viewcontent')
@@ -285,6 +295,17 @@ export default function PublicTracker() {
       const classified = classifyEvent(clickable)
       if (!classified) return
 
+      interactionCountRef.current += 1
+
+      if (clickable instanceof HTMLAnchorElement && classified.href) {
+        try {
+          const destination = new URL(classified.href, window.location.origin)
+          sameOriginNavigationRef.current = destination.origin === window.location.origin
+        } catch {
+          sameOriginNavigationRef.current = false
+        }
+      }
+
       const currentPage = getCurrentPageUrl()
       const productElement = findProductElement(clickable)
       const productInterest = inferProductInterest(clickable, classified.text, classified.href)
@@ -315,6 +336,57 @@ export default function PublicTracker() {
 
     document.addEventListener('click', handleClick, true)
     return () => document.removeEventListener('click', handleClick, true)
+  }, [])
+
+  useEffect(() => {
+    const updateScrollDepth = () => {
+      const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0)
+      const depth = scrollable === 0 ? 100 : Math.min(100, Math.round((window.scrollY / scrollable) * 100))
+      maxScrollDepthRef.current = Math.max(maxScrollDepthRef.current, depth)
+    }
+
+    const sendExit = (event: PageTransitionEvent) => {
+      // A BFCache pause or an ordinary same-site navigation is not an
+      // abandoned visit. The next page view continues the same session.
+      if (event.persisted || sameOriginNavigationRef.current || exitSentRef.current) return
+      exitSentRef.current = true
+
+      const context = getEventContext({ pageUrl: getCurrentPageUrl() })
+      const payload: EventPayload = {
+        ...context,
+        eventType: 'session_exit',
+        metadata: {
+          durationMs: Math.max(0, Date.now() - sessionStartedAtRef.current),
+          pageCount: pageCountRef.current,
+          maxScrollDepth: maxScrollDepthRef.current,
+          interactionCount: interactionCountRef.current,
+          exitReason: 'pagehide',
+        },
+      }
+      const body = JSON.stringify(payload)
+
+      if (navigator.sendBeacon) {
+        const queued = navigator.sendBeacon('/api/event', new Blob([body], { type: 'application/json' }))
+        if (queued) return
+      }
+
+      void fetch('/api/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+        cache: 'no-store',
+      }).catch(() => undefined)
+    }
+
+    window.addEventListener('scroll', updateScrollDepth, { passive: true })
+    window.addEventListener('pagehide', sendExit)
+    updateScrollDepth()
+
+    return () => {
+      window.removeEventListener('scroll', updateScrollDepth)
+      window.removeEventListener('pagehide', sendExit)
+    }
   }, [])
 
   return null
