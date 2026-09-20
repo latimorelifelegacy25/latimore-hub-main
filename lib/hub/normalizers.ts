@@ -38,6 +38,7 @@ type EventType =
   | 'instant_quote_clicked'
   | 'service_card_clicked'
   | 'gbp_service_visit'
+  | 'session_exit'
 
 const STAGE_MAP: Record<string, PipelineStage> = {
   new: 'New',
@@ -142,6 +143,9 @@ const EVENT_MAP: Record<string, EventType> = {
   gbp_service_visit: 'gbp_service_visit',
   gbp_visit: 'gbp_service_visit',
   business_profile_visit: 'gbp_service_visit',
+  session_exit: 'session_exit',
+  page_exit: 'session_exit',
+  visitor_exit: 'session_exit',
 }
 
 function normalizeKey(value?: string | null): string {
