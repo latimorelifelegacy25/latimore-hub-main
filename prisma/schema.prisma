@@ -621,6 +621,7 @@ enum EventType {
   instant_quote_clicked
   service_card_clicked
   gbp_service_visit
+  session_exit
 }
 
 enum ThreadChannel {
