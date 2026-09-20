@@ -72,6 +72,81 @@ const EVENT_SCORES: Record<string, number> = {
   instant_quote_clicked: 25,
   service_card_clicked: 10,
   gbp_service_visit: 5,
+  session_exit: 0,
+}
+
+const ABANDONED_FOLLOW_UP_PREFIX = 'Website visit follow-up'
+const ABANDONED_FOLLOW_UP_MIN_SCORE = 20
+const ABANDONED_FOLLOW_UP_COOLDOWN_MS = 24 * 60 * 60 * 1000
+
+function numberFromMetadata(metadata: Record<string, unknown> | null | undefined, key: string): number | null {
+  const value = metadata?.[key]
+  return typeof value === 'number' && Number.isFinite(value) ? value : null
+}
+
+async function createAbandonedVisitFollowUp(input: {
+  visitorId: string
+  contactId: string
+  score: number
+  productInterest?: string | null
+  pageUrl?: string | null
+  metadata?: Record<string, unknown> | null
+}) {
+  if (input.score < ABANDONED_FOLLOW_UP_MIN_SCORE) return null
+
+  const cooldownStart = new Date(Date.now() - ABANDONED_FOLLOW_UP_COOLDOWN_MS)
+  const existing = await prisma.task.findFirst({
+    where: {
+      contactId: input.contactId,
+      title: { startsWith: ABANDONED_FOLLOW_UP_PREFIX },
+      createdAt: { gte: cooldownStart },
+    },
+    select: { id: true },
+  })
+  if (existing) return existing.id
+
+  const durationMs = numberFromMetadata(input.metadata, 'durationMs')
+  const pageCount = numberFromMetadata(input.metadata, 'pageCount')
+  const maxScrollDepth = numberFromMetadata(input.metadata, 'maxScrollDepth')
+  const detail = [
+    `Identified visitor left after reaching ${input.score} intent points.`,
+    input.productInterest ? `Interest: ${input.productInterest}.` : null,
+    input.pageUrl ? `Last page: ${input.pageUrl}.` : null,
+    durationMs !== null ? `Visit duration: ${Math.max(1, Math.round(durationMs / 1000))} seconds.` : null,
+    pageCount !== null ? `Pages viewed: ${pageCount}.` : null,
+    maxScrollDepth !== null ? `Maximum scroll depth: ${maxScrollDepth}%.` : null,
+    'Review the contact record and existing consent/communication preferences before outreach.',
+  ].filter(Boolean).join(' ')
+
+  const task = await prisma.task.create({
+    data: {
+      title: `${ABANDONED_FOLLOW_UP_PREFIX}: ${input.productInterest ?? 'general interest'}`,
+      description: detail,
+      status: 'Open',
+      dueAt: new Date(Date.now() + 15 * 60 * 1000),
+      contactId: input.contactId,
+    },
+  })
+
+  await prisma.systemEvent.create({
+    data: {
+      type: 'visitor.session.abandoned.follow_up_created',
+      leadSessionId: input.visitorId,
+      contactId: input.contactId,
+      payload: {
+        taskId: task.id,
+        score: input.score,
+        productInterest: input.productInterest ?? null,
+        pageUrl: input.pageUrl ?? null,
+        durationMs,
+        pageCount,
+        maxScrollDepth,
+        cooldownHours: ABANDONED_FOLLOW_UP_COOLDOWN_MS / (60 * 60 * 1000),
+      },
+    },
+  })
+
+  return task.id
 }
 
 function pagePath(pageUrl?: string | null) {
@@ -236,6 +311,17 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
   const score = Number(row.score ?? 0)
   const intentLevel = row.intent_level
   const resolvedContactId = row.contact_id ?? contactId
+
+  if (input.eventType === 'session_exit' && resolvedContactId) {
+    await createAbandonedVisitFollowUp({
+      visitorId,
+      contactId: resolvedContactId,
+      score,
+      productInterest: input.productInterest,
+      pageUrl: input.pageUrl,
+      metadata: input.metadata,
+    })
+  }
 
   // A visitor may become hot while still anonymous. If they identify later,
   // create the follow-up task then rather than requiring a second threshold crossing.
