@@ -36,7 +36,6 @@ const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build'
 // the lead pipeline.
 const REQUIRED_IN_PRODUCTION = [
   'NEXT_PUBLIC_SUPABASE_URL',
-  'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_SERVICE_ROLE_KEY',
   'RESEND_API_KEY',
   'GOOGLE_CHAT_WEBHOOK_URL',

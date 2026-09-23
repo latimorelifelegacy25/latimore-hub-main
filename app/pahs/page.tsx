@@ -176,7 +176,7 @@ export default function PAHSPage() {
 
           <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
             <img
-              src="/pahs-protect-go.png"
+              src="/pahs-all-star-sponsor.webp"
               alt="Protect What You Play For — Pottsville Area Crimson Tide 2026"
               decoding="async"
               fetchPriority="high"
@@ -233,7 +233,7 @@ export default function PAHSPage() {
             <div className="video-wrap">
               <video
                 src="/pahs-campaign-video.mp4"
-                poster="/pahs-protect-go.png"
+                poster="/pahs-all-star-sponsor.webp"
                 controls
                 playsInline
                 preload="metadata"

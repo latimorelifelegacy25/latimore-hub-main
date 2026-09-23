@@ -80,7 +80,7 @@
 
 ## 2026-06-17 Lead Pipeline Hardening Patch
 
-- **Issue: Cross-channel duplicate lead risk** — The CRM service compared raw phone strings, so `7176152613`, `(717) 615-2613`, and `1-717-615-2613` could become separate contacts.
+- **Issue: Cross-channel duplicate lead risk** — The CRM service compared raw phone strings, so `7176152613`, `(717) 615-2613`, and `1-570-900-1977` could become separate contacts.
   - **Root cause**: `upsertLead()` trimmed phone numbers but did not canonicalize them before lookup or persistence.
   - **Fix**: Added `normalizePhone()` and updated `upsertLead()` to dedupe on both normalized and legacy raw phone formats before creating a contact.
   - **Verification method**: Code-level verification through the shared CRM ingestion path; latest Vercel status is pending.

@@ -11,7 +11,7 @@ const gold = '#C9A24D'
 const goldLight = '#E5C882'
 
 export const metadata: Metadata = {
-  title: 'Contact a Coal Region Insurance Broker | Latimore Life & Legacy',
+  title: 'Contact a Coal Region Insurance Broker',
   description:
     'Contact Jackson M. Latimore Sr. for local, no-pressure guidance on life insurance, annuities, mortgage protection and family protection across the Coal Region.',
   alternates: { canonical: '/contact' },

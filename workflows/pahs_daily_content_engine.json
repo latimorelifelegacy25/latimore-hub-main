@@ -3,7 +3,7 @@
   "version": "4.2.0",
   "metadata": {
     "name": "PAHS Daily Content Engine",
-    "description": "Generates a seven-day branded content campaign for the Pottsville Crimson Tide and Lattimore Life & Legacy partnership, including captions, visual directions, calls to action, and final quality control.",
+    "description": "Generates a seven-day branded content campaign for the Pottsville Crimson Tide and Latimore Life & Legacy partnership, including captions, visual directions, calls to action, and final quality control.",
     "tags": [
       "daily-content",
       "social-media",
@@ -214,7 +214,7 @@
           "name": "business_name",
           "type": "INPUT",
           "values": [
-            "Lattimore Life & Legacy LLC"
+            "Latimore Life & Legacy LLC"
           ]
         },
         {
@@ -256,7 +256,7 @@
           "name": "phone",
           "type": "INPUT",
           "values": [
-            "717-615-2613"
+            "570-900-1977"
           ]
         },
         {
@@ -284,7 +284,7 @@
           "name": "approved_assets",
           "type": "INPUT",
           "values": [
-            "Approved Lattimore Life & Legacy logo, approved Pottsville Crimson Tide partnership graphics, supplied football imagery, approved QR code, navy, gold, crimson, white, and black brand colors"
+            "Approved Latimore Life & Legacy logo, approved Pottsville Crimson Tide partnership graphics, supplied football imagery, approved QR code, navy, gold, crimson, white, and black brand colors"
           ]
         },
         {
