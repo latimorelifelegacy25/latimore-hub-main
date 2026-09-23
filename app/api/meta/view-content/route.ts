@@ -40,8 +40,12 @@ export async function POST(req: Request) {
 
     if (!pixelId || !accessToken) {
       return NextResponse.json(
-        { ok: false, error: 'Missing META_PIXEL_ID or META_CAPI_ACCESS_TOKEN' },
-        { status: 500 }
+        {
+          ok: true,
+          delivered: false,
+          reason: 'Meta CAPI is not configured',
+        },
+        { status: 202 }
       )
     }
 
