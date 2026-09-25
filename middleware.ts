@@ -60,6 +60,28 @@ function isPrivateHubHost(req: NextRequest) {
   return privateHubHosts.includes(host)
 }
 
+// Scheduled jobs call these routes with CRON_SECRET instead of a session. The
+// daily/weekly crons fan out to them via NEXTAUTH_URL (the private hub host),
+// so without this bypass every sub-task is rejected before its own auth runs.
+// Each of these routes still verifies the secret itself.
+const cronSecretPrefixes = ['/api/cron', '/api/analytics/v1/jobs/run']
+
+function isCronSecretPath(pathname: string) {
+  return cronSecretPrefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))
+}
+
+function hasValidCronSecret(req: NextRequest) {
+  const secret = process.env.CRON_SECRET
+  const header =
+    req.headers.get('x-cron-secret') ??
+    req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
+  if (!secret || !header || header.length !== secret.length) return false
+
+  let diff = 0
+  for (let i = 0; i < secret.length; i += 1) diff |= secret.charCodeAt(i) ^ header.charCodeAt(i)
+  return diff === 0
+}
+
 function isPublicAsset(pathname: string) {
   return (
     pathname === '/favicon.ico' ||
@@ -120,6 +142,10 @@ export default async function middleware(req: NextRequest) {
   const hubHost = isPrivateHubHost(req)
 
   if (hubHost && isPublicHubPath(pathname)) {
+    return withPrivateHeaders(NextResponse.next())
+  }
+
+  if (isCronSecretPath(pathname) && hasValidCronSecret(req)) {
     return withPrivateHeaders(NextResponse.next())
   }
 
