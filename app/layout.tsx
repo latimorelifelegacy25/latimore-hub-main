@@ -5,6 +5,7 @@ import { Suspense } from 'react'
 import PublicTracker from './_components/public-tracker'
 import AnnouncementTicker from './_components/announcement-ticker'
 import Chatbot from '@/components/Chatbot'
+import SitewideSocialLinks from './_components/sitewide-social-links'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTagManager } from '@next/third-parties/google'
 import { BRAND } from '@/lib/brand'
@@ -203,6 +204,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
         <Suspense fallback={null}><PublicTracker /></Suspense>
         {children}
+        <SitewideSocialLinks />
         <Chatbot />
         <Analytics />
       </body>
