@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { COLORS, BRAND } from '@/lib/brand'
 import { trackLeadConversion } from '@/lib/tracking/client-conversions'
+import { ensureLeadSessionId, getEventContext } from '@/lib/lead'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
 const navy = COLORS.navy
@@ -322,8 +323,10 @@ export default function EducationPage() {
   const completedRef = useRef(false)
   const leadSessionIdRef = useRef<string>('')
 
-  if (!leadSessionIdRef.current && typeof crypto !== 'undefined' && crypto.randomUUID) {
-    leadSessionIdRef.current = crypto.randomUUID()
+  // Share the site-wide visitor session so checkup events join the visitor's
+  // page views, UTM attribution, and the lead they eventually submit.
+  if (!leadSessionIdRef.current && typeof window !== 'undefined') {
+    leadSessionIdRef.current = ensureLeadSessionId()
   }
 
   const stepIndex = steps.indexOf(currentStep)
@@ -337,9 +340,9 @@ export default function EducationPage() {
       headers: { 'Content-Type': 'application/json' },
       keepalive: true,
       body: JSON.stringify({
+        ...getEventContext({ pageUrl: '/education/checkup' }),
         eventType,
         leadSessionId: leadSessionIdRef.current || undefined,
-        landingPage: '/education/checkup',
         county: data.contact.county || undefined,
         productInterest,
         metadata: { funnelStep: currentStep, ...metadata },
@@ -347,9 +350,9 @@ export default function EducationPage() {
     }).catch(() => null)
   }
 
-  async function logOnce(eventType: string, metadata?: Record<string, unknown>) {
-    if (viewedEventsRef.current.has(eventType)) return
-    viewedEventsRef.current.add(eventType)
+  async function logOnce(eventType: string, metadata?: Record<string, unknown>, onceKey = eventType) {
+    if (viewedEventsRef.current.has(onceKey)) return
+    viewedEventsRef.current.add(onceKey)
     await logEvent(eventType, metadata)
   }
 
@@ -511,7 +514,7 @@ export default function EducationPage() {
     const stepLabel = stepLabels[currentStep]
 
     if (stepLabel) {
-      logOnce('legacy_checkup_step_completed', { step: currentStep, detail: stepLabel }).catch(() => null)
+      logOnce('legacy_checkup_step_completed', { step: currentStep, detail: stepLabel }, `step:${currentStep}`).catch(() => null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
