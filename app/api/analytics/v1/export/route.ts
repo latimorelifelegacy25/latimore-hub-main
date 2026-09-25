@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { rateLimit } from '@/lib/rate-limit'
-import { analyticsFilterSchema } from '@/lib/analytics/contracts'
+import { analyticsFilterSchema, analyticsDimensions, isAnalyticsDimension } from '@/lib/analytics/contracts'
 import {
   getAnalyticsOverview,
   getAnalyticsFunnel,
@@ -68,6 +68,9 @@ export async function GET(req: NextRequest) {
       }
       case 'breakdown': {
         const dimension = req.nextUrl.searchParams.get('dimension') ?? 'source'
+        if (!isAnalyticsDimension(dimension)) {
+          return NextResponse.json({ ok: false, error: `Invalid dimension. Must be one of: ${analyticsDimensions.join(', ')}` }, { status: 400 })
+        }
         const { data } = await getAnalyticsBreakdowns(parsed.data, dimension)
         csv = buildBreakdownCsv(data)
         break

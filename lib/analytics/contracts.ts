@@ -37,6 +37,20 @@ export const analyticsDimensions = [
 export type AnalyticsMetricKey = (typeof analyticsMetricKeys)[number]
 export type AnalyticsDimension = (typeof analyticsDimensions)[number]
 
+export function parseMetricKeysParam(raw: string | null): AnalyticsMetricKey[] | { error: string } {
+  if (raw === null) return []
+  const keys = raw.split(',').map(key => key.trim()).filter(Boolean)
+  const invalid = keys.filter(key => !(analyticsMetricKeys as readonly string[]).includes(key))
+  if (invalid.length > 0 || keys.length === 0) {
+    return { error: `Unknown metrics: ${invalid.join(', ') || '(empty)'}. Valid: ${analyticsMetricKeys.join(', ')}` }
+  }
+  return [...new Set(keys)] as AnalyticsMetricKey[]
+}
+
+export function isAnalyticsDimension(value: string): value is AnalyticsDimension {
+  return (analyticsDimensions as readonly string[]).includes(value)
+}
+
 export const analyticsRangeEnum = z.enum(['1d', '7d', '30d', '90d', 'custom'])
 
 const analyticsRangeFields = {

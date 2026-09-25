@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { rateLimit } from '@/lib/rate-limit'
-import { analyticsFilterSchema, parseAnalyticsDateRange } from '@/lib/analytics/contracts'
+import { analyticsFilterSchema, parseAnalyticsDateRange, parseMetricKeysParam } from '@/lib/analytics/contracts'
 import { getAnalyticsTimeSeries, getDataQualityWarnings } from '@/lib/analytics/queries'
 import { logger } from '@/lib/logger'
 
@@ -21,9 +21,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid params' }, { status: 400 })
   }
 
-  // Accept ?metrics=lead_count,cta_click_count
-  const metricsParam = req.nextUrl.searchParams.get('metrics')
-  const metricKeys = metricsParam ? metricsParam.split(',').map(k => k.trim()).filter(Boolean) : undefined
+  const parsedMetrics = parseMetricKeysParam(req.nextUrl.searchParams.get('metrics'))
+  if (!Array.isArray(parsedMetrics)) {
+    return NextResponse.json({ ok: false, error: parsedMetrics.error }, { status: 400 })
+  }
+  const metricKeys = parsedMetrics.length > 0 ? parsedMetrics : undefined
 
   try {
     const { from, to } = parseAnalyticsDateRange(parsed.data)

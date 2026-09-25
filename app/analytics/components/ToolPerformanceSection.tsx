@@ -29,11 +29,11 @@ export default function ToolPerformanceSection({
     <div className="mb-8 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
       <div className="border-b border-white/10 p-5">
         <h2 className="text-lg font-semibold text-white">Tool Performance</h2>
-        <p className="mt-1 text-sm text-[#A9B1BE]">First-party activity by Latimore tool or workflow.</p>
+        <p className="mt-1 text-sm text-[#A9B1BE]">First-party activity by tool. Clicks are actions; booking sessions are distinct visitors, not confirmed appointments.</p>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1050px] text-left text-sm">
           <thead className="bg-white/[0.025] text-xs uppercase tracking-wider text-[#8F98A8]">
             <tr>
               <th className="px-5 py-3">Tool</th>
@@ -43,8 +43,9 @@ export default function ToolPerformanceSection({
               <th className="px-3 py-3 text-right">Starts</th>
               <th className="px-3 py-3 text-right">Completed</th>
               <th className="px-3 py-3 text-right">Leads</th>
-              <th className="px-3 py-3 text-right">Bookings</th>
-              <th className="px-5 py-3 text-right">Completion</th>
+              <th className="px-3 py-3 text-right">Booking clicks</th>
+              <th className="px-3 py-3 text-right">Booking sessions</th>
+              <th className="px-5 py-3 text-right">Completion (sessions)</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -58,7 +59,8 @@ export default function ToolPerformanceSection({
                 <td className="px-3 py-4 text-right">{row.completions.toLocaleString()}</td>
                 <td className="px-3 py-4 text-right">{row.leadSubmissions.toLocaleString()}</td>
                 <td className="px-3 py-4 text-right">{row.bookingClicks.toLocaleString()}</td>
-                <td className="px-5 py-4 text-right font-bold text-[#C9A25F]">{row.starts > 0 ? `${row.completionRate.toFixed(1)}%` : '—'}</td>
+                <td className="px-3 py-4 text-right">{row.bookingSessions.toLocaleString()}</td>
+                <td className="px-5 py-4 text-right font-bold text-[#C9A25F]">{row.starts > 0 && row.sessions > 0 ? `${row.completionRate.toFixed(1)}%` : '—'}</td>
               </tr>
             ))}
           </tbody>

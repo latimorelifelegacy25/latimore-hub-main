@@ -164,6 +164,9 @@ export async function GET(req: NextRequest) {
       leadSubmissions: number
       bookingClicks: number
       sessions: Set<string>
+      startSessions: Set<string>
+      completionSessions: Set<string>
+      bookingSessions: Set<string>
     }>()
 
     for (const event of events) {
@@ -183,16 +186,28 @@ export async function GET(req: NextRequest) {
         leadSubmissions: 0,
         bookingClicks: 0,
         sessions: new Set<string>(),
+        startSessions: new Set<string>(),
+        completionSessions: new Set<string>(),
+        bookingSessions: new Set<string>(),
       }
       row.events += 1
       if (!row.category && category) row.category = category
       if (event.leadSessionId) row.sessions.add(event.leadSessionId)
       if (semantic === 'tool_opened') row.opens += 1
-      if (semantic === 'tool_started') row.starts += 1
-      if (semantic === 'tool_completed') row.completions += 1
+      if (semantic === 'tool_started') {
+        row.starts += 1
+        if (event.leadSessionId) row.startSessions.add(event.leadSessionId)
+      }
+      if (semantic === 'tool_completed') {
+        row.completions += 1
+        if (event.leadSessionId) row.completionSessions.add(event.leadSessionId)
+      }
       if (semantic === 'tool_cta_clicked' || semantic === 'referral_clicked') row.ctaClicks += 1
       if (semantic === 'lead_submitted') row.leadSubmissions += 1
-      if (semantic === 'booking_clicked') row.bookingClicks += 1
+      if (semantic === 'booking_clicked') {
+        row.bookingClicks += 1
+        if (event.leadSessionId) row.bookingSessions.add(event.leadSessionId)
+      }
       toolMap.set(tool, row)
     }
 
@@ -208,7 +223,10 @@ export async function GET(req: NextRequest) {
         ctaClicks: row.ctaClicks,
         leadSubmissions: row.leadSubmissions,
         bookingClicks: row.bookingClicks,
-        completionRate: row.starts > 0 ? (row.completions / row.starts) * 100 : 0,
+        bookingSessions: row.bookingSessions.size,
+        completionRate: row.startSessions.size > 0
+          ? (Array.from(row.completionSessions).filter(session => row.startSessions.has(session)).length / row.startSessions.size) * 100
+          : 0,
       }))
       .sort((a, b) => b.events - a.events)
 
