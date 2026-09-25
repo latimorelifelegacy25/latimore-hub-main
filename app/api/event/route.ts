@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withCors } from '@/lib/hub/cors'
 import { extractAttribution } from '@/lib/hub/extract-attribution'
 import { ingestEvent } from '@/lib/hub/ingest-event'
+import { normalizeCounty } from '@/lib/hub/normalizers'
 import { recordVisitorIntent } from '@/lib/hub/visitor-intent'
 import { EventIngestSchema } from '@/lib/schemas'
 import { rateLimit } from '@/lib/rate-limit'
@@ -45,6 +46,7 @@ export const POST = withCors(async (req: NextRequest) => {
 
   const input = parsed.data
   const attr = extractAttribution(input)
+  const county = normalizeCounty(attr.county)
   const metadata = {
     ...(input.metadata ?? {}),
     ...(input.term != null ? { term: input.term } : {}),
@@ -63,7 +65,7 @@ export const POST = withCors(async (req: NextRequest) => {
       source: attr.source,
       medium: attr.medium,
       campaign: attr.campaign,
-      county: attr.county,
+      county,
       productInterest: input.productInterest ?? null,
       metadata: Object.keys(metadata).length > 0 ? metadata : undefined,
     })

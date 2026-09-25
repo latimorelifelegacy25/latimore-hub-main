@@ -4,6 +4,8 @@ import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { COLORS, BRAND } from '@/lib/brand'
 import { trackLeadConversion } from '@/lib/tracking/client-conversions'
+import { ensureLeadSessionId, getEventContext } from '@/lib/lead'
+import CountyOptions from '@/components/forms/CountyOptions'
 import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 
 const navy = COLORS.navy
@@ -322,8 +324,10 @@ export default function EducationPage() {
   const completedRef = useRef(false)
   const leadSessionIdRef = useRef<string>('')
 
-  if (!leadSessionIdRef.current && typeof crypto !== 'undefined' && crypto.randomUUID) {
-    leadSessionIdRef.current = crypto.randomUUID()
+  // Share the site-wide visitor session so checkup events join the visitor's
+  // page views, UTM attribution, and the lead they eventually submit.
+  if (!leadSessionIdRef.current && typeof window !== 'undefined') {
+    leadSessionIdRef.current = ensureLeadSessionId()
   }
 
   const stepIndex = steps.indexOf(currentStep)
@@ -337,9 +341,9 @@ export default function EducationPage() {
       headers: { 'Content-Type': 'application/json' },
       keepalive: true,
       body: JSON.stringify({
+        ...getEventContext({ pageUrl: '/education/checkup' }),
         eventType,
         leadSessionId: leadSessionIdRef.current || undefined,
-        landingPage: '/education/checkup',
         county: data.contact.county || undefined,
         productInterest,
         metadata: { funnelStep: currentStep, ...metadata },
@@ -347,9 +351,9 @@ export default function EducationPage() {
     }).catch(() => null)
   }
 
-  async function logOnce(eventType: string, metadata?: Record<string, unknown>) {
-    if (viewedEventsRef.current.has(eventType)) return
-    viewedEventsRef.current.add(eventType)
+  async function logOnce(eventType: string, metadata?: Record<string, unknown>, onceKey = eventType) {
+    if (viewedEventsRef.current.has(onceKey)) return
+    viewedEventsRef.current.add(onceKey)
     await logEvent(eventType, metadata)
   }
 
@@ -511,7 +515,7 @@ export default function EducationPage() {
     const stepLabel = stepLabels[currentStep]
 
     if (stepLabel) {
-      logOnce('legacy_checkup_step_completed', { step: currentStep, detail: stepLabel }).catch(() => null)
+      logOnce('legacy_checkup_step_completed', { step: currentStep, detail: stepLabel }, `step:${currentStep}`).catch(() => null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
@@ -600,7 +604,17 @@ export default function EducationPage() {
                     <Input label="Last name" value={data.contact.lastName} onChange={(value) => setData({ ...data, contact: { ...data.contact, lastName: value } })} />
                     <Input label="Email" type="email" value={data.contact.email} onChange={(value) => setData({ ...data, contact: { ...data.contact, email: value } })} />
                     <Input label="Phone" type="tel" value={data.contact.phone} onChange={(value) => setData({ ...data, contact: { ...data.contact, phone: value } })} />
-                    <Input label="County" value={data.contact.county} onChange={(value) => setData({ ...data, contact: { ...data.contact, county: value } })} />
+                    <label className="block">
+                      <span className="text-sm font-bold text-slate-700">County</span>
+                      <select
+                        value={data.contact.county}
+                        onChange={(event) => setData({ ...data, contact: { ...data.contact, county: event.target.value } })}
+                        className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-[#C9A25F] focus:ring-4 focus:ring-[#C9A25F]/20"
+                      >
+                        <option value="">Select county</option>
+                        <CountyOptions />
+                      </select>
+                    </label>
                   </div>
                 </div>
               )}

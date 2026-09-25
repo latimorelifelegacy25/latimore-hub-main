@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { BRAND } from '@/lib/brand'
 import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 import { trackLatimoreEvent } from '@/lib/tracking/client-events'
+import CountyOptions from '@/components/forms/CountyOptions'
 import { ensureLeadSessionId, getCurrentPageUrl } from '@/lib/lead'
 
 const navyDark = '#16222d'
@@ -136,9 +137,7 @@ export default function StartForm() {
         <option value="" disabled style={{ color: '#111827' }}>
           County (optional)
         </option>
-        <option value="Schuylkill" style={{ color: '#111827' }}>Schuylkill</option>
-        <option value="Luzerne" style={{ color: '#111827' }}>Luzerne</option>
-        <option value="Northumberland" style={{ color: '#111827' }}>Northumberland</option>
+        <CountyOptions optionStyle={{ color: '#111827' }} />
       </select>
 
       <button

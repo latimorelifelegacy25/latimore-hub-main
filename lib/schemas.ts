@@ -43,7 +43,6 @@ const eventEnum = z.enum([
   'gbp_service_visit',
   'session_exit',
 ])
-const analyticsCountyEnum = z.enum(['Schuylkill', 'Luzerne', 'Northumberland'])
 
 export const FilloutSchema = z.object({
   email: z.string().email('Invalid email').optional().nullable(),
@@ -86,7 +85,9 @@ export const EventIngestSchema = z.object({
   campaign: z.string().trim().max(150).optional().nullable(),
   term: z.string().trim().max(100).optional().nullable(),
   content: z.string().trim().max(100).optional().nullable(),
-  county: analyticsCountyEnum.optional().nullable(),
+  // Free text from forms — any county is accepted; the route canonicalizes
+  // service-area spellings so an unfamiliar value never drops the event.
+  county: z.string().trim().max(100).optional().nullable(),
   productInterest: productEnum.optional().nullable(),
   metadata: z.record(z.unknown()).optional().nullable(),
 }).strict()

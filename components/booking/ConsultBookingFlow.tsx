@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { buildFilloutParams } from '@/lib/lead'
 import { BRAND } from '@/lib/brand'
+import CountyOptions from '@/components/forms/CountyOptions'
 
 type AvailabilityResponse = {
   ok: boolean
@@ -521,10 +522,7 @@ export default function ConsultBookingFlow() {
                   <Field label="County">
                     <Select name="county" value={form.county} onChange={(value) => update('county', value)}>
                       <option value="">Select county</option>
-                      <option value="Schuylkill">Schuylkill</option>
-                      <option value="Luzerne">Luzerne</option>
-                      <option value="Northumberland">Northumberland</option>
-                      <option value="Other Pennsylvania County">Other PA county</option>
+                      <CountyOptions />
                     </Select>
                   </Field>
                 </div>

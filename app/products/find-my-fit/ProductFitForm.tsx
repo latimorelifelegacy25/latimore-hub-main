@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { BRAND, COLORS } from '@/lib/brand'
 import { getCurrentPageUrl, getEventContext, hydrateLeadContext } from '@/lib/lead'
 import { getProductInterestLabel, type ProductInterestValue } from '@/lib/products/catalog'
+import CountyOptions from '@/components/forms/CountyOptions'
 
 type Props = {
   selectedProductSlug: string
@@ -414,7 +415,10 @@ export default function ProductFitForm({ selectedProductSlug, selectedProductNam
             </label>
             <label>
               <span style={labelStyle()}>County</span>
-              <input style={fieldStyle()} value={form.county} onChange={(event) => update('county', event.target.value)} placeholder="Schuylkill, Luzerne, Northumberland..." />
+              <select style={fieldStyle()} value={form.county} onChange={(event) => update('county', event.target.value)}>
+                <option value="">Select county</option>
+                <CountyOptions />
+              </select>
             </label>
             <label>
               <span style={labelStyle()}>State</span>

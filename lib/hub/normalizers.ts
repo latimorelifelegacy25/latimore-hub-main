@@ -160,6 +160,19 @@ export function normalizeStage(value?: string | null): PipelineStage {
   return STAGE_MAP[normalizeKey(value)] ?? 'New'
 }
 
+const SERVICE_AREA_COUNTIES = ['Schuylkill', 'Luzerne', 'Northumberland'] as const
+
+/**
+ * Keeps whatever county a visitor entered, but folds spellings of the service-area
+ * counties ("schuylkill county, pa") onto one canonical name so reports don't split them.
+ */
+export function normalizeCounty(value?: string | null): string | null {
+  const cleaned = cleanString(value, 100)
+  if (!cleaned) return null
+  const key = normalizeKey(cleaned)
+  return SERVICE_AREA_COUNTIES.find((county) => key.includes(county.toLowerCase())) ?? cleaned
+}
+
 export function normalizeProductInterest(value?: string | null): ProductInterest {
   return PRODUCT_MAP[normalizeKey(value)] ?? 'General'
 }
