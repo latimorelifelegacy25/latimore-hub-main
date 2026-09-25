@@ -95,7 +95,12 @@ export const EventIngestSchema = z.object({
 export const LeadSchema = z.object({
   firstName: z.string().max(100).optional().nullable(),
   lastName: z.string().max(100).optional().nullable(),
-  email: z.string().email().optional().nullable(),
+  // Mobile autofill often appends a trailing space; trim before validating so
+  // a real address isn't rejected, and treat a blank field as absent.
+  email: z.preprocess(
+    (value) => (typeof value === 'string' ? value.trim() || null : value),
+    z.string().email().optional().nullable(),
+  ),
   phone: z.string().max(40).optional().nullable(),
   county: z.string().max(100).optional().nullable(),
   productInterest: z.string().max(100).optional().nullable(),

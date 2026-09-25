@@ -14,8 +14,8 @@ import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 const BodySchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  email: z.string().email().max(191),
-  phone: z.string().min(7).max(40),
+  email: z.string().trim().email().max(191),
+  phone: z.string().trim().min(7).max(40),
 
   mailingAddress: z.string().max(200).optional().nullable(),
   city: z.string().max(100).optional().nullable(),

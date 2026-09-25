@@ -11,6 +11,7 @@ import {
   startOfDay,
 } from 'date-fns'
 import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+import { fetchGoogleFreeBusy } from '@/lib/calendar/availability'
 
 type Interval = {
   start: Date
@@ -142,4 +143,29 @@ export function projectSlots(input: {
   }
 
   return results
+}
+
+/**
+ * The bookable slots currently offered to visitors: working hours, minimum
+ * notice, daily cap, and Google Calendar busy time all applied. Used both to
+ * render availability and to re-validate a requested slot at booking time.
+ */
+export async function loadOfferedAvailability() {
+  const base = await generateAvailability()
+
+  const firstDay = base.daysToCheck[0]
+  const lastDay = base.daysToCheck[base.daysToCheck.length - 1]
+
+  const busy = await fetchGoogleFreeBusy({
+    timeMin: new Date(firstDay.getTime()).toISOString(),
+    timeMax: new Date(lastDay.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+    calendarId: BOOKING_CONFIG.calendarId,
+  })
+
+  return projectSlots({
+    daysToCheck: base.daysToCheck,
+    busy,
+    minBookTime: base.minBookTime,
+    dailyCounts: base.dailyCounts,
+  })
 }

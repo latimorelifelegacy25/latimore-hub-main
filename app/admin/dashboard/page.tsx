@@ -13,8 +13,8 @@ import { BRAND_STORY } from '@/app/admin/_lib/templates'
 import DailyBrief from './DailyBrief'
 import { logger } from '@/lib/logger'
 
-const StatCard = ({ title, value, trend, icon, color }: any) => (
-  <div className="bg-white/5 border border-white/10 p-6 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20">
+const StatCard = ({ title, value, trend, icon, color, href }: any) => (
+  <Link href={href} className="block bg-white/5 border border-white/10 p-6 rounded-2xl transition-all hover:bg-white/10 hover:border-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A25F]">
     <div className="flex justify-between items-start mb-4">
       <div className={`p-3 rounded-xl ${color} bg-opacity-20`}>
         <i className={`fa-solid ${icon} text-xl`}></i>
@@ -25,7 +25,7 @@ const StatCard = ({ title, value, trend, icon, color }: any) => (
     </div>
     <h3 className="text-slate-400 text-sm font-medium">{title}</h3>
     <p className="text-2xl font-bold text-white mt-1">{value.toLocaleString()}</p>
-  </div>
+  </Link>
 )
 
 export default async function LegacyPulsePage() {
@@ -110,11 +110,11 @@ export default async function LegacyPulsePage() {
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
-        <StatCard title="Total Contacts" value={contactCount} trend={12} icon="fa-address-book" color="text-blue-400 bg-blue-500" />
-        <StatCard title="Active Inquiries" value={inquiryCount} trend={5} icon="fa-comment-dots" color="text-[#C9A25F] bg-[#C9A25F]" />
-        <StatCard title="Appointments" value={appointmentCount} trend={-2} icon="fa-calendar-check" color="text-purple-400 bg-purple-500" />
-        <StatCard title="Duplicate Leads (7 Days)" value={duplicateLeads7Days} trend={0} icon="fa-copy" color="text-amber-400 bg-amber-500" />
-        <StatCard title="Duplicate Leads (30 Days)" value={duplicateLeads30Days} trend={0} icon="fa-clone" color="text-cyan-400 bg-cyan-500" />
+        <StatCard title="Total Contacts" href="/admin/contacts" value={contactCount} trend={12} icon="fa-address-book" color="text-blue-400 bg-blue-500" />
+        <StatCard title="Active Inquiries" href="/admin/pipeline" value={inquiryCount} trend={5} icon="fa-comment-dots" color="text-[#C9A25F] bg-[#C9A25F]" />
+        <StatCard title="Appointments" href="/admin/calendar" value={appointmentCount} trend={-2} icon="fa-calendar-check" color="text-purple-400 bg-purple-500" />
+        <StatCard title="Duplicate Leads (7 Days)" href="#duplicate-leads" value={duplicateLeads7Days} trend={0} icon="fa-copy" color="text-amber-400 bg-amber-500" />
+        <StatCard title="Duplicate Leads (30 Days)" href="#duplicate-leads" value={duplicateLeads30Days} trend={0} icon="fa-clone" color="text-cyan-400 bg-cyan-500" />
       </div>
 
       {/* Quick Actions Grid */}
@@ -163,7 +163,7 @@ export default async function LegacyPulsePage() {
       </div>
 
       {/* Duplicate Leads */}
-      <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+      <div id="duplicate-leads" className="scroll-mt-24 bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
         <div className="px-6 py-4 border-b border-white/10">
           <h3 className="text-xl font-black text-white">Duplicate Leads</h3>
         </div>

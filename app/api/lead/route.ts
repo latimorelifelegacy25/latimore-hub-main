@@ -15,7 +15,17 @@ export const POST = withCors(async (req: NextRequest) => {
 
   const body = await req.json().catch(() => null)
   const parse = LeadSchema.safeParse(body)
-  if (!parse.success) return NextResponse.json({ ok: false, error: parse.error.flatten() }, { status: 422 })
+  if (!parse.success) {
+    // Forms render `error` directly, so it must be a readable string.
+    const flat = parse.error.flatten()
+    const emailErrors = flat.fieldErrors.email ?? []
+    const message = emailErrors.some((m) => m.startsWith('Lead must include'))
+      ? 'Please provide an email address or phone number.'
+      : emailErrors.length
+        ? 'Please enter a valid email address.'
+        : 'Please check your information and try again.'
+    return NextResponse.json({ ok: false, error: message, details: flat }, { status: 422 })
+  }
 
   try {
     const conversionEventId = crypto.randomUUID()
