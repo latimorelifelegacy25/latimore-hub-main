@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { SiteHeaderAuto } from '@/app/_components/site-header-auto'
 
 const title = 'PAHS Protect 2026 | Pottsville Football Sponsor'
 const description =
@@ -29,5 +30,10 @@ export const metadata: Metadata = {
 }
 
 export default function PAHSLayout({ children }: { children: React.ReactNode }) {
-  return children
+  return (
+    <>
+      <SiteHeaderAuto />
+      {children}
+    </>
+  )
 }

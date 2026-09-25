@@ -243,56 +243,6 @@ export default async function ArticlePage({
         className="min-h-screen bg-[#f9f6f0] text-[#1a1a1a]"
         style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}
       >
-        {/* Header */}
-        <header className="bg-[#1a2530] border-b-2 border-[#C49A6C] px-8 sticky top-0 z-50">
-          <div className="max-w-6xl mx-auto flex items-center justify-between h-16 gap-8">
-            <Link href="/" className="flex items-center gap-3 no-underline">
-              <div
-                className="w-9 h-9 bg-[#C49A6C] shrink-0"
-                style={{ clipPath: 'polygon(50% 0%,100% 20%,100% 70%,50% 100%,0% 70%,0% 20%)' }}
-              />
-              <div>
-                <div
-                  className="text-base font-bold text-white leading-tight"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
-                >
-                  Latimore Life &amp; Legacy
-                </div>
-                <div className="font-mono text-[9px] text-[#C49A6C] tracking-[0.12em] uppercase">
-                  Protecting Today. Securing Tomorrow.
-                </div>
-              </div>
-            </Link>
-
-            <nav className="hidden md:flex gap-7">
-              {['Home', 'About', 'Products', 'Contact'].map((label) => {
-                const href = label === 'Home' ? '/' : `/${label.toLowerCase()}`
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className="text-white/75 font-mono text-[13px] tracking-[0.06em] uppercase no-underline hover:text-white transition-colors"
-                  >
-                    {label}
-                  </Link>
-                )
-              })}
-              <Link
-                href="/blog"
-                className="text-[#C49A6C] font-mono text-[13px] tracking-[0.06em] uppercase no-underline"
-              >
-                ← Blog
-              </Link>
-            </nav>
-
-            <a
-              href="tel:5709001977"
-              className="bg-[#C49A6C] text-[#1a2530] font-mono text-[11px] tracking-[0.08em] uppercase font-medium px-4 py-2 rounded-sm no-underline whitespace-nowrap"
-            >
-              (570) 900-1977
-            </a>
-          </div>
-        </header>
 
         {/* Article header */}
         <div
