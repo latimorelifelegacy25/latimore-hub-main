@@ -216,6 +216,7 @@ function LeadCapture({ config }: { config: VariantConfig }) {
 export default function SolutionFunnel({ variant }: Props) {
   const config = CONFIG[variant]
   const tracked = useRef(false)
+  const started = useRef(false)
   const [calculated, setCalculated] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
@@ -242,7 +243,14 @@ export default function SolutionFunnel({ variant }: Props) {
 
   const resultBand = result === 0 ? 'no_current_gap' : result < (variant === 'retirement' ? 1500 : 50000) ? 'moderate_gap' : 'material_gap'
 
+  function startSnapshot() {
+    if (started.current) return
+    started.current = true
+    void trackLatimoreEvent({ action: 'tool_started', tool: config.tool, category: config.category })
+  }
+
   function calculate() {
+    startSnapshot()
     setCalculated(true)
     void trackLatimoreEvent({ action: 'tool_completed', tool: config.tool, category: config.category, resultBand })
   }
@@ -256,7 +264,7 @@ export default function SolutionFunnel({ variant }: Props) {
           <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.05] text-white md:text-6xl">{config.headline}</h1>
           <p className="mt-6 max-w-3xl text-lg leading-8" style={{ color: 'rgba(255,255,255,.76)' }}>{config.intro}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#snapshot" onClick={() => void trackLatimoreEvent({ action: 'tool_started', tool: config.tool, category: config.category, metadata: { placement: 'hero' } })} className="rounded-xl px-6 py-3.5 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
+            <a href="#snapshot" className="rounded-xl px-6 py-3.5 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
               Calculate My Snapshot
             </a>
             <Link href={`/book?utm_source=latimore_site&utm_medium=solution_funnel&utm_campaign=${config.campaign}&utm_content=hero_booking`} onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'hero' } })} className="rounded-xl border border-white/25 px-6 py-3.5 text-sm font-black text-white no-underline">
@@ -268,7 +276,7 @@ export default function SolutionFunnel({ variant }: Props) {
 
       <section id="snapshot" className="mx-auto max-w-6xl px-5 py-14 md:py-20">
         <div className="grid gap-8 lg:grid-cols-[1.15fr_.85fr]">
-          <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-8" style={{ borderColor: COLORS.gray200 }}>
+          <div onChangeCapture={startSnapshot} className="rounded-3xl border bg-white p-6 shadow-sm md:p-8" style={{ borderColor: COLORS.gray200 }}>
             <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: COLORS.gold }}>Your numbers</p>
             <h2 className="mt-2 text-3xl font-black" style={{ color: COLORS.navy }}>Build the snapshot</h2>
             <p className="mt-2 text-sm leading-6" style={{ color: COLORS.textMuted }}>Nothing entered here is sent to advertising platforms. The calculation runs in your browser.</p>

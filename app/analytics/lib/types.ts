@@ -70,6 +70,7 @@ export type ToolPerformanceRow = {
   ctaClicks: number
   leadSubmissions: number
   bookingClicks: number
+  bookingSessions: number
   completionRate: number
 }
 
