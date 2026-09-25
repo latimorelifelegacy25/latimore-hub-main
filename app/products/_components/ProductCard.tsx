@@ -31,6 +31,7 @@ export function ProductCard({ product }: Props) {
 
   return (
     <article
+      id={product.slug}
       data-product-interest={product.productInterest}
       data-product-slug={product.slug}
       style={{
@@ -42,6 +43,7 @@ export function ProductCard({ product }: Props) {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100%',
+        scrollMarginTop: 96,
       }}
     >
       <a

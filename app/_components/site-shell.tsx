@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { BRAND, COLORS } from '@/lib/brand'
 import { MobileNav } from './mobile-nav'
+import { DesktopNav } from './desktop-nav'
+import { NAV_MENU, type NavMenuItem } from './nav-menu'
 
 export type NavLink = readonly [href: string, label: string]
 
@@ -38,8 +40,14 @@ type SiteHeaderProps = {
 export function SiteHeader({
   currentPath = '',
   navLinks = DEFAULT_NAV_LINKS,
-  mobileBreakpoint = 900,
+  mobileBreakpoint = 1180,
 }: SiteHeaderProps) {
+  // The default links get the full dropdown menu; a page passing its own
+  // links gets exactly those, as flat items.
+  const menu: readonly NavMenuItem[] = navLinks === DEFAULT_NAV_LINKS
+    ? NAV_MENU
+    : navLinks.map(([href, label]) => ({ href, label }))
+
   return (
     <nav
       aria-label="Primary"
@@ -74,6 +82,7 @@ export function SiteHeader({
             fontSize: '1.1rem',
             fontWeight: 700,
             minWidth: 0,
+            flexShrink: 0,
           }}
         >
           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', letterSpacing: '-.01em' }}>
@@ -81,52 +90,10 @@ export function SiteHeader({
           </span>
         </Link>
 
-        <div className="site-desktop-nav" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          {navLinks.map(([href, label]) => {
-            const isActive = href === currentPath
-            const isJoin = href === '/join'
-            return (
-              <Link
-                key={href}
-                href={href}
-                style={isJoin ? {
-                  background: SITE_COLORS.gold,
-                  color: SITE_COLORS.navy,
-                  padding: '0.55rem 0.95rem',
-                  borderRadius: 8,
-                  fontWeight: 800,
-                  textDecoration: 'none',
-                  fontSize: '0.88rem',
-                  boxShadow: '0 6px 14px rgba(0,0,0,0.18)',
-                } : {
-                  color: isActive ? SITE_COLORS.goldLight : '#fff',
-                  textDecoration: 'none',
-                  fontSize: '0.9rem',
-                  fontWeight: isActive ? 600 : 400,
-                }}
-              >
-                {label}
-              </Link>
-            )
-          })}
-          <a
-            href={BRAND.bookingUrl}
-            style={{
-              background: SITE_COLORS.gold,
-              color: SITE_COLORS.navy,
-              padding: '0.5rem 1rem',
-              borderRadius: 8,
-              fontWeight: 600,
-              textDecoration: 'none',
-              fontSize: '0.85rem',
-            }}
-          >
-            Book Consultation
-          </a>
-        </div>
+        <DesktopNav menu={menu} currentPath={currentPath} />
 
         <MobileNav
-          navLinks={navLinks}
+          menu={menu}
           currentPath={currentPath}
           mobileBreakpoint={mobileBreakpoint}
         />

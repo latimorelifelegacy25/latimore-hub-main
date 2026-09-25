@@ -6,29 +6,6 @@ import { BRAND } from '@/lib/brand'
 export default function BookNowPage() {
   return (
     <div className="min-h-screen flex flex-col bg-brand-bg">
-      {/* Sticky header with logo and quick contact on desktop */}
-      <header className="sticky top-0 z-20 w-full border-b border-brand-gold/20 bg-brand-bg">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-3 text-brand-ink no-underline">
-            <img
-              src="/logo.jpg"
-              alt={BRAND.name}
-              className="h-8 w-8 rounded-md object-cover"
-            />
-            <span className="font-semibold leading-none text-brand-ink">
-              {BRAND.name}
-            </span>
-          </Link>
-          <div className="hidden md:flex gap-6 text-sm font-medium">
-            <a href={`tel:${BRAND.phoneRaw}`} className="text-brand-gold hover:underline">
-              {BRAND.phone}
-            </a>
-            <a href={`mailto:${BRAND.email}`} className="text-brand-gold hover:underline">
-              {BRAND.email}
-            </a>
-          </div>
-        </div>
-      </header>
 
       {/* Main content area */}
       <main className="flex flex-1 flex-col md:flex-row gap-10 max-w-6xl mx-auto w-full px-4 py-12">
