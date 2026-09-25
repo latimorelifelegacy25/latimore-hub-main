@@ -12,6 +12,8 @@ export function isOperationalAnalyticsFallbackEnabled() {
 export const OPERATIONAL_FALLBACK_DISABLED_WARNING =
   'Operational analytics fallback is disabled in production. Enable ENABLE_OPERATIONAL_ANALYTICS_FALLBACK=true to show live operational data when analytics mart data is unavailable.'
 
+export const AI_ANALYTICS_SOURCE = 'operational_fallback' as const
+
 export type AnalyticsOverviewData = {
   leadCount: number
   contactCount: number
@@ -205,7 +207,7 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
       }
     }
 
-    // Average rates/scores across days
+    // Average rates/scores across days with rows. Missing days do not contribute zeroes.
     for (const key of ['lead_to_booking_rate', 'lead_to_sold_rate', 'avg_lead_score', 'ai_success_rate', 'ai_avg_latency_ms']) {
       if (rateCounts[key]) sums[key] = sums[key] / rateCounts[key]
     }
@@ -247,6 +249,8 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
     leadCount = leads
     contactCount = contacts
     appointmentBookedCount = appts
+    // These are two representations of a sale, so use the larger count rather than summing them.
+    // This is an estimate until the operational path has a shared deal identifier.
     soldCount = Math.max(soldI, soldC)
     ctaClickCount = ctas
     formSubmitCount = forms
@@ -405,30 +409,39 @@ export async function getAnalyticsTimeSeries(
     return { data: [], source: 'analytics_mart' }
   }
 
-  // Fallback: group operational data by day
-  const { eachUtcDay, dayBoundsUtc } = await import('./aggregation')
+  // Four grouped queries replace a per-day count loop (up to 360 sequential queries for 90d).
+  const { eachUtcDay } = await import('./aggregation')
   const days = eachUtcDay(from, to)
-  const data: AnalyticsTimeSeriesPoint[] = []
+  type DailyCount = { day: Date; count: bigint }
+  const [leads, contacts, appts, ctas] = await Promise.all([
+    keys.includes('lead_count')
+      ? prisma.$queryRaw<DailyCount[]>`SELECT ("createdAt" AT TIME ZONE 'UTC')::date AS day, count(*) AS count FROM "Inquiry" WHERE "createdAt" >= ${from} AND "createdAt" <= ${to} GROUP BY day`
+      : Promise.resolve([]),
+    keys.includes('contact_count')
+      ? prisma.$queryRaw<DailyCount[]>`SELECT ("createdAt" AT TIME ZONE 'UTC')::date AS day, count(*) AS count FROM "Contact" WHERE "createdAt" >= ${from} AND "createdAt" <= ${to} GROUP BY day`
+      : Promise.resolve([]),
+    keys.includes('appointment_booked_count')
+      ? prisma.$queryRaw<DailyCount[]>`SELECT ("createdAt" AT TIME ZONE 'UTC')::date AS day, count(*) AS count FROM "Appointment" WHERE "createdAt" >= ${from} AND "createdAt" <= ${to} AND "status" <> 'Cancelled' GROUP BY day`
+      : Promise.resolve([]),
+    keys.includes('cta_click_count')
+      ? prisma.$queryRaw<DailyCount[]>`SELECT ("occurredAt" AT TIME ZONE 'UTC')::date AS day, count(*) AS count FROM "Event" WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to} AND "eventType"::text IN ('cta_click', 'call_click', 'text_click', 'email_click', 'book_click') GROUP BY day`
+      : Promise.resolve([]),
+  ])
 
-  for (const day of days) {
-    const bounds = dayBoundsUtc(day)
-    const dateStr = day.toISOString().split('T')[0]
-    const point: AnalyticsTimeSeriesPoint = { date: dateStr }
-
-    const [leads, contacts, appts, ctas] = await Promise.all([
-      keys.includes('lead_count') ? prisma.inquiry.count({ where: { createdAt: { gte: bounds.from, lte: bounds.to } } }) : Promise.resolve(0),
-      keys.includes('contact_count') ? prisma.contact.count({ where: { createdAt: { gte: bounds.from, lte: bounds.to } } }) : Promise.resolve(0),
-      keys.includes('appointment_booked_count') ? prisma.appointment.count({ where: { createdAt: { gte: bounds.from, lte: bounds.to }, NOT: { status: 'Cancelled' } } }) : Promise.resolve(0),
-      keys.includes('cta_click_count') ? prisma.event.count({ where: { occurredAt: { gte: bounds.from, lte: bounds.to }, eventType: { in: ['cta_click', 'call_click', 'text_click', 'email_click', 'book_click'] as any } } }) : Promise.resolve(0),
-    ])
-
-    if (keys.includes('lead_count')) point.lead_count = leads
-    if (keys.includes('contact_count')) point.contact_count = contacts
-    if (keys.includes('appointment_booked_count')) point.appointment_booked_count = appts
-    if (keys.includes('cta_click_count')) point.cta_click_count = ctas
-
-    data.push(point)
-  }
+  const byDate = (rows: DailyCount[]) => new Map(rows.map(row => [row.day.toISOString().slice(0, 10), Number(row.count)]))
+  const leadMap = byDate(leads)
+  const contactMap = byDate(contacts)
+  const apptMap = byDate(appts)
+  const ctaMap = byDate(ctas)
+  const data = days.map(day => {
+    const date = day.toISOString().slice(0, 10)
+    const point: AnalyticsTimeSeriesPoint = { date }
+    if (keys.includes('lead_count')) point.lead_count = leadMap.get(date) ?? 0
+    if (keys.includes('contact_count')) point.contact_count = contactMap.get(date) ?? 0
+    if (keys.includes('appointment_booked_count')) point.appointment_booked_count = apptMap.get(date) ?? 0
+    if (keys.includes('cta_click_count')) point.cta_click_count = ctaMap.get(date) ?? 0
+    return point
+  })
 
   return { data, source: 'operational_fallback' }
 }

@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { rateLimit } from '@/lib/rate-limit'
 import { analyticsFilterSchema, parseAnalyticsDateRange } from '@/lib/analytics/contracts'
-import { getAiAnalytics } from '@/lib/analytics/queries'
+import { AI_ANALYTICS_SOURCE, getAiAnalytics } from '@/lib/analytics/queries'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       data,
       meta: {
         generatedAt: new Date().toISOString(),
-        source: 'operational_fallback' as const,
+        source: AI_ANALYTICS_SOURCE,
         warnings: [],
       },
     })
