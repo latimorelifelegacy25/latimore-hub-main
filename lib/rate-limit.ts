@@ -16,6 +16,7 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   lead: { limit: 30, windowSec: 60 },
   join: { limit: 10, windowSec: 60 },
   ethos_redirect: { limit: 60, windowSec: 60 },
+  metaCapi: { limit: 60, windowSec: 60 },
   default: { limit: 100, windowSec: 60 },
 }
 
