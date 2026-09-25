@@ -1,6 +1,6 @@
 # Latimore Supabase MCP Server
 
-MCP server for **Latimore Life & Legacy LLC** Hub OS — gives Claude structured tools to query and update the Supabase backend (`medxfhhxvmczmpurkmrp`).
+MCP server for **Latimore Life & Legacy LLC** Hub OS — gives Claude structured tools to query and update the Supabase backend (`eoihgvahvfpgbromvzkd`).
 
 ## Tool Inventory
 
@@ -45,7 +45,7 @@ npm run build
 ### Environment variables
 
 ```bash
-export SUPABASE_URL="https://medxfhhxvmczmpurkmrp.supabase.co"
+export SUPABASE_URL="https://eoihgvahvfpgbromvzkd.supabase.co"
 export SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 ```
 
@@ -66,7 +66,7 @@ Add to `claude_desktop_config.json`:
       "command": "node",
       "args": ["/path/to/latimore-hub-main/mcp/dist/index.js"],
       "env": {
-        "SUPABASE_URL": "https://medxfhhxvmczmpurkmrp.supabase.co",
+        "SUPABASE_URL": "https://eoihgvahvfpgbromvzkd.supabase.co",
         "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key"
       }
     }

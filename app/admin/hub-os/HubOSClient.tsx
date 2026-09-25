@@ -36,7 +36,7 @@ const DOCS = [
 
 const LOGS = [
   { time: '09:14', cls: '#4ade80', msg: '✓  Latimore Hub OS — Vercel build passed' },
-  { time: '09:10', cls: '#60a5fa', msg: '→  Supabase medxfhhxvmczmpurkmrp — schema sync OK' },
+  { time: '09:10', cls: '#60a5fa', msg: '→  Supabase eoihgvahvfpgbromvzkd — schema sync OK' },
   { time: '08:55', cls: '#4ade80', msg: '✓  GA4 G-WZWMX83WXQ — events firing correctly' },
   { time: '08:40', cls: '#facc15', msg: '⚠  PAHS invoice $460 — DUE TODAY' },
   { time: '08:30', cls: '#60a5fa', msg: '→  Brand guardrails loaded — all workflows active' },
@@ -50,7 +50,7 @@ const WORKFLOW_PROMPTS: Record<string, string> = {
   cta: 'Run the KPI-aligned CTA generator for Latimore Life & Legacy LLC. Target ICP: Pre-Retirees in Schuylkill County. Channel: Facebook. Generate 6 strong, on-brand calls to action.',
   audit: 'Run a Codex codebase audit on the Latimore Hub OS. Identify broken routes, missing env vars, Vercel deployment issues, and API route errors.',
   deploy: 'Generate deployment-ready Termux (Android) commands to push the latest Latimore Hub OS changes to GitHub and trigger a Vercel deploy. Include git add, git commit, git push, and Vercel CLI deploy command.',
-  supabase: 'Run a Supabase data health check on project medxfhhxvmczmpurkmrp. Check CRM tables, admin routes, migration status, and Prisma schema drift.',
+  supabase: 'Run a Supabase data health check on project eoihgvahvfpgbromvzkd. Check CRM tables, admin routes, migration status, and Prisma schema drift.',
   'admin-page': 'Generate a new Latimore Hub OS admin page component — a leads dashboard (Next.js 14 App Router, TypeScript, Tailwind) that pulls from Supabase leads table with county filter. Output the full component code for /app/admin/leads/page.tsx.',
 }
 
@@ -263,7 +263,7 @@ Open tasks:\n${openTasks}\n\nUser request: ${taskQ}`
     setCodexLoading(true)
     setCodexOutput('Running…')
     try {
-      const prompt = `You are a senior full-stack developer working on the Latimore Hub OS for Latimore Life & Legacy LLC. Stack: Next.js 14 App Router, TypeScript, Prisma, Supabase (project: medxfhhxvmczmpurkmrp), Vercel, GitHub org: latimorelifelegacy25.
+      const prompt = `You are a senior full-stack developer working on the Latimore Hub OS for Latimore Life & Legacy LLC. Stack: Next.js 14 App Router, TypeScript, Prisma, Supabase (project: eoihgvahvfpgbromvzkd), Vercel, GitHub org: latimorelifelegacy25.
 
 Task: ${codexQ}
 

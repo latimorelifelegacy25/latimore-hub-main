@@ -9,7 +9,9 @@ npm run dev           # Start Next.js dev server (localhost:3000)
 npm run build         # prisma generate + next build
 npm run lint          # ESLint
 npm run validate      # lint + build (pre-deploy check)
-npm run check         # TypeScript type-check only (tsc --noEmit)
+npm run check         # Workspace verification (scripts/verify-workspace.ts)
+npm run typecheck     # TypeScript type-check only (tsc --noEmit)
+npm test              # Smoke test (scripts/smoke.mjs)
 npm run analytics:validate  # Validate analytics data integrity
 
 # Database
@@ -18,7 +20,7 @@ npm run db:push       # prisma db push (schema sync, dev only)
 npm run db:seed       # seed test data via prisma/seed.ts
 ```
 
-No test suite is configured. `npm run validate` is the closest to a CI gate.
+No full automated test suite. `npm test` runs a lightweight smoke check (scripts/smoke.mjs); `npm run validate` (preflight + lint + typecheck + agent-harness typecheck + build + smoke) is the real pre-deploy gate.
 
 ## Tech Stack
 
@@ -236,4 +238,4 @@ Protected by Google OAuth. Key areas:
 - **Vercel** hosts the app; `next build` runs on every push. Build fails on TypeScript errors or ESLint violations.
 - **Cron** configured in `vercel.json`: `/api/cron/daily` at `0 13 * * *` UTC.
 - **GitHub Actions** (`.github/workflows/sync-readme-to-notion.yml`): syncs README.md to Notion on push to main.
-- No automated test suite. `npm run validate` (lint + build) is the pre-deploy gate.
+- No full automated test suite. `npm test` is a smoke check only; `npm run validate` (preflight + lint + typecheck + agent-harness typecheck + build + smoke) is the pre-deploy gate.
