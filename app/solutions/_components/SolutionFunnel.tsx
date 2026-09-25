@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { getCurrentPageUrl, getEventContext, hydrateLeadContext } from '@/lib/lead'
 import { trackLatimoreEvent } from '@/lib/tracking/client-events'
+import CountyOptions from '@/components/forms/CountyOptions'
 
 type Variant = 'family' | 'retirement' | 'legacy'
 
@@ -197,8 +198,7 @@ function LeadCapture({ config }: { config: VariantConfig }) {
         <input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} placeholder="Phone (optional)" className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }} />
         <select value={lead.county} onChange={(e) => setLead({ ...lead, county: e.target.value })} className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }}>
           <option value="">County (optional)</option>
-          {BRAND.counties.map((county) => <option key={county} value={county}>{county}</option>)}
-          <option value="Other">Other</option>
+          <CountyOptions />
         </select>
       </div>
 
