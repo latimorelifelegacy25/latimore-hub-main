@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic'
 
 import crypto from 'crypto'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { buildGoogleCalendarAuthUrl } from '@/lib/calendar/google'
+import { buildGoogleCalendarAuthUrl, getGoogleCalendarRedirectUri } from '@/lib/calendar/google'
 
 function parseAdminEmails(v?: string | null): string[] {
   return (v ?? '')
@@ -13,7 +13,17 @@ function parseAdminEmails(v?: string | null): string[] {
     .filter(Boolean)
 }
 
-export async function GET() {  const session = await getServerSession(authOptions)
+export async function GET(req: NextRequest) {
+  // Google returns to the redirect URI's host. The OAuth state cookie and the
+  // admin session are per-host, so start the flow on that same host or the
+  // callback can't see either one.
+  const callbackOrigin = new URL(getGoogleCalendarRedirectUri()).origin
+  const requestHost = (req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? '').toLowerCase()
+  if (requestHost && new URL(callbackOrigin).host.toLowerCase() !== requestHost) {
+    return NextResponse.redirect(`${callbackOrigin}/api/calendar/google/connect`)
+  }
+
+  const session = await getServerSession(authOptions)
   const email = (session?.user?.email ?? '').toLowerCase()
   const allowed = parseAdminEmails(process.env.ADMIN_EMAILS)
 

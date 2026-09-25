@@ -126,10 +126,17 @@ function unauthorizedJson(status: 401 | 403, message: string) {
   return withPrivateHeaders(NextResponse.json({ error: message }, { status }))
 }
 
-function redirectToSignIn(req: NextRequest) {
+function redirectToSignIn(req: NextRequest, callbackUrl = req.nextUrl.pathname) {
   const signInUrl = new URL('/login', req.url)
-  signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname)
+  signInUrl.searchParams.set('callbackUrl', callbackUrl)
   return withPrivateHeaders(NextResponse.redirect(signInUrl))
+}
+
+// API routes a person reaches by tapping a link (not via fetch). Send them to
+// sign in instead of a raw JSON 401, then on to a page where they can retry.
+const browserApiSignInReturn: Record<string, string> = {
+  '/api/calendar/google/connect': '/api/calendar/google/connect',
+  '/api/calendar/google/callback': '/admin/settings/calendar',
 }
 
 function redirectToAdmin(req: NextRequest) {
@@ -177,6 +184,7 @@ export default async function middleware(req: NextRequest) {
   const role = typeof token?.role === 'string' ? token.role : null
 
   if (!token || !email) {
+    if (browserApiSignInReturn[pathname]) return redirectToSignIn(req, browserApiSignInReturn[pathname])
     return isApiPath(pathname)
       ? unauthorizedJson(401, 'Authentication required.')
       : redirectToSignIn(req)

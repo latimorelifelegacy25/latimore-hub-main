@@ -7,7 +7,11 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     setLoading(true)
-    await signIn('google', { callbackUrl: '/admin' })
+    // Return to where sign-in was requested (e.g. the calendar connect flow).
+    // Only same-site paths are honored so this can't become an open redirect.
+    const requested = new URLSearchParams(window.location.search).get('callbackUrl') ?? ''
+    const callbackUrl = /^\/(?![/\\])/.test(requested) ? requested : '/admin'
+    await signIn('google', { callbackUrl })
   }
 
   return (
