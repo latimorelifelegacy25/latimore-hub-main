@@ -175,6 +175,7 @@ export default function ConsultBookingFlow() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [completion, setCompletion] = useState<CompletionState | null>(null)
+  const [availabilityVersion, setAvailabilityVersion] = useState(0)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -215,7 +216,12 @@ export default function ConsultBookingFlow() {
         if (!ignore) {
           setAvailability(data)
           const firstAvailableDay = data.days.find((day) => day.slots.length > 0)
-          if (firstAvailableDay) setSelectedDate(firstAvailableDay.date)
+          // Keep the visitor's chosen day on a refresh if it still has openings.
+          setSelectedDate((current) =>
+            data.days.some((day) => day.date === current && day.slots.length > 0)
+              ? current
+              : firstAvailableDay?.date ?? current,
+          )
         }
       } catch (error) {
         if (!ignore) {
@@ -230,7 +236,7 @@ export default function ConsultBookingFlow() {
     return () => {
       ignore = true
     }
-  }, [])
+  }, [availabilityVersion])
 
   const selectedDay = useMemo(
     () => availability?.days.find((day) => day.date === selectedDate) ?? null,
@@ -257,6 +263,12 @@ export default function ConsultBookingFlow() {
     if (step === 1) {
       if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.phone.trim()) {
         return 'Please complete your name, email address, and phone number.'
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+        return 'Please enter a valid email address.'
+      }
+      if (form.phone.replace(/\D/g, '').length < 10) {
+        return 'Please enter a 10-digit phone number so we can reach you.'
       }
       if (!form.state.trim()) return 'Please select your state.'
     }
@@ -295,6 +307,10 @@ export default function ConsultBookingFlow() {
   function normalizedBody() {
     return {
       ...form,
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
       mailingAddress: form.mailingAddress || null,
       city: form.city || null,
       zip: form.zip || null,
@@ -329,8 +345,13 @@ export default function ConsultBookingFlow() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...normalizedBody(), slotStart: selectedSlot }),
       })
-      const data: BookingResponse = await response.json()
+      const data: BookingResponse = await response.json().catch(() => ({ ok: false }))
 
+      if (response.status === 409 && data.error?.includes('no longer available')) {
+        // Someone else took this slot; refresh the list so it disappears.
+        setSelectedSlot('')
+        setAvailabilityVersion((version) => version + 1)
+      }
       if (!response.ok || !data.ok) throw new Error(data.error || 'Your consultation could not be booked.')
       setCompletion({ kind: 'booked', response: data })
     } catch (error) {
@@ -355,7 +376,7 @@ export default function ConsultBookingFlow() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...normalizedBody(), consentToContact: true }),
       })
-      const data: IntakeRequestResponse = await response.json()
+      const data: IntakeRequestResponse = await response.json().catch(() => ({ ok: false }))
 
       if (!response.ok || !data.ok) throw new Error(data.error || 'Your request could not be saved.')
       setCompletion({ kind: 'requested', response: data })

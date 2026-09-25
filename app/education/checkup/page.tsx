@@ -393,7 +393,7 @@ export default function EducationPage() {
 
     const result = await response.json().catch(() => null)
     if (!response.ok || !result?.ok) {
-      throw new Error(result?.error ? JSON.stringify(result.error) : 'Unable to save your information.')
+      throw new Error(typeof result?.error === 'string' ? result.error : 'Unable to save your information.')
     }
 
     trackLeadConversion({ eventId: result.conversionEventId, source: 'Education Funnel', campaign: 'legacy_checkup', formName: 'education_funnel' })

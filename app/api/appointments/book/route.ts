@@ -5,7 +5,8 @@ import { z } from 'zod'
 import { addMinutes, parseISO } from 'date-fns'
 import { prisma } from '@/lib/prisma'
 import { BOOKING_CONFIG } from '@/lib/booking/config'
-import { fetchGoogleFreeBusy } from '@/lib/calendar/availability'
+import { BRAND } from '@/lib/brand'
+import { loadOfferedAvailability } from '@/lib/calendar/slots'
 import { createGoogleCalendarEvent } from '@/lib/calendar/events'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { changeInquiryStage } from '@/lib/hub/change-stage'
@@ -20,8 +21,8 @@ import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 const BodySchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
-  email: z.string().email(),
-  phone: z.string().min(7).max(40),
+  email: z.string().trim().email().max(191),
+  phone: z.string().trim().min(7).max(40),
 
   mailingAddress: z.string().max(200).optional().nullable(),
   city: z.string().max(100).optional().nullable(),
@@ -60,10 +61,6 @@ const BodySchema = z.object({
 
   slotStart: z.string().datetime(),
 })
-
-function overlaps(a: { start: Date; end: Date }, b: { start: Date; end: Date }) {
-  return a.start < b.end && b.start < a.end
-}
 
 function buildIntakeSummary(input: z.infer<typeof BodySchema>) {
   const lines = [
@@ -106,7 +103,16 @@ export async function POST(req: NextRequest) {
   const parsed = BodySchema.safeParse(body)
 
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 422 })
+    // The booking form renders `error` directly, so it must be a readable string.
+    const fieldErrors = parsed.error.flatten().fieldErrors
+    const message = fieldErrors.email
+      ? 'Please enter a valid email address.'
+      : fieldErrors.phone
+        ? 'Please enter a valid phone number.'
+        : fieldErrors.slotStart
+          ? 'Please select an available consultation time.'
+          : 'Please review the required intake fields and try again.'
+    return NextResponse.json({ ok: false, error: message, details: parsed.error.flatten() }, { status: 422 })
   }
 
   try {
@@ -120,26 +126,18 @@ export async function POST(req: NextRequest) {
     const slotStart = parseISO(input.slotStart)
     const slotEnd = addMinutes(slotStart, BOOKING_CONFIG.durationMinutes)
 
-    const busy = await fetchGoogleFreeBusy({
-      timeMin: new Date(slotStart.getTime() - BOOKING_CONFIG.bufferMinutes * 60_000).toISOString(),
-      timeMax: new Date(slotEnd.getTime() + BOOKING_CONFIG.bufferMinutes * 60_000).toISOString(),
-      calendarId: BOOKING_CONFIG.calendarId,
-    })
+    // Only accept a slot we would actually offer right now: this re-applies
+    // working hours, minimum notice, the daily cap, and live calendar conflicts,
+    // so a stale page or hand-crafted request can't book an off-hours time.
+    const offeredDays = await loadOfferedAvailability()
+    const requestedSlot = slotStart.toISOString()
+    const slotStillOffered = offeredDays.some((day) => day.slots.includes(requestedSlot))
 
-    const requestedWindow = {
-      start: new Date(slotStart.getTime() - BOOKING_CONFIG.bufferMinutes * 60_000),
-      end: new Date(slotEnd.getTime() + BOOKING_CONFIG.bufferMinutes * 60_000),
-    }
-
-    const busyConflict = busy.some((b) =>
-      overlaps(requestedWindow, {
-        start: new Date(b.start),
-        end: new Date(b.end),
-      })
-    )
-
-    if (busyConflict) {
-      return NextResponse.json({ ok: false, error: 'That time is no longer available.' }, { status: 409 })
+    if (!slotStillOffered) {
+      return NextResponse.json(
+        { ok: false, error: 'That time is no longer available. Please choose another time.' },
+        { status: 409 }
+      )
     }
 
     const sameEmailFutureAppointment = await prisma.appointment.findFirst({
@@ -368,7 +366,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || 'Failed to book appointment',
+        error: `We could not complete your booking. Please try again or call ${BRAND.phone}.`,
       },
       { status: 500 }
     )

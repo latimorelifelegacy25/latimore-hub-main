@@ -2,32 +2,12 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { BOOKING_CONFIG } from '@/lib/booking/config'
-import { fetchGoogleFreeBusy } from '@/lib/calendar/availability'
-import { generateAvailability, projectSlots } from '@/lib/calendar/slots'
+import { loadOfferedAvailability } from '@/lib/calendar/slots'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
-    const base = await generateAvailability()
-
-    const firstDay = base.daysToCheck[0]
-    const lastDay = base.daysToCheck[base.daysToCheck.length - 1]
-
-    const timeMin = new Date(firstDay.getTime()).toISOString()
-    const timeMax = new Date(lastDay.getTime() + 24 * 60 * 60 * 1000).toISOString()
-
-    const busy = await fetchGoogleFreeBusy({
-      timeMin,
-      timeMax,
-      calendarId: BOOKING_CONFIG.calendarId,
-    })
-
-    const days = projectSlots({
-      daysToCheck: base.daysToCheck,
-      busy,
-      minBookTime: base.minBookTime,
-      dailyCounts: base.dailyCounts,
-    })
+    const days = await loadOfferedAvailability()
 
     return NextResponse.json({
       ok: true,
