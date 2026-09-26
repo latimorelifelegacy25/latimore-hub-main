@@ -22,11 +22,21 @@ const INITIAL_CONNECTORS: Connector[] = [
   { id: 'twitter', name: 'X / Twitter', description: 'Real-time Industry Insights', icon: 'fa-brands fa-x-twitter', category: 'Social', isConnected: false, color: 'bg-black' },
 ];
 
+const SOCIAL_PROVIDER_MAP: Record<string, 'facebook' | 'instagram' | 'linkedin' | 'twitter'> = {
+  li: 'linkedin',
+  facebook: 'facebook',
+  instagram: 'instagram',
+  twitter: 'twitter',
+};
+
 const Connectors: React.FC = () => {
   const [connectors, setConnectors] = React.useState<Connector[]>(INITIAL_CONNECTORS);
   const [syncingId, setSyncingId] = React.useState<string | null>(null);
   const [vaultModal, setVaultModal] = React.useState<Connector | null>(null);
   const [agentIdInput, setAgentIdInput] = React.useState('');
+  const [tokenInput, setTokenInput] = React.useState('');
+  const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [saving, setSaving] = React.useState(false);
 
   const fetchAuthStatus = async () => {
     try {
@@ -34,9 +44,9 @@ const Connectors: React.FC = () => {
       if (response.ok) {
         const status = await response.json();
         setConnectors(prev => prev.map(c => {
-          if (c.id === 'facebook' || c.id === 'instagram') return { ...c, isConnected: status.facebook };
-          if (c.id === 'twitter') return { ...c, isConnected: status.twitter };
-          return c;
+          const provider = SOCIAL_PROVIDER_MAP[c.id];
+          if (!provider) return c;
+          return { ...c, isConnected: Boolean(status[provider]), lastSync: status[provider] ? c.lastSync ?? 'Connected' : undefined };
         }));
       }
     } catch (err) {
@@ -46,42 +56,95 @@ const Connectors: React.FC = () => {
 
   React.useEffect(() => {
     fetchAuthStatus();
-    
+
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'OAUTH_AUTH_SUCCESS') {
         fetchAuthStatus();
       }
     };
+    const handleFocus = () => fetchAuthStatus();
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const handleConnect = async (connector: Connector) => {
     if (connector.category === 'Social') {
-      try {
-        const response = await fetch(`/api/auth/${connector.id === 'instagram' ? 'facebook' : connector.id}/url`);
-        if (response.ok) {
-          const { url } = await response.json();
-          window.open(url, 'oauth_popup', 'width=600,height=700');
-        }
-      } catch (err) {
-        console.error('Failed to get auth URL', err);
+      if (connector.id === 'facebook' || connector.id === 'instagram') {
+        window.open('/api/social/facebook/connect', 'oauth_popup', 'width=600,height=700');
+        return;
       }
+      // No first-party OAuth app registered for LinkedIn/Twitter — collect a
+      // provider-issued token and store it directly via the admin API.
+      setSaveError(null);
+      setTokenInput('');
+      setVaultModal(connector);
       return;
     }
     setAgentIdInput(connector.agentId || '');
     setVaultModal(connector);
   };
 
-  const saveVaultCredentials = () => {
+  const saveVaultCredentials = async () => {
     if (!vaultModal) return;
-    setConnectors(prev => prev.map(c => 
+
+    if (vaultModal.category === 'Social') {
+      const provider = SOCIAL_PROVIDER_MAP[vaultModal.id];
+      if (!provider || !tokenInput.trim()) {
+        setSaveError('Access token is required.');
+        return;
+      }
+      setSaving(true);
+      setSaveError(null);
+      try {
+        const response = await fetch('/api/admin/social-connections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider,
+            accountName: vaultModal.name,
+            accessToken: tokenInput.trim(),
+            status: 'connected',
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Failed to save connection');
+        }
+        setConnectors(prev => prev.map(c =>
+          c.id === vaultModal.id ? { ...c, isConnected: true, lastSync: 'Just now' } : c
+        ));
+        setVaultModal(null);
+      } catch (err) {
+        setSaveError(err instanceof Error ? err.message : 'Failed to save connection');
+      } finally {
+        setSaving(false);
+      }
+      return;
+    }
+
+    // Carrier / agency connectors have no live API yet — store the agent ID locally.
+    setConnectors(prev => prev.map(c =>
       c.id === vaultModal.id ? { ...c, isConnected: true, lastSync: 'Just now', agentId: agentIdInput } : c
     ));
     setVaultModal(null);
   };
 
   const toggleConnection = (id: string) => {
+    const connector = connectors.find(c => c.id === id);
+    if (connector?.category === 'Social') {
+      const provider = SOCIAL_PROVIDER_MAP[id];
+      if (provider) {
+        fetch('/api/admin/social-connections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ provider, status: 'disconnected' }),
+        }).catch(err => console.error('Failed to disconnect', err));
+      }
+    }
     setConnectors(prev => prev.map(c => {
       if (c.id === id) {
         if (c.isConnected) return { ...c, isConnected: false, lastSync: undefined, agentId: undefined };
@@ -93,6 +156,13 @@ const Connectors: React.FC = () => {
 
   const runSync = (id: string) => {
     setSyncingId(id);
+    if (connectors.find(c => c.id === id)?.category === 'Social') {
+      fetchAuthStatus().finally(() => {
+        setSyncingId(null);
+        setConnectors(prev => prev.map(c => c.id === id ? { ...c, lastSync: 'Just now' } : c));
+      });
+      return;
+    }
     setTimeout(() => {
       setSyncingId(null);
       setConnectors(prev => prev.map(c => c.id === id ? { ...c, lastSync: 'Just now' } : c));
@@ -220,39 +290,68 @@ const Connectors: React.FC = () => {
               
               <h2 className="text-2xl font-black text-slate-900 mb-2">Authorize {vaultModal.name}</h2>
               <p className="text-slate-500 text-sm mb-10 font-medium leading-relaxed">
-                 Enter your Agent Credentials to synchronize your {vaultModal.name} contract data with the Latimore Legacy Hub.
+                 {vaultModal.category === 'Social'
+                   ? `Paste a valid ${vaultModal.name} access token to enable live publishing from the Latimore Legacy Hub.`
+                   : `Enter your Agent Credentials to synchronize your ${vaultModal.name} contract data with the Latimore Legacy Hub.`}
               </p>
 
-              <div className="space-y-6 text-left">
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Agent / Producer ID</label>
-                    <input 
-                      type="text" 
-                      value={agentIdInput}
-                      onChange={(e) => setAgentIdInput(e.target.value)}
-                      placeholder="e.g. 1029485"
-                      className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800"
-                    />
-                 </div>
-                 
-                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Enterprise Access Key (NIPR)</label>
-                    <input 
-                      type="password" 
-                      placeholder="••••••••••••"
-                      className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800"
-                    />
-                 </div>
-              </div>
+              {vaultModal.category === 'Social' ? (
+                <div className="space-y-6 text-left">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Access Token</label>
+                      <textarea
+                        rows={3}
+                        value={tokenInput}
+                        onChange={(e) => setTokenInput(e.target.value)}
+                        placeholder="Paste provider access token here"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800 text-sm"
+                      />
+                   </div>
+                   {saveError && (
+                     <p className="text-rose-500 text-xs font-bold">{saveError}</p>
+                   )}
+                </div>
+              ) : (
+                <div className="space-y-6 text-left">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Agent / Producer ID</label>
+                      <input
+                        type="text"
+                        value={agentIdInput}
+                        onChange={(e) => setAgentIdInput(e.target.value)}
+                        placeholder="e.g. 1029485"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800"
+                      />
+                   </div>
+
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Enterprise Access Key (NIPR)</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••••••"
+                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800"
+                      />
+                   </div>
+                </div>
+              )}
+
+              {vaultModal.category === 'Social' && (
+                <p className="text-[11px] text-slate-400 mt-6 text-left">
+                  {vaultModal.id === 'facebook' || vaultModal.id === 'instagram'
+                    ? 'Prefer OAuth? Close this and use "Establish Protocol" again to open the Facebook popup instead.'
+                    : `${vaultModal.name} has no first-party OAuth app registered yet — generate a token from ${vaultModal.name}'s developer console and paste it above.`}
+                </p>
+              )}
 
               <div className="flex flex-col gap-3 mt-10">
-                 <button 
+                 <button
                    onClick={saveVaultCredentials}
-                   className="w-full py-5 rounded-[1.5rem] font-black bg-slate-900 text-white hover:bg-[#c5a059] transition-all text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20"
+                   disabled={saving}
+                   className="w-full py-5 rounded-[1.5rem] font-black bg-slate-900 text-white hover:bg-[#c5a059] transition-all text-xs uppercase tracking-widest shadow-2xl shadow-slate-900/20 disabled:opacity-50"
                  >
-                    Establish Secure Link
+                    {saving ? 'Saving…' : 'Establish Secure Link'}
                  </button>
-                 <button 
+                 <button
                    onClick={() => setVaultModal(null)}
                    className="w-full py-4 font-black text-[10px] text-slate-400 uppercase hover:text-rose-500 transition-colors"
                  >
