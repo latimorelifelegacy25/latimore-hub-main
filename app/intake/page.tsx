@@ -20,6 +20,7 @@ const PRIORITIES = [
 const STATES = ['PA', 'NJ', 'NY', 'DE', 'MD', 'OH', 'WV', 'VA', 'Other']
 const YES_NO = [{ label: 'Yes', value: true }, { label: 'No', value: false }]
 
+// Keep numeric fields blank until the visitor supplies a value; the API normalizes them.
 const initialData: Record<string, any> = {
   journey: '',
   firstName: '',
