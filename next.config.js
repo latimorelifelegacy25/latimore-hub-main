@@ -39,6 +39,8 @@ const nextConfig = {
         permanent: true,
       },
       { source: '/home', destination: '/', permanent: true },
+      // The Marketing Command Center is an internal tool; it lives behind admin auth now.
+      { source: '/marketing', destination: '/admin/marketing/command-center', permanent: false },
       { source: '/pahs/index.html', destination: '/pahs', permanent: true },
       {
         source: '/',

@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Marketing Command Center | Latimore Life & Legacy',
-  description: 'Workflow builder, campaign automation, and multi-channel scheduling for Latimore Life & Legacy.',
+  title: 'Insurance Quote Calculator | Latimore Life & Legacy',
+  description: 'Estimate life insurance and annuity options with Latimore Life & Legacy.',
 }
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {

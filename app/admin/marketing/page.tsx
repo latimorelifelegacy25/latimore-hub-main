@@ -12,6 +12,13 @@ export const metadata = {
 
 const commandCenterLinks = [
   {
+    title: 'Campaign Command Center',
+    description:
+      'Workflow builder, campaign automation, multi-channel scheduling, and the quote calculator preview.',
+    href: '/admin/marketing/command-center',
+    cta: 'Open Command Center →',
+  },
+  {
     title: 'Content Repository',
     description:
       'Import links & documents or write articles, tag everything with UTMs, and publish straight to latimorelifelegacy.com.',
