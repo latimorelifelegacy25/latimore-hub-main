@@ -44,11 +44,18 @@ const protectedPrefixes = [
   '/api/tasks',
 ]
 
+// Public lead-gen funnels that must keep working even if a QR code, flyer,
+// or shared link accidentally points at the private hub host instead of the
+// public marketing domain — e.g. the PAHS Pottsville football sponsorship page.
 const publicHubPrefixes = [
   '/login',
   '/api/auth',
   '/_next/static',
   '/_next/image',
+  '/pahs',
+  '/api/pahs-lead',
+  '/api/lead',
+  '/api/event',
 ]
 
 function normalizedHost(req: NextRequest) {
