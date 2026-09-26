@@ -101,7 +101,13 @@ export default function IntakePage() {
         body: JSON.stringify(data),
       })
       const json = await response.json()
-      if (!response.ok || !json.ok) throw new Error(json.error || 'Submission failed.')
+      if (!response.ok || !json.ok) {
+        const detail = json.error
+        const validationMessage = detail && typeof detail === 'object'
+          ? Object.values(detail.fieldErrors || {}).flat().find((message): message is string => typeof message === 'string')
+          : null
+        throw new Error(typeof detail === 'string' ? detail : validationMessage || 'Please review your answers and try again.')
+      }
       router.push(`/intake/results/${json.leadId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed.')
