@@ -96,20 +96,20 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }} className="grid-3">
             {[
               {
-                title: 'Wealth Accumulation',
-                image: '/family-youth-planning.jpg',
-                alt: 'Young people together outdoors representing education and long-term family planning',
-                color: '#e8f4fd',
-                border: '#bee3f8',
-                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
-              },
-              {
                 title: 'Protection & Risk',
                 image: '/black-family-park.jpg',
                 alt: 'Black family smiling together in a park',
                 color: '#fef9e7',
                 border: '#fde68a',
                 items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']
+              },
+              {
+                title: 'Wealth Accumulation',
+                image: '/family-youth-planning.jpg',
+                alt: 'Young people together outdoors representing education and long-term family planning',
+                color: '#e8f4fd',
+                border: '#bee3f8',
+                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
               },
               {
                 title: 'Legacy & Planning',
