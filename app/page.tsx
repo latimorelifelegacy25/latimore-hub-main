@@ -10,6 +10,13 @@ const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
 const gold     = COLORS.gold       // #C9A25F  --color-gold-500
 const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
 
+// Solid-color blur placeholder so a slow connection shows a clean color swap
+// instead of a partially-decoded/torn frame of the real photo mid-load.
+function solidBlurDataURL(hex: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${hex}"/></svg>`
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+}
+
 export const metadata: Metadata = {
   title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
   description:
@@ -89,20 +96,20 @@ export default function HomePage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }} className="grid-3">
             {[
               {
-                title: 'Wealth Accumulation',
-                image: '/family-youth-planning.jpg',
-                alt: 'Young people together outdoors representing education and long-term family planning',
-                color: '#e8f4fd',
-                border: '#bee3f8',
-                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
-              },
-              {
                 title: 'Protection & Risk',
                 image: '/black-family-park.jpg',
                 alt: 'Black family smiling together in a park',
                 color: '#fef9e7',
                 border: '#fde68a',
                 items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']
+              },
+              {
+                title: 'Wealth Accumulation',
+                image: '/family-youth-planning.jpg',
+                alt: 'Young people together outdoors representing education and long-term family planning',
+                color: '#e8f4fd',
+                border: '#bee3f8',
+                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
               },
               {
                 title: 'Legacy & Planning',
@@ -115,7 +122,15 @@ export default function HomePage() {
             ].map(({ title, image, alt, color, border, items }) => (
               <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
                 <div style={{ position: 'relative', aspectRatio: '900 / 534', width: '100%', background: '#f8fafc' }}>
-                  <Image src={image} alt={alt} fill sizes="(max-width: 960px) 100vw, 33vw" style={{ objectFit: 'contain' }} />
+                  <Image
+                    src={image}
+                    alt={alt}
+                    fill
+                    sizes="(max-width: 960px) 100vw, 33vw"
+                    style={{ objectFit: 'contain' }}
+                    placeholder="blur"
+                    blurDataURL={solidBlurDataURL(color)}
+                  />
                 </div>
                 <div style={{ padding: '1.75rem' }}>
                   <h3 style={{ color: navy, fontSize: '1.25rem', margin: '0 0 1rem', textAlign: 'center' }}>{title}</h3>
