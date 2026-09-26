@@ -46,8 +46,17 @@ const COUNTY_PATTERNS: Array<[RegExp, string]> = [
   [/northumberland/i, 'Northumberland'],
 ]
 
+// The owner's browser (marked by /api/track/exclude or a hub sign-in) and
+// automated/AI-driven browsers are not visitors. The server filters these too.
+function isExcludedBrowser(): boolean {
+  if (typeof window === 'undefined') return true
+  if (navigator.webdriver) return true
+  return /(?:^|;\s*)ll_internal=1(?:;|$)/.test(document.cookie)
+}
+
 function shouldSendMetaEvents(): boolean {
   if (typeof window === 'undefined') return false
+  if (isExcludedBrowser()) return false
   return META_ALLOWED_HOSTS.has(window.location.hostname)
 }
 
@@ -196,6 +205,7 @@ function classifyEvent(element: HTMLElement): { eventType: string; text: string;
 }
 
 async function sendEvent(payload: EventPayload) {
+  if (isExcludedBrowser()) return
   try {
     await fetch('/api/event', {
       method: 'POST',
@@ -348,7 +358,7 @@ export default function PublicTracker() {
     const sendExit = (event: PageTransitionEvent) => {
       // A BFCache pause or an ordinary same-site navigation is not an
       // abandoned visit. The next page view continues the same session.
-      if (event.persisted || sameOriginNavigationRef.current || exitSentRef.current) return
+      if (event.persisted || sameOriginNavigationRef.current || exitSentRef.current || isExcludedBrowser()) return
       exitSentRef.current = true
 
       const context = getEventContext({ pageUrl: getCurrentPageUrl() })
