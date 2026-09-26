@@ -209,6 +209,11 @@ export const CardEventSchema = z.object({
   metadata: z.record(z.any()).optional().nullable(),
 })
 
+const optionalIntakeNumber = z.preprocess(
+  value => value === '' || value === undefined ? null : typeof value === 'string' ? Number(value) : value,
+  z.number().finite().optional().nullable(),
+)
+
 export const VirtualIntakeSchema = z.object({
   journey: z.enum(['client', 'business_partner', 'both']),
   firstName: z.string().min(1).max(100),
@@ -230,17 +235,17 @@ export const VirtualIntakeSchema = z.object({
   recreationNotes: z.string().max(2000).optional().nullable(),
   motivationNotes: z.string().max(2000).optional().nullable(),
 
-  monthlyIncome: z.number().finite().optional().nullable(),
-  monthlyExpenses: z.number().finite().optional().nullable(),
-  emergencyFund: z.number().finite().optional().nullable(),
-  marketAssets: z.number().finite().optional().nullable(),
+  monthlyIncome: optionalIntakeNumber,
+  monthlyExpenses: optionalIntakeNumber,
+  emergencyFund: optionalIntakeNumber,
+  marketAssets: optionalIntakeNumber,
   hasEmergencyFund: z.boolean().optional().nullable(),
-  emergencyFundMonths: z.number().finite().optional().nullable(),
+  emergencyFundMonths: optionalIntakeNumber,
 
   hasEmployerRetirement: z.boolean().optional().nullable(),
   retirementPlanTypes: z.array(z.string().max(100)).max(10).optional(),
-  retirementBalance: z.number().finite().optional().nullable(),
-  retirementContribution: z.number().finite().optional().nullable(),
+  retirementBalance: optionalIntakeNumber,
+  retirementContribution: optionalIntakeNumber,
   contributionFrequency: z.string().max(50).optional().nullable(),
   hasCompanyMatch: z.boolean().optional().nullable(),
   companyMatchDetails: z.string().max(500).optional().nullable(),
@@ -248,23 +253,23 @@ export const VirtualIntakeSchema = z.object({
 
   hasLifeInsurance: z.boolean().optional().nullable(),
   lifeInsuranceSource: z.string().max(150).optional().nullable(),
-  coverageAmount: z.number().finite().optional().nullable(),
-  premiumAmount: z.number().finite().optional().nullable(),
+  coverageAmount: optionalIntakeNumber,
+  premiumAmount: optionalIntakeNumber,
   premiumFrequency: z.string().max(50).optional().nullable(),
   policyType: z.string().max(100).optional().nullable(),
   hasLivingBenefits: z.boolean().optional().nullable(),
   hasLtc: z.boolean().optional().nullable(),
 
   taxStatus: z.string().max(100).optional().nullable(),
-  taxAmount: z.number().finite().optional().nullable(),
-  minMonthlySavings: z.number().finite().optional().nullable(),
-  maxMonthlySavings: z.number().finite().optional().nullable(),
+  taxAmount: optionalIntakeNumber,
+  minMonthlySavings: optionalIntakeNumber,
+  maxMonthlySavings: optionalIntakeNumber,
   savingForChildren: z.boolean().optional().nullable(),
   additionalIncomeInterest: z.boolean().optional().nullable(),
 
-  debt: z.number().finite().optional().nullable(),
-  mortgageBalance: z.number().finite().optional().nullable(),
-  educationGoal: z.number().finite().optional().nullable(),
+  debt: optionalIntakeNumber,
+  mortgageBalance: optionalIntakeNumber,
+  educationGoal: optionalIntakeNumber,
 })
 
 export { stageEnum as PipelineStageSchema, productEnum as ProductInterestSchema, eventEnum as EventTypeSchema }
