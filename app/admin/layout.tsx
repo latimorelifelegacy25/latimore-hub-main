@@ -6,6 +6,7 @@ import { getAdminRoleForEmail } from '@/lib/admin-access'
 import { authOptions } from '@/lib/auth'
 import AdminMobileNav from './_components/AdminMobileNav'
 import NotificationCenter from './_components/NotificationCenter'
+import ExcludeFromAnalytics from './_components/ExcludeFromAnalytics'
 
 const navItems = [
   { href: '/admin/master-dashboard', label: 'Master Dashboard', icon: 'fa-gauge-high' },
@@ -63,6 +64,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-screen bg-[#0B0F17] text-[#F7F7F5]">
+      <ExcludeFromAnalytics />
 
       {/* Desktop sidebar — visible xl+ */}
       <aside className="hidden w-64 shrink-0 border-r border-white/6 bg-[#0E1420] xl:flex xl:flex-col">
