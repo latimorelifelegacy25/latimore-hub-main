@@ -90,8 +90,8 @@ export default function HomePage() {
             {[
               {
                 title: 'Wealth Accumulation',
-                image: '/blueprint_family_couch.jpg',
-                alt: 'Family discussing long-term financial planning at home',
+                image: '/family-youth-planning.jpg',
+                alt: 'Young people together outdoors representing education and long-term family planning',
                 color: '#e8f4fd',
                 border: '#bee3f8',
                 items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
@@ -114,8 +114,8 @@ export default function HomePage() {
               }
             ].map(({ title, image, alt, color, border, items }) => (
               <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
-                <div style={{ position: 'relative', height: 190, width: '100%' }}>
-                  <Image src={image} alt={alt} fill sizes="(max-width: 960px) 100vw, 33vw" style={{ objectFit: 'cover' }} />
+                <div style={{ position: 'relative', aspectRatio: '900 / 534', width: '100%', background: '#f8fafc' }}>
+                  <Image src={image} alt={alt} fill sizes="(max-width: 960px) 100vw, 33vw" style={{ objectFit: 'contain' }} />
                 </div>
                 <div style={{ padding: '1.75rem' }}>
                   <h3 style={{ color: navy, fontSize: '1.25rem', margin: '0 0 1rem', textAlign: 'center' }}>{title}</h3>
