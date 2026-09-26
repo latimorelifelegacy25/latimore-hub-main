@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { Facebook, Instagram, Linkedin } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { buildFilloutParams } from '@/lib/lead'
@@ -455,14 +456,14 @@ export default function ConsultBookingFlow() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-7 overflow-hidden rounded-[28px] border border-[#E1B54B]/30 bg-white shadow-2xl">
           <div className="grid items-center lg:grid-cols-[340px_1fr]">
-            <div className="bg-white px-6 py-6 text-center sm:px-10">
+            <div className="bg-white text-center">
               <Image
-                src="/logo.jpg"
-                alt="Latimore Life & Legacy LLC"
-                width={320}
-                height={362}
+                src="/booking-protect-what-matters.webp"
+                alt="Latimore Life & Legacy LLC — Protect What Matters Most"
+                width={1254}
+                height={1254}
                 priority
-                className="mx-auto h-auto w-full max-w-[290px] object-contain"
+                className="mx-auto h-auto w-full object-contain"
               />
             </div>
             <div className="bg-[#000835] px-6 py-8 sm:px-10 sm:py-10">
@@ -476,6 +477,38 @@ export default function ConsultBookingFlow() {
                 Complete this private consultation intake and select a time with Jackson.
               </p>
               <p className="mt-4 text-sm font-semibold text-[#E1B54B]">#TheBeatGoesOn</p>
+              <div className="mt-5 flex items-center gap-3" aria-label="Follow Latimore Life & Legacy">
+                <a
+                  href={BRAND.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow Latimore Life & Legacy on Facebook"
+                  title="Facebook"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E1B54B]/50 text-[#E1B54B] transition hover:border-[#E1B54B] hover:bg-[#E1B54B] hover:text-[#000835]"
+                >
+                  <Facebook size={20} aria-hidden="true" />
+                </a>
+                <a
+                  href={BRAND.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow Latimore Life & Legacy on Instagram"
+                  title="Instagram"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E1B54B]/50 text-[#E1B54B] transition hover:border-[#E1B54B] hover:bg-[#E1B54B] hover:text-[#000835]"
+                >
+                  <Instagram size={20} aria-hidden="true" />
+                </a>
+                <a
+                  href={BRAND.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Follow Jackson Latimore on LinkedIn"
+                  title="LinkedIn"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E1B54B]/50 text-[#E1B54B] transition hover:border-[#E1B54B] hover:bg-[#E1B54B] hover:text-[#000835]"
+                >
+                  <Linkedin size={20} aria-hidden="true" />
+                </a>
+              </div>
             </div>
           </div>
         </header>

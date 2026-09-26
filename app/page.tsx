@@ -98,8 +98,8 @@ export default function HomePage() {
               },
               {
                 title: 'Protection & Risk',
-                image: '/coverage_family_outdoors.jpg',
-                alt: 'Family together outdoors representing protection and financial security',
+                image: '/black-family-park.jpg',
+                alt: 'Black family smiling together in a park',
                 color: '#fef9e7',
                 border: '#fde68a',
                 items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']

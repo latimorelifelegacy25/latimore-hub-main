@@ -142,26 +142,6 @@
   }
 }
 
-.pahs-hero__card {
-  min-height: 86px;
-}
-
-.pahs-hero__card::before {
-  content: 'PAHS Protect Funnel';
-  display: block;
-  margin-bottom: .4rem;
-  color: #C9A25F;
-  font-family: 'Oswald', system-ui, sans-serif;
-  font-size: clamp(1.1rem, 3.5vw, 1.7rem);
-  font-weight: 800;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-}
-
-.pahs-hero__card p {
-  margin: 0;
-}
-
 .pahs-then--priority {
   padding: 4rem 1rem 4.5rem;
   background:
@@ -244,6 +224,25 @@
   object-fit: contain;
 }
 
+.pahs-video-play {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  border: 0;
+  background: linear-gradient(135deg, var(--pahs-deep), #1a2942);
+  color: var(--pahs-white);
+  font: 700 1.2rem 'Oswald', system-ui, sans-serif;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+.pahs-video-play:hover,
+.pahs-video-play:focus-visible {
+  background: linear-gradient(135deg, #1a2942, #33445b);
+  outline: 2px solid var(--pahs-gold);
+  outline-offset: -4px;
+}
+
 .campaign-videos p {
   max-width: 760px;
   margin: 1rem auto 0;
@@ -259,17 +258,13 @@
 
 @media (max-width: 680px) {
   .pahs-hero {
-    min-height: 92svh;
+    min-height: auto;
     padding: 4rem 0 2rem;
   }
 
   .pahs-hero--sponsor-bg .pahs-hero__bg {
     background-size: 185vw auto;
     background-position: center 42%;
-  }
-
-  .pahs-hero__card {
-    margin-top: .75rem;
   }
 
   .pahs-then--priority {

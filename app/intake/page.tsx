@@ -20,6 +20,7 @@ const PRIORITIES = [
 const STATES = ['PA', 'NJ', 'NY', 'DE', 'MD', 'OH', 'WV', 'VA', 'Other']
 const YES_NO = [{ label: 'Yes', value: true }, { label: 'No', value: false }]
 
+// Keep numeric fields blank until the visitor supplies a value; the API normalizes them.
 const initialData: Record<string, any> = {
   journey: '',
   firstName: '',
@@ -101,7 +102,13 @@ export default function IntakePage() {
         body: JSON.stringify(data),
       })
       const json = await response.json()
-      if (!response.ok || !json.ok) throw new Error(json.error || 'Submission failed.')
+      if (!response.ok || !json.ok) {
+        const detail = json.error
+        const validationMessage = detail && typeof detail === 'object'
+          ? Object.values(detail.fieldErrors || {}).flat().find((message): message is string => typeof message === 'string')
+          : null
+        throw new Error(typeof detail === 'string' ? detail : validationMessage || 'Please review your answers and try again.')
+      }
       router.push(`/intake/results/${json.leadId}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed.')

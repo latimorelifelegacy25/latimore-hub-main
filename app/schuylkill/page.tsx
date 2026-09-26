@@ -24,7 +24,6 @@ const PRODUCTS = [
     num: '01',
     title: 'Term Life with Living Benefits',
     subtitle: 'Protection for the "What Ifs"',
-    icon: '🛡️',
     color: '#e8f4fd',
     border: '#bee3f8',
     body: `Traditional life insurance only pays out if you pass away. But what happens if you suffer a major health crisis and survive?
@@ -37,7 +36,6 @@ With Living Benefits, your term life policy lets you access your death benefit w
     num: '02',
     title: 'Indexed Universal Life (IUL)',
     subtitle: 'Growth and Security Combined',
-    icon: '📈',
     color: '#fef9e7',
     border: '#fde68a',
     body: `If you want your money to work harder without risking it all in a volatile stock market, an IUL might be the answer. It provides a death benefit and builds cash value tied to a market index like the S&P 500.
@@ -50,7 +48,6 @@ A key feature is downside protection from direct index losses. When the credited
     num: '03',
     title: 'Juvenile IUL',
     subtitle: "Locking in Your Child's Financial Future",
-    icon: '👦',
     color: '#f0fdf4',
     border: '#bbf7d0',
     body: `A Juvenile IUL is a policy taken out on a child or grandchild that pulls double duty — it secures incredibly low insurance rates for life while maximizing the time the cash value has to compound and grow.`,
@@ -61,7 +58,6 @@ A key feature is downside protection from direct index losses. When the credited
     num: '04',
     title: 'Final Expense',
     subtitle: 'Peace of Mind for Your Loved Ones',
-    icon: '🕊️',
     color: '#fdf4ff',
     border: '#e9d5ff',
     body: `Final Expense insurance is a permanent whole life policy specifically designed to cover funeral costs, burial fees, and outstanding medical bills. No medical exam required. Guaranteed acceptance options available.`,
@@ -153,7 +149,7 @@ export default function SchuylkillPage() {
               }}
               data-county="Schuylkill"
             >
-              🛡️ Get My Free Consultation
+              Get My Free Consultation
             </a>
             <a
               href={`tel:+1${BRAND.phoneRaw}`}
@@ -170,7 +166,7 @@ export default function SchuylkillPage() {
               }}
               data-county="Schuylkill"
             >
-              ☎️ Call Jackson Direct
+              Call Jackson Direct
             </a>
           </div>
         </div>
@@ -272,7 +268,6 @@ export default function SchuylkillPage() {
                   >
                     {product.num}
                   </div>
-                  <div style={{ fontSize: '2rem' }}>{product.icon}</div>
                 </div>
 
                 <div>
@@ -366,7 +361,7 @@ export default function SchuylkillPage() {
               <tbody>
                 <tr style={{ background: '#e8f4fd', borderBottom: '1px solid #bee3f8' }}>
                   <td style={{ padding: '1.25rem', fontWeight: 700, color: navy, verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                    🛡️ Term Life
+                    Term Life
                   </td>
                   <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
                     Provides coverage for a defined period — commonly 10, 20, or 30 years. Premiums are generally lower, and the death benefit is paid if the insured passes away during the term.
@@ -377,7 +372,7 @@ export default function SchuylkillPage() {
                 </tr>
                 <tr style={{ background: '#fff' }}>
                   <td style={{ padding: '1.25rem', fontWeight: 700, color: navy, verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                    🏛️ Whole Life
+                    Whole Life
                   </td>
                   <td style={{ padding: '1.25rem', color: '#374151', lineHeight: 1.75, verticalAlign: 'top' }}>
                     Provides lifelong coverage as long as required premiums are paid. It can also build cash value over time.
@@ -402,17 +397,14 @@ export default function SchuylkillPage() {
           >
             {[
               {
-                icon: '👨‍👩‍👧‍👦',
                 label: 'Young couple in Tamaqua',
                 desc: 'With two children and a new mortgage, they may need the largest amount of coverage for the lowest practical cost — a 20- or 30-year term policy may be the right fit.',
               },
               {
-                icon: '💼',
                 label: 'Small business owner in Pottsville',
                 desc: 'May need a more permanent strategy to protect the family, support succession planning, or create a policy that stays in place for life.',
               },
               {
-                icon: '🕊️',
                 label: 'Retired widow in Frackville or Minersville',
                 desc: 'May not need a large income-replacement policy, but a smaller final expense policy may help ensure children are not left paying costs out of pocket.',
               },
@@ -427,7 +419,6 @@ export default function SchuylkillPage() {
                   boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                 }}
               >
-                <div style={{ fontSize: '1.75rem', marginBottom: '0.5rem' }}>{ex.icon}</div>
                 <div style={{ fontWeight: 700, color: navy, fontSize: '0.95rem', marginBottom: '0.5rem' }}>{ex.label}</div>
                 <p style={{ color: '#475467', fontSize: '0.92rem', lineHeight: 1.7, margin: 0 }}>{ex.desc}</p>
               </div>
@@ -447,7 +438,6 @@ export default function SchuylkillPage() {
               alignItems: 'flex-start',
             }}
           >
-            <div style={{ fontSize: '2rem', flexShrink: 0 }}>💡</div>
             <div>
               <div style={{ fontWeight: 700, color: goldLight, marginBottom: '0.4rem', fontSize: '1rem' }}>
                 How much life insurance should you consider?
@@ -544,7 +534,7 @@ export default function SchuylkillPage() {
               style={{ color: gold, fontWeight: 700, fontSize: '1.1rem', textDecoration: 'none' }}
               data-county="Schuylkill"
             >
-              ☎️ {BRAND.phone}
+              {BRAND.phone}
             </a>
           </div>
         </div>

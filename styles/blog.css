@@ -142,8 +142,10 @@
 .blog-card__image {
   width: 100%;
   aspect-ratio: 16/9;
-  object-fit: cover;
-  background: var(--navy);
+  object-fit: contain;
+  object-position: center;
+  background: #fff;
+  display: block;
 }
 .blog-card__image-placeholder {
   width: 100%;

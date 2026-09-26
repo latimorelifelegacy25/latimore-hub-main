@@ -66,6 +66,7 @@ const scheduleGames: ScheduleGame[] = [
 ]
 
 export default function PAHSPage() {
+  const [showCampaignVideo, setShowCampaignVideo] = useState(false)
   const [lead, setLead] = useState<LeadForm>(initialLead)
   const [tracking, setTracking] = useState<Tracking>(defaultTracking)
   const [leadStatus, setLeadStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
@@ -174,15 +175,6 @@ export default function PAHSPage() {
             </div>
           </div>
 
-          <aside className="pahs-hero__card" aria-label="PAHS Protect campaign card">
-            <img
-              src="/pahs-all-star-sponsor.webp"
-              alt="Protect What You Play For — Pottsville Area Crimson Tide 2026"
-              decoding="async"
-              fetchPriority="high"
-            />
-            <p>Proud PAHS Football sponsor. Community visibility with a real protection gateway.</p>
-          </aside>
         </div>
       </section>
 
@@ -231,18 +223,24 @@ export default function PAHSPage() {
           <h2 className="campaign-videos-title">Watch the Campaign</h2>
           <div className="videos-grid single">
             <div className="video-wrap">
-              <video
-                src="/pahs-campaign-video.mp4"
-                poster="/pahs-all-star-sponsor.webp"
-                controls
-                playsInline
-                preload="metadata"
-                style={{ width: '100%', borderRadius: '8px' }}
-              />
+              {showCampaignVideo ? (
+                <video
+                  src="/pahs-campaign-video.mp4"
+                  controls
+                  autoPlay
+                  playsInline
+                  preload="metadata"
+                  style={{ width: '100%', borderRadius: '8px' }}
+                />
+              ) : (
+                <button type="button" className="pahs-video-play" onClick={() => setShowCampaignVideo(true)}>
+                  Play Campaign Video
+                </button>
+              )}
             </div>
           </div>
           <p>
-            The PAHS Protect campaign turns QR scans, Facebook traffic, Google Business Profile visits, referrals, and DM PROTECT conversations into one clean path: free review request, CRM capture, and personal follow-up from Jackson.
+            See how our PAHS partnership helps Coal Region families start a free protection review with Jackson.
           </p>
         </div>
       </section>
@@ -269,10 +267,10 @@ export default function PAHSPage() {
         </div>
       </section>
 
-      <section className="spgfx" aria-label="PAHS free consultation coupon">
+      <section className="spgfx" aria-label="PAHS free family protection review coupon">
         <img
-          src="/pahs-free-consult.png"
-          alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide"
+          src="/pahs-family-protection-coupon.jpg"
+          alt="Free Family Protection Review coupon — Proud Sponsor of Pottsville Area Crimson Tide"
           loading="lazy"
           decoding="async"
         />
@@ -284,7 +282,7 @@ export default function PAHSPage() {
             <p className="pahs-kicker">Free protection review</p>
             <h2 id="pahs-review-title">Know where your family stands.</h2>
             <p>
-              Use this page after scanning the PAHS QR code. The form creates a New lead for follow-up and keeps the source tied to the PAHS Protect campaign.
+              Request a free review of your family’s protection needs. Jackson will follow up personally to discuss your priorities and next steps.
             </p>
 
             <div className="pahs-checklist" aria-label="Review topics">

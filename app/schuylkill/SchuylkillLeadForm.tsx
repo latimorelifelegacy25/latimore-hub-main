@@ -230,7 +230,7 @@ export default function SchuylkillLeadForm() {
           transition: 'transform .15s ease',
         }}
       >
-        {status === 'submitting' ? 'Sending...' : '🛡️ Request My Free Consultation'}
+        {status === 'submitting' ? 'Sending...' : 'Request My Free Consultation'}
       </button>
 
       <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.82rem', marginTop: '0.75rem', marginBottom: 0 }}>

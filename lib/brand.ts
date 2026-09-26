@@ -81,13 +81,13 @@ export const BRAND = {
   ethosQuoteUrl: 'https://agents.ethoslife.com/invite/29ad1',
 
   // Social
-  instagram: 'https://www.instagram.com/latimorelifelegacy25/',
+  instagram: 'https://www.instagram.com/latimorelifelegacy25?stkn=MXg4M3NlOGRoMG1jbg==',
   linkedin: 'https://www.linkedin.com/in/startwithjacksongfi',
-  facebook: 'https://www.facebook.com/LatimoreLegacyLLC/',
+  facebook: 'https://www.facebook.com/share/1EVpBCEZuf/',
 
-  instagramUrl: 'https://www.instagram.com/latimorelifelegacy25/',
+  instagramUrl: 'https://www.instagram.com/latimorelifelegacy25?stkn=MXg4M3NlOGRoMG1jbg==',
   linkedinUrl: 'https://www.linkedin.com/in/startwithjacksongfi',
-  facebookUrl: 'https://www.facebook.com/LatimoreLegacyLLC/',
+  facebookUrl: 'https://www.facebook.com/share/1EVpBCEZuf/',
 
   // Service region
   counties: ['Schuylkill', 'Luzerne', 'Northumberland'],
