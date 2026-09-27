@@ -15,7 +15,7 @@ const INITIAL_TASKS: Task[] = [
   { text: 'Deploy Latimore Hub OS leads dashboard admin page to Vercel', pri: 'med', done: false },
   { text: 'Activate PAHS Full Circle Legacy QR funnel on latimorelifelegacy.com', pri: 'med', done: false },
   { text: 'Build Luzerne County Latino market landing page', pri: 'low', done: false },
-  { text: 'Verify GA4 events — G-WZWMX83WXQ and G-S0Q3E4DEBJ', pri: 'low', done: false },
+  { text: 'Verify GA4 events — G-S0Q3E4DEBJ', pri: 'low', done: false },
 ]
 
 const PIPELINE = [
@@ -37,7 +37,7 @@ const DOCS = [
 const LOGS = [
   { time: '09:14', cls: '#4ade80', msg: '✓  Latimore Hub OS — Vercel build passed' },
   { time: '09:10', cls: '#60a5fa', msg: '→  Supabase medxfhhxvmczmpurkmrp — schema sync OK' },
-  { time: '08:55', cls: '#4ade80', msg: '✓  GA4 G-WZWMX83WXQ — events firing correctly' },
+  { time: '08:55', cls: '#4ade80', msg: '✓  GA4 G-S0Q3E4DEBJ — events firing correctly' },
   { time: '08:40', cls: '#facc15', msg: '⚠  PAHS invoice $460 — DUE TODAY' },
   { time: '08:30', cls: '#60a5fa', msg: '→  Brand guardrails loaded — all workflows active' },
   { time: 'Yesterday', cls: '#4ade80', msg: '✓  LAT-2026-01 complaint package — finalized' },
