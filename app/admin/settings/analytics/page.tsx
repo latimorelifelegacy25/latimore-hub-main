@@ -31,7 +31,7 @@ export default function AnalyticsSettingsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-white font-bold">Main Site</p>
-            <p className="text-gray-400 text-xs">latimorelifelegacy.com · G-WZWMX83WXQ</p>
+            <p className="text-gray-400 text-xs">latimorelifelegacy.com · G-S0Q3E4DEBJ</p>
           </div>
           <span className={`text-xs px-3 py-1 rounded-full font-bold ${status === "connected" ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
             {status === "connected" ? "Connected" : "Not Connected"}
