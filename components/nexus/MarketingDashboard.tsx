@@ -153,7 +153,7 @@ export const MarketingDashboard: React.FC = () => {
   ]);
 
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([
-    { id: 'doc1', name: 'Sponsorship-Guide-Pottsville-Athletics.pdf', size: '1.4 MB', type: 'PDF', date: '2026-05-18', extractedText: 'PAHS legacy initiative sponsors guidelines. Priority is community integration first. G-WZWMX83WXQ reference analytics target page views and organic signup CTA click parameters.', topics: ['pottsville', 'sponsorship', 'youth'] },
+    { id: 'doc1', name: 'Sponsorship-Guide-Pottsville-Athletics.pdf', size: '1.4 MB', type: 'PDF', date: '2026-05-18', extractedText: 'PAHS legacy initiative sponsors guidelines. Priority is community integration first. G-S0Q3E4DEBJ reference analytics target page views and organic signup CTA click parameters.', topics: ['pottsville', 'sponsorship', 'youth'] },
     { id: 'doc2', name: 'Schuylkill-Succession-Policy-Brief.docx', size: '840 KB', type: 'DOCX', date: '2026-05-15', extractedText: 'Succession audit guidelines outline for life & legacy. Compliance checklist metrics and capital gains frameworks rules.', topics: ['succession', 'compliance', 'Schuylkill'] }
   ]);
 
