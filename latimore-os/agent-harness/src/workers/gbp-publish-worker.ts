@@ -19,7 +19,7 @@ import {
   createLocalPost,
   GbpNotApprovedError,
   GbpNotConnectedError,
-} from '@/lib/gbp/client';
+} from '../lib/gbp-client';
 
 const LOCATION_RE = /^accounts\/[^/]+\/locations\/[^/]+$/;
 
@@ -67,15 +67,32 @@ export class GBPPublishWorker extends BaseWorker {
     const ctaUrl = String(input.cta_url || '').trim() || undefined;
     const mediaUrl = String(input.media_url || draft.image_url || '').trim() || undefined;
 
+    // The OAuth access token is supplied by the caller (the API route injects
+    // a fresh server-side token into the run input — the harness never sees
+    // the token store). Refuse to publish without one rather than failing
+    // obscurely inside the HTTP layer.
+    const accessToken = String(input.google_access_token || '').trim();
+    if (!accessToken) {
+      return {
+        success: false,
+        error:
+          'No Google access token was provided for this run (google_access_token). ' +
+          'An admin must connect Google Business Profile at /api/gbp/connect first.',
+      };
+    }
+
     this.log(`Publishing GBP local post to ${locationName} (${summary.length} chars)`);
 
     try {
-      const post = await createLocalPost({
-        locationName,
-        summary,
-        callToAction: ctaUrl ? { actionType: 'LEARN_MORE', url: ctaUrl } : undefined,
-        mediaUrl,
-      });
+      const post = await createLocalPost(
+        {
+          locationName,
+          summary,
+          callToAction: ctaUrl ? { actionType: 'LEARN_MORE', url: ctaUrl } : undefined,
+          mediaUrl,
+        },
+        accessToken,
+      );
 
       const actions = ['gbp_local_post_created'];
       this.log(`GBP post published: ${post.name || '(no name returned)'}`);
