@@ -39,12 +39,12 @@ export async function GET(req: NextRequest) {
 
   if (!stateValid) {
     return redirectAndClearState(
-      new URL('/admin/social?fb_error=invalid_state', req.url)
+      new URL('/admin/social-connections?fb_error=invalid_state', req.url)
     )
   }
 
   if (!code) {
-    return redirectAndClearState(new URL('/admin/social?fb_error=no_code', req.url))
+    return redirectAndClearState(new URL('/admin/social-connections?fb_error=no_code', req.url))
   }
 
   try {
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 
     if (!tokenRes.ok || !tokenData.access_token) {
       return redirectAndClearState(
-        new URL('/admin/social?fb_error=token_exchange_failed', req.url)
+        new URL('/admin/social-connections?fb_error=token_exchange_failed', req.url)
       )
     }
 
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
     const userToken = longData.access_token
     if (!longRes.ok || !userToken) {
       return redirectAndClearState(
-        new URL('/admin/social?fb_error=token_exchange_failed', req.url)
+        new URL('/admin/social-connections?fb_error=token_exchange_failed', req.url)
       )
     }
 
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     const pages = await pagesRes.json()
 
     if (!pages.data?.length) {
-      return redirectAndClearState(new URL('/admin/social?fb_error=no_pages', req.url))
+      return redirectAndClearState(new URL('/admin/social-connections?fb_error=no_pages', req.url))
     }
 
     const page = pages.data[0]
@@ -121,10 +121,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return redirectAndClearState(new URL('/admin/social?fb_success=1', req.url))
+    return redirectAndClearState(new URL('/admin/social-connections?fb_success=1', req.url))
   } catch {
     return redirectAndClearState(
-      new URL('/admin/social?fb_error=connect_failed', req.url)
+      new URL('/admin/social-connections?fb_error=connect_failed', req.url)
     )
   }
 }
