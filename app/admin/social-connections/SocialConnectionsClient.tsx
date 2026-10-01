@@ -9,12 +9,14 @@ import ProviderCard from './components/ProviderCard'
 
 export default function SocialConnectionsClient({
   initialConnections,
+  notice,
 }: {
   initialConnections: SocialConnection[]
+  notice?: string | null
 }) {
   const [connections, setConnections] = useState(initialConnections)
   const [saving, setSaving] = useState(false)
-  const [message, setMessage] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(notice ?? null)
 
   const { drafts, updateField } = useProviderDrafts(connections)
   const tokenStatus = useTokenValidation(connections)
