@@ -17,6 +17,7 @@ const EnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   RESEND_API_KEY: z.string().optional(),
   GOOGLE_CHAT_WEBHOOK_URL: z.string().optional(),
+  GBP_LOCATION_NAME: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
   NEXT_PUBLIC_GTM_ID: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().optional(),
