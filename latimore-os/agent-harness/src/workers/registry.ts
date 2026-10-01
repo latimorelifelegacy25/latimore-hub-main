@@ -9,6 +9,7 @@ import { SendWorker } from './send-worker';
 import { CRMWorker } from './crm-worker';
 import { AnalyticsWorker } from './analytics-worker';
 import { ComplianceReviewer } from './compliance-reviewer';
+import { GBPPublishWorker } from './gbp-publish-worker';
 
 class WorkerRegistry {
   private workers = new Map<string, BaseWorker>();
@@ -20,6 +21,7 @@ class WorkerRegistry {
     this.register(new CRMWorker());
     this.register(new AnalyticsWorker());
     this.register(new ComplianceReviewer());
+    this.register(new GBPPublishWorker());
   }
 
   register(worker: BaseWorker): void {
