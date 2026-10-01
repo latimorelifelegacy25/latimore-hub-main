@@ -8,8 +8,8 @@ import type { WorkflowDefinition } from '../types';
 
 export const gbpPostDraftWorkflow: WorkflowDefinition = {
   name: 'gbp-post-draft',
-  version: '1.0.0',
-  description: 'AI-drafted Google Business Profile and social media posts with compliance review',
+  version: '1.1.0',
+  description: 'AI-drafted Google Business Profile and social media posts with compliance review (optional GBP publish)',
   trigger: { type: 'manual' },
   timeout_ms: 60000,
   max_retries: 1,
@@ -57,6 +57,27 @@ export const gbpPostDraftWorkflow: WorkflowDefinition = {
       output_key: 'store_result',
       timeout_ms: 10000,
     },
+    {
+      id: 'publish_post',
+      name: 'Publish to Google Business Profile',
+      worker: 'GBPPublishWorker',
+      depends_on: ['store_post'],
+      input_map: {
+        draft: 'draft',
+        compliance: 'compliance',
+        topic: 'topic',
+        publish_to_gbp: 'publish_to_gbp',
+        location_name: 'gbp_location_name',
+        cta_url: 'gbp_cta_url',
+        media_url: 'gbp_media_url',
+      },
+      output_key: 'publish',
+      timeout_ms: 30000,
+      retry_on_failure: true,
+      // Only runs when the caller explicitly opts in with publish_to_gbp=true.
+      // The worker itself re-checks the flag plus compliance before publishing.
+      skip_if: '!publish_to_gbp',
+    },
   ],
 };
 
@@ -66,4 +87,7 @@ export const gbpPostDraftDefaults = {
   content_pillar: 'education',
   use_ai_review: true,
   store_action: 'store_content_post',
+  // Set to true (and pass gbp_location_name) to publish the approved draft
+  // as a GBP local post after the compliance + store steps.
+  publish_to_gbp: false,
 };
