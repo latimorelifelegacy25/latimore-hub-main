@@ -1,0 +1,81 @@
+name: Daily Google analytics and business data
+
+on:
+  schedule:
+    - cron: '23 11 * * *'
+  workflow_dispatch:
+    inputs:
+      end_date:
+        description: 'Optional last reporting date (YYYY-MM-DD); default yesterday'
+        type: string
+        required: false
+      days:
+        description: 'Days to refresh (1–90)'
+        type: string
+        default: '14'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: google-data-daily
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test collector
+        run: python -m unittest discover -s scripts/google-data/tests -v
+      - name: Collect Google data
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
+          GBP_LOCATION_IDS: ${{ vars.GBP_LOCATION_IDS }}
+          REPORT_TIMEZONE: ${{ vars.REPORT_TIMEZONE || 'America/New_York' }}
+          END_DATE: ${{ inputs.end_date }}
+          LOOKBACK_DAYS: ${{ inputs.days || '14' }}
+        shell: bash
+        run: |
+          args=(--output "$RUNNER_TEMP/google-data" --days "$LOOKBACK_DAYS")
+          if [[ -n "$END_DATE" ]]; then args+=(--end-date "$END_DATE"); fi
+          python scripts/google-data/collect.py "${args[@]}"
+      - name: Retain collected data if publication fails
+        uses: actions/upload-artifact@v4
+        with:
+          name: google-data-${{ github.run_id }}
+          path: ${{ runner.temp }}/google-data/*.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Commit reports to analytics-data branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin analytics-data; then
+            git fetch origin analytics-data
+            git checkout -B analytics-data FETCH_HEAD
+          else
+            # Only exit status 2 means the branch is absent; network failures must fail.
+            status=$?
+            if [[ "$status" != 2 ]]; then exit "$status"; fi
+            git checkout --orphan analytics-data
+            git rm -rf .
+          fi
+          mkdir -p data/google
+          cp "$RUNNER_TEMP/google-data/"*.json data/google/
+          git add data/google
+          if git diff --cached --quiet; then
+            echo 'No reporting changes.'
+            exit 0
+          fi
+          git commit -m 'data: refresh Google analytics and business performance'
+          git push origin HEAD:refs/heads/analytics-data
