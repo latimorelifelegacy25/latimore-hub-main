@@ -70,6 +70,7 @@ export const gbpPostDraftWorkflow: WorkflowDefinition = {
         location_name: 'gbp_location_name',
         cta_url: 'gbp_cta_url',
         media_url: 'gbp_media_url',
+        google_access_token: 'google_access_token',
       },
       output_key: 'publish',
       timeout_ms: 30000,

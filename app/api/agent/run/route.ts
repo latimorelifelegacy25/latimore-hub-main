@@ -7,6 +7,7 @@ import { WorkflowOrchestrator } from '@/latimore-os/agent-harness/src/orchestrat
 import { recordWorkflowAudit } from '@/latimore-os/agent-harness/src/audit'
 import { getWorkflow, listRegisteredWorkflowNames } from '@/latimore-os/agent-harness/src/workflows/registry'
 import type { WorkerEnv } from '@/latimore-os/agent-harness/src/types'
+import { getValidGoogleAccessToken } from '@/lib/calendar/google'
 
 function secureEqual(expected: string, actual: string | null): boolean {
   if (!actual) return false
@@ -89,6 +90,16 @@ export async function POST(req: NextRequest) {
     const env = harnessEnv()
     const orchestrator = new WorkflowOrchestrator(env)
     const payload = { ...registered.defaults, ...body.payload }
+
+    // When the run opts into GBP publishing, the publish worker needs a Google
+    // OAuth access token — but the harness can't reach the server-side token
+    // store. Inject a fresh token here, server-side, so external callers can
+    // never supply (or spoof) one. An empty token makes the worker refuse to
+    // publish with a clear "not connected" error instead of failing obscurely.
+    if (payload.publish_to_gbp === true) {
+      payload.google_access_token = await getValidGoogleAccessToken().catch(() => '')
+    }
+
     const run = await orchestrator.run(registered.definition, body.trigger, payload)
 
     await recordWorkflowAudit(env, run).catch(error => {

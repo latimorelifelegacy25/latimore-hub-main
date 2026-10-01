@@ -18,7 +18,7 @@ function parseAdminEmails(v?: string | null): string[] {
  * When connected, lists accounts/locations so GBP_LOCATION_NAME can be set
  * to the right "accounts/{id}/locations/{id}" value.
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions)
   const email = (session?.user?.email ?? '').toLowerCase()
   const allowed = parseAdminEmails(process.env.ADMIN_EMAILS)
