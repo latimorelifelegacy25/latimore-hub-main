@@ -6,12 +6,12 @@ import { Connector } from '../types';
 
 const INITIAL_CONNECTORS: Connector[] = [
   // Agency / GFI
-  { id: 'gfi', name: 'Global Financial Impact', description: 'GFI Enterprise Portal & Hierarchy Data', icon: 'fa-solid fa-building-shield', category: 'Agency', isConnected: true, lastSync: 'Real-time', color: 'bg-slate-900', brandColor: '#2C3E50' },
+  { id: 'gfi', name: 'Global Financial Impact', description: 'GFI Enterprise Portal & Hierarchy Data', icon: 'fa-solid fa-building-shield', category: 'Agency', isConnected: false, color: 'bg-slate-900', brandColor: '#2C3E50' },
   
   // Carriers
-  { id: 'nac', name: 'North American', description: 'IUL Underwriting & Builder Plus Sync', icon: 'fa-solid fa-shield-halved', category: 'Carrier', isConnected: true, lastSync: '10 mins ago', color: 'bg-blue-900', brandColor: '#004c8c' },
+  { id: 'nac', name: 'North American', description: 'IUL Underwriting & Builder Plus Sync', icon: 'fa-solid fa-shield-halved', category: 'Carrier', isConnected: false, color: 'bg-blue-900', brandColor: '#004c8c' },
   { id: 'fg', name: 'F&G Annuities', description: 'Fixed Indexed Annuities & Income Advantage', icon: 'fa-solid fa-vault', category: 'Carrier', isConnected: false, color: 'bg-[#c5a059]', brandColor: '#c5a059' },
-  { id: 'ethos', name: 'Ethos Velocity', description: 'Instant Decision Term Underwriting', icon: 'fa-solid fa-bolt-lightning', category: 'Carrier', isConnected: true, lastSync: 'Active', color: 'bg-emerald-600', brandColor: '#10b981' },
+  { id: 'ethos', name: 'Ethos Velocity', description: 'Instant Decision Term Underwriting', icon: 'fa-solid fa-bolt-lightning', category: 'Carrier', isConnected: false, color: 'bg-emerald-600', brandColor: '#10b981' },
   { id: 'aig', name: 'American General', description: 'Broad Market Protection Products', icon: 'fa-solid fa-landmark', category: 'Carrier', isConnected: false, color: 'bg-indigo-700', brandColor: '#303f9f' },
   { id: 'aec', name: 'American Equity', description: 'Asset Preservation & FIA Portfolio', icon: 'fa-solid fa-coins', category: 'Carrier', isConnected: false, color: 'bg-amber-600', brandColor: '#d97706' },
 
@@ -133,25 +133,30 @@ const Connectors: React.FC = () => {
     setVaultModal(null);
   };
 
-  const toggleConnection = (id: string) => {
+  const toggleConnection = async (id: string) => {
     const connector = connectors.find(c => c.id === id);
-    if (connector?.category === 'Social') {
+    if (!connector?.isConnected) return; // Connecting opens the vault modal instead
+    if (connector.category === 'Social') {
       const provider = SOCIAL_PROVIDER_MAP[id];
       if (provider) {
-        fetch('/api/admin/social-connections', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ provider, status: 'disconnected' }),
-        }).catch(err => console.error('Failed to disconnect', err));
+        try {
+          const response = await fetch('/api/admin/social-connections', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider, status: 'disconnected' }),
+          });
+          const data = await response.json();
+          if (!response.ok || !data.success) throw new Error(data.error || 'Failed to disconnect');
+        } catch (err) {
+          console.error('Failed to disconnect', err);
+          window.alert(`Could not disconnect ${connector.name}. It is still connected.`);
+          return;
+        }
       }
     }
-    setConnectors(prev => prev.map(c => {
-      if (c.id === id) {
-        if (c.isConnected) return { ...c, isConnected: false, lastSync: undefined, agentId: undefined };
-        return c; // If connecting, we open vault modal instead
-      }
-      return c;
-    }));
+    setConnectors(prev => prev.map(c =>
+      c.id === id ? { ...c, isConnected: false, lastSync: undefined, agentId: undefined } : c
+    ));
   };
 
   const runSync = (id: string) => {
@@ -181,7 +186,7 @@ const Connectors: React.FC = () => {
         <div className="flex gap-4">
            <div className="bg-emerald-50 text-emerald-600 px-5 py-3 rounded-2xl border border-emerald-100 flex items-center gap-3 text-xs font-black uppercase tracking-widest shadow-sm">
               <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
-              Carrier Grid Synchronized
+              {connectors.filter(c => c.category === 'Social' && c.isConnected).length} of {connectors.filter(c => c.category === 'Social').length} Social Channels Live
            </div>
         </div>
       </header>
@@ -292,7 +297,7 @@ const Connectors: React.FC = () => {
               <p className="text-slate-500 text-sm mb-10 font-medium leading-relaxed">
                  {vaultModal.category === 'Social'
                    ? `Paste a valid ${vaultModal.name} access token to enable live publishing from the Latimore Legacy Hub.`
-                   : `Enter your Agent Credentials to synchronize your ${vaultModal.name} contract data with the Latimore Legacy Hub.`}
+                   : `Record your Agent / Producer ID for ${vaultModal.name}. Live carrier sync is not available yet; this is a reference only for this session.`}
               </p>
 
               {vaultModal.category === 'Social' ? (
@@ -324,14 +329,6 @@ const Connectors: React.FC = () => {
                       />
                    </div>
 
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Enterprise Access Key (NIPR)</label>
-                      <input
-                        type="password"
-                        placeholder="••••••••••••"
-                        className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#c5a059] outline-none font-bold text-slate-800"
-                      />
-                   </div>
                 </div>
               )}
 
