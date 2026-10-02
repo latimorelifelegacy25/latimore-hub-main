@@ -13,7 +13,7 @@ export async function GET() {
   const state = crypto.randomBytes(32).toString('hex')
 
   const response = NextResponse.redirect(
-    `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirect}&scope=pages_show_list,pages_read_engagement,pages_manage_posts,instagram_basic,instagram_content_publish&state=${state}`
+    `https://www.facebook.com/v19.0/dialog/oauth?client_id=${clientId}&redirect_uri=${redirect}&scope=pages_show_list,pages_read_engagement,pages_manage_posts&state=${state}`
   )
 
   response.cookies.set('fb_oauth_state', state, {
