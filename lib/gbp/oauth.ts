@@ -57,3 +57,66 @@ export function buildGbpAuthUrl(state: string): string {
 
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
+
+const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
+
+export interface GbpTokenData {
+  access_token: string
+  expires_in?: number
+  refresh_token?: string
+  scope?: string
+  token_type?: string
+  id_token?: string
+}
+
+/**
+ * Exchanges a GBP OAuth authorization code for tokens.
+ *
+ * CRITICAL: the redirect_uri sent here MUST be the GBP redirect URI
+ * (getGbpRedirectUri(), i.e. /api/gbp/callback) — the same URI that was used
+ * in the authorization request built by buildGbpAuthUrl(). Google rejects the
+ * exchange when the URIs differ. Do NOT reuse the Calendar token exchange
+ * here: it sends the Calendar redirect URI (/api/calendar/google/callback),
+ * which mismatches and fails the exchange.
+ */
+export async function exchangeGbpCode(code: string): Promise<GbpTokenData> {
+  const clientId = process.env.GOOGLE_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET
+  if (!clientId) throw new Error('Missing required env var: GOOGLE_CLIENT_ID')
+  if (!clientSecret) throw new Error('Missing required env var: GOOGLE_CLIENT_SECRET')
+  const redirectUri = getGbpRedirectUri()
+
+  const body = new URLSearchParams({
+    code,
+    client_id: clientId,
+    client_secret: clientSecret,
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code',
+  })
+
+  const res = await fetch(GOOGLE_TOKEN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body,
+  })
+
+  const data = (await res.json()) as {
+    error_description?: string
+    error?: string
+    access_token?: string
+    expires_in?: number
+    refresh_token?: string
+    scope?: string
+    token_type?: string
+    id_token?: string
+  }
+  if (!res.ok) {
+    throw new Error(data?.error_description || data?.error || 'Failed to exchange GBP auth code')
+  }
+
+  if (!data.access_token) {
+    throw new Error('GBP token exchange returned no access_token')
+  }
+
+  return data as GbpTokenData
+}
