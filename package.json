@@ -29,7 +29,8 @@
     "worker:deploy": "npm --prefix latimore-os/cloudflare-worker run deploy",
     "agent-harness:setup": "npm --prefix latimore-os/agent-harness install",
     "agent-harness:typecheck": "npm --prefix latimore-os/agent-harness run type-check",
-    "security:rls:check": "node scripts/check-rls-coverage.mjs"
+    "security:rls:check": "node scripts/check-rls-coverage.mjs",
+    "test:gbp": "tsx --test latimore-os/agent-harness/src/__tests__/gbp-connect-bugs.test.ts"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",

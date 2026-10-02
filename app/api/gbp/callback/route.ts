@@ -3,9 +3,8 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { getGbpOAuthStateCookieName } from '@/lib/gbp/oauth'
+import { getGbpOAuthStateCookieName, exchangeGbpCode } from '@/lib/gbp/oauth'
 import {
-  exchangeGoogleCalendarCode,
   fetchGoogleUserInfo,
   upsertGoogleCalendarConnection,
 } from '@/lib/calendar/google'
@@ -36,9 +35,13 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Same token exchange as Calendar; incremental auth (include_granted_scopes)
-    // adds business.manage to the same refresh token.
-    const tokenData = await exchangeGoogleCalendarCode(code)
+    // Exchange with the GBP redirect URI (/api/gbp/callback) — the same URI
+    // used in the authorization request. The Calendar token exchange sends a
+    // different redirect URI and Google rejects the mismatch, so GBP uses its
+    // own exchange. Incremental auth (include_granted_scopes) adds
+    // business.manage to the same refresh token, which is stored in the
+    // shared Google token row.
+    const tokenData = await exchangeGbpCode(code)
     const user = await fetchGoogleUserInfo(tokenData.access_token)
 
     const ownerEmail = (process.env.GOOGLE_CALENDAR_OWNER_EMAIL ?? '').trim().toLowerCase()

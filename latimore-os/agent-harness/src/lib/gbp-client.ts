@@ -23,6 +23,7 @@
  */
 export {
   createLocalPost,
+  listLocalPosts,
   listGbpAccounts,
   listGbpLocations,
   GbpNotConnectedError,
