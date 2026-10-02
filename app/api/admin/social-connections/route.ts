@@ -4,6 +4,21 @@ import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { encryptToken } from '@/lib/crypto'
 
+async function validateToken(provider: string, token: string): Promise<string | null> {
+  const endpoints: Record<string, string> = {
+    linkedin: 'https://api.linkedin.com/v2/userinfo',
+    twitter: 'https://api.twitter.com/2/users/me',
+  }
+  const url = endpoints[provider]
+  if (!url) return null
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
+    return res.ok ? null : `${provider} rejected the token (HTTP ${res.status})`
+  } catch {
+    return `Could not reach ${provider} to verify the token`
+  }
+}
+
 export async function GET() {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
@@ -38,6 +53,13 @@ export async function POST(req: NextRequest) {
 
   if (!provider) {
     return NextResponse.json({ success: false, error: 'provider is required' }, { status: 400 })
+  }
+
+  if (accessToken && status !== 'disconnected') {
+    const invalid = await validateToken(provider, accessToken)
+    if (invalid) {
+      return NextResponse.json({ success: false, error: invalid }, { status: 400 })
+    }
   }
 
   const data: any = {
