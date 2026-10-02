@@ -1,9 +1,17 @@
 /**
  * Google Business Profile API — pure HTTP layer.
  *
- * Publishing uses the Google My Business v4 endpoint:
- *   POST https://mybusiness.googleapis.com/v4/accounts/{accountId}/locations/{locationId}/localPosts
- * with the https://www.googleapis.com/auth/business.manage OAuth scope.
+ * Endpoint map (verified against Google's Business Profile API docs):
+ * - Local posts (create/list): the legacy v4 API at
+ *   POST/GET https://mybusiness.googleapis.com/v4/{location}/localPosts.
+ *   Google never migrated LocalPosts (or Reviews) to v1 — the v4 endpoint
+ *   remains the supported host for these calls.
+ * - Account discovery: the v4 accounts.list endpoint is deprecated; use the
+ *   Account Management API:
+ *   GET https://mybusinessaccountmanagement.googleapis.com/v1/accounts
+ * - Location discovery: use the Business Information API:
+ *   GET https://mybusinessbusinessinformation.googleapis.com/v1/{account}/locations
+ * All calls use the https://www.googleapis.com/auth/business.manage OAuth scope.
  *
  * IMPORTANT — Google approval gate: local-post writes require the Cloud
  * project's "Application for Basic API Access" to be approved by Google.
@@ -20,7 +28,9 @@
  * TypeScript build can resolve it). Keep it import-free.
  */
 
-const GBP_API_BASE = 'https://mybusiness.googleapis.com/v4'
+const GBP_LOCAL_POSTS_BASE = 'https://mybusiness.googleapis.com/v4'
+const GBP_ACCOUNT_MGMT_BASE = 'https://mybusinessaccountmanagement.googleapis.com/v1'
+const GBP_BUSINESS_INFO_BASE = 'https://mybusinessbusinessinformation.googleapis.com/v1'
 
 export class GbpNotConnectedError extends Error {
   constructor(message = 'Google Business Profile is not connected.') {
@@ -79,8 +89,8 @@ function looksLikeApprovalGate(status: number, message: string): boolean {
   )
 }
 
-async function gbpFetch<T>(accessToken: string, path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${GBP_API_BASE}${path}`, {
+async function gbpFetch<T>(accessToken: string, base: string, path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${base}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -144,6 +154,7 @@ export async function createLocalPost(
 
   return gbpFetch<GbpLocalPost>(
     accessToken,
+    GBP_LOCAL_POSTS_BASE,
     `/${locationName}/localPosts`,
     { method: 'POST', body: JSON.stringify(body) },
   )
@@ -161,20 +172,44 @@ export interface GbpLocation {
   [key: string]: unknown
 }
 
-/** Lists the GBP accounts the connected Google user manages. */
+/** Lists the GBP accounts the connected Google user manages (Account Management API v1). */
 export async function listGbpAccounts(accessToken: string): Promise<GbpAccount[]> {
-  const data = await gbpFetch<{ accounts?: GbpAccount[] }>(accessToken, '/accounts?pageSize=50')
+  const data = await gbpFetch<{ accounts?: GbpAccount[] }>(
+    accessToken,
+    GBP_ACCOUNT_MGMT_BASE,
+    '/accounts?pageSize=50',
+  )
   return data.accounts || []
 }
 
-/** Lists locations for one account. Pass the account `name` from listGbpAccounts(). */
+/** Lists locations for one account (Business Information API v1). Pass the account `name` from listGbpAccounts(). */
 export async function listGbpLocations(
   accessToken: string,
   accountName: string,
 ): Promise<GbpLocation[]> {
   const data = await gbpFetch<{ locations?: GbpLocation[] }>(
     accessToken,
+    GBP_BUSINESS_INFO_BASE,
     `/${accountName}/locations?pageSize=50&readMask=name,title`,
   )
   return data.locations || []
+}
+
+/**
+ * Lists recent local posts for a location (legacy v4 API — the only host
+ * Google provides for localPosts). Used for pre-publish duplicate detection
+ * so a retry after a successful-but-unacknowledged POST never creates a
+ * second post.
+ */
+export async function listLocalPosts(
+  accessToken: string,
+  locationName: string,
+  pageSize = 25,
+): Promise<GbpLocalPost[]> {
+  const data = await gbpFetch<{ localPosts?: GbpLocalPost[] }>(
+    accessToken,
+    GBP_LOCAL_POSTS_BASE,
+    `/${locationName}/localPosts?pageSize=${pageSize}`,
+  )
+  return data.localPosts || []
 }
