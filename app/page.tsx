@@ -154,8 +154,18 @@ export default function HomePage() {
       </section>
 
       {/* Why Choose Us */}
-      <section style={{ padding: '4rem 0', background: '#f9fafb' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
+      <section style={{ padding: '4rem 0', position: 'relative', overflow: 'hidden', isolation: 'isolate', background: '#f9fafb' }}>
+        <Image
+          src="/images/community/city-riverfront.jpg"
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
+          quality={85}
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
+        />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.76), rgba(255,255,255,0.52))' }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', position: 'relative', zIndex: 1 }}>
           <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 2.5rem', textAlign: 'center' }}>Why Families Choose {BRAND.name}</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }} className="grid-2">
