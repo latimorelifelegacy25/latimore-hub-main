@@ -38,13 +38,13 @@ This is a source and automated validation audit, not a claim that every authenti
 | npm run typecheck | Passed |
 | Agent harness dependency installation/type check | Passed |
 | Edge worker dependency installation/type check | Passed |
-| Production build | One local build passed. Final patch compiled and generated 199 pages, but local export-directory cleanup returned ENOTEMPTY; exact-commit production build must be verified on Vercel. |
+| Production build | Passed on Vercel and GitHub CI for commit 5dfac1c83e755796dd3a8b31bc199a722ccbe9b3; local export-directory cleanup remains intermittent. |
 | Token encryption regression tests | 2 passed |
 | Existing public production smoke tests | 9 passed: /, /about, /products, /services, /contact, /join, /pahs, /admin (307 login redirect), /api/health |
 | npm run preflight | Blocked locally: 5 required and 16 recommended environment variables absent; this does not establish production configuration status |
 | npm run security:rls:check | Failed: three table declarations missing from tracked migrations |
 
-Local builds intermittently hit ENOTEMPTY while cleaning the generated export directory (404.html and 500.html remained). One clean rebuild succeeded; later exact-patch builds compiled and generated pages but hit the same cleanup error. Lint and TypeScript gates were not weakened. Vercel build verification is required for the released commit.
+Local builds intermittently hit ENOTEMPTY while cleaning the generated export directory (404.html and 500.html remained). One clean rebuild succeeded; later exact-patch builds compiled and generated pages but hit the same cleanup error. Lint and TypeScript gates were not weakened. Vercel production deployment dpl_F7agG2a8YJ8hZYvsp1K6QbxiTwZC reached READY, and GitHub CI run 37093070703 completed successfully for the exact released commit.
 
 ## Findings requiring follow-up
 
@@ -63,4 +63,4 @@ Local builds intermittently hit ENOTEMPTY while cleaning the generated export di
 
 ## Release and residual limits
 
-Changes are suitable for GitHub/Vercel deployment after final validation. The application has not been certified vulnerability-free. Major dependency upgrades, live database policy remediation, persisted content cleanup, and authenticated integration testing remain separate work items with specific evidence above. The calculator is educational and hypothetical; it does not connect to carrier rating systems and must not be presented as an official quote.
+Changes were committed to GitHub and deployed to Vercel. Live checks returned HTTP 200 for the calculator and confirmed Pennsylvania licensing, PA DOI #1268820, no 50-state claim, no shield/chart emojis and no fabricated Ethos offer. All nine post-deployment smoke checks passed. The application has not been certified vulnerability-free. Major dependency upgrades, live database policy remediation, persisted content cleanup, and authenticated integration testing remain separate work items with specific evidence above. The calculator is educational and hypothetical; it does not connect to carrier rating systems and must not be presented as an official quote.
