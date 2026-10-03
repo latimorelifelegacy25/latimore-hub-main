@@ -32,7 +32,7 @@ export type MetaWebhookEntry = {
   }>
 }
 
-export type SocialPlatform = 'facebook' | 'instagram' | 'linkedin'
+export type SocialPlatform = 'facebook' | 'instagram' | 'linkedin' | 'gbp'
 
 export type PublishStatus = 'draft' | 'scheduled' | 'approved' | 'published' | 'failed' | 'archived'
 
