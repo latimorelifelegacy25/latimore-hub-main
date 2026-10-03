@@ -97,6 +97,8 @@ model Contact {
   @@index([primaryIntent])
   @@index([currentIntent])
   @@index([status])
+  @@index([updatedAt])
+  @@index([status, updatedAt])
 }
 
 model Inquiry {
@@ -142,6 +144,10 @@ model Inquiry {
   @@index([sourceType])
   @@index([intent])
   @@index([status])
+  @@index([leadSessionId])
+  @@index([updatedAt])
+  @@index([stage, updatedAt])
+  @@index([contactId, createdAt])
 }
 
 model Appointment {
@@ -166,6 +172,9 @@ model Appointment {
   @@index([createdAt])
   @@index([scheduledFor])
   @@index([status])
+  @@index([contactId, scheduledFor])
+  @@index([inquiryId])
+  @@index([calendlyEventId])
 }
 
 model Task {
@@ -183,6 +192,9 @@ model Task {
 
   @@index([status])
   @@index([dueAt])
+  @@index([contactId, status])
+  @@index([inquiryId])
+  @@index([status, dueAt])
 }
 
 model LegacyCheckupAssessment {
@@ -232,6 +244,9 @@ model Event {
   @@index([contactId])
   @@index([inquiryId])
   @@index([leadSessionId])
+  @@index([leadSessionId, eventType, occurredAt])
+  @@index([contactId, occurredAt])
+  @@index([source, eventType])
 }
 
 model SystemEvent {
@@ -256,6 +271,9 @@ model SystemEvent {
   @@index([type, occurredAt])
   @@index([contactId])
   @@index([inquiryId])
+  @@index([occurredAt])
+  @@index([contactId, occurredAt])
+  @@index([type, leadSessionId])
 }
 
 model ConversationThread {
@@ -278,6 +296,7 @@ model ConversationThread {
 
   @@index([contactId, updatedAt])
   @@index([channel])
+  @@index([lastMessageAt])
 }
 
 model ConversationMessage {
@@ -302,7 +321,7 @@ model ConversationMessage {
   thread            ConversationThread @relation(fields: [threadId], references: [id])
 
   @@index([threadId, createdAt])
-  @@index([contactId])
+  @@index([contactId, createdAt])
 }
 
 model AiRun {
@@ -327,6 +346,8 @@ model AiRun {
   @@index([type, createdAt])
   @@index([status])
   @@index([contactId])
+  @@index([createdAt, status])
+  @@index([contactId, createdAt])
 }
 
 model AgentWorkflowStep {
@@ -568,6 +589,8 @@ model CalendarEvent {
   @@index([contactId])
   @@index([startAt])
   @@index([status])
+  @@index([appointmentId])
+  @@index([status, startAt])
 }
 
 enum PipelineStage {
@@ -778,6 +801,8 @@ model SocialPost {
   @@index([platform])
   @@index([status])
   @@index([campaign])
+  @@index([status, publishedAt])
+  @@index([createdAt])
 }
 
 model SocialMetric {
@@ -802,6 +827,7 @@ model SocialMetric {
 
   @@unique([postId, metricDate])
   @@index([platform, metricDate])
+  @@index([metricDate])
 }
 
 model SocialAccountMetric {
