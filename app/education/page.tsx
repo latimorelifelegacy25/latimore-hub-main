@@ -203,7 +203,7 @@ export default function EducationHubPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 18 }}>
               {MYTHS.map(({ myth, fact }) => (
                 <div key={myth} style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(201,162,95,0.2)', borderRadius: 10, padding: 22 }}>
-                  <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#f87171', marginBottom: 8 }}>❌ Myth</div>
+                  <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#f87171', marginBottom: 8 }}> Myth</div>
                   <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: '0.92rem', fontWeight: 600, marginBottom: 14, lineHeight: 1.4 }}>{myth}</div>
                   <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: gold, marginBottom: 8 }}>✓ Fact</div>
                   <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.83rem', lineHeight: 1.55 }}>{fact}</div>
@@ -253,7 +253,7 @@ export default function EducationHubPage() {
             </div>
 
             <div style={{ marginTop: 24, background: '#fff', borderRadius: 10, padding: 22, border: '1px solid #e5e7eb' }}>
-              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: gold, marginBottom: 8 }}>⚠ Important Note</div>
+              <div style={{ fontSize: '0.62rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: gold, marginBottom: 8 }}> Important Note</div>
               <p style={{ fontSize: '0.8rem', color: muted, lineHeight: 1.65 }}>
                 Fixed index annuities are insurance products — not investments. They do not directly participate in any stock market index. Surrender charges apply in early years. All income projections are for illustration purposes only. Always review an official product illustration before making any decision. Suitability documentation is required before recommending any annuity product.
               </p>

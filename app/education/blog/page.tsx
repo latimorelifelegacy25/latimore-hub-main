@@ -79,7 +79,7 @@ export default async function BlogIndexPage({
               {/* Featured strip */}
               {showFeatured && (
                 <div className="featured-section">
-                  <p className="featured-section__label">⭐ Featured Articles</p>
+                  <p className="featured-section__label"> Featured Articles</p>
                   <div className="featured-section__grid">
                     {featured.map((post) => (
                       <NewBlogCard key={post.slug} post={post} />
@@ -99,7 +99,7 @@ export default async function BlogIndexPage({
                 </div>
               ) : (
                 <div className="blog-empty">
-                  <div className="blog-empty__icon">📭</div>
+                  <div className="blog-empty__icon"></div>
                   <p className="blog-empty__title">No articles found</p>
                   <p>
                     <Link href="/education/blog">View all articles</Link>

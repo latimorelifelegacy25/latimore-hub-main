@@ -8,7 +8,7 @@
  *
  * Behaviour when TOKEN_ENCRYPTION_KEY is unset
  * ---------------------------------------------
- * encryptToken  → returns the plain value unchanged (no-op, backward compatible)
+ * encryptToken  → throws in production; returns plaintext only outside production
  * decryptToken  → returns the plain value unchanged (handles legacy DB rows)
  *
  * Encrypted token format: enc:<iv_hex>:<auth_tag_hex>:<ciphertext_hex>
@@ -36,11 +36,16 @@ function getKey(): Buffer | null {
 /**
  * Encrypt a token value before storing it in the database.
  * Returns the encrypted string (enc:<iv>:<tag>:<ct>) or the plain value if
- * TOKEN_ENCRYPTION_KEY is not configured.
+ * TOKEN_ENCRYPTION_KEY is not configured outside production. Throws in production.
  */
 export function encryptToken(plain: string): string {
   const key = getKey()
-  if (!key) return plain
+  if (!key) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('TOKEN_ENCRYPTION_KEY is required before storing tokens in production')
+    }
+    return plain
+  }
 
   const iv = randomBytes(IV_BYTES)
   const cipher = createCipheriv(ALGORITHM, key, iv)

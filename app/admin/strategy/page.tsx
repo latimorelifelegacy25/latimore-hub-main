@@ -89,7 +89,7 @@ const STRATEGIES: Strategy[] = [
 const CATEGORIES = ['All', 'Life Insurance', 'Annuities', 'Legacy & Estate', 'Business Protection']
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'Life Insurance': '🛡️', 'Annuities': '📈', 'Legacy & Estate': '🏛️', 'Business Protection': '🏢'
+  'Life Insurance': '', 'Annuities': '', 'Legacy & Estate': '', 'Business Protection': ''
 }
 
 const SUB_COLORS: Record<string, string> = {
@@ -167,7 +167,7 @@ export default function StrategyPage() {
 
         {expanded === s.id && (
           <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">📐 Logic Structure</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2"> Logic Structure</p>
             <p className="text-xs text-slate-700 leading-relaxed">{s.structure}</p>
           </div>
         )}
@@ -184,7 +184,7 @@ export default function StrategyPage() {
           onClick={() => copyStructure(s.structure, s.id)}
           className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-[#C49A6C] hover:text-white transition-all flex items-center justify-center gap-2"
         >
-          {copiedId === s.id ? '✓ Copied' : '📋 Copy Structure'}
+          {copiedId === s.id ? '✓ Copied' : ' Copy Structure'}
         </button>
         <div className="w-px bg-slate-100" />
         <button
@@ -196,7 +196,7 @@ export default function StrategyPage() {
           }}
           className="flex-1 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center gap-2"
         >
-          {copiedId === s.id + '-full' ? '✓ Copied' : '✍️ Copy Full Post'}
+          {copiedId === s.id + '-full' ? '✓ Copied' : ' Copy Full Post'}
         </button>
       </div>
     </div>
@@ -211,7 +211,7 @@ export default function StrategyPage() {
           <p className="text-slate-500 font-medium mt-1">Proven positioning frameworks for every product & persona.</p>
         </div>
         <div className="flex items-center gap-2 bg-[#C49A6C]/10 border border-[#C49A6C]/20 px-4 py-3 rounded-xl">
-          <span className="text-[#C49A6C] text-sm">📖</span>
+          <span className="text-[#C49A6C] text-sm"></span>
           <span className="text-xs font-black text-[#C49A6C] uppercase tracking-widest">{STRATEGIES.length} Proven Strategies</span>
         </div>
       </div>
@@ -283,7 +283,7 @@ export default function StrategyPage() {
 
       {filtered.length === 0 && (
         <div className="py-24 text-center">
-          <p className="text-slate-300 text-5xl mb-4">📖</p>
+          <p className="text-slate-300 text-5xl mb-4"></p>
           <p className="font-black text-slate-400">No strategies found</p>
           <p className="text-sm text-slate-300 mt-1">Try a different search or category</p>
         </div>

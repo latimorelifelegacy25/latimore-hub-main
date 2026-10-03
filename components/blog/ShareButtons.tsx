@@ -58,7 +58,7 @@ export default function ShareButtons({ title, url }: Props) {
         onClick={copyLink}
         className="share-buttons__btn share-btn--copy"
       >
-        {copied ? '✓ Copied!' : '🔗 Copy Link'}
+        {copied ? '✓ Copied!' : ' Copy Link'}
       </button>
     </div>
   )

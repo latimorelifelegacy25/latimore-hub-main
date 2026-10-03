@@ -24,6 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Brand content regression check
+        run: node scripts/check-brand-content.mjs
+
+      - name: Token encryption regression tests
+        run: node --import tsx --test tests/token-encryption.test.ts
+
       - name: Lint
         run: npm run lint
 

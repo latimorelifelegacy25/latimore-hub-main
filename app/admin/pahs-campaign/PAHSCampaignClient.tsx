@@ -281,13 +281,13 @@ const DM_SCRIPTS: DmScript[] = [
 // ── COMPONENTS ────────────────────────────────────────────────────────────────
 function NavBar({ tab, setTab }: { tab: string; setTab: (t: string) => void }) {
   const tabs = [
-    { id:'overview',   label:'📊 Overview' },
-    { id:'pipeline',   label:'🔄 Pipeline' },
-    { id:'leads',      label:'👥 Leads' },
-    { id:'trends',     label:'📈 Trends' },
-    { id:'checklist',  label:'✅ Checklist' },
-    { id:'scripts',    label:'💬 DM Scripts' },
-    { id:'compliance', label:'🛡 Compliance' },
+    { id:'overview',   label:' Overview' },
+    { id:'pipeline',   label:' Pipeline' },
+    { id:'leads',      label:' Leads' },
+    { id:'trends',     label:' Trends' },
+    { id:'checklist',  label:' Checklist' },
+    { id:'scripts',    label:' DM Scripts' },
+    { id:'compliance', label:' Compliance' },
   ]
   return (
     <div style={{ background:'#fff', borderBottom:'1px solid #e8e8e8', display:'flex', overflowX:'auto', gap:0 }}>
@@ -664,13 +664,13 @@ function ChecklistView() {
 
         {doneCount < allItems.length && (
           <div style={{ marginTop:10, padding:'8px 12px', background:'#fff8ee', borderRadius:6, border:`1px solid ${G}`, fontSize:12, color:'#7a5c20', fontFamily:'Arial' }}>
-            ⚠️ DO NOT distribute assets until all {allItems.length} items are confirmed.
+             DO NOT distribute assets until all {allItems.length} items are confirmed.
           </div>
         )}
 
         {doneCount === allItems.length && (
           <div style={{ marginTop:10, padding:'8px 12px', background:'#f0fff4', borderRadius:6, border:`1px solid ${GR}`, fontSize:12, color:GR, fontWeight:700, fontFamily:'Arial' }}>
-            ✅ GO — All pre-launch criteria met. Clear for distribution.
+             GO — All pre-launch criteria met. Clear for distribution.
           </div>
         )}
       </div>

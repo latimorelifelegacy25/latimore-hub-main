@@ -11,7 +11,7 @@ function Callout({
   type?: 'tip' | 'warning' | 'story'
   children: React.ReactNode
 }) {
-  const icons = { tip: '💡', warning: '⚠️', story: '📖' }
+  const icons = { tip: '', warning: '', story: '' }
   return (
     <div className={`callout callout--${type}`}>
       <span className="callout__icon">{icons[type]}</span>

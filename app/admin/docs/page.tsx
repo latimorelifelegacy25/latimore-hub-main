@@ -44,8 +44,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'All': '📁', 'Brochure': '📄', 'Product Guide': '📋',
-  'Presentation': '📊', 'Script': '📝', 'Compliance': '⚖️', 'Other': '📎'
+  'All': '', 'Brochure': '', 'Product Guide': '',
+  'Presentation': '', 'Script': '', 'Compliance': '', 'Other': ''
 }
 
 const LS_KEY = 'latimore_docs_v2'
@@ -240,7 +240,7 @@ export default function DocsPage() {
 
         {filtered.length === 0 && (
           <div className="py-24 text-center">
-            <p className="text-slate-300 text-5xl mb-4">📁</p>
+            <p className="text-slate-300 text-5xl mb-4"></p>
             <p className="font-black text-slate-400">No documents found</p>
           </div>
         )}

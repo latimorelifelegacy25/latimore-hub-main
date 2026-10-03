@@ -398,7 +398,7 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
       })
 
       void sendGoogleChatMessage(
-        `🔥 Hot website visitor\nScore: ${score}\nStatus: ${resolvedContactId ? 'Known contact' : 'Anonymous visitor'}\nLast action: ${input.eventType}${input.pageUrl ? `\nPage: ${input.pageUrl}` : ''}${input.productInterest ? `\nInterest: ${input.productInterest}` : ''}`,
+        ` Hot website visitor\nScore: ${score}\nStatus: ${resolvedContactId ? 'Known contact' : 'Anonymous visitor'}\nLast action: ${input.eventType}${input.pageUrl ? `\nPage: ${input.pageUrl}` : ''}${input.productInterest ? `\nInterest: ${input.productInterest}` : ''}`,
       ).catch((error) => {
         logger.warn({ err: error instanceof Error ? error.message : String(error), visitorId }, 'Hot visitor Google Chat alert failed')
       })

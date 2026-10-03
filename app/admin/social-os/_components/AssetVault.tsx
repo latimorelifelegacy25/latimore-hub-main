@@ -119,7 +119,7 @@ const AssetVault: React.FC<AssetVaultProps> = ({ onIdeasGenerated }) => {
           <div key={asset.id} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-2xl">
-                {asset.mimeType?.startsWith('image/') ? '🖼️' : asset.type === 'PDF Document' ? '📄' : '📋'}
+                {asset.mimeType?.startsWith('image/') ? '' : asset.type === 'PDF Document' ? '' : ''}
               </div>
               <button onClick={() => deleteAsset(asset.id)} className="text-slate-200 hover:text-rose-400 transition">
                 <i className="fa-solid fa-trash text-xs"></i>

@@ -9,11 +9,11 @@ declare global {
 }
 
 const COVERAGE_OPTIONS = [
-  { value: "Protect my family's income", icon: '🛡️', label: "Protect my family's income", sub: 'Life & living benefits' },
-  { value: 'Pay off my home if something happens', icon: '🏠', label: 'Pay off my home if something happens', sub: 'Mortgage protection' },
-  { value: 'Plan for retirement', icon: '📈', label: 'Plan for retirement', sub: 'Annuities & IUL' },
-  { value: "Protect my kids' future", icon: '👶', label: "Protect my kids' future", sub: 'Juvenile IUL & whole life' },
-  { value: 'Not sure — show me my options', icon: '💡', label: 'Not sure — just show me my options', sub: '', wide: true },
+  { value: "Protect my family's income", icon: '', label: "Protect my family's income", sub: 'Life & living benefits' },
+  { value: 'Pay off my home if something happens', icon: '', label: 'Pay off my home if something happens', sub: 'Mortgage protection' },
+  { value: 'Plan for retirement', icon: '', label: 'Plan for retirement', sub: 'Annuities & IUL' },
+  { value: "Protect my kids' future", icon: '', label: "Protect my kids' future", sub: 'Juvenile IUL & whole life' },
+  { value: 'Not sure — show me my options', icon: '', label: 'Not sure — just show me my options', sub: '', wide: true },
 ]
 
 const TIME_OPTIONS = ['Morning', 'Midday', 'Afternoon', 'Evening', 'Weekends', 'Anytime']
@@ -216,7 +216,7 @@ export default function PahsProtectForm() {
               <strong>Jackson Latimore</strong> is a Pottsville local, a Crimson Tide supporter, and a licensed
               protection specialist. Your free review takes 60 seconds.
             </p>
-            <div className="pwyp-time-badge">⚡ 60 seconds &nbsp;·&nbsp; No pressure &nbsp;·&nbsp; No sales pitch</div>
+            <div className="pwyp-time-badge"> 60 seconds &nbsp;·&nbsp; No pressure &nbsp;·&nbsp; No sales pitch</div>
           </div>
 
           {/* Why Jackson trust block */}
@@ -237,8 +237,8 @@ export default function PahsProtectForm() {
                   <h2>Get Your Free Protection Review</h2>
                   <p>3 quick questions · Jackson follows up within 24 hours</p>
                   <div className="pwyp-form-meta">
-                    <span>🔒 Never sold or shared</span>
-                    <span>📞 Real follow-up</span>
+                    <span> Never sold or shared</span>
+                    <span> Real follow-up</span>
                   </div>
                 </div>
 
@@ -340,22 +340,22 @@ export default function PahsProtectForm() {
                 {submitting ? 'Submitting…' : 'Get My Free Review →'}
               </button>
               <button type="button" className="pwyp-btn-back" onClick={() => goToStep(2)}>← Back</button>
-              <div className="pwyp-privacy-note">🔒 Your information is never sold or shared. Ever.</div>
+              <div className="pwyp-privacy-note"> Your information is never sold or shared. Ever.</div>
               <div className={`pwyp-error-msg ${errors[3] ? 'pwyp-visible' : ''}`}>{errors[3] || 'Please fill in all required fields.'}</div>
             </div>
 
             {/* ── SUCCESS STATE ── */}
             <div className={`pwyp-success-panel ${success ? 'pwyp-visible' : ''}`}>
-              <div className="pwyp-check">✅</div>
+              <div className="pwyp-check"></div>
               <h3>You&rsquo;re All Set, <span className="pwyp-success-name">{firstName}</span>!</h3>
               <p className="pwyp-success-sub">
                 Jackson will call or text you within 24 hours.<br />
                 <em>Protecting Today. Securing Tomorrow.</em>
               </p>
               <div className="pwyp-success-actions">
-                <a className="pwyp-btn-call" href="tel:5709001977">📞 Call Jackson Now — (570) 900-1977</a>
-                <a className="pwyp-btn-vcard" href="#" onClick={(e) => { e.preventDefault(); downloadVCard() }}>💾 Save Jackson&rsquo;s Contact</a>
-                <a className="pwyp-btn-share" href="#" onClick={(e) => { e.preventDefault(); shareReview() }}>📤 Share With a Friend</a>
+                <a className="pwyp-btn-call" href="tel:5709001977"> Call Jackson Now — (570) 900-1977</a>
+                <a className="pwyp-btn-vcard" href="#" onClick={(e) => { e.preventDefault(); downloadVCard() }}> Save Jackson&rsquo;s Contact</a>
+                <a className="pwyp-btn-share" href="#" onClick={(e) => { e.preventDefault(); shareReview() }}> Share With a Friend</a>
               </div>
               <div className="pwyp-hashtag-note">#TheBeatGoesOn</div>
             </div>

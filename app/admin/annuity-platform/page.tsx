@@ -417,42 +417,42 @@ const DIMS = [
 // ─── Personas ─────────────────────────────────────────────────────────────────
 const PERSONAS = [
   {
-    icon: '🏡',
+    icon: '',
     label: 'New Retiree, Age 62–70',
     desc: 'Wants guaranteed income now or soon',
     recommend: ['is10', 'ipp'],
     avoid: ['es10'],
   },
   {
-    icon: '🏛️',
+    icon: '',
     label: 'Legacy Builder, Age 55–70',
     desc: 'Income + estate maximization',
     recommend: ['es10', 'is10'],
     avoid: ['as5', 'as7'],
   },
   {
-    icon: '💰',
+    icon: '',
     label: 'Saver, Age 50–65',
     desc: 'Protected growth, no income need yet',
     recommend: ['as7', 'as5'],
     avoid: ['is10', 'es10', 'ipp'],
   },
   {
-    icon: '🏥',
+    icon: '',
     label: 'Health Concern, Any Age',
     desc: 'Needs nursing/care income protection',
     recommend: ['ipp', 'is10'],
     avoid: ['as5', 'as7'],
   },
   {
-    icon: '⏱️',
+    icon: '',
     label: 'Short-Term, Age 18–60',
     desc: '5-year commitment, max flexibility',
     recommend: ['as5'],
     avoid: ['es10', 'is10', 'ipp'],
   },
   {
-    icon: '👫',
+    icon: '',
     label: 'Married Couple, Age 55–70',
     desc: 'Joint income, spousal protection',
     recommend: ['is10', 'es10', 'ipp'],
@@ -872,7 +872,7 @@ function DetailPanel({ p }: { p: Product }) {
             {p.wellbeingDetail && (
               <div className="bg-amber-950/20 border border-amber-500/30 rounded-xl p-4">
                 <h5 className="text-xs text-amber-400 font-bold mb-1 flex items-center gap-1.5">
-                  <span className="text-sm">⚡</span> Enhanced Wellbeing Income Multiplier
+                  <span className="text-sm"></span> Enhanced Wellbeing Income Multiplier
                 </h5>
                 <p className="text-xs text-slate-300 leading-relaxed">{p.wellbeingDetail}</p>
               </div>
@@ -881,7 +881,7 @@ function DetailPanel({ p }: { p: Product }) {
             {p.nursingMultiplier && (
               <div className="bg-amber-950/20 border border-amber-500/30 rounded-xl p-4">
                 <h5 className="text-xs text-amber-400 font-bold mb-1 flex items-center gap-1.5">
-                  <span className="text-sm">🏥</span> Double Payout Nursing Home Benefit
+                  <span className="text-sm"></span> Double Payout Nursing Home Benefit
                 </h5>
                 <p className="text-xs text-slate-300 leading-relaxed">{p.nursingMultiplier}</p>
               </div>
@@ -890,7 +890,7 @@ function DetailPanel({ p }: { p: Product }) {
             {p.enhancedDB && (
               <div className="bg-slate-950/60 border border-opacity-25 rounded-xl p-4" style={{ borderColor: `${p.color}30` }}>
                 <h5 className="text-xs font-bold mb-1 flex items-center gap-1.5" style={{ color: p.color }}>
-                  <span className="text-sm">🏛️</span> Guaranteed Estate Death Benefit Option
+                  <span className="text-sm"></span> Guaranteed Estate Death Benefit Option
                 </h5>
                 <p className="text-xs text-slate-300 leading-relaxed">{p.enhancedDB}</p>
               </div>
@@ -1342,10 +1342,10 @@ export default function AnnuityPlatformPage() {
   }, [search, carrierFilter, tagFilter, surrenderFilter, stateFilter, availableOnly])
 
   const NAV: [View, string][] = [
-    ['browse', '📋 Products Library'],
-    ['compare', '⚖️ Comparison'],
-    ['clients', '👥 Client Fit'],
-    ['summaries', '📄 Cheat Sheets'],
+    ['browse', ' Products Library'],
+    ['compare', ' Comparison'],
+    ['clients', ' Client Fit'],
+    ['summaries', ' Cheat Sheets'],
   ]
 
   return (
@@ -1580,7 +1580,7 @@ export default function AnnuityPlatformPage() {
 
                 {p.excludedStates.length > 0 && (
                   <p className="mt-4 text-[10px] text-red-400/80 font-semibold">
-                    ⚠ Restricted States: {p.excludedStates.join(', ')}
+                     Restricted States: {p.excludedStates.join(', ')}
                   </p>
                 )}
               </div>

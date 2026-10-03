@@ -66,7 +66,7 @@ const STARTER_TEMPLATES = [
     category: 'IUL',
     platform: 'instagram',
     audienceTrack: 'Young Professionals',
-    body: '🔒 What if your life insurance could also build tax-advantaged cash value?\n\nAn Indexed Universal Life (IUL) policy can:\n✅ Protect your family\n✅ Build cash value credited from market-index formulas\n✅ Provide generally income-tax-free policy-loan access when properly structured and kept in force\n\nNot for everyone — but for the right person, it\'s powerful. DM me "IUL" to see if it fits your situation.',
+    body: ' What if your life insurance could also build tax-advantaged cash value?\n\nAn Indexed Universal Life (IUL) policy can:\n Protect your family\n Build cash value credited from market-index formulas\n Provide generally income-tax-free policy-loan access when properly structured and kept in force\n\nNot for everyone — but for the right person, it\'s powerful. DM me "IUL" to see if it fits your situation.',
     cta: 'DM "IUL"',
     hashtags: ['#IUL', '#TaxAdvantaged', '#LifeInsurance', '#TheBeatGoesOn', '#FinancialFreedom'],
     suggestedDay: 'Friday',

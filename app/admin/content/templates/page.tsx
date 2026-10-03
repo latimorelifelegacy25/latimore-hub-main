@@ -35,10 +35,10 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 const PLATFORM_EMOJI: Record<string, string> = {
-  facebook:  '📘',
-  instagram: '📸',
-  linkedin:  '💼',
-  twitter:   '🐦',
+  facebook:  '',
+  instagram: '',
+  linkedin:  '',
+  twitter:   '',
 }
 
 export default function TemplatesPage() {

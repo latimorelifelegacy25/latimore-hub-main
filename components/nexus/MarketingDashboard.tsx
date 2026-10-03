@@ -131,8 +131,8 @@ export const MarketingDashboard: React.FC = () => {
   const [posts, setPosts] = useState<SocialPost[]>([
     { id: 'p1', platform: 'facebook', caption: 'Protecting Today. Securing Tomorrow. We’re proud to sponsor the upcoming Pottsvilles Area High School legacy program. #TheBeatGoesOn #SchuylkillCounty', status: 'approved', scheduledAt: '2026-05-24 10:00 AM', approvedBy: 'Patrick Latimore' },
     { id: 'p2', platform: 'linkedin', caption: 'How local business leaders coordinate cross-generational succession plans. Critical takeaways from our discussion with Sam Chivinski. Link in bio.', status: 'scheduled', scheduledAt: '2026-05-25 09:00 AM' },
-    { id: 'p3', platform: 'instagram', caption: 'Secure your family legacy with an on-brand policy built by local specialists. 🍂 Family-first, Coal Region matters. #ProtectingToday #TheBeatGoesOn', status: 'draft' },
-    { id: 'p4', platform: 'facebook', caption: 'Luzerne County Latino business assets protection playbook is now live! Transcending barriers with Spanish speaking support. 🇺🇸🇵🇷', status: 'published', publishedAt: '2026-05-18 02:30 PM', approvedBy: 'Patrick Latimore' },
+    { id: 'p3', platform: 'instagram', caption: 'Secure your family legacy with an on-brand policy built by local specialists.  Family-first, Coal Region matters. #ProtectingToday #TheBeatGoesOn', status: 'draft' },
+    { id: 'p4', platform: 'facebook', caption: 'Luzerne County Latino business assets protection playbook is now live! Transcending barriers with Spanish speaking support. ', status: 'published', publishedAt: '2026-05-18 02:30 PM', approvedBy: 'Patrick Latimore' },
     { id: 'p5', platform: 'linkedin', caption: 'Audit Checklist for life and legacy planning - Schuylkill Valley businesses.', status: 'failed', scheduledAt: '2026-05-15 11:15 AM' }
   ]);
 
@@ -1196,7 +1196,7 @@ export const MarketingDashboard: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <Sparkles size={13} /> Ground Generative Copy 🚀
+                              <Sparkles size={13} /> Ground Generative Copy
                             </>
                           )}
                         </button>

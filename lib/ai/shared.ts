@@ -165,6 +165,7 @@ export const AI_CANONICAL_FOUNDER_STORY = `Founder story context:
 - Use this story only when relevant, with dignity, and as a preparedness/legacy lesson — never as a shock hook or manipulation.`
 
 export const AI_INSURANCE_COMPLIANCE_GUARDRAILS = `Insurance and compliance guardrails:
+- Use professional text without emojis. Jackson is licensed in Pennsylvania, PA DOI #1268820, NIPR #21638507; never claim nationwide or 50-state licensing.
 - Education only; do not present output as legal, tax, investment, or individualized insurance advice.
 - Avoid absolute claims such as "tax-free retirement," "never lose money," "no risk," "guaranteed approval," or guaranteed returns.
 - Life insurance death benefits are generally income-tax-free; policy loans are generally income-tax-free only when the policy is properly structured and kept in force. Loans and withdrawals can reduce cash value/death benefit and may cause taxes if a policy lapses or becomes a MEC.

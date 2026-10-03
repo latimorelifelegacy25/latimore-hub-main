@@ -283,7 +283,7 @@ export async function checkConversionMilestoneAlerts() {
       await createNotification({
         type: 'conversion',
         priority: 'medium',
-        title: `🎉 New Conversion: ${contact.firstName} ${contact.lastName}`,
+        title: ` New Conversion: ${contact.firstName} ${contact.lastName}`,
         message: `Congratulations! ${contact.firstName} ${contact.lastName} has converted with a lead score of ${contact.leadScore || 0}/100.`,
         data: { leadScore: contact.leadScore },
         contactId: contact.id,
@@ -304,7 +304,7 @@ export async function checkConversionMilestoneAlerts() {
       await createNotification({
         type: 'conversion',
         priority: 'high',
-        title: `🏆 Milestone Achieved: ${recentMilestone} Conversions!`,
+        title: ` Milestone Achieved: ${recentMilestone} Conversions!`,
         message: `Congratulations! You've reached ${recentMilestone} total conversions. Keep up the excellent work!`,
         data: { totalConversions: recentMilestone },
       })

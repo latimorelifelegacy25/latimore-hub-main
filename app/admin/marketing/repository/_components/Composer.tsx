@@ -6,6 +6,7 @@
 // and local seed state.
 
 import { useEffect, useRef, useState } from 'react'
+import DOMPurify from 'dompurify'
 import { Icon, Button, Select, Wordmark } from './ui'
 import {
   CATEGORIES, DESTINATIONS, UTM_SOURCES, UTM_MEDIUMS,
@@ -28,7 +29,7 @@ function RichEditor({ html, onChange, placeholder, readOnly }: {
 
   useEffect(() => {
     if (ref.current && ref.current.innerHTML !== (html || '')) {
-      ref.current.innerHTML = html || ''
+      ref.current.innerHTML = DOMPurify.sanitize(html || '')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -50,7 +51,7 @@ function RichEditor({ html, onChange, placeholder, readOnly }: {
   }
   function addLink() {
     const url = window.prompt('Link URL', 'https://')
-    if (url) exec('createLink', url)
+    if (url && /^https?:\/\//i.test(url.trim())) exec('createLink', url.trim())
   }
 
   const tools: Array<{ ic?: string; cmd?: string; key?: string; val?: string; fn?: () => void; t: string; sep?: boolean }> = [
@@ -65,7 +66,7 @@ function RichEditor({ html, onChange, placeholder, readOnly }: {
   ]
 
   if (readOnly) {
-    return <div className="rte rte-preview"><div className="rte-body" dangerouslySetInnerHTML={{ __html: html || "<p class='rte-empty'>Nothing written yet.</p>" }} /></div>
+    return <div className="rte rte-preview"><div className="rte-body" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) || "<p class='rte-empty'>Nothing written yet.</p>" }} /></div>
   }
   return (
     <div className="rte">

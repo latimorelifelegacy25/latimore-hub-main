@@ -38,7 +38,7 @@ const LOGS = [
   { time: '09:14', cls: '#4ade80', msg: '✓  Latimore Hub OS — Vercel build passed' },
   { time: '09:10', cls: '#60a5fa', msg: '→  Supabase medxfhhxvmczmpurkmrp — schema sync OK' },
   { time: '08:55', cls: '#4ade80', msg: '✓  GA4 G-S0Q3E4DEBJ — events firing correctly' },
-  { time: '08:40', cls: '#facc15', msg: '⚠  PAHS invoice $460 — DUE TODAY' },
+  { time: '08:40', cls: '#facc15', msg: '  PAHS invoice $460 — DUE TODAY' },
   { time: '08:30', cls: '#60a5fa', msg: '→  Brand guardrails loaded — all workflows active' },
   { time: 'Yesterday', cls: '#4ade80', msg: '✓  LAT-2026-01 complaint package — finalized' },
 ]
@@ -55,12 +55,12 @@ const WORKFLOW_PROMPTS: Record<string, string> = {
 }
 
 const FOLDERS = [
-  { key: 'insurance', icon: '📁', name: 'Insurance & Carriers', sub: 'Appointments · Policies · Compliance' },
-  { key: 'hubos', icon: '💻', name: 'Hub OS / Codebase', sub: 'Next.js · Supabase · Vercel' },
-  { key: 'legal', icon: '⚖️', name: 'Legal — LAT-2026-01', sub: 'Complaint · Exhibits · Letters' },
-  { key: 'pahs', icon: '🛡️', name: 'PAHS Campaign', sub: 'Sponsorship · QR Funnel · Invoice' },
-  { key: 'marketing', icon: '📣', name: 'Marketing & Content', sub: 'Emails · Social · Landing Pages' },
-  { key: 'credentials', icon: '🎓', name: 'Credentials & Licenses', sub: 'MBA · License #1268820 · GFI' },
+  { key: 'insurance', icon: '', name: 'Insurance & Carriers', sub: 'Appointments · Policies · Compliance' },
+  { key: 'hubos', icon: '', name: 'Hub OS / Codebase', sub: 'Next.js · Supabase · Vercel' },
+  { key: 'legal', icon: '', name: 'Legal — LAT-2026-01', sub: 'Complaint · Exhibits · Letters' },
+  { key: 'pahs', icon: '', name: 'PAHS Campaign', sub: 'Sponsorship · QR Funnel · Invoice' },
+  { key: 'marketing', icon: '', name: 'Marketing & Content', sub: 'Emails · Social · Landing Pages' },
+  { key: 'credentials', icon: '', name: 'Credentials & Licenses', sub: 'MBA · License #1268820 · GFI' },
 ]
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ const NAV_TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: '⬡' },
   { id: 'revenue', label: 'Revenue Engine', icon: '◎' },
   { id: 'files', label: 'File Vault', icon: '▣' },
-  { id: 'tasks', label: 'Tasks', icon: '☑' },
+  { id: 'tasks', label: 'Tasks', icon: '' },
   { id: 'codex', label: 'Codex Sync', icon: '>_' },
 ]
 
@@ -370,9 +370,9 @@ Provide production-ready, copy-paste code or commands. Be specific and complete.
                   <span style={{ fontSize: 9, color: '#C49A6C', background: '#1f1810', padding: '2px 10px', borderRadius: 10 }}>#THEBEATGOESON</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <WorkflowCard icon="✉" title="Email Campaign Builder" desc="On-brand emails for pre-retirees, families, or school districts." onClick={() => launchWorkflow('email')} />
-                  <WorkflowCard icon="🏫" title="District Proposal Builder" desc="Full school district B2B proposals covering risk and continuity." onClick={() => launchWorkflow('proposal')} />
-                  <WorkflowCard icon="🛡" title="Brand Compliance Check" desc="Scored report against brand guardrails with a priority fix list." onClick={() => launchWorkflow('brand-check')} />
+                  <WorkflowCard icon="" title="Email Campaign Builder" desc="On-brand emails for pre-retirees, families, or school districts." onClick={() => launchWorkflow('email')} />
+                  <WorkflowCard icon="" title="District Proposal Builder" desc="Full school district B2B proposals covering risk and continuity." onClick={() => launchWorkflow('proposal')} />
+                  <WorkflowCard icon="" title="Brand Compliance Check" desc="Scored report against brand guardrails with a priority fix list." onClick={() => launchWorkflow('brand-check')} />
                   <WorkflowCard icon="◎" title="CTA Generator" desc="Generate KPI-linked calls to action for any ICP or channel." onClick={() => launchWorkflow('cta')} />
                 </div>
               </div>

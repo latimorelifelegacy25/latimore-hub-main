@@ -34,11 +34,11 @@ const COVERAGE_COLORS: Record<string, string> = {
 }
 
 const COVERAGE_ICONS: Record<string, string> = {
-  "Protect my family's income": '🛡️',
-  'Pay off my home if something happens': '🏠',
-  'Plan for retirement': '📈',
-  "Protect my kids' future": '👶',
-  'Not sure — show me my options': '💡',
+  "Protect my family's income": '',
+  'Pay off my home if something happens': '',
+  'Plan for retirement': '',
+  "Protect my kids' future": '',
+  'Not sure — show me my options': '',
 }
 
 function exportCSV(data: PahsLead[], filename: string) {
@@ -213,7 +213,7 @@ export default function PahsLeadsClient({ leads }: { leads: PahsLead[] }) {
               ) : (
                 <div className="divide-y divide-white/5">
                   {stats.coverageBreakdown.map(([interest, count]) => (
-                    <BarRow key={interest} label={interest} count={count} total={stats.total} icon={COVERAGE_ICONS[interest] ?? '📋'} />
+                    <BarRow key={interest} label={interest} count={count} total={stats.total} icon={COVERAGE_ICONS[interest] ?? ''} />
                   ))}
                 </div>
               )}
@@ -225,7 +225,7 @@ export default function PahsLeadsClient({ leads }: { leads: PahsLead[] }) {
               ) : (
                 <div className="divide-y divide-white/5">
                   {stats.sourceBreakdown.map(([source, count]) => (
-                    <BarRow key={source} label={source} count={count} total={stats.total} icon={source === 'qr' ? '📱' : '🔗'} />
+                    <BarRow key={source} label={source} count={count} total={stats.total} icon={source === 'qr' ? '' : ''} />
                   ))}
                 </div>
               )}
@@ -330,7 +330,7 @@ export default function PahsLeadsClient({ leads }: { leads: PahsLead[] }) {
                         <td className="whitespace-nowrap px-4 py-3 font-medium text-white">{lead.fullName}</td>
                         <td className="px-4 py-3">
                           <span className={`whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ${COVERAGE_COLORS[lead.coverageInterest] ?? 'bg-gray-500/20 text-gray-300'}`}>
-                            {COVERAGE_ICONS[lead.coverageInterest] ?? '📋'} {lead.coverageInterest}
+                            {COVERAGE_ICONS[lead.coverageInterest] ?? ''} {lead.coverageInterest}
                           </span>
                         </td>
                         <td className="whitespace-nowrap px-4 py-3 text-[#A9B1BE]">{lead.bestTime || '—'}</td>

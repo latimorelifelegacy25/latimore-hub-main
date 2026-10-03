@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireCronAuth } from '@/lib/ai/shared'
 
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
-  const isCron = req.headers.get('x-cron-secret') === process.env.CRON_SECRET
+  const isCron = requireCronAuth(req) === null
   const session = await getServerSession(authOptions)
   if (!isCron && !session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

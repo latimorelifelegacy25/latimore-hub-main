@@ -130,19 +130,19 @@ const PRESETS: Workflow[] = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const TRIGGER_META: Record<TriggerType, { label: string; color: string; icon: string }> = {
-  manual:    { label: 'Manual',     color: '#6B7280', icon: '▶️' },
-  webhook:   { label: 'Webhook',    color: '#3B82F6', icon: '🔗' },
-  cron:      { label: 'Scheduled',  color: '#8B5CF6', icon: '⏰' },
-  crm_stage: { label: 'CRM Stage',  color: '#F59E0B', icon: '🎯' },
+  manual:    { label: 'Manual',     color: '#6B7280', icon: '▶' },
+  webhook:   { label: 'Webhook',    color: '#3B82F6', icon: '' },
+  cron:      { label: 'Scheduled',  color: '#8B5CF6', icon: '' },
+  crm_stage: { label: 'CRM Stage',  color: '#F59E0B', icon: '' },
 }
 
 const STEP_META: Record<StepType, { label: string; icon: string }> = {
-  email:       { label: 'Send Email',        icon: '✉️' },
-  sms:         { label: 'Send SMS',          icon: '📱' },
-  social_post: { label: 'Social Post',       icon: '📣' },
-  ai_generate: { label: 'AI Generate',       icon: '🤖' },
-  delay:       { label: 'Delay / Wait',      icon: '⏳' },
-  condition:   { label: 'Condition Branch',  icon: '🔀' },
+  email:       { label: 'Send Email',        icon: '' },
+  sms:         { label: 'Send SMS',          icon: '' },
+  social_post: { label: 'Social Post',       icon: '' },
+  ai_generate: { label: 'AI Generate',       icon: '' },
+  delay:       { label: 'Delay / Wait',      icon: '' },
+  condition:   { label: 'Condition Branch',  icon: '' },
 }
 
 const STAGES = ['New', 'Attempted Contact', 'Contacted', 'Qualified', 'Follow Up', 'Booked', 'In Consult', 'Closed Won', 'Nurture']
@@ -154,12 +154,12 @@ const COMPLIANCE_COLORS: Record<string, string> = {
 }
 
 const PLATFORM_ICONS: Record<string, string> = {
-  facebook: '📘',
-  instagram: '📸',
-  linkedin: '💼',
-  sms: '📱',
-  email: '✉️',
-  gbp: '📍',
+  facebook: '',
+  instagram: '',
+  linkedin: '',
+  sms: '',
+  email: '',
+  gbp: '',
 }
 
 function cronToHuman(expr: string): string {
@@ -180,14 +180,14 @@ function formatBytes(bytes: number): string {
 }
 
 function mimeIcon(mimeType: string): string {
-  if (mimeType.startsWith('image/')) return '🖼️'
-  if (mimeType.startsWith('video/')) return '🎬'
-  if (mimeType === 'application/pdf') return '📄'
-  if (mimeType.includes('zip') || mimeType.includes('compressed')) return '🗜️'
-  if (mimeType.startsWith('audio/')) return '🎵'
-  if (mimeType.includes('word') || mimeType.includes('document')) return '📝'
-  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return '📊'
-  return '📁'
+  if (mimeType.startsWith('image/')) return ''
+  if (mimeType.startsWith('video/')) return ''
+  if (mimeType === 'application/pdf') return ''
+  if (mimeType.includes('zip') || mimeType.includes('compressed')) return ''
+  if (mimeType.startsWith('audio/')) return ''
+  if (mimeType.includes('word') || mimeType.includes('document')) return ''
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return ''
+  return ''
 }
 
 const blankWorkflow = (): Workflow => ({
@@ -329,7 +329,7 @@ function TriggerPanel({ workflow, onChange }: { workflow: Workflow; onChange: (w
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <label style={{ color: MUTED, fontSize: '0.78rem', fontWeight: 600, textTransform: 'uppercase' }}>Cron Expression</label>
           <input value={workflow.triggerValue} onChange={e => onChange({ ...workflow, triggerValue: e.target.value })} placeholder="0 8 * * 1-5" style={{ background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 6, padding: '7px 10px', fontSize: '0.85rem', fontFamily: 'monospace' }} />
-          {workflow.triggerValue && <div style={{ color: G, fontSize: '0.8rem' }}>📅 {cronToHuman(workflow.triggerValue)}</div>}
+          {workflow.triggerValue && <div style={{ color: G, fontSize: '0.8rem' }}> {cronToHuman(workflow.triggerValue)}</div>}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {['0 0 * * *', '0 8 * * 1-5', '0 8 * * 1', '*/15 * * * *'].map(expr => (
               <button key={expr} onClick={() => onChange({ ...workflow, triggerValue: expr })} style={{ padding: '3px 10px', borderRadius: 20, background: SURF2, border: `1px solid ${BORDER}`, color: MUTED, fontSize: '0.72rem', cursor: 'pointer', fontFamily: 'monospace' }}>{expr}</button>
@@ -344,7 +344,7 @@ function TriggerPanel({ workflow, onChange }: { workflow: Workflow; onChange: (w
             <option value="">Select stage…</option>
             {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
-          {workflow.triggerValue && <div style={{ color: G, fontSize: '0.8rem' }}>🎯 Fires when a contact enters <strong>{workflow.triggerValue}</strong></div>}
+          {workflow.triggerValue && <div style={{ color: G, fontSize: '0.8rem' }}> Fires when a contact enters <strong>{workflow.triggerValue}</strong></div>}
         </div>
       )}
     </div>
@@ -591,12 +591,12 @@ export default function MarketingCommandCenter() {
   const inputStyle = { background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem', width: '100%' }
   const selectStyle = { background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 8, padding: '9px 12px', fontSize: '0.88rem' }
   const TABS: { key: TabType; label: string }[] = [
-    { key: 'builder', label: '⚙️ Workflows' },
-    { key: 'campaigns', label: '📊 Dashboard' },
-    { key: 'campaign', label: '🚀 AI Campaign' },
-    { key: 'templates', label: '🖼️ Templates' },
-    { key: 'assets', label: '📁 Assets' },
-    { key: 'calculator', label: '🧮 Quote Calc' },
+    { key: 'builder', label: ' Workflows' },
+    { key: 'campaigns', label: ' Dashboard' },
+    { key: 'campaign', label: ' AI Campaign' },
+    { key: 'templates', label: ' Templates' },
+    { key: 'assets', label: ' Assets' },
+    { key: 'calculator', label: ' Quote Calc' },
   ]
 
   return (
@@ -612,8 +612,7 @@ export default function MarketingCommandCenter() {
       {/* Header */}
       <div style={{ background: SURF, borderBottom: `1px solid ${BORDER}`, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, background: G, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>⚡</div>
-          <div>
+                    <div>
             <div style={{ fontSize: '1.1rem', fontWeight: 900, color: INK }}>Marketing Command Center</div>
             <div style={{ fontSize: '0.75rem', color: MUTED }}>Latimore Life & Legacy · #TheBeatGoesOn</div>
           </div>
@@ -670,8 +669,7 @@ export default function MarketingCommandCenter() {
           <div style={{ padding: '1.5rem', overflowY: 'auto' }}>
             {!selected ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 16 }}>
-                <div style={{ fontSize: 48 }}>⚡</div>
-                <h2 style={{ margin: 0, color: INK, fontSize: '1.3rem', fontWeight: 800 }}>Select a template or create a new workflow</h2>
+                                <h2 style={{ margin: 0, color: INK, fontSize: '1.3rem', fontWeight: 800 }}>Select a template or create a new workflow</h2>
                 <p style={{ color: MUTED, maxWidth: 400, textAlign: 'center' }}>Choose from the 4 built-in presets on the left, or click <strong>+ New</strong> to build from scratch.</p>
                 <SBtn onClick={() => setSelected(blankWorkflow())}>+ Create Workflow</SBtn>
               </div>
@@ -693,13 +691,13 @@ export default function MarketingCommandCenter() {
                 </div>
 
                 <div style={sectionCard}>
-                  <h2 style={h2}>⚡ Trigger Configuration</h2>
+                  <h2 style={h2}> Trigger Configuration</h2>
                   <TriggerPanel workflow={selected} onChange={setSelected} />
                 </div>
 
                 <div style={sectionCard}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h2 style={{ ...h2, margin: 0 }}>📋 Steps ({selected.steps.length})</h2>
+                    <h2 style={{ ...h2, margin: 0 }}> Steps ({selected.steps.length})</h2>
                     <SBtn small onClick={addStep}>+ Add Step</SBtn>
                   </div>
                   {selected.steps.length === 0
@@ -713,7 +711,7 @@ export default function MarketingCommandCenter() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <SBtn onClick={save} disabled={saving || !selected.name}>{saving ? 'Saving…' : selected.id ? '💾 Save Changes' : '💾 Save Workflow'}</SBtn>
+                  <SBtn onClick={save} disabled={saving || !selected.name}>{saving ? 'Saving…' : selected.id ? ' Save Changes' : ' Save Workflow'}</SBtn>
                   {selected.id && (
                     <>
                       <SBtn variant="ghost" onClick={() => toggleActive(selected)}>{selected.isActive ? '⏸ Deactivate' : '▶ Activate'}</SBtn>
@@ -736,13 +734,13 @@ export default function MarketingCommandCenter() {
       {/* ── Active Campaigns / Dashboard Tab ── */}
       {tab === 'campaigns' && (
         <div style={{ padding: '1.5rem', maxWidth: 1100, margin: '0 auto' }}>
-          <h2 style={{ ...h2, fontSize: '1.2rem' }}>📊 Workflow Dashboard</h2>
+          <h2 style={{ ...h2, fontSize: '1.2rem' }}> Workflow Dashboard</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
             {[
-              { label: 'Total Workflows', value: workflows.length, icon: '⚙️' },
-              { label: 'Active', value: workflows.filter(w => w.isActive).length, icon: '🟢' },
-              { label: 'Total Runs', value: workflows.reduce((a, w) => a + (w.runCount ?? 0), 0), icon: '▶️' },
-              { label: 'Presets Available', value: PRESETS.length, icon: '📦' },
+              { label: 'Total Workflows', value: workflows.length, icon: '' },
+              { label: 'Active', value: workflows.filter(w => w.isActive).length, icon: '' },
+              { label: 'Total Runs', value: workflows.reduce((a, w) => a + (w.runCount ?? 0), 0), icon: '▶' },
+              { label: 'Presets Available', value: PRESETS.length, icon: '' },
             ].map(stat => (
               <div key={stat.label} style={{ background: SURF2, border: `1px solid ${BORDER}`, borderRadius: 12, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontSize: '1.5rem' }}>{stat.icon}</div>
@@ -799,7 +797,7 @@ export default function MarketingCommandCenter() {
       {tab === 'campaign' && (
         <div style={{ padding: '1.5rem', maxWidth: 1000, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div>
-            <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}>🚀 AI Campaign Generator</h2>
+            <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}> AI Campaign Generator</h2>
             <p style={{ color: MUTED, fontSize: '0.85rem', margin: 0 }}>Describe your campaign goal and get fully written content for every channel — instantly.</p>
           </div>
 
@@ -856,7 +854,7 @@ export default function MarketingCommandCenter() {
 
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <SBtn onClick={generateCampaign} disabled={campaignLoading || !campaignPrompt.trim() || campaignChannels.length === 0}>
-                {campaignLoading ? '⏳ Generating…' : '🚀 Generate Campaign'}
+                {campaignLoading ? ' Generating…' : ' Generate Campaign'}
               </SBtn>
               {campaignResult && <SBtn variant="ghost" onClick={() => setCampaignResult(null)}>Clear Results</SBtn>}
               <span style={{ color: MUTED, fontSize: '0.78rem' }}>{campaignChannels.length} channel{campaignChannels.length !== 1 ? 's' : ''} selected</span>
@@ -872,7 +870,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.email ? (() => {
                 const e = campaignResult.email as { subjectLines: string[]; preheader: string; bodyHtml: string; cta: string }
                 return (
-                  <CampaignBlock title="Email" icon="✉️">
+                  <CampaignBlock title="Email" icon="">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <span style={{ color: MUTED, fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase' }}>A/B Subject Lines</span>
                       {e.subjectLines?.map((s, i) => (
@@ -893,7 +891,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.sms ? (() => {
                 const s = campaignResult.sms as { message: string; followUp: string }
                 return (
-                  <CampaignBlock title="SMS" icon="📱">
+                  <CampaignBlock title="SMS" icon="">
                     {s.message && <CopyField label="Primary Message" value={s.message} />}
                     {s.followUp && <CopyField label="24h Follow-Up" value={s.followUp} />}
                   </CampaignBlock>
@@ -904,7 +902,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.facebook ? (() => {
                 const f = campaignResult.facebook as { caption: string; hashtags: string[]; postType: string }
                 return (
-                  <CampaignBlock title="Facebook" icon="📘">
+                  <CampaignBlock title="Facebook" icon="">
                     {f.caption && <CopyField label={`${f.postType ?? 'Feed'} Caption`} value={f.caption} />}
                     {f.hashtags?.length > 0 && <CopyField label="Hashtags" value={f.hashtags.map((h: string) => `#${h.replace(/^#/, '')}`).join(' ')} />}
                   </CampaignBlock>
@@ -915,7 +913,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.instagram ? (() => {
                 const ig = campaignResult.instagram as { caption: string; hashtags: string[]; postType: string }
                 return (
-                  <CampaignBlock title="Instagram" icon="📸">
+                  <CampaignBlock title="Instagram" icon="">
                     {ig.caption && <CopyField label={`${ig.postType ?? 'Feed'} Caption`} value={ig.caption} />}
                     {ig.hashtags?.length > 0 && <CopyField label="Hashtags" value={ig.hashtags.map((h: string) => `#${h.replace(/^#/, '')}`).join(' ')} />}
                   </CampaignBlock>
@@ -926,7 +924,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.linkedin ? (() => {
                 const li = campaignResult.linkedin as { post: string; articleHook: string }
                 return (
-                  <CampaignBlock title="LinkedIn" icon="💼">
+                  <CampaignBlock title="LinkedIn" icon="">
                     {li.post && <CopyField label="Post" value={li.post} />}
                     {li.articleHook && <CopyField label="Article Hook" value={li.articleHook} />}
                   </CampaignBlock>
@@ -937,7 +935,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.visualBrief ? (() => {
                 const vb = campaignResult.visualBrief as { canvaSpec: string; colorNotes: string; imagePrompt: string }
                 return (
-                  <CampaignBlock title="Visual Brief (Canva)" icon="🎨">
+                  <CampaignBlock title="Visual Brief (Canva)" icon="">
                     {vb.canvaSpec && <CopyField label="Canva Spec" value={vb.canvaSpec} />}
                     {vb.colorNotes && <CopyField label="Color Notes" value={vb.colorNotes} />}
                     {vb.imagePrompt && <CopyField label="AI Image Prompt" value={vb.imagePrompt} />}
@@ -949,7 +947,7 @@ export default function MarketingCommandCenter() {
               {campaignResult.scheduleSuggestion ? (() => {
                 const sc = campaignResult.scheduleSuggestion as { email: string; sms: string; social: string; reasoning: string }
                 return (
-                  <CampaignBlock title="Optimal Schedule" icon="📅">
+                  <CampaignBlock title="Optimal Schedule" icon="">
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10 }}>
                       {[['Email', sc.email], ['SMS', sc.sms], ['Social', sc.social]].map(([label, val]) => val && (
                         <div key={label} style={{ background: NAVY, border: `1px solid ${BORDER}`, borderRadius: 8, padding: '10px 12px' }}>
@@ -972,7 +970,7 @@ export default function MarketingCommandCenter() {
         <div style={{ padding: '1.5rem', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}>🖼️ Template Gallery</h2>
+              <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}> Template Gallery</h2>
               <p style={{ color: MUTED, fontSize: '0.85rem', margin: 0 }}>{templates.length} templates · Click any card to copy the body text</p>
             </div>
             <SBtn onClick={() => setShowNewTpl(!showNewTpl)}>{showNewTpl ? 'Cancel' : '+ New Template'}</SBtn>
@@ -989,7 +987,7 @@ export default function MarketingCommandCenter() {
               {['Life Insurance', 'Final Expense', 'Mortgage Protection', 'IUL', 'Annuity', 'Community', 'Key Person'].map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <button onClick={loadTemplates} style={{ padding: '7px 14px', borderRadius: 8, background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED, fontSize: '0.82rem', cursor: 'pointer' }}>
-              {templatesLoading ? '⏳' : '↺ Refresh'}
+              {templatesLoading ? '' : '↺ Refresh'}
             </button>
           </div>
 
@@ -1011,7 +1009,7 @@ export default function MarketingCommandCenter() {
                 <input value={newTpl.hashtags} onChange={e => setNewTpl({ ...newTpl, hashtags: e.target.value })} placeholder="Hashtags (comma-separated, without #)" style={{ background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 6, padding: '7px 10px', fontSize: '0.83rem' }} />
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
-                <SBtn onClick={saveTemplate} disabled={savingTpl || !newTpl.title || !newTpl.category || !newTpl.body}>{savingTpl ? 'Saving…' : '💾 Save Template'}</SBtn>
+                <SBtn onClick={saveTemplate} disabled={savingTpl || !newTpl.title || !newTpl.category || !newTpl.body}>{savingTpl ? 'Saving…' : ' Save Template'}</SBtn>
               </div>
             </div>
           )}
@@ -1035,7 +1033,7 @@ export default function MarketingCommandCenter() {
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {tpl.platform && (
                       <span style={{ padding: '2px 10px', borderRadius: 12, background: '#3B82F622', color: '#60A5FA', fontSize: '0.72rem', fontWeight: 700 }}>
-                        {PLATFORM_ICONS[tpl.platform] ?? '📢'} {tpl.platform}
+                        {PLATFORM_ICONS[tpl.platform] ?? ''} {tpl.platform}
                       </span>
                     )}
                     <span style={{ padding: '2px 10px', borderRadius: 12, background: G + '18', color: G, fontSize: '0.72rem', fontWeight: 700 }}>{tpl.category}</span>
@@ -1077,11 +1075,11 @@ export default function MarketingCommandCenter() {
         <div style={{ padding: '1.5rem', maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
             <div>
-              <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}>📁 Asset Manager</h2>
+              <h2 style={{ ...h2, fontSize: '1.2rem', marginBottom: '0.25rem' }}> Asset Manager</h2>
               <p style={{ color: MUTED, fontSize: '0.85rem', margin: 0 }}>{assets.length} assets · Upload files up to 500 MB or import from cloud storage</p>
             </div>
             <button onClick={loadAssets} style={{ padding: '7px 14px', borderRadius: 8, background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED, fontSize: '0.82rem', cursor: 'pointer' }}>
-              {assetsLoading ? '⏳' : '↺ Refresh'}
+              {assetsLoading ? '' : '↺ Refresh'}
             </button>
           </div>
 
@@ -1099,15 +1097,14 @@ export default function MarketingCommandCenter() {
               onClick={() => fileInputRef.current?.click()}
               style={{ background: dragOver ? G + '12' : SURF, border: `2px dashed ${dragOver ? G : BORDER}`, borderRadius: 12, padding: '2.5rem 1.5rem', textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}
             >
-              <div style={{ fontSize: 40 }}>☁️</div>
-              <div style={{ color: INK, fontWeight: 700, fontSize: '0.95rem' }}>Drop file here or click to browse</div>
+                            <div style={{ color: INK, fontWeight: 700, fontSize: '0.95rem' }}>Drop file here or click to browse</div>
               <div style={{ color: MUTED, fontSize: '0.78rem' }}>Supports any file type up to 500 MB</div>
               <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) uploadFile(f) }} />
             </div>
 
             {/* Cloud URL import */}
             <div style={{ ...sectionCard, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ color: G, fontWeight: 700, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>☁️ Import from Cloud URL</div>
+              <div style={{ color: G, fontWeight: 700, fontSize: '0.82rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}> Import from Cloud URL</div>
               <input value={cloudUrl} onChange={e => setCloudUrl(e.target.value)} placeholder="Storage URL (Supabase, S3, Google Drive…)" style={{ background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 6, padding: '7px 10px', fontSize: '0.82rem' }} />
               <input value={cloudFileName} onChange={e => setCloudFileName(e.target.value)} placeholder="File name (e.g. campaign-banner.png)" style={{ background: NAVY, border: `1px solid ${BORDER}`, color: INK, borderRadius: 6, padding: '7px 10px', fontSize: '0.82rem' }} />
               <select value={cloudMimeType} onChange={e => setCloudMimeType(e.target.value)} style={{ background: NAVY, border: `1px solid ${BORDER}`, color: cloudMimeType ? INK : MUTED, borderRadius: 6, padding: '7px 10px', fontSize: '0.82rem' }}>
@@ -1173,7 +1170,7 @@ export default function MarketingCommandCenter() {
       {tab === 'calculator' && (
         <div style={{ padding: '1.5rem' }}>
           <div style={{ marginBottom: 16, display: 'flex', gap: 10, alignItems: 'center' }}>
-            <h2 style={{ ...h2, margin: 0 }}>🧮 Insurance Quote Calculator</h2>
+            <h2 style={{ ...h2, margin: 0 }}> Insurance Quote Calculator</h2>
             <a href="/marketing/quote-calculator" target="_blank" rel="noreferrer" style={{ color: G, fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${G}44`, padding: '4px 10px', borderRadius: 6 }}>Open full page ↗</a>
           </div>
           <iframe src="/marketing/quote-calculator" style={{ width: '100%', height: 'calc(100vh - 160px)', border: 'none', borderRadius: 12 }} title="Quote Calculator" />

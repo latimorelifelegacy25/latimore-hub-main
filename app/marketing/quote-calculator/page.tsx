@@ -21,10 +21,10 @@ export default function QuoteCalculator() {
     age: 60, premium: 100000, product: 'safe-income', deferral: 10,
   })
   const [lifeResults, setLifeResults] = useState<{
-    monthlyPremium: number; annualPremium: number; totalPremium: number; ethosMonthly: number; savings: number
+    monthlyPremium: number; annualPremium: number; totalPremium: number
   } | null>(null)
   const [annuityResults, setAnnuityResults] = useState<{
-    incomeBase: number; monthlyIncome: number; annualIncome: number; cashValue: number; lifetimeIncome: number; totalReturn: number
+    incomeBase: number; monthlyIncome: number; annualIncome: number; cashValue: number; lifetimeIncome: number
   } | null>(null)
 
   const calculateLife = () => {
@@ -45,13 +45,10 @@ export default function QuoteCalculator() {
     else if (term === 30) r *= 1.15
     const monthly = (coverage / 1000) * r
     const annual = monthly * 12
-    const ethosMonthly = Math.max(39, monthly * 0.75)
     setLifeResults({
       monthlyPremium: Math.round(monthly),
       annualPremium: Math.round(annual),
       totalPremium: Math.round(annual * term),
-      ethosMonthly: Math.round(ethosMonthly),
-      savings: Math.round((monthly - ethosMonthly) * 12 * term),
     })
   }
 
@@ -68,7 +65,6 @@ export default function QuoteCalculator() {
       annualIncome: Math.round(annual),
       cashValue: Math.round(premium * Math.pow(1.04, deferral)),
       lifetimeIncome: Math.round(annual * 25),
-      totalReturn: Math.round((annual * 25 / premium - 1) * 100),
     })
   }
 
@@ -93,9 +89,8 @@ export default function QuoteCalculator() {
         <div style={{ ...card, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <div style={{ width: 44, height: 44, background: GOLD, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>🛡️</div>
               <div>
-                <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: INK }}>Insurance Quote Calculator</h1>
+                <h1 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 800, color: INK }}>Insurance Illustration Calculator</h1>
                 <p style={{ margin: 0, color: MUTED, fontSize: '0.9rem' }}>Latimore Life & Legacy LLC</p>
               </div>
             </div>
@@ -104,23 +99,23 @@ export default function QuoteCalculator() {
           <div style={{ textAlign: 'right', color: MUTED, fontSize: '0.85rem', lineHeight: 1.7 }}>
             <div style={{ color: GOLD, fontWeight: 700, fontSize: '1.05rem' }}>{PHONE}</div>
             <div>NIPR #21638507</div>
-            <div>Licensed in All 50 States</div>
+            <div>Licensed in Pennsylvania · PA DOI #1268820</div>
           </div>
         </div>
 
         {/* Tab Selector */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
           <button onClick={() => setActiveTab('life')} style={{ ...btn(activeTab === 'life'), flex: 1, padding: '1rem' }}>
-            🛡️ Life Insurance
+             Life Insurance
           </button>
           <button onClick={() => setActiveTab('annuity')} style={{ ...btn(activeTab === 'annuity'), flex: 1, padding: '1rem' }}>
-            📈 Annuities
+             Annuities
           </button>
         </div>
 
         {/* Life Insurance */}
         {activeTab === 'life' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 24 }}>
             {/* Inputs */}
             <div style={card}>
               <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Your Information</h2>
@@ -169,7 +164,7 @@ export default function QuoteCalculator() {
             {/* Results */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               <div style={{ background: `linear-gradient(135deg, #1a2535, #0e1827)`, border: `2px solid ${GOLD}33`, borderRadius: 16, padding: '2rem' }}>
-                <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Your Estimated Quote</h2>
+                <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Hypothetical Premium Estimate</h2>
                 {lifeResults && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div style={{ background: '#0B0F17', borderRadius: 12, padding: '1.5rem', textAlign: 'center', border: `1px solid ${GOLD}44` }}>
@@ -185,11 +180,7 @@ export default function QuoteCalculator() {
                         </div>
                       ))}
                     </div>
-                    <div style={{ background: `${GOLD}15`, border: `2px solid ${GOLD}66`, borderRadius: 12, padding: '1.25rem' }}>
-                      <div style={{ fontWeight: 700, color: GOLD, marginBottom: 6 }}>💰 Ethos Special Offer</div>
-                      <div style={{ fontSize: '1.8rem', fontWeight: 900, color: INK }}>${lifeResults.ethosMonthly}/mo</div>
-                      <div style={{ color: MUTED, fontSize: '0.85rem', marginTop: 4 }}>Save ${lifeResults.savings.toLocaleString()} over {lifeQuote.term} years</div>
-                    </div>
+
                   </div>
                 )}
               </div>
@@ -200,10 +191,10 @@ export default function QuoteCalculator() {
                     <span style={{ color: MUTED }}>{k}</span><span style={{ fontWeight: 700, color: INK }}>{v}</span>
                   </div>
                 ))}
-                <button onClick={() => window.open(FILLOUT_URL, '_blank')} style={{ width: '100%', marginTop: 20, padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
-                  ✉️ Get Official Quote
+                <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', marginTop: 20, padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
+                   Get Official Quote
                 </button>
-                <p style={{ color: MUTED, fontSize: '0.75rem', textAlign: 'center', marginTop: 8 }}>Estimate only. Final rates subject to underwriting.</p>
+                <p style={{ color: MUTED, fontSize: '0.75rem', textAlign: 'center', marginTop: 8 }}>Illustration only, using hypothetical assumptions; not a carrier quote. Final rates require underwriting.</p>
               </div>
             </div>
           </div>
@@ -211,7 +202,7 @@ export default function QuoteCalculator() {
 
         {/* Annuity */}
         {activeTab === 'annuity' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: 24 }}>
             <div style={card}>
               <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Annuity Details</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -222,7 +213,7 @@ export default function QuoteCalculator() {
                 </div>
                 <div>
                   <label style={label}>Initial Premium</label>
-                  <input type="number" value={annuityQuote.premium} onChange={e => setAnnuityQuote(p => ({ ...p, premium: +e.target.value || 0 }))} style={{ ...input, fontSize: '1.4rem', fontWeight: 700 }} step={10000} />
+                  <input aria-label="Initial premium" type="number" min={1} value={annuityQuote.premium} onChange={e => setAnnuityQuote(p => ({ ...p, premium: Math.max(1, +e.target.value || 1) }))} style={{ ...input, fontSize: '1.4rem', fontWeight: 700 }} step={10000} />
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     {[50000, 100000, 250000, 500000].map(v => (
                       <button key={v} onClick={() => setAnnuityQuote(p => ({ ...p, premium: v }))} style={{ flex: 1, padding: '0.5rem', borderRadius: 8, background: '#1e2d42', border: 'none', color: MUTED, cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}>${v / 1000}K</button>
@@ -232,9 +223,9 @@ export default function QuoteCalculator() {
                 <div>
                   <label style={label}>Product Type</label>
                   <select value={annuityQuote.product} onChange={e => setAnnuityQuote(p => ({ ...p, product: e.target.value }))} style={input}>
-                    <option value="safe-income">F&G Safe Income Advantage (7.20% rollup)</option>
-                    <option value="indexed">Fixed Indexed Annuity (6.50% rollup)</option>
-                    <option value="fixed">Multi-Year Guaranteed (5.50%)</option>
+                    <option value="safe-income">Hypothetical Income Rider (7.20% assumption)</option>
+                    <option value="indexed">Hypothetical Indexed Annuity (6.50% assumption)</option>
+                    <option value="fixed">Hypothetical Fixed Annuity (5.50% assumption)</option>
                   </select>
                 </div>
                 <div>
@@ -245,7 +236,7 @@ export default function QuoteCalculator() {
                 </div>
                 <div style={{ background: `${GOLD}10`, borderRadius: 12, padding: '1rem', border: `1px solid ${GOLD}33` }}>
                   <div style={{ fontWeight: 700, color: GOLD, marginBottom: 8 }}>Why Choose an Annuity?</div>
-                  {['Guaranteed lifetime income', 'Principal protection', 'Tax-deferred growth', 'No market risk'].map(b => (
+                  {['Income options depend on contract and rider terms', 'Principal protection', 'Tax-deferred growth', 'Contract terms, fees and surrender charges apply'].map(b => (
                     <div key={b} style={{ color: MUTED, fontSize: '0.9rem', padding: '3px 0' }}>✓ {b}</div>
                   ))}
                 </div>
@@ -253,11 +244,11 @@ export default function QuoteCalculator() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               <div style={{ background: `linear-gradient(135deg, #1a2535, #0e1827)`, border: `2px solid ${GOLD}33`, borderRadius: 16, padding: '2rem' }}>
-                <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Your Income Projection</h2>
+                <h2 style={{ margin: '0 0 1.5rem', fontSize: '1.3rem', fontWeight: 800, color: GOLD }}>Hypothetical Income Projection</h2>
                 {annuityResults && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <div style={{ background: '#0B0F17', borderRadius: 12, padding: '1.5rem', textAlign: 'center', border: `1px solid ${GOLD}44` }}>
-                      <div style={{ color: MUTED, fontSize: '0.85rem', marginBottom: 4 }}>Guaranteed Monthly Income</div>
+                      <div style={{ color: MUTED, fontSize: '0.85rem', marginBottom: 4 }}>Illustrative Monthly Income</div>
                       <div style={{ fontSize: '3rem', fontWeight: 900, color: GOLD }}>${annuityResults.monthlyIncome.toLocaleString()}</div>
                       <div style={{ color: MUTED, fontSize: '0.85rem' }}>Starting at age {annuityQuote.age + annuityQuote.deferral}</div>
                     </div>
@@ -270,9 +261,9 @@ export default function QuoteCalculator() {
                       ))}
                     </div>
                     <div style={{ background: `${GOLD}15`, border: `2px solid ${GOLD}66`, borderRadius: 12, padding: '1.25rem' }}>
-                      <div style={{ fontWeight: 700, color: GOLD, marginBottom: 6 }}>Lifetime Income Potential</div>
+                      <div style={{ fontWeight: 700, color: GOLD, marginBottom: 6 }}>25-Year Illustrative Payouts</div>
                       <div style={{ fontSize: '2rem', fontWeight: 900, color: INK }}>${annuityResults.lifetimeIncome.toLocaleString()}</div>
-                      <div style={{ color: MUTED, fontSize: '0.85rem', marginTop: 4 }}>Over 25 years • {annuityResults.totalReturn}% total return</div>
+                      <div style={{ color: MUTED, fontSize: '0.85rem', marginTop: 4 }}>25-year payout illustration; excludes fees and taxes</div>
                     </div>
                   </div>
                 )}
@@ -281,17 +272,17 @@ export default function QuoteCalculator() {
                 <h3 style={{ margin: '0 0 1rem', color: INK, fontWeight: 700 }}>Product Features</h3>
                 {annuityQuote.product === 'safe-income' && (
                   <div style={{ color: MUTED, fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <div>📈 <strong style={{ color: INK }}>7.20% Guaranteed Roll-Up</strong> — for first 10 years or until income starts</div>
-                    <div>🛡️ <strong style={{ color: INK }}>Principal Protection</strong> — protection from direct market-index losses, subject to product terms</div>
+                    <div> <strong style={{ color: INK }}>7.20% Assumed Roll-Up</strong> — hypothetical income-base assumption; not a carrier rate or cash-value return</div>
+                    <div> <strong style={{ color: INK }}>Principal Protection</strong> — protection from direct market-index losses, subject to product terms</div>
                   </div>
                 )}
-                <div style={{ color: MUTED, fontSize: '0.9rem', marginTop: 12 }}>💵 <strong style={{ color: INK }}>Lifetime Income Guarantee</strong> — payments continue for life, even if account depletes</div>
+                <div style={{ color: MUTED, fontSize: '0.9rem', marginTop: 12 }}> <strong style={{ color: INK }}>Lifetime Income Options</strong> — payments depend on the contract, elected rider and eligibility</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
-                  <button onClick={() => window.open(FILLOUT_URL, '_blank')} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
-                    📞 Speak with Retirement Specialist
+                  <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
+                     Speak with Retirement Specialist
                   </button>
                   <button onClick={() => window.print()} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: 'transparent', color: GOLD, fontWeight: 700, fontSize: '1rem', border: `2px solid ${GOLD}`, cursor: 'pointer' }}>
-                    ⬇️ Save This Quote
+                    ⬇ Save This Quote
                   </button>
                 </div>
                 <p style={{ color: MUTED, fontSize: '0.75rem', textAlign: 'center', marginTop: 8 }}>Hypothetical illustration. Actual values may vary by contract.</p>
@@ -307,11 +298,11 @@ export default function QuoteCalculator() {
             These are estimated quotes. Let's discuss your specific situation and build the right solution for your family.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => window.open(FILLOUT_URL, '_blank')} style={{ padding: '1rem 2rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
-              ✉️ Request Official Quote
+            <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ padding: '1rem 2rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
+               Request Official Quote
             </button>
             <a href={`tel:5709001977`} style={{ display: 'inline-block', padding: '1rem 2rem', borderRadius: 10, border: `2px solid ${GOLD}`, color: GOLD, fontWeight: 800, textDecoration: 'none', fontSize: '1rem' }}>
-              📞 Call {PHONE}
+               Call {PHONE}
             </a>
           </div>
         </div>

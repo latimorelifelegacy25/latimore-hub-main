@@ -41,8 +41,8 @@ const DEFAULT_LINKS: LinkItem[] = [
 const CATEGORIES: LinkCategory[] = ['All', 'Carrier', 'GFI', 'Portals', 'Social', 'Tools', 'Funnels', 'Other']
 
 const CATEGORY_ICONS: Record<string, string> = {
-  'All': '🔗', 'Carrier': '🛡️', 'GFI': '🏢', 'Portals': '🚪',
-  'Social': '📱', 'Tools': '🔧', 'Funnels': '🎯', 'Other': '📎'
+  'All': '', 'Carrier': '', 'GFI': '', 'Portals': '',
+  'Social': '', 'Tools': '', 'Funnels': '', 'Other': ''
 }
 
 export default function PortalsPage() {
@@ -247,7 +247,7 @@ export default function PortalsPage() {
 
       {filtered.length === 0 && (
         <div className="py-24 text-center">
-          <p className="text-slate-300 text-5xl mb-4">🔗</p>
+          <p className="text-slate-300 text-5xl mb-4"></p>
           <p className="font-black text-slate-400">No links found</p>
           <p className="text-sm text-slate-300 mt-1">Try a different search or category</p>
         </div>

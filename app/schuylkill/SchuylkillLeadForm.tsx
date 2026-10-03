@@ -74,8 +74,7 @@ export default function SchuylkillLeadForm() {
           textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>✅</div>
-        <h3 style={{ color: navy, marginBottom: '0.5rem' }}>You&apos;re all set!</h3>
+                <h3 style={{ color: navy, marginBottom: '0.5rem' }}>You&apos;re all set!</h3>
         <p style={{ color: '#475467', margin: 0 }}>
           Thank you! Jackson will reach out to you shortly to schedule your free consultation.
         </p>

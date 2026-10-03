@@ -61,14 +61,14 @@ const PRESET_TEMPLATES: WorkflowTemplate[] = [
     triggerType: 'FORM_SUBMIT',
     triggerValue: '/api/lead',
     steps: [
-      { id: 'drip-1', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '🧠 Business + Plan Context Lock', payload: 'Build the Email Drip Campaign System addendum for Latimore Life & Legacy LLC. Owner: Jackson Latimore Sr. Offers: Life insurance, living benefits, mortgage protection, retirement income planning, annuity education, legacy planning. Service area: Coal Region and surrounding communities (Schuylkill, Luzerne, Northumberland Counties PA). Voice: Plain English, no pressure, clarity-first, trust-building, local community tone. Booking link: {{booking_link}}. CRM: Your CRM. Output: (1) A short "Why this drip exists" paragraph, (2) the 6-stage framework labels (welcome, education, social proof, soft ask, urgency nudge, re-engagement), (3) the 30-day cadence (Day 0, 2, 5, 10, 17, 30) with a one-line goal for each touch.' },
-      { id: 'drip-2', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '🏷 Source Tagging + Sequence Assignment Map', payload: 'Create the Trigger Sources section with: Lead Source, Assigned Sequence Name, Primary intent, CRM tags, Entry criteria, Exit criteria. Map these sources: PAHS QR code → Family Protection/Community Trust; Website consultation form → General Protection Review; Ethos quote request → Fast Term/Living Benefits; Retirement inquiry → Annuity/Safe Money; Facebook DM "PROTECT" → Life Insurance Education; Google Business Profile → Local Trust/Policy Review.' },
-      { id: 'drip-3', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '🗓 30-Day Drip Blueprint', payload: 'Build the 30-Day Lead Nurture Sequence as a table. Columns: Day, Stage, Channel (email/text/both), Theme/subject angle, Primary goal, CTA, Personalization tokens. Rules: Day 0 confirms receipt; Education teaches coverage needs framework; Social proof uses local community credibility; Soft ask invites low-pressure review; Urgency explains risk without fearmongering; Re-engagement adds fresh value.' },
-      { id: 'drip-4', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '✉️ Six Email Drafts (Plug-and-Play)', payload: 'Write full copy for 6 emails: Day 0 Welcome, Day 2 Education, Day 5 Social Proof, Day 10 Soft Ask, Day 17 Urgency Nudge, Day 30 Re-engagement. Each: Subject line + body + clear CTA with {{booking_link}}. Use {{first_name}} in greeting. Short paragraphs. Voice: plain English, no pressure, clarity-first. Signature: Jackson Latimore | Founder | Protection & Retirement Advisor | Latimore Life & Legacy LLC. Include compliance footer: unsubscribe option, business address, TCPA/CAN-SPAM compliant.' },
-      { id: 'drip-5', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '📲 Text Message Companions', payload: 'Create matching SMS messages for Day 0, 2, 5, 10, 17, 30. Max 240 characters each. Friendly, professional, local-trust tone. One CTA per message (reply keyword or book via {{booking_link}}). Use {{first_name}}. Include opt-out language: "Reply STOP to unsubscribe."' },
-      { id: 'drip-6', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '🤖 Automation Rules + Manual Task Logic', payload: 'Write automation rules for the CRM: (1) Trigger on new lead + source captured; (2) Entry: apply tags, send Day 0, create timeline; (3) Branches: book → stop+move to Booked+create task, reply → pause+move to Engaged, opt-out → stop all+tag Opted Out; (4) No-response after Day 10 → create manual call task for Jackson; (5) Day 30 no-engagement → tag Cold. Include numbered rules list and pseudo-flow diagram.' },
-      { id: 'drip-7', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: '📊 KPI Targets + Reporting Loop', payload: 'Create KPI tracking table: Email open rate (target 35%+), Click-through rate (3-8%), Reply rate (5%+), Booking conversion (10-20%), Sequence completion (80%+), Cold lead revival (5-10%). For each KPI: target, how to measure, weekly action if below target. Add 10-min weekly review checklist and two A/B tests to run (subject lines and CTA phrasing).' },
-      { id: 'drip-8', type: 'AI_AGENT_PROMPT', requiresConfirmation: true, description: '🧩 Paste-Ready Marketing Plan Addendum', payload: 'Compile everything into a single Email Drip Campaign System addendum paste-ready for the Business + Marketing Plan. Structure: Overview → 6-stage framework → Trigger Sources → 30-Day Table → Email Drafts → Text Companions → Automation Rules → KPIs → Bottom Line (lead → tag → drip → booking → task → pipeline). Clean, skimmable, implementation-ready.' },
+      { id: 'drip-1', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' Business + Plan Context Lock', payload: 'Build the Email Drip Campaign System addendum for Latimore Life & Legacy LLC. Owner: Jackson Latimore Sr. Offers: Life insurance, living benefits, mortgage protection, retirement income planning, annuity education, legacy planning. Service area: Coal Region and surrounding communities (Schuylkill, Luzerne, Northumberland Counties PA). Voice: Plain English, no pressure, clarity-first, trust-building, local community tone. Booking link: {{booking_link}}. CRM: Your CRM. Output: (1) A short "Why this drip exists" paragraph, (2) the 6-stage framework labels (welcome, education, social proof, soft ask, urgency nudge, re-engagement), (3) the 30-day cadence (Day 0, 2, 5, 10, 17, 30) with a one-line goal for each touch.' },
+      { id: 'drip-2', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' Source Tagging + Sequence Assignment Map', payload: 'Create the Trigger Sources section with: Lead Source, Assigned Sequence Name, Primary intent, CRM tags, Entry criteria, Exit criteria. Map these sources: PAHS QR code → Family Protection/Community Trust; Website consultation form → General Protection Review; Ethos quote request → Fast Term/Living Benefits; Retirement inquiry → Annuity/Safe Money; Facebook DM "PROTECT" → Life Insurance Education; Google Business Profile → Local Trust/Policy Review.' },
+      { id: 'drip-3', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' 30-Day Drip Blueprint', payload: 'Build the 30-Day Lead Nurture Sequence as a table. Columns: Day, Stage, Channel (email/text/both), Theme/subject angle, Primary goal, CTA, Personalization tokens. Rules: Day 0 confirms receipt; Education teaches coverage needs framework; Social proof uses local community credibility; Soft ask invites low-pressure review; Urgency explains risk without fearmongering; Re-engagement adds fresh value.' },
+      { id: 'drip-4', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' Six Email Drafts (Plug-and-Play)', payload: 'Write full copy for 6 emails: Day 0 Welcome, Day 2 Education, Day 5 Social Proof, Day 10 Soft Ask, Day 17 Urgency Nudge, Day 30 Re-engagement. Each: Subject line + body + clear CTA with {{booking_link}}. Use {{first_name}} in greeting. Short paragraphs. Voice: plain English, no pressure, clarity-first. Signature: Jackson Latimore | Founder | Protection & Retirement Advisor | Latimore Life & Legacy LLC. Include compliance footer: unsubscribe option, business address, TCPA/CAN-SPAM compliant.' },
+      { id: 'drip-5', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' Text Message Companions', payload: 'Create matching SMS messages for Day 0, 2, 5, 10, 17, 30. Max 240 characters each. Friendly, professional, local-trust tone. One CTA per message (reply keyword or book via {{booking_link}}). Use {{first_name}}. Include opt-out language: "Reply STOP to unsubscribe."' },
+      { id: 'drip-6', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' Automation Rules + Manual Task Logic', payload: 'Write automation rules for the CRM: (1) Trigger on new lead + source captured; (2) Entry: apply tags, send Day 0, create timeline; (3) Branches: book → stop+move to Booked+create task, reply → pause+move to Engaged, opt-out → stop all+tag Opted Out; (4) No-response after Day 10 → create manual call task for Jackson; (5) Day 30 no-engagement → tag Cold. Include numbered rules list and pseudo-flow diagram.' },
+      { id: 'drip-7', type: 'AI_AGENT_PROMPT', requiresConfirmation: false, description: ' KPI Targets + Reporting Loop', payload: 'Create KPI tracking table: Email open rate (target 35%+), Click-through rate (3-8%), Reply rate (5%+), Booking conversion (10-20%), Sequence completion (80%+), Cold lead revival (5-10%). For each KPI: target, how to measure, weekly action if below target. Add 10-min weekly review checklist and two A/B tests to run (subject lines and CTA phrasing).' },
+      { id: 'drip-8', type: 'AI_AGENT_PROMPT', requiresConfirmation: true, description: ' Paste-Ready Marketing Plan Addendum', payload: 'Compile everything into a single Email Drip Campaign System addendum paste-ready for the Business + Marketing Plan. Structure: Overview → 6-stage framework → Trigger Sources → 30-Day Table → Email Drafts → Text Companions → Automation Rules → KPIs → Bottom Line (lead → tag → drip → booking → task → pipeline). Clean, skimmable, implementation-ready.' },
     ]
   },
   {
@@ -83,42 +83,42 @@ const PRESET_TEMPLATES: WorkflowTemplate[] = [
       {
         id: 's4-1',
         type: 'AI_AGENT_PROMPT',
-        description: '🧠 Codebase Context Loader',
+        description: ' Codebase Context Loader',
         payload: 'Analyze repository context for Latimore Hub OS. Create or update running log titled "CODEBASE FIX LOG - latimore-hub". Track timestamps, unresolved risks, and fixes attempted.',
         requiresConfirmation: false
       },
       {
         id: 's4-2',
         type: 'AI_AGENT_PROMPT',
-        description: '🔍 Recent Change Detector',
+        description: ' Recent Change Detector',
         payload: 'Review latest codebase context and identify recent changes. Look for modified architecture, configuration changes, or security-sensitive edits.',
         requiresConfirmation: false
       },
       {
         id: 's4-3',
         type: 'AI_AGENT_PROMPT',
-        description: '🧪 Full Codebase Audit',
+        description: ' Full Codebase Audit',
         payload: 'Perform a complete audit of Latimore Hub OS. Check code quality, security risks, database pool connection, and release blocking bugs.',
         requiresConfirmation: false
       },
       {
         id: 's4-4',
         type: 'AI_AGENT_PROMPT',
-        description: '🛠 Fix Plan Generator',
+        description: ' Fix Plan Generator',
         payload: 'Convert the audit findings into practical fix batches. Prioritize critical blockers and secure customer API pathways.',
         requiresConfirmation: false
       },
       {
         id: 's4-5',
         type: 'AI_AGENT_PROMPT',
-        description: '🚨 Apply Critical Fixes',
+        description: ' Apply Critical Fixes',
         payload: 'Apply exact fixes for critical issues automatically or provide concise patch guides.',
         requiresConfirmation: true
       },
       {
         id: 's4-6',
         type: 'TERMINAL_COMMAND',
-        description: '✅ Verify Critical Fixes',
+        description: ' Verify Critical Fixes',
         payload: 'npm run build && npm run lint',
         requiresConfirmation: false
       },
@@ -132,21 +132,21 @@ const PRESET_TEMPLATES: WorkflowTemplate[] = [
       {
         id: 's4-8',
         type: 'AI_AGENT_PROMPT',
-        description: '🔥 Apply High-Priority Fixes',
+        description: ' Apply High-Priority Fixes',
         payload: 'Resolve key customer experience bugs and minor security warning validations.',
         requiresConfirmation: true
       },
       {
         id: 's4-9',
         type: 'TERMINAL_COMMAND',
-        description: '🧾 Verify High-Priority Fixes',
+        description: ' Verify High-Priority Fixes',
         payload: 'npm run lint',
         requiresConfirmation: false
       },
       {
         id: 's4-10',
         type: 'AI_AGENT_PROMPT',
-        description: '📋 Final Fix Report',
+        description: ' Final Fix Report',
         payload: 'Summarize audited areas, modules resolved, and status of verification table.',
         requiresConfirmation: false
       }
@@ -794,7 +794,7 @@ export const WorkflowBuilder: React.FC = () => {
                     {tpl.triggerType && (
                       <div className="mt-1.5 flex items-center gap-1 flex-wrap">
                         <span className="text-[7.5px] uppercase font-extrabold text-amber-600 bg-amber-50 border border-amber-100 shrink-0 px-1 py-0.5 rounded">
-                          ⚡ {tpl.triggerType.replace('_', ' ')}
+                           {tpl.triggerType.replace('_', ' ')}
                         </span>
                         <span className="text-[7.5px] text-[#6b6b6b] truncate max-w-[150px]">
                           {tpl.triggerValue}
@@ -830,7 +830,7 @@ export const WorkflowBuilder: React.FC = () => {
                       {tpl.triggerType && (
                         <div className="mt-1 flex items-center gap-1">
                           <span className="text-[7.5px] uppercase font-extrabold text-amber-600 bg-amber-50 px-1 py-0.5 rounded">
-                            ⚡ {tpl.triggerType.replace('_', ' ')}
+                             {tpl.triggerType.replace('_', ' ')}
                           </span>
                         </div>
                       )}
@@ -981,10 +981,10 @@ export const WorkflowBuilder: React.FC = () => {
                 </div>
 
                 <p className="text-[9.5px] text-slate-500 italic mt-0.5 leading-normal">
-                  {workflowTrigger === 'FORM_SUBMIT' && '🚀 Integrated Fillout webhook matches signature keys and dispatches this workflow series instantly on inbound inquiries.'}
-                  {workflowTrigger === 'CRON_SCHEDULE' && '⏰ Clock triggers this pipeline on a background loop runner container, tracking execution in the database audit logs.'}
-                  {workflowTrigger === 'STAGE_CHANGE' && '🔄 Changing a contact to this stage in the kanban board will automatically fire this automated run.'}
-                  {workflowTrigger === 'MANUAL' && '⚡ Manual triggers require authenticated admins to click the Run button to initiate operations in local testing.'}
+                  {workflowTrigger === 'FORM_SUBMIT' && ' Integrated Fillout webhook matches signature keys and dispatches this workflow series instantly on inbound inquiries.'}
+                  {workflowTrigger === 'CRON_SCHEDULE' && ' Clock triggers this pipeline on a background loop runner container, tracking execution in the database audit logs.'}
+                  {workflowTrigger === 'STAGE_CHANGE' && ' Changing a contact to this stage in the kanban board will automatically fire this automated run.'}
+                  {workflowTrigger === 'MANUAL' && ' Manual triggers require authenticated admins to click the Run button to initiate operations in local testing.'}
                 </p>
               </div>
             </div>
@@ -1057,12 +1057,12 @@ export const WorkflowBuilder: React.FC = () => {
                               onChange={(e) => updateStepField(step.id, 'type', e.target.value as any)}
                               className="bg-[#fcfbfa] border border-[rgba(44,62,80,0.08)] p-1.5 rounded font-bold text-[9px] text-[#2C3E50] cursor-pointer"
                             >
-                              <option value="BROWSER_NAVIGATE">🌐 Navigate URL</option>
-                              <option value="BROWSER_CLICK">🖱️ click Element</option>
-                              <option value="BROWSER_TYPE">✉️ Key-In Type</option>
-                              <option value="TERMINAL_COMMAND">💻 Command Script</option>
-                              <option value="WAIT">⏳ Wait Delay</option>
-                              <option value="AI_AGENT_PROMPT">🧠 AI Prompt Instruction</option>
+                              <option value="BROWSER_NAVIGATE"> Navigate URL</option>
+                              <option value="BROWSER_CLICK"> click Element</option>
+                              <option value="BROWSER_TYPE"> Key-In Type</option>
+                              <option value="TERMINAL_COMMAND"> Command Script</option>
+                              <option value="WAIT"> Wait Delay</option>
+                              <option value="AI_AGENT_PROMPT"> AI Prompt Instruction</option>
                             </select>
                           </div>
 

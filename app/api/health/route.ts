@@ -39,7 +39,9 @@ export async function GET(req: NextRequest) {
     db: dbOk ? 'connected' : 'error',
     ts: new Date().toISOString(),
   }
-  if (dbError) body.error = dbError
+  if (dbError) {
+    body.error = 'Database unavailable'
+  }
 
   if (wantConfig) {
     if (await isAuthorizedForConfig(req)) {

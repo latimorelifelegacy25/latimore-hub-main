@@ -24,7 +24,7 @@ export default function ContactActionPanel({ contactId }: ContactActionPanelProp
               Generating...
             </>
           ) : (
-            '🤖 Generate Tasks'
+            ' Generate Tasks'
           )}
         </button>
       </div>

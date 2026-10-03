@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireCronAuth } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { detectSpike } from '@/lib/analytics/engagement'
 
@@ -7,7 +8,7 @@ export const runtime = 'nodejs'
 
 // Called by cron or webhook when new metrics arrive. Detects spikes and writes Insights.
 export async function POST(req: NextRequest) {
-  const isCron = req.headers.get('x-cron-secret') === process.env.CRON_SECRET
+  const isCron = requireCronAuth(req) === null
   const syncToken = process.env.ENGAGEMENT_SYNC_TOKEN
   const auth = req.headers.get('authorization')
   const isSync = syncToken && auth === `Bearer ${syncToken}`
