@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import './pahs-v2.css'
 import ScrollReveal from './ScrollReveal'
 import V2ScrollReveal from './V2ScrollReveal'
@@ -37,7 +38,7 @@ export default function PahsV2Page() {
           <div className="v2-hy">Crimson Tide &middot; Class of &lsquo;26</div>
 
           <div className="v2-lhero">
-            <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" />
+            <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={850} height={960} sizes="200px" priority />
           </div>
 
           <div className="v2-tline">Protecting Today. Securing Tomorrow. #TheBeatGoesOn</div>
@@ -55,7 +56,7 @@ export default function PahsV2Page() {
 
       {/* ── SPONSOR GRAPHIC ── */}
       <section className="v2-spgfx">
-        <img src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" />
+        <Image src="/pahs-free-consult.png" alt="Free Consultation — Proud Sponsor of Pottsville Area Crimson Tide" width={1835} height={635} sizes="100vw" />
       </section>
 
       {/* ── STORY ── */}
@@ -88,7 +89,7 @@ export default function PahsV2Page() {
                 <div className="v2-cht">Pottsville caps magical season</div>
                 <div className="v2-chs">Tide&rsquo;s Keating, Buziak, DeMarkis join CB&rsquo;s Latimore atop team</div>
               </div>
-              <img className="v2-cp" src="/pahs-2005-allarea.png" alt="2005 Coal Region All-Area Football — Where the Journey Began" />
+              <Image className="v2-cp" src="/pahs-2005-allarea.png" alt="2005 Coal Region All-Area Football — Where the Journey Began" width={1024} height={1023} sizes="(max-width: 800px) 100vw, 600px" />
               <div className="v2-cc">
                 Headlining the 2005 Republican &amp; Herald All-Area Football Team — Jackson Latimore (#20, Cardinal
                 Brennan) named Offensive Player of the Year alongside Pottsville&rsquo;s finest.
@@ -138,7 +139,7 @@ export default function PahsV2Page() {
       {/* ── COUPON ── */}
       <section className="v2-cpn">
         <div className="v2-cpni v2-fu">
-          <img src="/pahs-free-consult.png" alt="Free Consultation — Powered by CampusBox Media" />
+          <Image src="/pahs-free-consult.png" alt="Free Consultation — Powered by CampusBox Media" width={1835} height={635} sizes="(max-width: 800px) 100vw, 700px" />
           <div className="v2-cpnn">Powered by CampusBox Media &middot; ID #2777749 &middot; Limit one per transaction</div>
         </div>
       </section>
@@ -198,7 +199,7 @@ export default function PahsV2Page() {
           <h2>Scan. Connect. Protect.</h2>
           <p>Scan the code or visit the link below to schedule your free consultation</p>
           <div className="v2-qrb">
-            <img src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy QR" style={{ width: 180, height: 180, objectFit: 'contain' }} />
+            <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy QR" width={850} height={960} sizes="180px" style={{ width: 180, height: 180, objectFit: 'contain' }} />
             <div className="v2-qru">latimorelifelegacy.fillout.com/pahs</div>
           </div>
           <a href="tel:5709001977" className="v2-qruw">&#128222; (570) 900-1977</a>

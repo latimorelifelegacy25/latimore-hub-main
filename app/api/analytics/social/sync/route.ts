@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
   let created = 0
   let updated = 0
   const errors: string[] = []
+  const pending: Array<{
+    postId: string
+    metricDate: Date
+    metrics: Record<string, number>
+    raw: object
+  }> = []
 
   for (const raw of posts) {
     if (!raw || typeof raw !== 'object') continue
@@ -66,21 +72,52 @@ export async function POST(req: NextRequest) {
         revenueCents: Number(p.revenue_cents ?? 0),
       }
 
-      const existing = await prisma.socialMetric.findUnique({
-        where: { postId_metricDate: { postId: post.id, metricDate } },
-      })
-
-      if (existing) {
-        await prisma.socialMetric.update({ where: { id: existing.id }, data: { ...metrics, raw: p as object } })
-        updated++
-      } else {
-        await prisma.socialMetric.create({
-          data: { postId: post.id, platform, metricDate, ...metrics, raw: p as object },
-        })
-        created++
-      }
+      pending.push({ postId: post.id, metricDate, metrics, raw: p as object })
     } catch (e) {
       errors.push(String(e instanceof Error ? e.message : e).slice(0, 200))
+    }
+  }
+
+  if (pending.length > 0) {
+    // Look up existing snapshots once to keep the created/updated counts accurate
+    const existingRows = await prisma.socialMetric.findMany({
+      where: {
+        postId: { in: [...new Set(pending.map(item => item.postId))] },
+        metricDate: { in: [...new Set(pending.map(item => item.metricDate))] },
+      },
+      select: { postId: true, metricDate: true },
+    })
+    const existingKeys = new Set(existingRows.map(row => `${row.postId}|${row.metricDate.getTime()}`))
+    const isExisting = (item: (typeof pending)[number]) => existingKeys.has(`${item.postId}|${item.metricDate.getTime()}`)
+
+    const toUpsert = (item: (typeof pending)[number]) =>
+      prisma.socialMetric.upsert({
+        where: { postId_metricDate: { postId: item.postId, metricDate: item.metricDate } },
+        create: { postId: item.postId, platform, metricDate: item.metricDate, ...item.metrics, raw: item.raw },
+        update: { ...item.metrics, raw: item.raw },
+      })
+
+    const BATCH_SIZE = 50
+    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+      const batch = pending.slice(i, i + BATCH_SIZE)
+      try {
+        await prisma.$transaction(batch.map(toUpsert))
+        for (const item of batch) {
+          if (isExisting(item)) updated++
+          else created++
+        }
+      } catch {
+        // Fall back to per-item upserts so one bad row does not fail the batch
+        for (const item of batch) {
+          try {
+            await toUpsert(item)
+            if (isExisting(item)) updated++
+            else created++
+          } catch (e) {
+            errors.push(String(e instanceof Error ? e.message : e).slice(0, 200))
+          }
+        }
+      }
     }
   }
 

@@ -2,6 +2,17 @@ import { Resend } from 'resend'
 import { captureException } from '@/lib/error-tracking'
 import { validateResendSandboxRoute } from '@/lib/resend-sandbox'
 
+let resendClient: Resend | null = null
+let resendClientKey: string | null = null
+
+function getResend(apiKey: string) {
+  if (!resendClient || resendClientKey !== apiKey) {
+    resendClient = new Resend(apiKey)
+    resendClientKey = apiKey
+  }
+  return resendClient
+}
+
 export async function sendMail({
   to,
   from,
@@ -25,7 +36,7 @@ export async function sendMail({
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY)
+    const resend = getResend(process.env.RESEND_API_KEY)
     const r = await resend.emails.send({ to, from, subject, html })
     return { ok: true, id: r.data?.id }
   } catch (err: any) {

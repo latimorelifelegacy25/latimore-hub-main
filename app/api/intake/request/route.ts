@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
@@ -152,7 +153,8 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    await prisma.note.create({
+    await Promise.all([
+    prisma.note.create({
       data: {
         contactId: contact.id,
         inquiryId: inquiry.id,
@@ -160,9 +162,9 @@ export async function POST(req: NextRequest) {
         body: intakeSummary,
         author: 'native-intake',
       },
-    })
+    }),
 
-    await prisma.task.create({
+    prisma.task.create({
       data: {
         title: `Contact ${input.firstName} ${input.lastName} to schedule consultation`,
         description: `Native consultation request received for ${input.productInterest ?? 'General protection planning'}.`,
@@ -170,7 +172,8 @@ export async function POST(req: NextRequest) {
         contactId: contact.id,
         inquiryId: inquiry.id,
       },
-    })
+    }),
+    ])
 
     await triggerLeadScoring({
       contactId: contact.id,
@@ -181,9 +184,13 @@ export async function POST(req: NextRequest) {
     const displayName = `${input.firstName} ${input.lastName}`.trim()
 
     if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
-      await sendMail({
-        to: process.env.NOTIFY_TO,
-        from: process.env.THANKYOU_FROM,
+      const notifyTo = process.env.NOTIFY_TO
+      const thankYouFrom = process.env.THANKYOU_FROM
+      after(async () => {
+        const results = await Promise.allSettled([
+      sendMail({
+        to: notifyTo,
+        from: thankYouFrom,
         subject: `New consultation request - ${displayName}`,
         html: InquiryNotification({
           firstName: input.firstName,
@@ -196,13 +203,18 @@ export async function POST(req: NextRequest) {
           source: input.source ?? 'website',
           campaign: input.campaign ?? 'native_consultation_request',
         }),
-      })
+      }),
 
-      await sendMail({
+      sendMail({
         to: input.email,
-        from: process.env.THANKYOU_FROM,
+        from: thankYouFrom,
         subject: 'We received your consultation request',
         html: ThankYou({ firstName: input.firstName }),
+      }),
+        ])
+        for (const r of results) {
+          if (r.status === 'rejected') await captureException(r.reason, { source: 'api', route: '/api/intake/request', channel: 'email' })
+        }
       })
     }
 

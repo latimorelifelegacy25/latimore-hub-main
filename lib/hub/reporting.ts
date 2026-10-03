@@ -26,6 +26,7 @@ export async function getDashboardOverview() {
     stageCounts,
     staleLeads,
     duplicateLeadRows,
+    topPage,
   ] = await Promise.all([
     prisma.inquiry.count({ where: { createdAt: { gte: monthStart } } }),
     prisma.event.count({
@@ -76,17 +77,17 @@ export async function getDashboardOverview() {
         inquiry: { select: { id: true, createdAt: true, source: true, campaign: true } },
       },
     }),
+    prisma.$queryRaw<Array<{ page: string | null; count: bigint | number }>>`
+      SELECT "pageUrl" AS page, COUNT(*) AS count
+      FROM "Event"
+      WHERE "pageUrl" IS NOT NULL
+        AND "eventType" = 'page_view'
+        AND "occurredAt" >= ${thirtyDaysAgo}
+      GROUP BY 1
+      ORDER BY COUNT(*) DESC
+      LIMIT 1
+    `,
   ])
-
-  const topPage = await prisma.$queryRaw<Array<{ page: string | null; count: bigint | number }>>`
-    SELECT "pageUrl" AS page, COUNT(*) AS count
-    FROM "Event"
-    WHERE "pageUrl" IS NOT NULL
-      AND "eventType" = 'page_view'
-    GROUP BY 1
-    ORDER BY COUNT(*) DESC
-    LIMIT 1
-  `
 
   return {
     kpis: {

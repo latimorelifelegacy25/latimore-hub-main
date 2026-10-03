@@ -134,6 +134,7 @@ export async function syncGoogleAppointmentEvents(input: SyncGoogleAppointmentEv
     {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
     }
   )
 

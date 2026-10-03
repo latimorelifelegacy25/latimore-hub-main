@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { addMinutes, parseISO } from 'date-fns'
 import { prisma } from '@/lib/prisma'
@@ -129,7 +130,19 @@ export async function POST(req: NextRequest) {
     // Only accept a slot we would actually offer right now: this re-applies
     // working hours, minimum notice, the daily cap, and live calendar conflicts,
     // so a stale page or hand-crafted request can't book an off-hours time.
-    const offeredDays = await loadOfferedAvailability()
+    const [offeredDays, sameEmailFutureAppointment] = await Promise.all([
+      loadOfferedAvailability(),
+      prisma.appointment.findFirst({
+        where: {
+          scheduledFor: { gte: new Date() },
+          status: { in: ['Booked', 'Confirmed'] },
+          contact: {
+            email: input.email.toLowerCase(),
+          },
+        },
+        include: { contact: true },
+      }),
+    ])
     const requestedSlot = slotStart.toISOString()
     const slotStillOffered = offeredDays.some((day) => day.slots.includes(requestedSlot))
 
@@ -139,17 +152,6 @@ export async function POST(req: NextRequest) {
         { status: 409 }
       )
     }
-
-    const sameEmailFutureAppointment = await prisma.appointment.findFirst({
-      where: {
-        scheduledFor: { gte: new Date() },
-        status: { in: ['Booked', 'Confirmed'] },
-        contact: {
-          email: input.email.toLowerCase(),
-        },
-      },
-      include: { contact: true },
-    })
 
     if (sameEmailFutureAppointment) {
       return NextResponse.json(
@@ -245,44 +247,48 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Trigger lead scoring when appointment is booked
-    await triggerLeadScoring({
-      contactId: contact.id,
-      inquiryId: inquiry.id,
-      reason: 'appointment_booked'
-    })
-
-    await prisma.calendarEvent.create({
-      data: {
-        contactId: contact.id,
-        inquiryId: inquiry.id,
-        appointmentId: appointment.id,
-        provider: 'google',
-        externalId: googleEvent.id,
-        title: `Consultation - ${displayName}`,
-        description: intakeSummary,
-        startAt: slotStart,
-        endAt: slotEnd,
-        timezone: BOOKING_CONFIG.timezone,
-        location: 'Google Calendar',
-        meetingUrl: googleEvent.hangoutLink ?? googleEvent.htmlLink ?? undefined,
-        status: 'scheduled',
-        payload: {
-          googleEvent,
-          intake: intakeMetadata,
+    // changeInquiryStage touches the inquiry, so it runs before the inquiry.update below.
+    await Promise.all([
+      prisma.calendarEvent.create({
+        data: {
+          contactId: contact.id,
+          inquiryId: inquiry.id,
+          appointmentId: appointment.id,
+          provider: 'google',
+          externalId: googleEvent.id,
+          title: `Consultation - ${displayName}`,
+          description: intakeSummary,
+          startAt: slotStart,
+          endAt: slotEnd,
+          timezone: BOOKING_CONFIG.timezone,
+          location: 'Google Calendar',
+          meetingUrl: googleEvent.hangoutLink ?? googleEvent.htmlLink ?? undefined,
+          status: 'scheduled',
+          payload: {
+            googleEvent,
+            intake: intakeMetadata,
+          },
         },
-      },
-    })
-
-    await prisma.note.create({
-      data: {
-        contactId: contact.id,
-        inquiryId: inquiry.id,
-        title: 'Insurance Intake Submission',
-        body: intakeSummary,
-        author: 'native-scheduler',
-      },
-    })
+      }),
+      prisma.note.create({
+        data: {
+          contactId: contact.id,
+          inquiryId: inquiry.id,
+          title: 'Insurance Intake Submission',
+          body: intakeSummary,
+          author: 'native-scheduler',
+        },
+      }),
+      prisma.task.create({
+        data: {
+          title: `Prepare for consultation with ${displayName}`,
+          description: `Booked for ${slotStart.toISOString()}`,
+          dueAt: new Date(slotStart.getTime() - 2 * 60 * 60 * 1000),
+          contactId: contact.id,
+          inquiryId: inquiry.id,
+        },
+      }),
+    ])
 
     await changeInquiryStage({
       inquiryId: inquiry.id,
@@ -294,63 +300,75 @@ export async function POST(req: NextRequest) {
       // forward-transition gate, same as the booking webhook flow.
       force: true,
     })
-     // Typed tracking updates (source/intent/status)
-    await prisma.inquiry.update({
+
+    // Typed tracking updates (source/intent/status)
+    await Promise.all([
+      prisma.inquiry.update({
         where: { id: inquiry.id },
         data: {
           sourceType,
           intent: LeadIntent.CONSULT,
           status: LeadStatus.BOOKED,
         },
-    })
+      }),
+      prisma.contact.update({
+        where: { id: contact.id },
+        data: {
+          primarySourceType: contact.primarySourceType === LeadSource.UNKNOWN ? sourceType : contact.primarySourceType,
+          primaryIntent: contact.primaryIntent === LeadIntent.UNKNOWN ? LeadIntent.CONSULT : contact.primaryIntent,
+          currentIntent: LeadIntent.CONSULT,
+          status: LeadStatus.BOOKED,
+        },
+      }),
+    ])
 
-    await prisma.contact.update({
-      where: { id: contact.id },
-      data: {
-        primarySourceType: contact.primarySourceType === LeadSource.UNKNOWN ? sourceType : contact.primarySourceType,
-        primaryIntent: contact.primaryIntent === LeadIntent.UNKNOWN ? LeadIntent.CONSULT : contact.primaryIntent,
-        currentIntent: LeadIntent.CONSULT,
-        status: LeadStatus.BOOKED,
-      },
-    })
-
-    await prisma.task.create({
-      data: {
-        title: `Prepare for consultation with ${displayName}`,
-        description: `Booked for ${slotStart.toISOString()}`,
-        dueAt: new Date(slotStart.getTime() - 2 * 60 * 60 * 1000),
-        contactId: contact.id,
-        inquiryId: inquiry.id,
-      },
-    })
-
-    if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
-      await sendMail({
-        to: process.env.NOTIFY_TO,
-        from: process.env.THANKYOU_FROM,
-        subject: `New consultation booked - ${displayName}`,
-        html: InquiryNotification({
-          firstName: contact.firstName ?? undefined,
-          lastName: contact.lastName ?? undefined,
-          email: contact.email ?? undefined,
-          phone: contact.phone ?? undefined,
-          productInterest: inquiry.productInterest,
-          county: contact.county ?? undefined,
-          leadSessionId: input.leadSessionId ?? undefined,
-          source: input.source ?? 'website',
-          campaign: input.campaign ?? 'native_scheduler',
+    // Lead scoring and emails run after the response is sent.
+    after(async () => {
+      const jobs: Promise<unknown>[] = [
+        triggerLeadScoring({
+          contactId: contact.id,
+          inquiryId: inquiry.id,
+          reason: 'appointment_booked'
         }),
-      })
+      ]
 
-      if (contact.email) {
-        await sendMail({
-          to: contact.email,
-          from: process.env.THANKYOU_FROM,
-          subject: 'Your consultation is booked',
-          html: ThankYou({ firstName: contact.firstName ?? undefined }),
-        })
+      if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
+        jobs.push(
+          sendMail({
+            to: process.env.NOTIFY_TO,
+            from: process.env.THANKYOU_FROM,
+            subject: `New consultation booked - ${displayName}`,
+            html: InquiryNotification({
+              firstName: contact.firstName ?? undefined,
+              lastName: contact.lastName ?? undefined,
+              email: contact.email ?? undefined,
+              phone: contact.phone ?? undefined,
+              productInterest: inquiry.productInterest,
+              county: contact.county ?? undefined,
+              leadSessionId: input.leadSessionId ?? undefined,
+              source: input.source ?? 'website',
+              campaign: input.campaign ?? 'native_scheduler',
+            }),
+          })
+        )
+
+        if (contact.email) {
+          jobs.push(
+            sendMail({
+              to: contact.email,
+              from: process.env.THANKYOU_FROM,
+              subject: 'Your consultation is booked',
+              html: ThankYou({ firstName: contact.firstName ?? undefined }),
+            })
+          )
+        }
       }
-    }
+
+      const results = await Promise.allSettled(jobs)
+      for (const r of results) {
+        if (r.status === 'rejected') await captureException(r.reason, { source: 'booking', channel: 'post-response' })
+      }
+    })
 
     return NextResponse.json({
       ok: true,

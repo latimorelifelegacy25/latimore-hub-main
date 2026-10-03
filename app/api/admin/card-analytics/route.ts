@@ -6,6 +6,7 @@ import { requireAdminSession } from '@/lib/ai/shared'
 
 const CLICK_EVENT_TYPES = ['cta_click', 'call_click', 'text_click', 'email_click', 'book_click']
 const DAY_COUNT = 14
+const LOOKBACK_DAYS = 90
 
 type LinkAggregate = {
   slug: string
@@ -51,21 +52,25 @@ export async function GET() {
     const firstDay = startOfDay(new Date(now))
     firstDay.setDate(firstDay.getDate() - (DAY_COUNT - 1))
 
+    const windowStart = new Date(now.getTime() - LOOKBACK_DAYS * 24 * 60 * 60 * 1000)
+
     const [visits, clicks, allEvents, recentEvents] = await Promise.all([
       prisma.event.count({
         where: {
           source: 'digital_card',
           eventType: 'page_view',
+          occurredAt: { gte: windowStart },
         },
       }),
       prisma.event.count({
         where: {
           source: 'digital_card',
           eventType: { in: CLICK_EVENT_TYPES as any },
+          occurredAt: { gte: windowStart },
         },
       }),
       prisma.event.findMany({
-        where: { source: 'digital_card' },
+        where: { source: 'digital_card', occurredAt: { gte: windowStart } },
         orderBy: { occurredAt: 'desc' },
         take: 5000,
         select: {

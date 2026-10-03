@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
@@ -103,8 +104,12 @@ export async function POST(req: NextRequest) {
 
     await triggerLeadScoring({ contactId: result.contact.id, inquiryId: result.inquiry.id, reason: 'new_join_application' }).catch((err) => logger.error({ err }, 'Failed to trigger join lead scoring'))
 
-    if (process.env.THANKYOU_FROM && result.contact.email) await sendMail({ to: result.contact.email, from: process.env.THANKYOU_FROM, subject: 'Thank you for your interest in joining Latimore Life & Legacy', html: `<p>Thank you, ${escapeHtml(firstName ?? fullName)}. Your join application has been received.</p><p>The next step is a short introductory conversation to learn more about your goals and answer your questions.</p><p>Protect families. Secure futures. Build legacies.<br />#TheBeatGoesOn</p>` }).catch((err) => logger.error({ err }, 'Failed to send join confirmation email'))
-    if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) await sendMail({ to: process.env.NOTIFY_TO, from: process.env.THANKYOU_FROM, subject: `New Join Application - ${fullName}`, html: `<p>New join application from <strong>${escapeHtml(fullName)}</strong>.</p><p>Email: ${escapeHtml(emailLower)}<br />Phone: ${escapeHtml(phone)}<br />Application ID: ${result.application.id}</p>` }).catch((err) => logger.error({ err }, 'Failed to send join notification email'))
+    after(async () => {
+      const emailJobs: Promise<unknown>[] = []
+      if (process.env.THANKYOU_FROM && result.contact.email) emailJobs.push(sendMail({ to: result.contact.email, from: process.env.THANKYOU_FROM, subject: 'Thank you for your interest in joining Latimore Life & Legacy', html: `<p>Thank you, ${escapeHtml(firstName ?? fullName)}. Your join application has been received.</p><p>The next step is a short introductory conversation to learn more about your goals and answer your questions.</p><p>Protect families. Secure futures. Build legacies.<br />#TheBeatGoesOn</p>` }).catch((err) => logger.error({ err }, 'Failed to send join confirmation email')))
+      if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) emailJobs.push(sendMail({ to: process.env.NOTIFY_TO, from: process.env.THANKYOU_FROM, subject: `New Join Application - ${fullName}`, html: `<p>New join application from <strong>${escapeHtml(fullName)}</strong>.</p><p>Email: ${escapeHtml(emailLower)}<br />Phone: ${escapeHtml(phone)}<br />Application ID: ${result.application.id}</p>` }).catch((err) => logger.error({ err }, 'Failed to send join notification email')))
+      await Promise.allSettled(emailJobs)
+    })
 
     return NextResponse.json({ ok: true, contactId: result.contact.id, inquiryId: result.inquiry.id, applicationId: result.application.id, message: 'Application submitted successfully' })
   } catch (error: any) {

@@ -291,7 +291,7 @@ export async function upsertLead(input: LeadUpsertInput) {
       deduped,
       event,
     }
-    })
+    }, { maxWait: 5000, timeout: 15000 })
   }
 
   let result: Awaited<ReturnType<typeof writeLead>> | null = null

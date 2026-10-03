@@ -59,6 +59,8 @@ const analyticsRangeFields = {
   to: z.string().date().optional(),
 }
 
+const MAX_CUSTOM_RANGE_DAYS = 366
+
 function applyRangeRefinement<T extends { range?: string; from?: string; to?: string }>(
   value: T,
   ctx: z.RefinementCtx,
@@ -89,6 +91,15 @@ function applyRangeRefinement<T extends { range?: string; from?: string; to?: st
       message: 'from must be before or equal to to.',
       path: ['from'],
     })
+  } else if (range === 'custom' && hasFrom && hasTo) {
+    const spanDays = (Date.parse(value.to!) - Date.parse(value.from!)) / 86_400_000 + 1
+    if (spanDays > MAX_CUSTOM_RANGE_DAYS) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Custom range cannot exceed ${MAX_CUSTOM_RANGE_DAYS} days.`,
+        path: ['to'],
+      })
+    }
   }
 }
 

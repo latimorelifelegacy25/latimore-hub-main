@@ -48,8 +48,15 @@ export async function GET(req: NextRequest) {
   try {
     const { from, to } = parseAnalyticsDateRange(parsed.data)
 
+    const CTA_TYPES = ['cta_click', 'call_click', 'text_click', 'email_click', 'book_click', 'book_consultation_clicked', 'instant_quote_clicked', 'service_card_clicked']
+
     const [
-      events,
+      typeCountRows,
+      sessionTotalRows,
+      dailyTypeRows,
+      dailySessionRows,
+      sourceRows,
+      toolRows,
       leadCount,
       contactCount,
       appointmentBookedCount,
@@ -61,21 +68,100 @@ export async function GET(req: NextRequest) {
       recentEventsRaw,
       opportunitiesRaw,
     ] = await Promise.all([
-      prisma.event.findMany({
-        where: { occurredAt: { gte: from, lte: to } },
-        select: {
-          id: true,
-          eventType: true,
-          pageUrl: true,
-          source: true,
-          medium: true,
-          campaign: true,
-          leadSessionId: true,
-          occurredAt: true,
-          metadata: true,
-        },
-        orderBy: { occurredAt: 'asc' },
-      }),
+      prisma.$queryRaw<Array<{ type: string; count: number }>>`
+        SELECT "eventType"::text AS type, COUNT(*)::int AS count
+        FROM "Event"
+        WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to}
+        GROUP BY 1
+      `,
+      prisma.$queryRaw<Array<{ count: number }>>`
+        SELECT COUNT(DISTINCT "leadSessionId")::int AS count
+        FROM "Event"
+        WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to}
+      `,
+      prisma.$queryRaw<Array<{ date: string; type: string; count: number }>>`
+        SELECT to_char("occurredAt", 'YYYY-MM-DD') AS date, "eventType"::text AS type, COUNT(*)::int AS count
+        FROM "Event"
+        WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to}
+        GROUP BY 1, 2
+      `,
+      prisma.$queryRaw<Array<{ date: string; count: number }>>`
+        SELECT to_char("occurredAt", 'YYYY-MM-DD') AS date, COUNT(DISTINCT "leadSessionId")::int AS count
+        FROM "Event"
+        WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to}
+        GROUP BY 1
+      `,
+      prisma.$queryRaw<Array<{ source: string; count: number }>>`
+        SELECT COALESCE(NULLIF("source", ''), '(direct / unknown)') AS source, COUNT(*)::int AS count
+        FROM "Event"
+        WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to} AND "eventType" = 'page_view'
+        GROUP BY 1
+        ORDER BY 2 DESC, 1 ASC
+        LIMIT 20
+      `,
+      prisma.$queryRaw<Array<{
+        tool: string
+        category: string | null
+        events: number
+        sessions: number
+        opens: number
+        starts: number
+        completions: number
+        cta_clicks: number
+        lead_submissions: number
+        booking_clicks: number
+        booking_sessions: number
+        start_sessions: number
+        started_and_completed: number
+      }>>`
+        WITH ev AS (
+          SELECT
+            "metadata"->>'tool' AS tool,
+            CASE WHEN jsonb_typeof("metadata"->'category') = 'string' THEN "metadata"->>'category' END AS category,
+            CASE WHEN jsonb_typeof("metadata"->'latimoreEvent') = 'string' THEN "metadata"->>'latimoreEvent' END AS semantic,
+            "leadSessionId" AS sid,
+            "occurredAt"
+          FROM "Event"
+          WHERE "occurredAt" >= ${from} AND "occurredAt" <= ${to}
+            AND jsonb_typeof("metadata"->'tool') = 'string'
+            AND "metadata"->>'tool' <> ''
+        ),
+        sess AS (
+          SELECT tool,
+            COUNT(*) FILTER (WHERE st) AS start_sessions,
+            COUNT(*) FILTER (WHERE st AND co) AS started_and_completed
+          FROM (
+            SELECT tool, sid,
+              bool_or(semantic = 'tool_started') AS st,
+              bool_or(semantic = 'tool_completed') AS co
+            FROM ev
+            WHERE sid IS NOT NULL
+            GROUP BY tool, sid
+          ) per_session
+          GROUP BY tool
+        )
+        SELECT
+          ev.tool AS tool,
+          COALESCE(
+            (array_agg(ev.category ORDER BY ev."occurredAt") FILTER (WHERE ev.category IS NOT NULL AND ev.category <> ''))[1],
+            (array_agg(ev.category ORDER BY ev."occurredAt"))[1]
+          ) AS category,
+          COUNT(*)::int AS events,
+          COUNT(DISTINCT ev.sid)::int AS sessions,
+          (COUNT(*) FILTER (WHERE ev.semantic = 'tool_opened'))::int AS opens,
+          (COUNT(*) FILTER (WHERE ev.semantic = 'tool_started'))::int AS starts,
+          (COUNT(*) FILTER (WHERE ev.semantic = 'tool_completed'))::int AS completions,
+          (COUNT(*) FILTER (WHERE ev.semantic IN ('tool_cta_clicked', 'referral_clicked')))::int AS cta_clicks,
+          (COUNT(*) FILTER (WHERE ev.semantic = 'lead_submitted'))::int AS lead_submissions,
+          (COUNT(*) FILTER (WHERE ev.semantic = 'booking_clicked'))::int AS booking_clicks,
+          (COUNT(DISTINCT ev.sid) FILTER (WHERE ev.semantic = 'booking_clicked'))::int AS booking_sessions,
+          COALESCE(MAX(sess.start_sessions), 0)::int AS start_sessions,
+          COALESCE(MAX(sess.started_and_completed), 0)::int AS started_and_completed
+        FROM ev
+        LEFT JOIN sess ON sess.tool = ev.tool
+        GROUP BY ev.tool
+        ORDER BY events DESC, MIN(ev."occurredAt") ASC
+      `,
       prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to } } }),
       prisma.contact.count({ where: { createdAt: { gte: from, lte: to } } }),
       prisma.appointment.count({ where: { createdAt: { gte: from, lte: to }, NOT: { status: 'Cancelled' } } }),
@@ -98,137 +184,68 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
-    const countType = (types: string[]) => events.filter(event => types.includes(String(event.eventType))).length
+    const typeTotals = new Map(typeCountRows.map(row => [row.type, Number(row.count)]))
+    const countType = (types: string[]) => types.reduce((sum, type) => sum + (typeTotals.get(type) ?? 0), 0)
     const pageViewCount = countType(['page_view'])
-    const sessionCount = new Set(events.map(event => event.leadSessionId).filter(Boolean)).size
-    const ctaClickCount = countType(['cta_click', 'call_click', 'text_click', 'email_click', 'book_click', 'book_consultation_clicked', 'instant_quote_clicked', 'service_card_clicked'])
+    const sessionCount = Number(sessionTotalRows[0]?.count ?? 0)
+    const ctaClickCount = countType(CTA_TYPES)
     const bookingClickCount = countType(['book_click', 'book_consultation_clicked'])
     const formSubmitCount = countType(['form_submit', 'lead_submitted'])
     const toolStartCount = countType(['legacy_checkup_started'])
     const toolCompleteCount = countType(['legacy_checkup_completed'])
     const soldCount = Math.max(soldInquiryCount, soldContactCount)
 
-    const dayMap = new Map<string, { date: string; page_view_count: number; session_ids: Set<string>; cta_click_count: number; tool_start_count: number; tool_complete_count: number; appointment_booked_count: number }>()
-    for (const event of events) {
-      const date = event.occurredAt.toISOString().slice(0, 10)
-      const row = dayMap.get(date) ?? {
-        date,
-        page_view_count: 0,
-        session_ids: new Set<string>(),
-        cta_click_count: 0,
-        tool_start_count: 0,
-        tool_complete_count: 0,
-        appointment_booked_count: 0,
+    const dayMap = new Map<string, { date: string; page_view_count: number; session_count: number; cta_click_count: number; tool_start_count: number; tool_complete_count: number; appointment_booked_count: number }>()
+    const dayRow = (date: string) => {
+      let row = dayMap.get(date)
+      if (!row) {
+        row = { date, page_view_count: 0, session_count: 0, cta_click_count: 0, tool_start_count: 0, tool_complete_count: 0, appointment_booked_count: 0 }
+        dayMap.set(date, row)
       }
-      const type = String(event.eventType)
-      if (type === 'page_view') row.page_view_count += 1
-      if (event.leadSessionId) row.session_ids.add(event.leadSessionId)
-      if (['cta_click', 'call_click', 'text_click', 'email_click', 'book_click', 'book_consultation_clicked', 'instant_quote_clicked', 'service_card_clicked'].includes(type)) row.cta_click_count += 1
-      if (type === 'legacy_checkup_started') row.tool_start_count += 1
-      if (type === 'legacy_checkup_completed') row.tool_complete_count += 1
-      if (type === 'appointment_booked') row.appointment_booked_count += 1
-      dayMap.set(date, row)
+      return row
     }
+    for (const { date, type, count } of dailyTypeRows) {
+      const row = dayRow(date)
+      const n = Number(count)
+      if (type === 'page_view') row.page_view_count += n
+      if (CTA_TYPES.includes(type)) row.cta_click_count += n
+      if (type === 'legacy_checkup_started') row.tool_start_count += n
+      if (type === 'legacy_checkup_completed') row.tool_complete_count += n
+      if (type === 'appointment_booked') row.appointment_booked_count += n
+    }
+    for (const { date, count } of dailySessionRows) dayRow(date).session_count = Number(count)
 
     const timeSeries = Array.from(dayMap.values())
       .sort((a, b) => a.date.localeCompare(b.date))
       .map(row => ({
         date: row.date,
         page_view_count: row.page_view_count,
-        session_count: row.session_ids.size,
+        session_count: row.session_count,
         cta_click_count: row.cta_click_count,
         tool_start_count: row.tool_start_count,
         tool_complete_count: row.tool_complete_count,
         appointment_booked_count: row.appointment_booked_count,
       }))
 
-    const sourceCounts = new Map<string, number>()
-    for (const event of events) {
-      if (String(event.eventType) !== 'page_view') continue
-      const key = event.source || '(direct / unknown)'
-      sourceCounts.set(key, (sourceCounts.get(key) ?? 0) + 1)
-    }
-    const breakdowns = Array.from(sourceCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 20)
-      .map(([dimensionValue, value]) => ({ dimension: 'source', dimensionValue, value, unit: 'page_views', metricKey: 'page_view_count' }))
+    const breakdowns = sourceRows
+      .map(row => ({ dimension: 'source', dimensionValue: row.source, value: Number(row.count), unit: 'page_views', metricKey: 'page_view_count' }))
 
-    const toolMap = new Map<string, {
-      tool: string
-      category: string | null
-      events: number
-      opens: number
-      starts: number
-      completions: number
-      ctaClicks: number
-      leadSubmissions: number
-      bookingClicks: number
-      sessions: Set<string>
-      startSessions: Set<string>
-      completionSessions: Set<string>
-      bookingSessions: Set<string>
-    }>()
-
-    for (const event of events) {
-      const metadata = eventMetadata(event.metadata)
-      const tool = typeof metadata.tool === 'string' ? metadata.tool : null
-      if (!tool) continue
-      const semantic = typeof metadata.latimoreEvent === 'string' ? metadata.latimoreEvent : null
-      const category = typeof metadata.category === 'string' ? metadata.category : null
-      const row = toolMap.get(tool) ?? {
-        tool,
-        category,
-        events: 0,
-        opens: 0,
-        starts: 0,
-        completions: 0,
-        ctaClicks: 0,
-        leadSubmissions: 0,
-        bookingClicks: 0,
-        sessions: new Set<string>(),
-        startSessions: new Set<string>(),
-        completionSessions: new Set<string>(),
-        bookingSessions: new Set<string>(),
-      }
-      row.events += 1
-      if (!row.category && category) row.category = category
-      if (event.leadSessionId) row.sessions.add(event.leadSessionId)
-      if (semantic === 'tool_opened') row.opens += 1
-      if (semantic === 'tool_started') {
-        row.starts += 1
-        if (event.leadSessionId) row.startSessions.add(event.leadSessionId)
-      }
-      if (semantic === 'tool_completed') {
-        row.completions += 1
-        if (event.leadSessionId) row.completionSessions.add(event.leadSessionId)
-      }
-      if (semantic === 'tool_cta_clicked' || semantic === 'referral_clicked') row.ctaClicks += 1
-      if (semantic === 'lead_submitted') row.leadSubmissions += 1
-      if (semantic === 'booking_clicked') {
-        row.bookingClicks += 1
-        if (event.leadSessionId) row.bookingSessions.add(event.leadSessionId)
-      }
-      toolMap.set(tool, row)
-    }
-
-    const toolPerformance = Array.from(toolMap.values())
-      .map(row => ({
-        tool: row.tool,
-        category: row.category,
-        events: row.events,
-        sessions: row.sessions.size,
-        opens: row.opens,
-        starts: row.starts,
-        completions: row.completions,
-        ctaClicks: row.ctaClicks,
-        leadSubmissions: row.leadSubmissions,
-        bookingClicks: row.bookingClicks,
-        bookingSessions: row.bookingSessions.size,
-        completionRate: row.startSessions.size > 0
-          ? (Array.from(row.completionSessions).filter(session => row.startSessions.has(session)).length / row.startSessions.size) * 100
-          : 0,
-      }))
-      .sort((a, b) => b.events - a.events)
+    const toolPerformance = toolRows.map(row => ({
+      tool: row.tool,
+      category: row.category,
+      events: Number(row.events),
+      sessions: Number(row.sessions),
+      opens: Number(row.opens),
+      starts: Number(row.starts),
+      completions: Number(row.completions),
+      ctaClicks: Number(row.cta_clicks),
+      leadSubmissions: Number(row.lead_submissions),
+      bookingClicks: Number(row.booking_clicks),
+      bookingSessions: Number(row.booking_sessions),
+      completionRate: Number(row.start_sessions) > 0
+        ? (Number(row.started_and_completed) / Number(row.start_sessions)) * 100
+        : 0,
+    }))
 
     const funnel = [
       { stageKey: 'sessions', stageOrder: 1, count: sessionCount, conversionRate: 100, dropOffRate: 0, avgHoursFromPrevStage: null },

@@ -15,8 +15,12 @@ type TaskResult = {
   durationMs: number
 }
 
+const TASK_TIMEOUT_MS = 120_000
+
 async function runTask(name: string, url: string, req: NextRequest): Promise<TaskResult> {
   const start = Date.now()
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), TASK_TIMEOUT_MS)
   try {
     const res = await fetch(url, {
       method: 'GET',
@@ -24,16 +28,20 @@ async function runTask(name: string, url: string, req: NextRequest): Promise<Tas
         'x-cron-secret': process.env.CRON_SECRET ?? '',
         'x-forwarded-for': req.headers.get('x-forwarded-for') ?? '',
       },
+      signal: controller.signal,
     })
     const data = await res.json().catch(() => null)
     return { task: name, ok: res.ok, status: res.status, data, durationMs: Date.now() - start }
   } catch (err) {
+    const timedOut = err instanceof Error && err.name === 'AbortError'
     return {
       task: name,
       ok: false,
-      error: err instanceof Error ? err.message : String(err),
+      error: timedOut ? `Timed out after ${TASK_TIMEOUT_MS}ms` : err instanceof Error ? err.message : String(err),
       durationMs: Date.now() - start,
     }
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
@@ -47,11 +55,23 @@ export async function GET(req: NextRequest) {
   logger.info('[cron/weekly] Starting weekly master cron')
   const cronStart = Date.now()
 
-  const results: TaskResult[] = []
-  results.push(await runTask('weekly-report',            `${baseUrl}/api/cron/weekly-report`,            req))
-  results.push(await runTask('content-publishing',       `${baseUrl}/api/cron/content-publishing`,       req))
-  results.push(await runTask('lead-scoring',             `${baseUrl}/api/cron/lead-scoring`,             req))
-  results.push(await runTask('automated-task-generation',`${baseUrl}/api/cron/automated-task-generation`,req))
+  const tasks: Array<[string, string]> = [
+    ['weekly-report',             `${baseUrl}/api/cron/weekly-report`],
+    ['content-publishing',        `${baseUrl}/api/cron/content-publishing`],
+    ['lead-scoring',              `${baseUrl}/api/cron/lead-scoring`],
+    ['automated-task-generation', `${baseUrl}/api/cron/automated-task-generation`],
+  ]
+  const settled = await Promise.allSettled(tasks.map(([name, url]) => runTask(name, url, req)))
+  const results: TaskResult[] = settled.map((outcome, i) =>
+    outcome.status === 'fulfilled'
+      ? outcome.value
+      : {
+          task: tasks[i][0],
+          ok: false,
+          error: outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason),
+          durationMs: Date.now() - cronStart,
+        },
+  )
 
   const totalMs   = Date.now() - cronStart
   const succeeded = results.filter(r => r.ok).length

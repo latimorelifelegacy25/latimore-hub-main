@@ -14,18 +14,15 @@ import {
   Clock,
   Zap,
 } from 'lucide-react'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
+import dynamic from 'next/dynamic'
 import PageHeader from '@/app/admin/_components/PageHeader'
 import AdminCard from '@/app/admin/_components/AdminCard'
 import EmptyState from '@/app/admin/_components/EmptyState'
+
+const TrendChart = dynamic(() => import('./TrendChart'), {
+  ssr: false,
+  loading: () => <div style={{ height: '280px' }} aria-hidden="true" />,
+})
 
 const G = '#C9A25F'
 const NAVY = '#0B0F17'
@@ -417,26 +414,7 @@ export default function AnalyticsPage() {
             <EmptyState title="Trend unavailable" description={timeSeriesErr} />
           ) : timeSeries && timeSeries.length > 0 ? (
             <div style={{ height: '280px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={timeSeries}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis
-                    dataKey="date"
-                    stroke={MUTED}
-                    fontSize={11}
-                    tickFormatter={v => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  />
-                  <YAxis stroke={MUTED} fontSize={11} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#F9FAFB' }}
-                    labelFormatter={v => new Date(v).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                  />
-                  <Line type="monotone" dataKey="lead_count" stroke={G} strokeWidth={2} name="Leads" dot={{ fill: G, r: 3 }} />
-                  <Line type="monotone" dataKey="contact_count" stroke="#10B981" strokeWidth={2} name="Contacts" dot={{ fill: '#10B981', r: 3 }} />
-                  <Line type="monotone" dataKey="appointment_booked_count" stroke="#3B82F6" strokeWidth={2} name="Bookings" dot={{ fill: '#3B82F6', r: 3 }} />
-                  <Line type="monotone" dataKey="cta_click_count" stroke="#8B5CF6" strokeWidth={2} name="CTA Clicks" dot={{ fill: '#8B5CF6', r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
+              <TrendChart data={timeSeries} />
             </div>
           ) : (
             <EmptyState title="No trend data yet" description="Aggregated daily data will appear once the mart has been built." />

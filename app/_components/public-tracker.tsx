@@ -117,7 +117,7 @@ function inferPlacement(element: HTMLElement): string {
 function getContextText(element: HTMLElement): string {
   let current: HTMLElement | null = element
   for (let depth = 0; depth < 5 && current; depth += 1) {
-    const text = (current.textContent || '').replace(/\s+/g, ' ').trim()
+    const text = (current.textContent || '').slice(0, 2000).replace(/\s+/g, ' ').trim()
     if (text && text.length >= 20 && text.length <= 500) return text
     current = current.parentElement
   }
@@ -349,10 +349,15 @@ export default function PublicTracker() {
   }, [])
 
   useEffect(() => {
+    let scrollFrame: number | null = null
     const updateScrollDepth = () => {
+      scrollFrame = null
       const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0)
       const depth = scrollable === 0 ? 100 : Math.min(100, Math.round((window.scrollY / scrollable) * 100))
       maxScrollDepthRef.current = Math.max(maxScrollDepthRef.current, depth)
+    }
+    const onScroll = () => {
+      if (scrollFrame === null) scrollFrame = window.requestAnimationFrame(updateScrollDepth)
     }
 
     const sendExit = (event: PageTransitionEvent) => {
@@ -360,6 +365,7 @@ export default function PublicTracker() {
       // abandoned visit. The next page view continues the same session.
       if (event.persisted || sameOriginNavigationRef.current || exitSentRef.current || isExcludedBrowser()) return
       exitSentRef.current = true
+      updateScrollDepth()
 
       const context = getEventContext({ pageUrl: getCurrentPageUrl() })
       const payload: EventPayload = {
@@ -389,12 +395,13 @@ export default function PublicTracker() {
       }).catch(() => undefined)
     }
 
-    window.addEventListener('scroll', updateScrollDepth, { passive: true })
+    window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('pagehide', sendExit)
     updateScrollDepth()
 
     return () => {
-      window.removeEventListener('scroll', updateScrollDepth)
+      window.removeEventListener('scroll', onScroll)
+      if (scrollFrame !== null) window.cancelAnimationFrame(scrollFrame)
       window.removeEventListener('pagehide', sendExit)
     }
   }, [])

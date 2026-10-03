@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
@@ -8,6 +9,8 @@ import { rebuildAnalyticsRange } from '@/lib/analytics/aggregation'
 import { assertAnalyticsOverviewCoverage } from '@/lib/analytics/mart-health'
 import { logger } from '@/lib/logger'
 import { safeEqual } from '@/lib/safe-equal'
+
+const MAX_RANGE_DAYS = 92
 
 function isCronAuthed(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
@@ -53,6 +56,14 @@ export async function POST(req: NextRequest) {
       const toDate = new Date(to)
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
         return NextResponse.json({ ok: false, error: 'Invalid from/to dates.' }, { status: 400 })
+      }
+
+      const spanDays = Math.ceil((toDate.getTime() - fromDate.getTime()) / 86_400_000) + 1
+      if (spanDays > MAX_RANGE_DAYS) {
+        return NextResponse.json(
+          { ok: false, error: `Date range too large (${spanDays} days). Maximum is ${MAX_RANGE_DAYS} days per request.` },
+          { status: 400 },
+        )
       }
 
       await rebuildAnalyticsRange({ from: fromDate, to: toDate })

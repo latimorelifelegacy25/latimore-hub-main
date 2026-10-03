@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import { BRAND } from '@/lib/brand'
 
 export const metadata: Metadata = {
@@ -39,7 +40,7 @@ export default function AdPage() {
             <div className="founder-label">— Meet the Founder —</div>
 
             <div className="founder-photo">
-              <img src="/jackson-founder-photo.jpg" alt="Jackson M. Latimore Sr." />
+              <Image src="/jackson-founder-photo.jpg" alt="Jackson M. Latimore Sr." width={1448} height={1086} sizes="(max-width: 800px) 100vw, 400px" priority />
             </div>
 
             <div className="founder-name">Jackson M. Latimore Sr.</div>

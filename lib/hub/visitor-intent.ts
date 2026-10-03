@@ -7,6 +7,8 @@ export type VisitorIntentInput = {
   eventType: string
   leadSessionId?: string | null
   contactId?: string | null
+  /** True when contactId already reflects the LeadSession's contactId, so no lookup is needed. */
+  contactIdResolved?: boolean
   pageUrl?: string | null
   source?: string | null
   medium?: string | null
@@ -204,7 +206,9 @@ export async function recordVisitorIntent(input: VisitorIntentInput): Promise<In
   const scoreDelta = scoreVisitorEvent(input)
   const occurredAt = input.occurredAt ? new Date(input.occurredAt) : new Date()
   const safeOccurredAt = Number.isNaN(occurredAt.getTime()) ? new Date() : occurredAt
-  const contactId = await resolveContactId(visitorId, input.contactId)
+  const contactId = input.contactIdResolved
+    ? (input.contactId ?? null)
+    : await resolveContactId(visitorId, input.contactId)
   const intentEventId = `intent_${input.eventId}`
   const visitorIdentityId = `visitor_${visitorId}`
   const metadataJson = JSON.stringify({
