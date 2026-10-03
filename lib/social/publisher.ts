@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { publishLinkedInPost } from './linkedin-publisher'
 import { publishFacebookPagePost, publishInstagramPost } from './meta-publisher'
+import { getOneUpSocialAccountId, isOneUpConfigured, publishViaOneUp } from './oneup-publisher'
 import { appendUtmParams } from './url'
 import type { PublishPayload, PublishResult, PublishTarget, SocialPlatform } from './types'
 
@@ -55,12 +56,35 @@ async function getConnection(platform: SocialPlatform): Promise<PublishTarget> {
   }
 }
 
-async function dispatchPublish(target: PublishTarget, payload: PublishPayload): Promise<PublishResult> {
-  if (target.platform === 'facebook') return publishFacebookPagePost(target, payload)
-  if (target.platform === 'instagram') return publishInstagramPost(target, payload)
-  if (target.platform === 'linkedin') return publishLinkedInPost(target, payload)
+async function dispatchPublish(
+  platform: SocialPlatform,
+  target: PublishTarget | null,
+  payload: PublishPayload,
+): Promise<PublishResult & { via: 'native' | 'oneup' }> {
+  if (target) {
+    if (target.platform === 'facebook') {
+      return { ...(await publishFacebookPagePost(target, payload)), via: 'native' }
+    }
+    if (target.platform === 'instagram') {
+      return { ...(await publishInstagramPost(target, payload)), via: 'native' }
+    }
+    if (target.platform === 'linkedin') {
+      return { ...(await publishLinkedInPost(target, payload)), via: 'native' }
+    }
+  }
 
-  throw new Error(`Unsupported platform: ${target.platform}`)
+  // No native OAuth connection: fall back to OneUp via Composio when configured.
+  if (isOneUpConfigured() && getOneUpSocialAccountId(platform)) {
+    const result = await publishViaOneUp(platform, {
+      caption: payload.caption,
+      mediaUrls: payload.mediaUrls,
+    })
+    return { ...result, via: 'oneup' }
+  }
+
+  throw new Error(
+    `No active ${platform} connection found and OneUp publishing is not configured for it.`,
+  )
 }
 
 export async function publishSocialPostById(postId: string): Promise<PublishResult> {
@@ -73,7 +97,8 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
   }
 
   const platform = post.platform as SocialPlatform
-  const target = await getConnection(platform)
+  // Native OAuth connection first; falls back to OneUp via Composio when none exists.
+  const target = await getConnection(platform).catch(() => null)
   const metadata = getMetadataObject(post.metadata)
   const linkUrl = typeof metadata.linkUrl === 'string' ? metadata.linkUrl : null
   const taggedUrl = appendUtmParams(linkUrl, {
@@ -96,7 +121,7 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
   })
 
   try {
-    const result = await dispatchPublish(target, {
+    const result = await dispatchPublish(platform, target, {
       caption: post.caption,
       linkUrl: taggedUrl,
       mediaUrls: getMediaUrls(post.mediaUrls),
@@ -109,6 +134,11 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
         externalPostId: result.externalPostId,
         publishedAt: new Date(),
         rawPublishResult: result.raw as object,
+        metadata: {
+          ...metadata,
+          taggedUrl,
+          publishVia: result.via,
+        },
       },
     })
 

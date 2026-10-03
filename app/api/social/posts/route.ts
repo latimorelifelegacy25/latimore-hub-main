@@ -5,7 +5,7 @@ import { publishSocialPostById } from '@/lib/social/publisher'
 import { requireAdminSession } from '@/lib/ai/shared'
 import type { CreateSocialPostInput, SocialPlatform } from '@/lib/social/types'
 
-const PLATFORMS: SocialPlatform[] = ['facebook', 'instagram', 'linkedin']
+const PLATFORMS: SocialPlatform[] = ['facebook', 'instagram', 'linkedin', 'gbp']
 
 function isPlatform(value: unknown): value is SocialPlatform {
   return typeof value === 'string' && PLATFORMS.includes(value as SocialPlatform)
@@ -32,7 +32,7 @@ function parseInput(value: unknown): CreateSocialPostInput {
   const platforms = Array.isArray(body.platforms) ? body.platforms.filter(isPlatform) : []
 
   if (platforms.length === 0) {
-    throw new Error('At least one platform is required: facebook, instagram, or linkedin.')
+    throw new Error('At least one platform is required: facebook, instagram, linkedin, or gbp.')
   }
 
   const mediaUrls = Array.isArray(body.mediaUrls)
