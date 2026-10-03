@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { validateResendSandboxRoute } from '@/lib/resend-sandbox'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     const result = await resend.emails.send({ from, to, subject, text })
     return NextResponse.json({ ok: true, id: result.data?.id ?? null })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Email service router crash exception.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Email send failed')
+    return NextResponse.json({ error: 'Email could not be sent.' }, { status: 500 })
   }
 }

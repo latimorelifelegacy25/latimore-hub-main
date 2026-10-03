@@ -18,52 +18,66 @@ export async function GET(req: NextRequest) {
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-    const [recentInquiries, recentContacts, recentBookings, trendData] = await Promise.all([
-      prisma.inquiry.findMany({
+    const prevWeekStart = new Date(sevenDaysAgo.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+    const [
+      totalInquiries,
+      totalContacts,
+      totalBookings,
+      lastWeekInquiries,
+      prevWeekInquiries,
+      sourceGroups,
+      productGroups,
+      trendData,
+    ] = await Promise.all([
+      prisma.inquiry.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.contact.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.appointment.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      prisma.inquiry.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+      prisma.inquiry.count({ where: { createdAt: { gte: prevWeekStart, lt: sevenDaysAgo } } }),
+      prisma.inquiry.groupBy({
+        by: ['source'],
         where: { createdAt: { gte: thirtyDaysAgo } },
-        select: { createdAt: true, source: true, productInterest: true, stage: true },
-        orderBy: { createdAt: 'desc' },
+        _count: { _all: true },
       }),
-      prisma.contact.findMany({
+      prisma.inquiry.groupBy({
+        by: ['productInterest'],
         where: { createdAt: { gte: thirtyDaysAgo } },
-        select: { createdAt: true, county: true, leadScore: true, status: true },
-      }),
-      prisma.appointment.findMany({
-        where: { createdAt: { gte: thirtyDaysAgo } },
-        select: { createdAt: true, status: true },
+        _count: { _all: true },
       }),
       // Get daily counts for the last 30 days
       prisma.$queryRaw<Array<{ date: string; inquiries: number; contacts: number; bookings: number }>>`
         SELECT
-          DATE(created_at) as date,
-          COUNT(CASE WHEN type = 'inquiry' THEN 1 END) as inquiries,
-          COUNT(CASE WHEN type = 'contact' THEN 1 END) as contacts,
-          COUNT(CASE WHEN type = 'booking' THEN 1 END) as bookings
+          DATE("createdAt")::text as date,
+          COUNT(CASE WHEN type = 'inquiry' THEN 1 END)::int as inquiries,
+          COUNT(CASE WHEN type = 'contact' THEN 1 END)::int as contacts,
+          COUNT(CASE WHEN type = 'booking' THEN 1 END)::int as bookings
         FROM (
-          SELECT created_at, 'inquiry' as type FROM "Inquiry" WHERE created_at >= ${thirtyDaysAgo}
+          SELECT "createdAt", 'inquiry' as type FROM "Inquiry" WHERE "createdAt" >= ${thirtyDaysAgo}
           UNION ALL
-          SELECT created_at, 'contact' as type FROM "Contact" WHERE created_at >= ${thirtyDaysAgo}
+          SELECT "createdAt", 'contact' as type FROM "Contact" WHERE "createdAt" >= ${thirtyDaysAgo}
           UNION ALL
-          SELECT created_at, 'booking' as type FROM "Appointment" WHERE created_at >= ${thirtyDaysAgo}
+          SELECT "createdAt", 'booking' as type FROM "Appointment" WHERE "createdAt" >= ${thirtyDaysAgo}
         ) combined
-        GROUP BY DATE(created_at)
+        GROUP BY DATE("createdAt")
         ORDER BY date DESC
         LIMIT 30
       `,
     ])
 
     // Calculate basic metrics
-    const totalInquiries = recentInquiries.length
-    const totalContacts = recentContacts.length
-    const totalBookings = recentBookings.length
     const conversionRate = totalInquiries > 0 ? (totalBookings / totalInquiries * 100) : 0
 
-    // Get last 7 days vs previous 7 days comparison
-    const lastWeekInquiries = recentInquiries.filter(i => i.createdAt >= sevenDaysAgo).length
-    const prevWeekInquiries = recentInquiries.filter(i =>
-      i.createdAt >= new Date(sevenDaysAgo.getTime() - 7 * 24 * 60 * 60 * 1000) &&
-      i.createdAt < sevenDaysAgo
-    ).length
+    const topSources: Record<string, number> = {}
+    for (const row of sourceGroups) {
+      const source = row.source || 'unknown'
+      topSources[source] = (topSources[source] || 0) + row._count._all
+    }
+    const topProducts: Record<string, number> = {}
+    for (const row of productGroups) {
+      const product = row.productInterest || 'unknown'
+      topProducts[product] = (topProducts[product] || 0) + row._count._all
+    }
 
     const inquiryGrowth = prevWeekInquiries > 0 ? ((lastWeekInquiries - prevWeekInquiries) / prevWeekInquiries * 100) : 0
 
@@ -75,16 +89,8 @@ export async function GET(req: NextRequest) {
       conversionRate: conversionRate.toFixed(1),
       inquiryGrowth: inquiryGrowth.toFixed(1),
       recentTrends: trendData.slice(0, 7), // Last 7 days
-      topSources: recentInquiries.reduce((acc, inquiry) => {
-        const source = inquiry.source || 'unknown'
-        acc[source] = (acc[source] || 0) + 1
-        return acc
-      }, {} as Record<string, number>),
-      topProducts: recentInquiries.reduce((acc, inquiry) => {
-        const product = inquiry.productInterest || 'unknown'
-        acc[product] = (acc[product] || 0) + 1
-        return acc
-      }, {} as Record<string, number>),
+      topSources,
+      topProducts,
     }
 
     // Generate AI insights

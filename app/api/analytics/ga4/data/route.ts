@@ -35,6 +35,7 @@ async function getAccessToken(refreshToken: string) {
       client_secret: clientSecret,
       grant_type: 'refresh_token',
     }),
+    signal: AbortSignal.timeout(10000),
   })
 
   const data = (await res.json()) as GoogleRefreshTokenResponse
@@ -98,6 +99,7 @@ export async function GET() {
           dimensions: [{ name: 'date' }],
           orderBys: [{ dimension: { dimensionName: 'date' } }],
         }),
+        signal: AbortSignal.timeout(10000),
       }
     )
 

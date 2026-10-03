@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { publishSocialPost } from '@/lib/social'
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 120
 
 export async function GET(req: NextRequest) {
   const authError = requireCronAuth(req)

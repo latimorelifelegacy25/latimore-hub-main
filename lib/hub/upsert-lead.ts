@@ -47,7 +47,7 @@ export async function upsertLead(input: LeadUpsertInput) {
   const landingPage = cleanString(input.landingPage, 500)
   const leadSessionId = cleanString(input.leadSessionId, 191)
   const rawProductInterest = cleanString(input.productInterest, 100)
-  const productInterest = normalizeProductInterest(input.productInterest)
+  const productInterest = rawProductInterest ? normalizeProductInterest(rawProductInterest) : undefined
   const notes = cleanString(input.notes, 2000)
 
   if (!email && !phone) {
@@ -262,7 +262,7 @@ export async function upsertLead(input: LeadUpsertInput) {
       await tx.task.create({
         data: {
           title: `Possible duplicate contact: merge ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone} with contact ${conflictingContact.id}`,
-          dueAt: new Date(),
+          dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
           inquiryId: inquiry.id,
           contactId: contact.id,
         },
@@ -291,7 +291,7 @@ export async function upsertLead(input: LeadUpsertInput) {
       deduped,
       event,
     }
-    })
+    }, { maxWait: 5000, timeout: 15000 })
   }
 
   let result: Awaited<ReturnType<typeof writeLead>> | null = null

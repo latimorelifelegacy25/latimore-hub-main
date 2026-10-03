@@ -1,4 +1,5 @@
 import { BRAND } from '@/lib/brand'
+import { escapeHtml } from '@/lib/escape-html'
 
 const BASE_URL = BRAND.baseUrl
 const BOOKING_LINK = BRAND.bookingUrl.startsWith('http')
@@ -24,15 +25,15 @@ export function InquiryNotification(p: {
       <p style="color:#A9B1BE;margin:4px 0 0;font-size:12px">#TheBeatGoesOn — New Lead Captured</p>
     </div>
     <div style="background:#ffffff;padding:32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
-      <h3 style="margin:0 0 16px;font-size:20px">New Lead: ${name}</h3>
+      <h3 style="margin:0 0 16px;font-size:20px">New Lead: ${escapeHtml(name)}</h3>
       <table style="width:100%;border-collapse:collapse">
-        ${p.email ? `<tr><td style="padding:8px 0;color:#6b7280;width:140px">Email</td><td style="padding:8px 0;font-weight:600">${p.email}</td></tr>` : ''}
-        ${p.phone ? `<tr><td style="padding:8px 0;color:#6b7280">Phone</td><td style="padding:8px 0;font-weight:600">${p.phone}</td></tr>` : ''}
-        <tr><td style="padding:8px 0;color:#6b7280">Interest</td><td style="padding:8px 0"><span style="background:#C9A25F;color:#0B0F17;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700">${p.productInterest ?? 'General'}</span></td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280">County</td><td style="padding:8px 0">${p.county ?? '—'}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280">Source</td><td style="padding:8px 0">${p.source ?? '—'}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280">Campaign</td><td style="padding:8px 0">${p.campaign ?? '—'}</td></tr>
-        <tr><td style="padding:8px 0;color:#6b7280">Session ID</td><td style="padding:8px 0;font-size:11px;color:#9ca3af">${p.leadSessionId ?? '—'}</td></tr>
+        ${p.email ? `<tr><td style="padding:8px 0;color:#6b7280;width:140px">Email</td><td style="padding:8px 0;font-weight:600">${escapeHtml(p.email)}</td></tr>` : ''}
+        ${p.phone ? `<tr><td style="padding:8px 0;color:#6b7280">Phone</td><td style="padding:8px 0;font-weight:600">${escapeHtml(p.phone)}</td></tr>` : ''}
+        <tr><td style="padding:8px 0;color:#6b7280">Interest</td><td style="padding:8px 0"><span style="background:#C9A25F;color:#0B0F17;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700">${escapeHtml(p.productInterest ?? 'General')}</span></td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280">County</td><td style="padding:8px 0">${escapeHtml(p.county ?? '—')}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280">Source</td><td style="padding:8px 0">${escapeHtml(p.source ?? '—')}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280">Campaign</td><td style="padding:8px 0">${escapeHtml(p.campaign ?? '—')}</td></tr>
+        <tr><td style="padding:8px 0;color:#6b7280">Session ID</td><td style="padding:8px 0;font-size:11px;color:#9ca3af">${escapeHtml(p.leadSessionId ?? '—')}</td></tr>
       </table>
       <div style="margin-top:24px">
         <a href="${BASE_URL}/admin" style="background:#0B0F17;color:#C9A25F;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:700;font-size:14px">View in LatimoreHub Admin →</a>
@@ -42,7 +43,7 @@ export function InquiryNotification(p: {
 }
 
 export function NoShowRecovery(p: { firstName?: string }) {
-  const first = p.firstName ? ` ${p.firstName}` : ''
+  const first = p.firstName ? ` ${escapeHtml(p.firstName)}` : ''
   return `
   <div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#0B0F17">
     <div style="background:#0B0F17;padding:24px 32px;border-radius:8px 8px 0 0">
@@ -64,7 +65,7 @@ export function NoShowRecovery(p: { firstName?: string }) {
 }
 
 export function ThankYou(p: { firstName?: string }) {
-  const first = p.firstName ? ` ${p.firstName}` : ''
+  const first = p.firstName ? ` ${escapeHtml(p.firstName)}` : ''
   return `
   <div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#0B0F17">
     <div style="background:#0B0F17;padding:24px 32px;border-radius:8px 8px 0 0">

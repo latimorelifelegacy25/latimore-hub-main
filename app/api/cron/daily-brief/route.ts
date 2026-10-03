@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 120
 
 import { NextRequest } from 'next/server'
 import { POST as runDailyBrief } from '@/app/api/ai/daily-brief/route'

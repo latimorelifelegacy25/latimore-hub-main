@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,8 +36,9 @@ export async function POST(req: Request) {
 
   if (!res.ok) {
     const body = await res.text()
+    logger.error({ status: res.status, body }, 'Facebook publish failed')
     return NextResponse.json(
-      { ok: false, error: `Facebook publish failed: ${res.status} ${body}` },
+      { ok: false, error: `Facebook publish failed (${res.status})` },
       { status: res.status }
     )
   }

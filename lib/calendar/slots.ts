@@ -46,6 +46,10 @@ function buildCandidateSlotsForDay(day: Date) {
   return slots
 }
 
+function buildDaysToCheck(from: Date, horizonDays: number) {
+  return Array.from({ length: horizonDays }, (_, i) => addDays(startOfDay(from), i))
+}
+
 export async function generateAvailability(input?: {
   from?: Date
   days?: number
@@ -55,7 +59,7 @@ export async function generateAvailability(input?: {
   const horizonDays = input?.days ?? BOOKING_CONFIG.horizonDays
   const minBookTime = addHours(now, BOOKING_CONFIG.minimumNoticeHours)
 
-  const daysToCheck = Array.from({ length: horizonDays }, (_, i) => addDays(startOfDay(from), i))
+  const daysToCheck = buildDaysToCheck(from, horizonDays)
 
   const appointmentWindowStart = buildDayWindow(daysToCheck[0]).startUtc.toISOString()
   const appointmentWindowEnd = buildDayWindow(daysToCheck[daysToCheck.length - 1]).endUtc.toISOString()
@@ -151,16 +155,21 @@ export function projectSlots(input: {
  * render availability and to re-validate a requested slot at booking time.
  */
 export async function loadOfferedAvailability() {
-  const base = await generateAvailability()
+  // The date range depends only on the clock, so the DB query and the Google
+  // FreeBusy call can run concurrently.
+  const from = new Date()
+  const days = buildDaysToCheck(from, BOOKING_CONFIG.horizonDays)
+  const firstDay = days[0]
+  const lastDay = days[days.length - 1]
 
-  const firstDay = base.daysToCheck[0]
-  const lastDay = base.daysToCheck[base.daysToCheck.length - 1]
-
-  const busy = await fetchGoogleFreeBusy({
-    timeMin: new Date(firstDay.getTime()).toISOString(),
-    timeMax: new Date(lastDay.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-    calendarId: BOOKING_CONFIG.calendarId,
-  })
+  const [base, busy] = await Promise.all([
+    generateAvailability({ from }),
+    fetchGoogleFreeBusy({
+      timeMin: new Date(firstDay.getTime()).toISOString(),
+      timeMax: new Date(lastDay.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      calendarId: BOOKING_CONFIG.calendarId,
+    }),
+  ])
 
   return projectSlots({
     daysToCheck: base.daysToCheck,

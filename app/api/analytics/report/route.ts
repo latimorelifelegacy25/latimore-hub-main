@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSign } from "crypto";
+import { requireAdminSession } from "@/lib/ai/shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +9,15 @@ function parsePrivateKey() {
   return process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n") ?? "";
 }
 
+// Module-scope caches (per warm serverless instance)
+const TOKEN_TTL_MS = 50 * 60 * 1000
+const REPORT_TTL_MS = 10 * 60 * 1000
+let cachedToken: { value: string; expiresAt: number } | null = null
+const reportCache = new Map<string, { rows: unknown[]; expiresAt: number }>()
+
 async function getServiceAccountToken(): Promise<string> {
+  if (cachedToken && cachedToken.expiresAt > Date.now()) return cachedToken.value
+
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
   const privateKey = parsePrivateKey();
 
@@ -41,6 +50,7 @@ async function getServiceAccountToken(): Promise<string> {
       grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
       assertion: jwt,
     }),
+    signal: AbortSignal.timeout(10000),
   });
 
   const data = (await res.json()) as { access_token?: string; error?: string };
@@ -48,14 +58,24 @@ async function getServiceAccountToken(): Promise<string> {
     throw new Error(data.error ?? "Failed to obtain service account token");
   }
 
+  cachedToken = { value: data.access_token, expiresAt: Date.now() + TOKEN_TTL_MS };
   return data.access_token;
 }
 
 export async function GET() {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const propertyId = process.env.GA4_PROPERTY_ID;
     if (!propertyId) {
       return NextResponse.json({ error: "Missing GA4_PROPERTY_ID" }, { status: 500 });
+    }
+
+    const cacheKey = `${propertyId}:30daysAgo:today:50`;
+    const cached = reportCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return NextResponse.json({ rows: cached.rows });
     }
 
     const accessToken = await getServiceAccountToken();
@@ -78,6 +98,7 @@ export async function GET() {
           ],
           limit: 50,
         }),
+        signal: AbortSignal.timeout(10000),
       }
     );
 
@@ -90,10 +111,8 @@ export async function GET() {
     };
 
     if (!gaRes.ok) {
-      return NextResponse.json(
-        { error: "GA4 report failed", details: data },
-        { status: gaRes.status }
-      );
+      console.error("[analytics/report] GA4 report failed", data);
+      return NextResponse.json({ error: "GA4 report failed" }, { status: gaRes.status });
     }
 
     const rows =
@@ -105,9 +124,10 @@ export async function GET() {
         eventCount: Number(row.metricValues?.[2]?.value || 0),
       })) ?? [];
 
+    reportCache.set(cacheKey, { rows, expiresAt: Date.now() + REPORT_TTL_MS });
     return NextResponse.json({ rows });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: "GA4 report failed", details: message }, { status: 500 });
+    console.error("[analytics/report] error", error);
+    return NextResponse.json({ error: "GA4 report failed" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { decryptToken, encryptToken } from '@/lib/crypto'
 import {
+  cacheGoogleAccessToken,
   getGoogleCalendarConnection,
   getValidGoogleAccessToken,
   refreshGoogleAccessToken,
@@ -18,6 +19,7 @@ async function forceRefreshGoogleAccessToken() {
     refreshed.expires_in && Number.isFinite(refreshed.expires_in)
       ? new Date(Date.now() + refreshed.expires_in * 1000)
       : null
+  cacheGoogleAccessToken(refreshed.access_token, tokenExpiresAt)
 
   await prisma.calendarConnection.update({
     where: { id: connection.id },
@@ -38,6 +40,7 @@ function withBearerToken(init: RequestInit | undefined, accessToken: string): Re
     ...init,
     headers,
     cache: 'no-store',
+    signal: init?.signal ?? AbortSignal.timeout(8000),
   }
 }
 

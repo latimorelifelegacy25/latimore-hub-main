@@ -253,12 +253,65 @@ export async function calculateDailyBreakdowns(
   const { from, to } = window
   const results: CalculatedBreakdown[] = []
 
+  const [
+    leadsBySource,
+    leadsByCounty,
+    leadsByProduct,
+    leadsByStage,
+    leadsByCampaign,
+    leadsByMedium,
+    clicksByType,
+    clicksBySource,
+    socialByPlatform,
+  ] = await Promise.all([
+    prisma.inquiry.groupBy({
+      by: ['source'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.groupBy({
+      by: ['county'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.groupBy({
+      by: ['productInterest'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.groupBy({
+      by: ['stage'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.groupBy({
+      by: ['campaign'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.inquiry.groupBy({
+      by: ['medium'],
+      where: { createdAt: { gte: from, lte: to } },
+      _count: { _all: true },
+    }),
+    prisma.event.groupBy({
+      by: ['eventType'],
+      where: { occurredAt: { gte: from, lte: to }, eventType: { in: CTA_CLICK_TYPES } },
+      _count: { _all: true },
+    }),
+    prisma.event.groupBy({
+      by: ['source'],
+      where: { occurredAt: { gte: from, lte: to }, eventType: { in: CTA_CLICK_TYPES } },
+      _count: { _all: true },
+    }),
+    prisma.socialMetric.groupBy({
+      by: ['platform'],
+      where: { metricDate: { gte: from, lte: to } },
+      _sum: { clicks: true, reactions: true, comments: true, shares: true, saves: true },
+    }),
+  ])
+
   // Lead count by source
-  const leadsBySource = await prisma.inquiry.groupBy({
-    by: ['source'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   for (const row of leadsBySource) {
     if (!row.source) continue
     results.push({
@@ -271,11 +324,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Lead count by county
-  const leadsByCounty = await prisma.inquiry.groupBy({
-    by: ['county'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   for (const row of leadsByCounty) {
     if (!row.county) continue
     results.push({
@@ -288,11 +336,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Lead count by productInterest
-  const leadsByProduct = await prisma.inquiry.groupBy({
-    by: ['productInterest'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   for (const row of leadsByProduct) {
     if (!row.productInterest) continue
     results.push({
@@ -305,11 +348,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Lead count by stage
-  const leadsByStage = await prisma.inquiry.groupBy({
-    by: ['stage'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   for (const row of leadsByStage) {
     if (!row.stage) continue
     results.push({
@@ -322,11 +360,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Lead count by campaign (collapsed to canonical buckets via normalizeCampaign)
-  const leadsByCampaign = await prisma.inquiry.groupBy({
-    by: ['campaign'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   const campaignCounts = new Map<string, number>()
   for (const row of leadsByCampaign) {
     if (!row.campaign) continue
@@ -344,11 +377,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Lead count by medium
-  const leadsByMedium = await prisma.inquiry.groupBy({
-    by: ['medium'],
-    where: { createdAt: { gte: from, lte: to } },
-    _count: { _all: true },
-  })
   for (const row of leadsByMedium) {
     if (!row.medium) continue
     results.push({
@@ -361,11 +389,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // CTA clicks by eventType
-  const clicksByType = await prisma.event.groupBy({
-    by: ['eventType'],
-    where: { occurredAt: { gte: from, lte: to }, eventType: { in: CTA_CLICK_TYPES } },
-    _count: { _all: true },
-  })
   for (const row of clicksByType) {
     results.push({
       metricKey: 'cta_click_count',
@@ -377,11 +400,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // CTA clicks by source
-  const clicksBySource = await prisma.event.groupBy({
-    by: ['source'],
-    where: { occurredAt: { gte: from, lte: to }, eventType: { in: CTA_CLICK_TYPES } },
-    _count: { _all: true },
-  })
   for (const row of clicksBySource) {
     if (!row.source) continue
     results.push({
@@ -394,11 +412,6 @@ export async function calculateDailyBreakdowns(
   }
 
   // Social engagement by platform
-  const socialByPlatform = await prisma.socialMetric.groupBy({
-    by: ['platform'],
-    where: { metricDate: { gte: from, lte: to } },
-    _sum: { clicks: true, reactions: true, comments: true, shares: true, saves: true },
-  })
   for (const row of socialByPlatform) {
     const engagement =
       (row._sum.clicks ?? 0) +
@@ -423,10 +436,9 @@ export async function calculateDailyBreakdowns(
 async function upsertMetrics(
   metrics: Awaited<ReturnType<typeof calculateDailyMetrics>>,
 ): Promise<number> {
-  let count = 0
-  for (const m of metrics) {
+  const ops = metrics.map((m) => {
     const { metricDate, metricKey, value, unit, metadata } = m
-    await prisma.analyticsDailyMetric.upsert({
+    return prisma.analyticsDailyMetric.upsert({
       where: { metricDate_metricKey: { metricDate, metricKey } },
       create: {
         metricDate,
@@ -441,33 +453,34 @@ async function upsertMetrics(
         ...(metadata != null ? { metadata: metadata as Prisma.InputJsonValue } : {}),
       },
     })
-    count++
-  }
-  return count
+  })
+  if (ops.length > 0) await prisma.$transaction(ops)
+  return ops.length
 }
 
 async function upsertFunnel(
   metricDate: Date,
   stages: CalculatedFunnelStage[],
 ): Promise<void> {
-  for (const s of stages) {
+  const ops = stages.map((s) => {
     const { stageKey, stageOrder, count, conversionRate, dropOffRate, avgHoursFromPrevStage } = s
     const metadata = { dropOffRate, avgHoursFromPrevStage } as Prisma.InputJsonValue
-    await prisma.analyticsFunnelDaily.upsert({
+    return prisma.analyticsFunnelDaily.upsert({
       where: { metricDate_funnelKey_stageKey: { metricDate, funnelKey: 'lead_funnel', stageKey } },
       create: { metricDate, funnelKey: 'lead_funnel', stageKey, stageOrder, count, conversionRate, metadata },
       update: { count, conversionRate, metadata },
     })
-  }
+  })
+  if (ops.length > 0) await prisma.$transaction(ops)
 }
 
 async function upsertBreakdowns(
   metricDate: Date,
   breakdowns: CalculatedBreakdown[],
 ): Promise<void> {
-  for (const b of breakdowns) {
-    const { metricKey, dimension, dimensionValue, value, unit } = b
-    await prisma.analyticsBreakdownDaily.upsert({
+  const ops = breakdowns.map((b) => {
+    const { metricKey, dimension, dimensionValue, value } = b
+    return prisma.analyticsBreakdownDaily.upsert({
       where: {
         metricDate_metricKey_dimension_dimensionValue: {
           metricDate,
@@ -479,7 +492,8 @@ async function upsertBreakdowns(
       create: { metricDate, metricKey, dimension, dimensionValue, value, unit: 'count' },
       update: { value },
     })
-  }
+  })
+  if (ops.length > 0) await prisma.$transaction(ops)
 }
 
 // ─── Main rebuild functions ───────────────────────────────────────────────────
@@ -510,9 +524,11 @@ export async function rebuildAnalyticsRange(input: { from: Date; to: Date }): Pr
         calculateDailyBreakdowns(window),
       ])
 
-      const metricsCount = await upsertMetrics(metrics)
-      await upsertFunnel(day, funnel)
-      await upsertBreakdowns(day, breakdowns)
+      const [metricsCount] = await Promise.all([
+        upsertMetrics(metrics),
+        upsertFunnel(day, funnel),
+        upsertBreakdowns(day, breakdowns),
+      ])
 
       rowsProcessed += metricsCount + funnel.length + breakdowns.length
     }

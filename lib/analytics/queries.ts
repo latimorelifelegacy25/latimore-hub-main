@@ -228,7 +228,7 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
   } else if (isOperationalAnalyticsFallbackEnabled()) {
     // Operational fallback
     source = 'operational_fallback'
-    const [leads, contacts, appts, ctas, forms, aiAgg, socialAgg] = await Promise.all([
+    const [leads, contacts, appts, ctas, forms, aiAgg, socialAgg, soldI, soldC, aiTotal, aiSuccess, scoreAgg] = await Promise.all([
       prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to } } }),
       prisma.contact.count({ where: { createdAt: { gte: from, lte: to } } }),
       prisma.appointment.count({ where: { createdAt: { gte: from, lte: to }, NOT: { status: 'Cancelled' } } }),
@@ -236,15 +236,12 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
       prisma.event.count({ where: { occurredAt: { gte: from, lte: to }, eventType: 'form_submit' } }),
       prisma.aiRun.aggregate({ where: { createdAt: { gte: from, lte: to }, status: 'succeeded' }, _avg: { latencyMs: true } }),
       prisma.socialMetric.aggregate({ where: { metricDate: { gte: from, lte: to } }, _sum: { clicks: true, reactions: true, comments: true, shares: true, saves: true } }),
-    ])
-
-    const [soldI, soldC] = await Promise.all([
       prisma.inquiry.count({ where: { updatedAt: { gte: from, lte: to }, stage: 'Sold' } }),
       prisma.contact.count({ where: { updatedAt: { gte: from, lte: to }, status: 'CLOSED_WON' } }),
+      prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to } } }),
+      prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to }, status: 'succeeded' } }),
+      prisma.inquiry.aggregate({ where: { createdAt: { gte: from, lte: to } }, _avg: { leadScore: true } }),
     ])
-    const aiTotal = await prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to } } })
-    const aiSuccess = await prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to }, status: 'succeeded' } })
-    const scoreAgg = await prisma.inquiry.aggregate({ where: { createdAt: { gte: from, lte: to } }, _avg: { leadScore: true } })
 
     leadCount = leads
     contactCount = contacts
@@ -267,23 +264,20 @@ export async function getAnalyticsOverview(filters: AnalyticsFiltersInput): Prom
   const priorTo = new Date(from.getTime() - 1)
   const priorFrom = new Date(from.getTime() - rangeDays * 86_400_000)
 
-  const [priorLeads, priorContacts, priorAppts, priorSold, priorCtas] = await Promise.all([
+  const [priorLeads, priorContacts, priorAppts, priorSold, priorCtas, staleLeadCount, taskOverdueCount] = await Promise.all([
     prisma.inquiry.count({ where: { createdAt: { gte: priorFrom, lte: priorTo } } }),
     prisma.contact.count({ where: { createdAt: { gte: priorFrom, lte: priorTo } } }),
     prisma.appointment.count({ where: { createdAt: { gte: priorFrom, lte: priorTo }, NOT: { status: 'Cancelled' } } }),
     prisma.inquiry.count({ where: { updatedAt: { gte: priorFrom, lte: priorTo }, stage: 'Sold' } }),
     prisma.event.count({ where: { occurredAt: { gte: priorFrom, lte: priorTo }, eventType: { in: ['cta_click', 'call_click', 'text_click', 'email_click', 'book_click'] as any } } }),
+    calculateStaleLeadCount(),
+    calculateOverdueTaskCount(),
   ])
 
   const pctChange = (current: number, prior: number): number | null => {
     if (prior === 0) return null
     return ((current - prior) / prior) * 100
   }
-
-  const [staleLeadCount, taskOverdueCount] = await Promise.all([
-    calculateStaleLeadCount(),
-    calculateOverdueTaskCount(),
-  ])
 
   return {
     source,
@@ -658,13 +652,12 @@ export async function getDataQualityWarnings(filters: AnalyticsFiltersInput): Pr
   const warnings: string[] = []
 
   try {
-    const [noSource, noCounty, martRows] = await Promise.all([
+    const [noSource, noCounty, martRows, totalLeads] = await Promise.all([
       prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to }, source: null } }),
       prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to }, county: null } }),
       prisma.analyticsDailyMetric.count({ where: { metricDate: { gte: from, lte: to } } }),
+      prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to } } }),
     ])
-
-    const totalLeads = await prisma.inquiry.count({ where: { createdAt: { gte: from, lte: to } } })
 
     if (totalLeads > 0 && noSource / totalLeads > 0.3) {
       warnings.push(`${Math.round((noSource / totalLeads) * 100)}% of leads are missing source attribution.`)
@@ -689,7 +682,7 @@ export async function getDataQualityWarnings(filters: AnalyticsFiltersInput): Pr
 export async function getSocialAnalytics(filters: AnalyticsFiltersInput): Promise<SocialAnalyticsData> {
   const { from, to } = parseAnalyticsDateRange(filters)
 
-  const [postCounts, metricAgg, platformAgg, recentPosts] = await Promise.all([
+  const [postCounts, metricAgg, platformAgg, recentPosts, publishedCount] = await Promise.all([
     prisma.socialPost.aggregate({
       where: { createdAt: { gte: from, lte: to } },
       _count: { _all: true },
@@ -727,11 +720,10 @@ export async function getSocialAnalytics(filters: AnalyticsFiltersInput): Promis
         },
       },
     }),
+    prisma.socialPost.count({
+      where: { status: 'published', publishedAt: { gte: from, lte: to } },
+    }),
   ])
-
-  const publishedCount = await prisma.socialPost.count({
-    where: { status: 'published', publishedAt: { gte: from, lte: to } },
-  })
 
   const totalImpressions = metricAgg._sum.impressions ?? 0
   const totalReach = metricAgg._sum.reach ?? 0
@@ -772,7 +764,7 @@ export async function getSocialAnalytics(filters: AnalyticsFiltersInput): Promis
 export async function getAiAnalytics(filters: AnalyticsFiltersInput): Promise<AiAnalyticsData> {
   const { from, to } = parseAnalyticsDateRange(filters)
 
-  const [total, success, failed, avgLatency, byType, recentRuns] = await Promise.all([
+  const [total, success, failed, avgLatency, byType, recentRuns, successByType] = await Promise.all([
     prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to } } }),
     prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to }, status: 'succeeded' } }),
     prisma.aiRun.count({ where: { createdAt: { gte: from, lte: to }, status: 'failed' } }),
@@ -792,14 +784,13 @@ export async function getAiAnalytics(filters: AnalyticsFiltersInput): Promise<Ai
       take: 10,
       select: { id: true, type: true, status: true, latencyMs: true, createdAt: true },
     }),
+    // For per-type success rate, get success count per type
+    prisma.aiRun.groupBy({
+      by: ['type'],
+      where: { createdAt: { gte: from, lte: to }, status: 'succeeded' },
+      _count: { _all: true },
+    }),
   ])
-
-  // For per-type success rate, get success count per type
-  const successByType = await prisma.aiRun.groupBy({
-    by: ['type'],
-    where: { createdAt: { gte: from, lte: to }, status: 'succeeded' },
-    _count: { _all: true },
-  })
   const successMap = new Map(successByType.map(r => [r.type, r._count._all]))
 
   return {

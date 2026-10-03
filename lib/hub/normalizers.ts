@@ -160,6 +160,13 @@ export function normalizeStage(value?: string | null): PipelineStage {
   return STAGE_MAP[normalizeKey(value)] ?? 'New'
 }
 
+/** Like normalizeStage, but throws on unrecognized input instead of defaulting to 'New'. */
+export function normalizeStageStrict(value?: string | null): PipelineStage {
+  const stage = STAGE_MAP[normalizeKey(value)]
+  if (!stage) throw new Error(`Unknown pipeline stage: ${cleanString(value, 50) ?? '(empty)'}`)
+  return stage
+}
+
 const SERVICE_AREA_COUNTIES = ['Schuylkill', 'Luzerne', 'Northumberland'] as const
 
 /**

@@ -57,6 +57,7 @@ export async function sendMetaLeadConversion(input: LeadConversionInput) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(3000),
     })
 
     if (!response.ok) {

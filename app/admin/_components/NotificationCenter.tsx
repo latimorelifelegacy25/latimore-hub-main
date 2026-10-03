@@ -49,8 +49,30 @@ export default function NotificationCenter({ className = '' }: NotificationCente
 
   useEffect(() => {
     void loadNotifications()
-    const interval = setInterval(loadNotifications, 30000)
-    return () => clearInterval(interval)
+    let interval: ReturnType<typeof setInterval> | null = null
+    const start = () => {
+      if (interval === null) interval = setInterval(loadNotifications, 30000)
+    }
+    const stop = () => {
+      if (interval !== null) {
+        clearInterval(interval)
+        interval = null
+      }
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop()
+      } else {
+        void loadNotifications()
+        start()
+      }
+    }
+    if (!document.hidden) start()
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      stop()
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
   }, [loadNotifications])
 
   const handleMarkAsRead = async (id: string) => {

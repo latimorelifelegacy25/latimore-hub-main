@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 
 declare global {
   interface Window {
@@ -190,14 +191,12 @@ export default function PahsProtectForm() {
       {/* ── HERO ── */}
       <section className="pwyp-hero" id="top">
         <div className="pwyp-flyer-bg">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="PAHS Crimson Tide Football 2026" src="/pahs-v2/sponsor-flyer.png" />
+          <Image alt="PAHS Crimson Tide Football 2026" src="/pahs-v2/sponsor-flyer.png" width={1080} height={720} sizes="100vw" priority />
         </div>
         <div className="pwyp-content">
           {/* Logo */}
           <div className="pwyp-logo-bar">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="Latimore Life & Legacy" src="/pahs-latimore-logo.png" />
+            <Image alt="Latimore Life & Legacy" src="/pahs-latimore-logo.png" width={850} height={960} sizes="120px" style={{ width: 'auto' }} priority />
             <div className="pwyp-brand-text">Latimore Life &amp; Legacy</div>
           </div>
 
@@ -206,8 +205,7 @@ export default function PahsProtectForm() {
 
           {/* Sponsor card */}
           <div className="pwyp-flyer-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="2005 Coal Region All-Area Football — Where the Journey Began" src="/pahs-v2/throwback-thursday.jpg" />
+            <Image alt="2005 Coal Region All-Area Football — Where the Journey Began" src="/pahs-v2/throwback-thursday.jpg" width={1024} height={857} sizes="(max-width: 800px) 100vw, 600px" />
           </div>
 
           {/* Hero headline */}

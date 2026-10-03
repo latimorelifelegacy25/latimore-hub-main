@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 120
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
 
     let totalTasksCreated = 0
 
-    for (const contact of contactsNeedingTasks) {
+    const processContact = async (contact: (typeof contactsNeedingTasks)[number]) => {
       try {
         // Prepare data for AI analysis
         const analysisData = {
@@ -153,6 +154,17 @@ Provide a single task in this JSON format:
         logger.error({ contactId: contact.id, error }, 'Failed to generate task for contact')
       }
     }
+
+    // Small worker pool (concurrency 3) instead of strictly serial AI calls
+    const CONCURRENCY = 3
+    const queue = [...contactsNeedingTasks]
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+        for (let contact = queue.shift(); contact; contact = queue.shift()) {
+          await processContact(contact)
+        }
+      })
+    )
 
     return NextResponse.json({
       success: true,

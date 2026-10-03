@@ -46,8 +46,10 @@ export async function ingestEvent(input: EventIngestInput) {
   const parsedAt = input.occurredAt ? new Date(input.occurredAt) : null
   const occurredAt = parsedAt && !Number.isNaN(parsedAt.getTime()) ? parsedAt : new Date()
 
+  let sessionContactId: string | null | undefined
+
   if (leadSessionId) {
-    await upsertLeadSession(
+    const session = await upsertLeadSession(
       leadSessionId,
       {
         lastSeenAt: occurredAt,
@@ -74,9 +76,10 @@ export async function ingestEvent(input: EventIngestInput) {
         contactId: cleanString(input.contactId, 191) ?? undefined,
       },
     )
+    sessionContactId = session.contactId
   }
 
-  return prisma.event.create({
+  const event = await prisma.event.create({
     data: {
       eventType,
       occurredAt,
@@ -93,4 +96,8 @@ export async function ingestEvent(input: EventIngestInput) {
       metadata: (input.metadata as Prisma.InputJsonValue) ?? undefined,
     },
   })
+
+  // sessionContactId is the LeadSession's contactId from the upsert (undefined when no session),
+  // exposed so callers can skip a redundant LeadSession lookup.
+  return Object.assign(event, { sessionContactId })
 }

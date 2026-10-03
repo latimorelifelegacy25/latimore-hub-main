@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireCronAuth } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
+import { safeEqual } from '@/lib/safe-equal'
 import { detectSpike } from '@/lib/analytics/engagement'
 
 export const dynamic = 'force-dynamic'
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
   const isCron = requireCronAuth(req) === null
   const syncToken = process.env.ENGAGEMENT_SYNC_TOKEN
   const auth = req.headers.get('authorization')
-  const isSync = syncToken && auth === `Bearer ${syncToken}`
+  const isSync = !!syncToken && safeEqual(auth, `Bearer ${syncToken}`)
 
   if (!isCron && !isSync) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 

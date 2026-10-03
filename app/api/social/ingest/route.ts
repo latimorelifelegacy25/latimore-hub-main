@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     }
 
     const results = []
+    const metricOps = []
     for (const p of posts) {
       const post = await prisma.socialPost.upsert({
         where: { id: p.id ?? '__new__' },
@@ -54,19 +55,22 @@ export async function POST(req: NextRequest) {
 
       if (p.metrics) {
         const normalized = normalizeMetrics(platform, p.metrics)
-        await prisma.socialMetric.create({
-          data: {
-            postId: post.id,
-            platform,
-            metricDate: p.metricDate ? new Date(p.metricDate) : new Date(),
-            ...normalized,
-            raw: p.metrics,
-          },
-        })
+        // One snapshot per post per UTC day
+        const base = p.metricDate ? new Date(p.metricDate) : new Date()
+        const metricDate = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate()))
+        metricOps.push(
+          prisma.socialMetric.upsert({
+            where: { postId_metricDate: { postId: post.id, metricDate } },
+            create: { postId: post.id, platform, metricDate, ...normalized, raw: p.metrics },
+            update: { ...normalized, raw: p.metrics },
+          })
+        )
       }
 
       results.push(post.id)
     }
+
+    if (metricOps.length > 0) await prisma.$transaction(metricOps)
 
     return NextResponse.json({ ok: true, ingested: results.length })
   } catch (err) {

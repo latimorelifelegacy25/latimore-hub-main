@@ -47,6 +47,6 @@ export const POST = withCors(async (req: NextRequest) => {
     return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
     logger.error({ err: err.message }, 'Consultation form ingest error')
-    return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Lead capture failed' }, { status: 500 })
   }
 })

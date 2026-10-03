@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 120
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireCronAuth } from '@/lib/ai/shared'
@@ -29,16 +30,19 @@ export async function GET(req: NextRequest) {
       },
       orderBy: { lastActivityAt: 'desc' },
       take: 500,
-      include: {
-        inquiries: {
-          include: {
-            appointments: true
-          }
-        },
-        notes: true,
-        appointments: true,
+      select: {
+        id: true,
+        status: true,
+        leadScore: true,
+        lastActivityAt: true,
+        notesSummary: true,
+        inquiries: { select: { status: true } },
+        // Only the last 7 days of notes/appointments are ever counted below
+        notes: { where: { createdAt: { gte: sevenDaysAgo } }, select: { id: true } },
+        appointments: { where: { createdAt: { gte: sevenDaysAgo } }, select: { id: true } },
         tasks: {
-          where: { status: 'Open' }
+          where: { status: 'Open' },
+          select: { dueAt: true }
         }
       }
     })
@@ -46,6 +50,12 @@ export async function GET(req: NextRequest) {
     logger.info({ count: contactsToUpdate.length }, 'Found contacts for lead score updates')
 
     let updatedCount = 0
+    const pendingUpdates: Array<{
+      id: string
+      from: number
+      to: number
+      data: { leadScore: number; notesSummary: string | null }
+    }> = []
 
     for (const contact of contactsToUpdate) {
       try {
@@ -86,9 +96,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Appointment activity
-        const recentAppointments = contact.appointments.filter(apt =>
-          apt.createdAt >= sevenDaysAgo
-        ).length
+        const recentAppointments = contact.appointments.length
 
         if (recentAppointments > 0) {
           scoreAdjustment += recentAppointments * 10
@@ -106,9 +114,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Notes activity (engagement)
-        const recentNotes = contact.notes.filter(note =>
-          note.createdAt >= sevenDaysAgo
-        ).length
+        const recentNotes = contact.notes.length
 
         if (recentNotes > 0) {
           scoreAdjustment += recentNotes * 3
@@ -130,8 +136,10 @@ export async function GET(req: NextRequest) {
 
         // Only update if score changed significantly
         if (Math.abs(newScore - (contact.leadScore || 0)) >= 5) {
-          await prisma.contact.update({
-            where: { id: contact.id },
+          pendingUpdates.push({
+            id: contact.id,
+            from: contact.leadScore || 0,
+            to: newScore,
             data: {
               leadScore: newScore,
               notesSummary: reasons.length > 0
@@ -139,13 +147,37 @@ export async function GET(req: NextRequest) {
                 : contact.notesSummary
             }
           })
-
-          updatedCount++
-          logger.info({ contactId: contact.id, from: contact.leadScore || 0, to: newScore }, 'Updated lead score')
         }
 
       } catch (error) {
         logger.error({ contactId: contact.id, error }, 'Failed to update lead score')
+      }
+    }
+
+    // Apply updates in chunks (one transaction per chunk instead of one round trip per contact)
+    const CHUNK_SIZE = 25
+    for (let i = 0; i < pendingUpdates.length; i += CHUNK_SIZE) {
+      const chunk = pendingUpdates.slice(i, i + CHUNK_SIZE)
+      try {
+        await prisma.$transaction(
+          chunk.map(update => prisma.contact.update({ where: { id: update.id }, data: update.data }))
+        )
+        updatedCount += chunk.length
+        for (const update of chunk) {
+          logger.info({ contactId: update.id, from: update.from, to: update.to }, 'Updated lead score')
+        }
+      } catch (error) {
+        // Fall back to per-contact updates so one bad row does not block the rest of the chunk
+        logger.warn({ error }, 'Lead score chunk update failed, retrying individually')
+        for (const update of chunk) {
+          try {
+            await prisma.contact.update({ where: { id: update.id }, data: update.data })
+            updatedCount++
+            logger.info({ contactId: update.id, from: update.from, to: update.to }, 'Updated lead score')
+          } catch (err) {
+            logger.error({ contactId: update.id, error: err }, 'Failed to update lead score')
+          }
+        }
       }
     }
 

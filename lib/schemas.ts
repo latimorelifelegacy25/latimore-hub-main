@@ -121,6 +121,31 @@ export const LeadSchema = z.object({
   path: ['email'],
 })
 
+export const LegacyCheckupSchema = z.object({
+  firstName: z.string().trim().min(1).max(100),
+  lastName: z.string().trim().max(100).optional().nullable(),
+  email: z.string().trim().max(150).optional().nullable(),
+  phone: z.string().trim().max(40).optional().nullable(),
+  sourceContent: z.string().max(500).optional().nullable(),
+  source: z.string().max(100).optional().nullable(),
+  medium: z.string().max(100).optional().nullable(),
+  campaign: z.string().max(150).optional().nullable(),
+  utmTerm: z.string().max(100).optional().nullable(),
+  utmContent: z.string().max(100).optional().nullable(),
+  referrer: z.string().max(500).optional().nullable(),
+  page: z.string().max(500).optional().nullable(),
+  hasLifeInsurance: z.boolean().optional().nullable(),
+  hasMortgageProtection: z.boolean().optional().nullable(),
+  hasFinalExpense: z.boolean().optional().nullable(),
+  hasRetirementPlan: z.boolean().optional().nullable(),
+  hasLegacyPlan: z.boolean().optional().nullable(),
+  interestedIn: z.array(z.string().max(100)).max(20).optional().nullable(),
+  message: z.string().max(2000).optional().nullable(),
+}).refine((value) => !!(value.email || value.phone), {
+  message: 'Either email or phone is required',
+  path: ['email'],
+})
+
 export const ProductFitSchema = z.object({
   fullName: z.string().min(2).max(150),
   email: z.string().email().max(191).optional().or(z.literal('')),

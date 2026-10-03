@@ -126,10 +126,10 @@ async function createGeminiTextCompletion({
   const model = process.env.GEMINI_MODEL ?? 'gemini-2.0-flash'
   const normalizedModel = model.startsWith('models/') ? model : `models/${model}`
   const res = await fetchWithTimeout(
-    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: 'user', parts: [{ text: user }] }],
@@ -386,10 +386,10 @@ async function createGeminiJsonCompletion<T>({
   const geminiSchema = toGeminiSchema(wrappedSchema)
 
   const response = await fetchWithTimeout(
-    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/${normalizedModel}:generateContent`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         generationConfig: {

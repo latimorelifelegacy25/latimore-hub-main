@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 import crypto from 'crypto'
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { sendMail } from '@/lib/mailer'
 import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { rateLimit } from '@/lib/rate-limit'
@@ -227,44 +227,55 @@ export async function POST(req: NextRequest) {
     })
 
     // Notification delivery must not fail an otherwise-successful lead capture.
-    sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${source}\nCampaign: ${campaign}`).catch((err) =>
-      captureException(err, { source: 'notification', inquiryId: inquiry.id, contactId: contact.id }),
-    )
+    // Deferred with after() so the work completes after the response instead of being dropped.
+    after(async () => {
+      const jobs: Promise<unknown>[] = [
+        sendGoogleChatMessage(`New Fillout lead\n\nName: ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || 'Not provided'}\nEmail: ${contact.email || 'Not provided'}\nPhone: ${contact.phone || 'Not provided'}\nInterest: ${productInterest}\nSource: ${source}\nCampaign: ${campaign}`).catch((err) =>
+          captureException(err, { source: 'notification', inquiryId: inquiry.id, contactId: contact.id }),
+        ),
+      ]
 
-    if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
-      const subject = `New ${productInterest} lead — ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || inquiry.id}`
+      if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) {
+        const subject = `New ${productInterest} lead — ${[contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || contact.phone || inquiry.id}`
 
-      void sendMail({
-        to: process.env.NOTIFY_TO,
-        from: process.env.THANKYOU_FROM,
-        subject,
-        html: InquiryNotification({
-          firstName: contact.firstName ?? undefined,
-          lastName: contact.lastName ?? undefined,
-          email: contact.email ?? undefined,
-          phone: contact.phone ?? undefined,
-          productInterest,
-          county: contact.county ?? undefined,
-          leadSessionId: payload.leadSessionId ?? undefined,
-          source,
-          campaign: campaign ?? undefined,
-        }),
-      })
+        jobs.push(
+          sendMail({
+            to: process.env.NOTIFY_TO,
+            from: process.env.THANKYOU_FROM,
+            subject,
+            html: InquiryNotification({
+              firstName: contact.firstName ?? undefined,
+              lastName: contact.lastName ?? undefined,
+              email: contact.email ?? undefined,
+              phone: contact.phone ?? undefined,
+              productInterest,
+              county: contact.county ?? undefined,
+              leadSessionId: payload.leadSessionId ?? undefined,
+              source,
+              campaign: campaign ?? undefined,
+            }),
+          }),
+        )
 
-      if (contact.email) {
-        void sendMail({
-          to: contact.email,
-          from: process.env.THANKYOU_FROM,
-          subject: "You're on the list — let's find a time",
-          html: ThankYou({ firstName: contact.firstName ?? undefined }),
-        })
+        if (contact.email) {
+          jobs.push(
+            sendMail({
+              to: contact.email,
+              from: process.env.THANKYOU_FROM,
+              subject: "You're on the list — let's find a time",
+              html: ThankYou({ firstName: contact.firstName ?? undefined }),
+            }),
+          )
+        }
       }
-    }
+
+      await Promise.allSettled(jobs)
+    })
 
     return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
     await captureException(err, { source: 'webhook', provider: 'fillout' })
-    return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Lead capture failed' }, { status: 500 })
   }
 }
 

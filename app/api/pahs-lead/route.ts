@@ -4,6 +4,7 @@ import { createGoogleCalendarEvent } from '@/lib/calendar/events';
 import { rateLimit } from '@/lib/rate-limit';
 import { logger } from '@/lib/logger';
 import { sendGoogleChatMessage } from '@/lib/google-chat';
+import { z } from 'zod';
 import { LeadSchema } from '@/lib/schemas';
 
 export const dynamic = 'force-dynamic';
@@ -57,6 +58,8 @@ type ValidatedLead = {
   referrer: string;
 };
 
+type ParsedLead = z.infer<typeof LeadSchema>;
+
 type CrmSave = { contact: string; inquiry: string; deduped: boolean };
 
 function clean(value: unknown, max = 500) {
@@ -67,10 +70,6 @@ function splitName(full: string): { firstName: string | null; lastName: string |
   const parts = full.trim().split(/\s+/);
   if (parts.length === 1) return { firstName: parts[0] || null, lastName: null };
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
-}
-
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
 }
 
 function requestLeadSessionId(body: LeadBody, req: NextRequest): string {
@@ -122,28 +121,22 @@ function followUpWindow(bestTime: string) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
-async function saveToCRM(lead: ValidatedLead): Promise<CrmSave> {
-  const { firstName, lastName } = splitName(lead.name);
-  const notes = [
-    `Coverage interest: ${lead.interest}`,
-    lead.bestTime ? `Best time to call: ${lead.bestTime}` : null,
-    lead.promo ? `Promo/Coupon: ${lead.promo}` : null,
-  ].filter(Boolean).join(' | ');
+async function saveToCRM(parsed: ParsedLead, lead: ValidatedLead): Promise<CrmSave> {
   const { contact, inquiry, deduped } = await upsertLead({
-    firstName,
-    lastName,
-    email: lead.email || null,
-    phone: lead.phone || null,
-    productInterest: lead.interest,
-    leadSessionId: lead.leadSessionId || null,
-    source: lead.utmSource || lead.source,
-    medium: lead.utmMedium || null,
-    campaign: lead.utmCampaign || null,
-    term: lead.utmTerm || null,
-    content: lead.utmContent || null,
-    referrer: lead.referrer || null,
-    landingPage: lead.page,
-    notes,
+    firstName: parsed.firstName,
+    lastName: parsed.lastName,
+    email: parsed.email || null,
+    phone: parsed.phone || null,
+    productInterest: parsed.productInterest,
+    leadSessionId: parsed.leadSessionId || null,
+    source: parsed.source,
+    medium: parsed.medium || null,
+    campaign: parsed.campaign || null,
+    term: parsed.term || null,
+    content: parsed.content || null,
+    referrer: parsed.referrer || null,
+    landingPage: parsed.landingPage,
+    notes: parsed.notes,
     metadata: {
       form: 'pahs-lead',
       promo: lead.promo || null,
@@ -247,7 +240,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: parsedLead.error.flatten() }, { status: 422 })
     }
 
-    const save = await saveToCRM(lead);
+    const save = await saveToCRM(parsedLead.data, lead);
     const [emailResult, calendarResult] = await Promise.allSettled([
       sendNotification(lead),
       createCalendarReminder(lead, save),
@@ -267,14 +260,14 @@ export async function POST(req: NextRequest) {
       response.email = { ok: true, result: emailResult.value };
     } else {
       logger.error({ err: emailResult.reason }, '[pahs-lead] Google Chat notification failed');
-      response.email = { ok: false, error: errorMessage(emailResult.reason) };
+      response.email = { ok: false };
     }
 
     if (calendarResult.status === 'fulfilled') {
       response.calendar = { ok: true, result: calendarResult.value };
     } else {
       logger.error({ err: calendarResult.reason }, '[pahs-lead] Calendar reminder failed');
-      response.calendar = { ok: false, error: errorMessage(calendarResult.reason) };
+      response.calendar = { ok: false };
     }
 
     return NextResponse.json(response, { status: 200 })
@@ -284,7 +277,7 @@ export async function POST(req: NextRequest) {
       '[pahs-lead] submission error'
     )
     return NextResponse.json(
-      { ok: false, error: 'Lead capture failed', detail: error instanceof Error ? error.message : 'Lead submission failed.' },
+      { ok: false, error: 'Lead capture failed' },
       { status: 500 }
     )
   }

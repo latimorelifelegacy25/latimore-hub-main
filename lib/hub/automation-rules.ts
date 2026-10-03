@@ -68,16 +68,16 @@ async function runAction(action: AutomationRuleDefinition['actions'][0], ctx: Ev
 
     case 'send_notification':
       // Extend with Google Chat / Resend when ready
-      logger.info({ payload: action.payload, ctx }, 'automation_rules: send_notification')
+      logger.info({ actionType: action.type, contactId: ctx.contactId, postId: ctx.postId }, 'automation_rules: send_notification')
       break
 
     case 'tag_contact':
       // Extend when Contact gains a tags field
-      logger.info({ payload: action.payload, ctx }, 'automation_rules: tag_contact')
+      logger.info({ actionType: action.type, contactId: ctx.contactId, postId: ctx.postId }, 'automation_rules: tag_contact')
       break
 
     default:
-      logger.warn({ action }, 'automation_rules: unknown action type')
+      logger.warn({ actionType: action.type }, 'automation_rules: unknown action type')
   }
 }
 
@@ -85,17 +85,21 @@ export async function evaluateRules(trigger: RuleTrigger, ctx: EvalContext) {
   const rules = await prisma.automationRule.findMany({ where: { isActive: true } })
 
   for (const rule of rules) {
-    const def = rule as unknown as { trigger: AutomationRuleDefinition['trigger']; condition: AutomationRuleDefinition['condition']; actions: AutomationRuleDefinition['actions'] }
-    if (def.trigger?.type !== trigger) continue
-    if (!matchesCondition(def.condition, ctx)) continue
+    try {
+      const def = rule as unknown as { trigger: AutomationRuleDefinition['trigger']; condition: AutomationRuleDefinition['condition']; actions: AutomationRuleDefinition['actions'] }
+      if (def.trigger?.type !== trigger) continue
+      if (!matchesCondition(def.condition, ctx)) continue
 
-    logger.info({ ruleId: rule.id, ruleName: rule.name, trigger, ctx }, 'automation_rules: rule matched')
-    for (const action of def.actions ?? []) {
-      try {
-        await runAction(action, ctx)
-      } catch (err) {
-        logger.error({ ruleId: rule.id, action, err }, 'automation_rules: action failed')
+      logger.info({ ruleId: rule.id, ruleName: rule.name, trigger, contactId: ctx.contactId, postId: ctx.postId }, 'automation_rules: rule matched')
+      for (const action of def.actions ?? []) {
+        try {
+          await runAction(action, ctx)
+        } catch (err) {
+          logger.error({ ruleId: rule.id, actionType: action.type, err }, 'automation_rules: action failed')
+        }
       }
+    } catch (err) {
+      logger.error({ ruleId: rule.id, trigger, err }, 'automation_rules: rule evaluation failed')
     }
   }
 }

@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
+import Script from 'next/script'
 import PublicTracker from './_components/public-tracker'
 import AnnouncementTicker from './_components/announcement-ticker'
-import Chatbot from '@/components/Chatbot'
+import ChatbotLazy from '@/components/ChatbotLazy'
 import SitewideSocialLinks from './_components/sitewide-social-links'
 import { Analytics } from '@vercel/analytics/next'
 import { GoogleTagManager } from '@next/third-parties/google'
@@ -78,31 +79,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        {gaIds.length > 0 && (
-          <>
-            <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaIds[0]}`} />
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());${gaIds.map(id => `gtag('config','${id}',{page_path:window.location.pathname});`).join('')}`,
-              }}
-            />
-          </>
-        )}
-        {META_PIXEL_ID ? (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
-            }}
-          />
-        ) : null}
-
-        {TIKTOK_PIXEL_ID ? (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `!function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=['page','track','identify'];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments)))}};for(var i=0;i<ttq.methods.length;i++){ttq.setAndDefer(ttq,ttq.methods[i]);}ttq.load=function(e){var n='https://analytics.tiktok.com/i18n/pixel/events.js';ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=n;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]={};var a=d.createElement('script');a.type='text/javascript';a.async=!0;a.src=n+'?sdkid='+e+'&lib='+t;var s=d.getElementsByTagName('script')[0];s.parentNode.insertBefore(a,s)};ttq.load('${TIKTOK_PIXEL_ID}');ttq.page();}(window,document,'ttq');`,
-            }}
-          />
-        ) : null}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -194,6 +170,45 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
+        {gaIds.length > 0 && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaIds[0]}`} strategy="afterInteractive" />
+            <Script
+              id="ga4-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());${gaIds.map(id => `gtag('config','${id}',{page_path:window.location.pathname});`).join('')}`,
+              }}
+            />
+          </>
+        )}
+        {META_PIXEL_ID ? (
+          <>
+            <Script
+              id="meta-pixel-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `!function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
+              }}
+            />
+            <Script src="https://connect.facebook.net/en_US/fbevents.js" strategy="lazyOnload" />
+          </>
+        ) : null}
+        {TIKTOK_PIXEL_ID ? (
+          <>
+            <Script
+              id="tiktok-pixel-init"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `!function(w,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=['page','track','identify'];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments)))}};for(var i=0;i<ttq.methods.length;i++){ttq.setAndDefer(ttq,ttq.methods[i]);}ttq.load=function(e){var n='https://analytics.tiktok.com/i18n/pixel/events.js';ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=n;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]={}};ttq.load('${TIKTOK_PIXEL_ID}');ttq.page();}(window,'ttq');`,
+              }}
+            />
+            <Script
+              src={`https://analytics.tiktok.com/i18n/pixel/events.js?sdkid=${TIKTOK_PIXEL_ID}&lib=ttq`}
+              strategy="lazyOnload"
+            />
+          </>
+        ) : null}
         <AnnouncementTicker />
         {GTM_ID ? <GoogleTagManager gtmId={GTM_ID} /> : null}
         {META_PIXEL_ID ? (
@@ -205,7 +220,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Suspense fallback={null}><PublicTracker /></Suspense>
         {children}
         <SitewideSocialLinks />
-        <Chatbot />
+        <ChatbotLazy />
         <Analytics />
       </body>
     </html>

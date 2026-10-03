@@ -74,6 +74,7 @@ export async function exchangeGoogleCalendarCode(code: string) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
   })
 
   const data = await res.json()
@@ -95,6 +96,7 @@ export async function fetchGoogleUserInfo(accessToken: string) {
   const res = await fetch(GOOGLE_USERINFO_URL, {
     headers: { Authorization: `Bearer ${accessToken}` },
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
   })
 
   const data = await res.json()
@@ -114,6 +116,8 @@ export async function upsertGoogleCalendarConnection(input: {
   accountEmail?: string | null
   externalId?: string | null
 }) {
+  clearGoogleAccessTokenCache()
+
   const existing = await prisma.calendarConnection.findFirst({
     where: { provider: 'google' },
     orderBy: { updatedAt: 'desc' },
@@ -157,6 +161,19 @@ export async function upsertGoogleCalendarConnection(input: {
   })
 }
 
+// Module-scope cache of the decrypted access token (valid until expiry - 60s),
+// plus a single-flight guard so concurrent requests share one refresh.
+let cachedAccessToken: { token: string; expiresAt: number } | null = null
+let inflightTokenRefresh: Promise<string> | null = null
+
+export function cacheGoogleAccessToken(token: string, expiresAt: Date | null) {
+  cachedAccessToken = expiresAt ? { token, expiresAt: expiresAt.getTime() } : null
+}
+
+export function clearGoogleAccessTokenCache() {
+  cachedAccessToken = null
+}
+
 export async function getGoogleCalendarConnection() {
   return prisma.calendarConnection.findFirst({
     where: { provider: 'google' },
@@ -180,6 +197,7 @@ export async function refreshGoogleAccessToken(refreshToken: string) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
     cache: 'no-store',
+    signal: AbortSignal.timeout(8000),
   })
 
   const data = await res.json()
@@ -196,6 +214,20 @@ export async function refreshGoogleAccessToken(refreshToken: string) {
 }
 
 export async function getValidGoogleAccessToken() {
+  if (cachedAccessToken && cachedAccessToken.expiresAt > Date.now() + 60_000) {
+    return cachedAccessToken.token
+  }
+
+  if (inflightTokenRefresh) return inflightTokenRefresh
+
+  const pending = loadValidGoogleAccessToken().finally(() => {
+    if (inflightTokenRefresh === pending) inflightTokenRefresh = null
+  })
+  inflightTokenRefresh = pending
+  return pending
+}
+
+async function loadValidGoogleAccessToken() {
   const connection = await getGoogleCalendarConnection()
   if (!connection?.accessToken) throw new Error('Google Calendar is not connected')
 
@@ -206,7 +238,10 @@ export async function getValidGoogleAccessToken() {
   const accessToken = decryptToken(connection.accessToken)
   if (!accessToken) throw new Error('Google Calendar access token could not be decrypted')
 
-  if (stillValid) return accessToken
+  if (stillValid) {
+    cacheGoogleAccessToken(accessToken, connection.tokenExpiresAt)
+    return accessToken
+  }
 
   const refreshToken = decryptToken(connection.refreshToken)
   if (!refreshToken) throw new Error('Google Calendar refresh token is missing')
@@ -216,6 +251,8 @@ export async function getValidGoogleAccessToken() {
     refreshed.expires_in && Number.isFinite(refreshed.expires_in)
       ? new Date(Date.now() + refreshed.expires_in * 1000)
       : null
+
+  cacheGoogleAccessToken(refreshed.access_token, tokenExpiresAt)
 
   await prisma.calendarConnection.update({
     where: { id: connection.id },

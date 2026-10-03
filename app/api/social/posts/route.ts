@@ -74,6 +74,18 @@ export async function GET() {
     orderBy: {
       updatedAt: 'desc',
     },
+    // Never return accessToken/refreshToken to the client.
+    select: {
+      id: true,
+      createdAt: true,
+      updatedAt: true,
+      provider: true,
+      accountName: true,
+      externalId: true,
+      tokenExpiresAt: true,
+      metadata: true,
+      status: true,
+    },
   })
 
   return NextResponse.json({ posts, connections })

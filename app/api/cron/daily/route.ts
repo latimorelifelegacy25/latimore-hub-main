@@ -18,7 +18,7 @@ type TaskResult = {
   durationMs: number
 }
 
-const TASK_TIMEOUT_MS = 45_000
+const TASK_TIMEOUT_MS = 120_000
 
 async function runTask(name: string, url: string, req: NextRequest, method: 'GET' | 'POST' = 'GET'): Promise<TaskResult> {
   const start = Date.now()
@@ -113,14 +113,27 @@ export async function GET(req: NextRequest) {
   logger.info('[cron/daily] Starting daily master cron')
   const cronStart = Date.now()
 
-  const results: TaskResult[] = []
-  results.push(await runTask('daily-brief',           `${baseUrl}/api/cron/daily-brief`,           req))
-  results.push(await runTask('analytics-rebuild',     `${baseUrl}/api/analytics/v1/jobs/run`,      req, 'POST'))
-  results.push(await runTask('lead-score-updates',    `${baseUrl}/api/cron/lead-score-updates`,    req))
-  results.push(await runTask('appointment-reminders', `${baseUrl}/api/cron/appointment-reminders`, req))
-  results.push(await runTask('notification-checks',   `${baseUrl}/api/cron/notification-checks`,   req))
-  results.push(await runTask('social-sync',           `${baseUrl}/api/cron/social-sync`,           req))
-  results.push(await runTask('marketing-scheduled-publish', `${baseUrl}/api/cron/marketing-scheduled-publish`, req))
+  // Tasks are independent (lead scoring does not read the analytics mart), so run them concurrently.
+  const tasks: Array<[string, string, 'GET' | 'POST']> = [
+    ['daily-brief',           `${baseUrl}/api/cron/daily-brief`,           'GET'],
+    ['analytics-rebuild',     `${baseUrl}/api/analytics/v1/jobs/run`,      'POST'],
+    ['lead-score-updates',    `${baseUrl}/api/cron/lead-score-updates`,    'GET'],
+    ['appointment-reminders', `${baseUrl}/api/cron/appointment-reminders`, 'GET'],
+    ['notification-checks',   `${baseUrl}/api/cron/notification-checks`,   'GET'],
+    ['social-sync',           `${baseUrl}/api/cron/social-sync`,           'GET'],
+    ['marketing-scheduled-publish', `${baseUrl}/api/cron/marketing-scheduled-publish`, 'GET'],
+  ]
+  const settled = await Promise.allSettled(tasks.map(([name, url, method]) => runTask(name, url, req, method)))
+  const results: TaskResult[] = settled.map((outcome, i) =>
+    outcome.status === 'fulfilled'
+      ? outcome.value
+      : {
+          task: tasks[i][0],
+          ok: false,
+          error: outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason),
+          durationMs: Date.now() - cronStart,
+        },
+  )
 
   const totalMs = Date.now() - cronStart
   const succeeded = results.filter((result) => result.ok).length

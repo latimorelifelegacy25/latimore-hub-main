@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic'
 export { handleOptions as OPTIONS } from '@/lib/hub/cors'
-import { NextRequest, NextResponse } from 'next/server'
+import { after, NextRequest, NextResponse } from 'next/server'
 import { withCors } from '@/lib/hub/cors'
 import { upsertLead } from '@/lib/hub/upsert-lead'
 import { rateLimit } from '@/lib/rate-limit'
@@ -36,7 +36,7 @@ export const POST = withCors(async (req: NextRequest) => {
         conversionEventId,
       },
     })
-    await sendMetaLeadConversion({
+    const conversionInput = {
       eventId: conversionEventId,
       email: parse.data.email ?? null,
       phone: parse.data.phone ?? null,
@@ -45,6 +45,13 @@ export const POST = withCors(async (req: NextRequest) => {
       ipAddress: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? req.headers.get('x-real-ip'),
       source: parse.data.source ?? null,
       campaign: parse.data.campaign ?? null,
+    }
+    after(async () => {
+      try {
+        await sendMetaLeadConversion(conversionInput)
+      } catch (error) {
+        logger.warn({ error }, 'Meta lead conversion failed')
+      }
     })
     return NextResponse.json({ ok: true, contactId: contact.id, inquiryId: inquiry.id, conversionEventId })
   } catch (err: any) {

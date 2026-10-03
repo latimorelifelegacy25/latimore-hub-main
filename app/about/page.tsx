@@ -93,7 +93,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <img src="/jackson-coaching-baseball.jpg" alt="Jackson coaching Frackville Baseball 2024" style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
+            <Image src="/jackson-coaching-baseball.jpg" alt="Jackson coaching Frackville Baseball 2024" width={1400} height={2048} sizes="(max-width: 480px) 100vw, 420px" style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 8px 30px rgba(0,0,0,0.4)', objectFit: 'cover' }} />
             <p style={{ color: '#E5C882', fontSize: '0.85rem', marginTop: '0.75rem' }}>Frackville Black Diamond Baseball — 2024</p>
           </div>
         </div>
