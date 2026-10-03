@@ -3,7 +3,13 @@ import { publishLinkedInPost } from './linkedin-publisher'
 import { publishFacebookPagePost, publishInstagramPost } from './meta-publisher'
 import { getOneUpSocialAccountId, isOneUpConfigured, publishViaOneUp } from './oneup-publisher'
 import { appendUtmParams } from './url'
+import type { SocialProvider } from '@prisma/client'
 import type { PublishPayload, PublishResult, PublishTarget, SocialPlatform } from './types'
+
+// Platforms with a native OAuth connection stored in SocialConnection.
+// 'gbp' has no native row (the GBP connect flow stores elsewhere) and is
+// served exclusively through OneUp.
+const NATIVE_PROVIDERS: SocialProvider[] = ['facebook', 'instagram', 'linkedin']
 
 type SocialPostRecord = {
   id: string
@@ -30,10 +36,14 @@ function getMetadataObject(value: unknown): Record<string, unknown> {
   return {}
 }
 
-async function getConnection(platform: SocialPlatform): Promise<PublishTarget> {
+async function getConnection(platform: SocialPlatform): Promise<PublishTarget | null> {
+  if (!NATIVE_PROVIDERS.includes(platform as SocialProvider)) {
+    return null
+  }
+
   const connection = await prisma.socialConnection.findFirst({
     where: {
-      provider: platform,
+      provider: platform as SocialProvider,
       status: {
         in: ['active', 'connected', 'enabled'],
       },
@@ -44,7 +54,7 @@ async function getConnection(platform: SocialPlatform): Promise<PublishTarget> {
   })
 
   if (!connection) {
-    throw new Error(`No active ${platform} connection found.`)
+    return null
   }
 
   return {
@@ -98,7 +108,7 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
 
   const platform = post.platform as SocialPlatform
   // Native OAuth connection first; falls back to OneUp via Composio when none exists.
-  const target = await getConnection(platform).catch(() => null)
+  const target = await getConnection(platform)
   const metadata = getMetadataObject(post.metadata)
   const linkUrl = typeof metadata.linkUrl === 'string' ? metadata.linkUrl : null
   const taggedUrl = appendUtmParams(linkUrl, {

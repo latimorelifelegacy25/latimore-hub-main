@@ -4,8 +4,12 @@ import { prisma } from '@/lib/prisma'
 import { publishSocialPostById } from '@/lib/social/publisher'
 import { requireAdminSession } from '@/lib/ai/shared'
 import type { CreateSocialPostInput, SocialPlatform } from '@/lib/social/types'
+import type { SocialProvider } from '@prisma/client'
 
 const PLATFORMS: SocialPlatform[] = ['facebook', 'instagram', 'linkedin', 'gbp']
+
+// Subset with native OAuth rows in SocialConnection (Prisma SocialProvider enum).
+const NATIVE_PLATFORMS: SocialProvider[] = ['facebook', 'instagram', 'linkedin']
 
 function isPlatform(value: unknown): value is SocialPlatform {
   return typeof value === 'string' && PLATFORMS.includes(value as SocialPlatform)
@@ -64,7 +68,7 @@ export async function GET() {
   const connections = await prisma.socialConnection.findMany({
     where: {
       provider: {
-        in: PLATFORMS,
+        in: NATIVE_PLATFORMS,
       },
     },
     orderBy: {
