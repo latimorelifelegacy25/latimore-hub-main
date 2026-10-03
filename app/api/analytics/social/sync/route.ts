@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { safeEqual } from '@/lib/safe-equal'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
 
   const auth = req.headers.get('authorization')
   const provided = auth?.startsWith('Bearer ') ? auth.slice(7) : null
-  if (provided !== token) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  if (!safeEqual(provided, token)) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   let body: { platform?: string; posts?: unknown[] }
   try {

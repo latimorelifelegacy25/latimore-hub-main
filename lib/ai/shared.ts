@@ -85,7 +85,8 @@ export async function failAiRun(input: { aiRunId?: string; error: unknown }) {
       logger.error({ error, aiRunId: input.aiRunId }, 'Failed updating ai run')
     }
   }
-  return NextResponse.json({ ok: false, error: message }, { status: 500 })
+  logger.error({ aiRunId: input.aiRunId, err: message }, 'AI run failed')
+  return NextResponse.json({ ok: false, error: 'AI request failed' }, { status: 500 })
 }
 
 export async function createSystemAiEvent(input: {
@@ -104,7 +105,10 @@ export async function createSystemAiEvent(input: {
       },
     })
   } catch (error) {
-    logger.error({ error, input }, 'Failed creating system event')
+    logger.error(
+      { error, type: input.type, contactId: input.contactId, inquiryId: input.inquiryId },
+      'Failed creating system event',
+    )
   }
 }
 

@@ -64,6 +64,8 @@ class PostService {
     void ingestEvent({
       eventType: 'post_viewed',
       metadata: { postId: post.id, slug },
+    }).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[PostService] post_viewed event failed')
     })
 
     return updated
@@ -95,6 +97,8 @@ class PostService {
     void ingestEvent({
       eventType: 'post_created',
       metadata: { postId: post.id, createdBy, title: data.title, isFlagged: status === 'flagged' },
+    }).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[PostService] post_created event failed')
     })
 
     return post
@@ -115,6 +119,8 @@ class PostService {
         tags: post.tags,
         wordCount: post.body.split(' ').length,
       },
+    }).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[PostService] post_published event failed')
     })
 
     return post
@@ -137,6 +143,8 @@ class PostService {
     void ingestEvent({
       eventType: 'reaction_added',
       metadata: { postId, userId, emoji },
+    }).catch((err) => {
+      logger.warn({ err: err instanceof Error ? err.message : String(err) }, '[PostService] reaction_added event failed')
     })
 
     return { toggled: 'added', emoji, reaction }

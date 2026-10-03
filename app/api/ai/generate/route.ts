@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createTextCompletion } from '@/lib/ai/client'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { buildInstructionBoundaryBlock, sanitizeAiText } from '@/lib/ai/prompt-boundary'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -31,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ text })
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Serverless generation exception occurred'
-    return NextResponse.json({ error: message }, { status: 500 })
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'AI generation failed')
+    return NextResponse.json({ error: 'Generation failed.' }, { status: 500 })
   }
 }

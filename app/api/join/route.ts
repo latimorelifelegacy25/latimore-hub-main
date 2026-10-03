@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { sendMail } from '@/lib/mailer'
 import { logger } from '@/lib/logger'
+import { escapeHtml } from '@/lib/escape-html'
 import { LeadIntent, LeadSource, LeadStatus } from '@prisma/client'
 import { inferLeadSource } from '@/lib/tracking/infer'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
@@ -87,7 +88,7 @@ export async function POST(req: NextRequest) {
       const existingContact = await tx.contact.findFirst({ where: { OR: [{ email: emailLower }, { phone }] } })
       const protectedStatuses = new Set<LeadStatus>([LeadStatus.BOOKED, LeadStatus.IN_CONSULT, LeadStatus.REFERRED_TO_ETHOS, LeadStatus.ETHOS_APPLIED, LeadStatus.ETHOS_APPROVED, LeadStatus.CLOSED_WON])
       const contact = existingContact
-        ? await tx.contact.update({ where: { id: existingContact.id }, data: { email: emailLower, phone, fullName, firstName, lastName, primarySource: existingContact.primarySource ?? source, primaryMedium: existingContact.primaryMedium ?? medium, primaryCampaign: existingContact.primaryCampaign ?? campaign, primarySourceType: existingContact.primarySourceType === LeadSource.UNKNOWN ? sourceType : existingContact.primarySourceType, primaryIntent: existingContact.primaryIntent === LeadIntent.UNKNOWN ? intent : existingContact.primaryIntent, currentIntent: protectedStatuses.has(existingContact.status) ? existingContact.currentIntent : intent, status: protectedStatuses.has(existingContact.status) ? existingContact.status : inquiryStatus, lastActivityAt: new Date() } })
+        ? await tx.contact.update({ where: { id: existingContact.id }, data: { primarySource: existingContact.primarySource ?? source, primaryMedium: existingContact.primaryMedium ?? medium, primaryCampaign: existingContact.primaryCampaign ?? campaign, primarySourceType: existingContact.primarySourceType === LeadSource.UNKNOWN ? sourceType : existingContact.primarySourceType, primaryIntent: existingContact.primaryIntent === LeadIntent.UNKNOWN ? intent : existingContact.primaryIntent, currentIntent: protectedStatuses.has(existingContact.status) ? existingContact.currentIntent : intent, lastActivityAt: new Date() } })
         : await tx.contact.create({ data: { email: emailLower, phone, fullName, firstName, lastName, primarySource: source, primaryMedium: medium, primaryCampaign: campaign, primarySourceType: sourceType, primaryIntent: intent, currentIntent: intent, status: inquiryStatus, lastActivityAt: new Date() } })
 
       const inquiry = await tx.inquiry.create({ data: { contactId: contact.id, productInterest: 'General', stage: 'New', source, medium, campaign, landingPage: clean(input.pageUrl) ?? '/join', intent, status: inquiryStatus, sourceType, notes: input.interestReason } })
@@ -102,8 +103,8 @@ export async function POST(req: NextRequest) {
 
     await triggerLeadScoring({ contactId: result.contact.id, inquiryId: result.inquiry.id, reason: 'new_join_application' }).catch((err) => logger.error({ err }, 'Failed to trigger join lead scoring'))
 
-    if (process.env.THANKYOU_FROM && result.contact.email) await sendMail({ to: result.contact.email, from: process.env.THANKYOU_FROM, subject: 'Thank you for your interest in joining Latimore Life & Legacy', html: `<p>Thank you, ${firstName ?? fullName}. Your join application has been received.</p><p>The next step is a short introductory conversation to learn more about your goals and answer your questions.</p><p>Protect families. Secure futures. Build legacies.<br />#TheBeatGoesOn</p>` }).catch((err) => logger.error({ err }, 'Failed to send join confirmation email'))
-    if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) await sendMail({ to: process.env.NOTIFY_TO, from: process.env.THANKYOU_FROM, subject: `New Join Application - ${fullName}`, html: `<p>New join application from <strong>${fullName}</strong>.</p><p>Email: ${emailLower}<br />Phone: ${phone}<br />Application ID: ${result.application.id}</p>` }).catch((err) => logger.error({ err }, 'Failed to send join notification email'))
+    if (process.env.THANKYOU_FROM && result.contact.email) await sendMail({ to: result.contact.email, from: process.env.THANKYOU_FROM, subject: 'Thank you for your interest in joining Latimore Life & Legacy', html: `<p>Thank you, ${escapeHtml(firstName ?? fullName)}. Your join application has been received.</p><p>The next step is a short introductory conversation to learn more about your goals and answer your questions.</p><p>Protect families. Secure futures. Build legacies.<br />#TheBeatGoesOn</p>` }).catch((err) => logger.error({ err }, 'Failed to send join confirmation email'))
+    if (process.env.NOTIFY_TO && process.env.THANKYOU_FROM) await sendMail({ to: process.env.NOTIFY_TO, from: process.env.THANKYOU_FROM, subject: `New Join Application - ${fullName}`, html: `<p>New join application from <strong>${escapeHtml(fullName)}</strong>.</p><p>Email: ${escapeHtml(emailLower)}<br />Phone: ${escapeHtml(phone)}<br />Application ID: ${result.application.id}</p>` }).catch((err) => logger.error({ err }, 'Failed to send join notification email'))
 
     return NextResponse.json({ ok: true, contactId: result.contact.id, inquiryId: result.inquiry.id, applicationId: result.application.id, message: 'Application submitted successfully' })
   } catch (error: any) {

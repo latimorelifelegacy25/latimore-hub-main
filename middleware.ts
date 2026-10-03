@@ -20,6 +20,7 @@ const protectedPrefixes = [
   '/api/admin',
   '/api/ai',
   '/api/analytics/ga4/data',
+  '/api/analytics/report',
   '/api/analytics/v1',
   '/api/calendar/book',
   '/api/calendar/google',

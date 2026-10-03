@@ -3,6 +3,7 @@ import { verifyMetaSignature, fetchMetaLead, normalizeMetaLead } from '@/lib/soc
 import { upsertSocialLead } from '@/lib/social/upsert-social-lead'
 import type { MetaWebhookEntry } from '@/lib/social/types'
 import { rateLimit } from '@/lib/rate-limit'
+import { safeEqual } from '@/lib/safe-equal'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const challenge = searchParams.get('hub.challenge')
 
   const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN
-  if (mode === 'subscribe' && token === verifyToken && challenge) {
+  if (mode === 'subscribe' && !!verifyToken && safeEqual(token, verifyToken) && challenge) {
     return new NextResponse(challenge, { status: 200 })
   }
   return NextResponse.json({ error: 'verification failed' }, { status: 403 })

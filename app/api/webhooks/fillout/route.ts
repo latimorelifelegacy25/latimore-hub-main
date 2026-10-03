@@ -264,7 +264,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
     await captureException(err, { source: 'webhook', provider: 'fillout' })
-    return NextResponse.json({ ok: false, error: 'Lead capture failed', detail: err.message }, { status: 500 })
+    return NextResponse.json({ ok: false, error: 'Lead capture failed' }, { status: 500 })
   }
 }
 

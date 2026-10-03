@@ -1,4 +1,4 @@
-import nodeCrypto from 'crypto'
+import { safeEqual } from '@/lib/safe-equal'
 import { NormalizedSocialLead, splitName } from './types'
 
 export function verifyLinkedInBridgeToken(authHeader: string | null): boolean {
@@ -6,11 +6,7 @@ export function verifyLinkedInBridgeToken(authHeader: string | null): boolean {
   if (!token) return false
   if (!authHeader) return false
   const provided = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader
-  try {
-    return nodeCrypto.timingSafeEqual(Buffer.from(provided), Buffer.from(token))
-  } catch {
-    return provided === token
-  }
+  return safeEqual(provided, token)
 }
 
 export function normalizeLinkedInLead(raw: Record<string, unknown>): NormalizedSocialLead {

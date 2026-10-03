@@ -4,6 +4,19 @@ import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { encryptToken } from '@/lib/crypto'
 
+// Never return accessToken/refreshToken to the client.
+const SAFE_CONNECTION_SELECT = {
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  provider: true,
+  accountName: true,
+  externalId: true,
+  tokenExpiresAt: true,
+  metadata: true,
+  status: true,
+}
+
 async function validateToken(provider: string, token: string): Promise<string | null> {
   const endpoints: Record<string, string> = {
     linkedin: 'https://api.linkedin.com/v2/userinfo',
@@ -31,7 +44,10 @@ export async function GET() {
     )
   }
 
-  const connections = await socialConnectionModel.findMany({ orderBy: { updatedAt: 'desc' } })
+  const connections = await socialConnectionModel.findMany({
+    orderBy: { updatedAt: 'desc' },
+    select: SAFE_CONNECTION_SELECT,
+  })
   return NextResponse.json({ success: true, connections })
 }
 
@@ -98,8 +114,9 @@ export async function POST(req: NextRequest) {
     ? await socialConnectionModel.update({
         where: { id: existing.id },
         data,
+        select: SAFE_CONNECTION_SELECT,
       })
-    : await socialConnectionModel.create({ data })
+    : await socialConnectionModel.create({ data, select: SAFE_CONNECTION_SELECT })
 
   return NextResponse.json({ success: true, connection })
 }

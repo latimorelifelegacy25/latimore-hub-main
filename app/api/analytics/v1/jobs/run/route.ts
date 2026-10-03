@@ -7,6 +7,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { rebuildAnalyticsRange } from '@/lib/analytics/aggregation'
 import { assertAnalyticsOverviewCoverage } from '@/lib/analytics/mart-health'
 import { logger } from '@/lib/logger'
+import { safeEqual } from '@/lib/safe-equal'
 
 function isCronAuthed(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET
@@ -14,7 +15,7 @@ function isCronAuthed(req: NextRequest): boolean {
   const header =
     req.headers.get('x-cron-secret') ??
     req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
-  return header === secret
+  return safeEqual(header, secret)
 }
 
 function trailingWindow(days: number) {

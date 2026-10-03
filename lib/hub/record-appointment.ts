@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { ingestEvent } from './ingest-event'
 import { cleanString, normalizePhone, normalizeProductInterest, normalizeStage } from './normalizers'
 import { captureException } from '@/lib/error-tracking'
+import { logger } from '@/lib/logger'
 import { upsertLead } from './upsert-lead'
 import type { CalendarEventStatus, CalendarProvider, Prisma } from '@prisma/client'
 
@@ -172,6 +173,23 @@ async function resolveInquiryForAppointment(input: RecordAppointmentInput) {
   throw new Error('No matching inquiry or contact')
 }
 
+// The booking is already committed by the time events are written — never fail the request over analytics.
+async function safeIngest(event: Parameters<typeof ingestEvent>[0]) {
+  try {
+    await ingestEvent(event)
+  } catch (err) {
+    logger.warn(
+      {
+        err: err instanceof Error ? err.message : String(err),
+        eventType: event.eventType,
+        inquiryId: event.inquiryId,
+        contactId: event.contactId,
+      },
+      'Appointment saved but event ingestion failed',
+    )
+  }
+}
+
 export async function recordAppointment(input: RecordAppointmentInput) {
   const inquiry = await resolveInquiryForAppointment(input)
   const bookingSource = cleanString(input.bookingSource, 100) ?? 'booking_webhook'
@@ -185,9 +203,11 @@ export async function recordAppointment(input: RecordAppointmentInput) {
   const description = cleanString(input.description ?? input.notes, 2000)
   const timezone = cleanString(input.timezone, 100)
   const status = cleanString(input.status, 100) ?? 'Booked'
+  const isCancelled = /cancel|no[\s_-]?show/i.test(status)
 
   let appointment: Awaited<ReturnType<typeof prisma.appointment.create>>
   let createdAppointment = false
+  let advancedStage = false
 
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -236,41 +256,55 @@ export async function recordAppointment(input: RecordAppointmentInput) {
 
       createdAppointment = !existingAppointment
 
-      await tx.inquiry.update({
-        where: { id: inquiry.id },
-        data: {
-          stage: toStage,
-          status: 'BOOKED',
-          intent: 'CONSULT',
-        },
-      })
+      // Re-read inside the transaction; never pull a closed (Sold/Lost) inquiry
+      // back to Booked, and cancelled appointments don't advance the pipeline.
+      const current = await tx.inquiry.findUnique({ where: { id: inquiry.id }, select: { stage: true } })
+      const currentStage = current?.stage ?? inquiry.stage
+      advancedStage = !isCancelled && currentStage !== 'Sold' && currentStage !== 'Lost'
 
-      if (inquiry.stage !== toStage) {
-        await tx.inquiryStageHistory.create({
+      if (advancedStage) {
+        await tx.inquiry.update({
+          where: { id: inquiry.id },
           data: {
-            inquiryId: inquiry.id,
-            fromStage: inquiry.stage,
-            toStage,
-            actor: bookingSource,
-            note: 'Stage advanced by appointment booking',
+            stage: toStage,
+            status: 'BOOKED',
+            intent: 'CONSULT',
           },
         })
+
+        if (currentStage !== toStage) {
+          await tx.inquiryStageHistory.create({
+            data: {
+              inquiryId: inquiry.id,
+              fromStage: currentStage,
+              toStage,
+              actor: bookingSource,
+              note: 'Stage advanced by appointment booking',
+            },
+          })
+        }
+
+        await tx.contact.update({
+          where: { id: inquiry.contactId },
+          data: {
+            updatedAt: new Date(),
+            status: 'BOOKED',
+            currentIntent: 'CONSULT',
+            primaryIntent: inquiry.contact.primaryIntent === 'UNKNOWN' ? 'CONSULT' : undefined,
+          },
+        })
+
+        // Only auto-complete the auto-created follow-up task; leave other tasks
+        // (e.g. the "Possible duplicate contact" merge task) open.
+        await tx.task.updateMany({
+          where: {
+            inquiryId: inquiry.id,
+            status: { notIn: ['Completed', 'Done', 'Cancelled'] },
+            title: { startsWith: 'Follow up with' },
+          },
+          data: { status: 'Completed' },
+        })
       }
-
-      await tx.contact.update({
-        where: { id: inquiry.contactId },
-        data: {
-          updatedAt: new Date(),
-          status: 'BOOKED',
-          currentIntent: 'CONSULT',
-          primaryIntent: inquiry.contact.primaryIntent === 'UNKNOWN' ? 'CONSULT' : undefined,
-        },
-      })
-
-      await tx.task.updateMany({
-        where: { inquiryId: inquiry.id, status: { not: 'Done' } },
-        data: { status: 'Done' },
-      })
 
       if (createdAppointment) {
         await tx.note.create({
@@ -335,26 +369,28 @@ export async function recordAppointment(input: RecordAppointmentInput) {
   }
 
   if (createdAppointment) {
-    await ingestEvent({
-      eventType: 'stage_changed',
-      occurredAt: new Date(),
-      inquiryId: inquiry.id,
-      contactId: inquiry.contactId,
-      leadSessionId: inquiry.leadSessionId,
-      pageUrl: inquiry.landingPage,
-      source: inquiry.source,
-      medium: inquiry.medium,
-      campaign: inquiry.campaign,
-      county: inquiry.county ?? inquiry.contact?.county ?? undefined,
-      productInterest: inquiry.productInterest,
-      metadata: {
-        fromStage: inquiry.stage,
-        toStage,
-        actor: bookingSource,
-      },
-    })
+    if (advancedStage) {
+      await safeIngest({
+        eventType: 'stage_changed',
+        occurredAt: new Date(),
+        inquiryId: inquiry.id,
+        contactId: inquiry.contactId,
+        leadSessionId: inquiry.leadSessionId,
+        pageUrl: inquiry.landingPage,
+        source: inquiry.source,
+        medium: inquiry.medium,
+        campaign: inquiry.campaign,
+        county: inquiry.county ?? inquiry.contact?.county ?? undefined,
+        productInterest: inquiry.productInterest,
+        metadata: {
+          fromStage: inquiry.stage,
+          toStage,
+          actor: bookingSource,
+        },
+      })
+    }
 
-    await ingestEvent({
+    await safeIngest({
       eventType: 'appointment_booked',
       occurredAt: scheduledFor ?? new Date(),
       contactId: inquiry.contactId,

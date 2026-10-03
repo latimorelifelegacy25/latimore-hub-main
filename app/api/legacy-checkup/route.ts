@@ -7,28 +7,7 @@ import { logger } from '@/lib/logger'
 import { sendMail } from '@/lib/mailer'
 import { InquiryNotification, ThankYou } from '@/emails/templates'
 import { prisma } from '@/lib/prisma'
-
-type LegacyCheckupBody = {
-  firstName?: string
-  lastName?: string
-  email?: string
-  phone?: string
-  sourceContent?: string
-  source?: string
-  medium?: string
-  campaign?: string
-  utmTerm?: string
-  utmContent?: string
-  referrer?: string
-  page?: string
-  hasLifeInsurance?: boolean
-  hasMortgageProtection?: boolean
-  hasFinalExpense?: boolean
-  hasRetirementPlan?: boolean
-  hasLegacyPlan?: boolean
-  interestedIn?: string[]
-  message?: string
-}
+import { LegacyCheckupSchema } from '@/lib/schemas'
 
 function clean(value: unknown, max = 500) {
   return String(value || '').trim().slice(0, max)
@@ -43,7 +22,12 @@ export async function POST(req: NextRequest) {
   if (limited) return limited
 
   try {
-    const body = (await req.json()) as LegacyCheckupBody
+    const json = await req.json().catch(() => null)
+    const parsedBody = LegacyCheckupSchema.safeParse(json)
+    if (!parsedBody.success) {
+      return NextResponse.json({ ok: false, error: parsedBody.error.flatten() }, { status: 422 })
+    }
+    const body = parsedBody.data
 
     const firstName = clean(body.firstName, 100)
     const lastName = clean(body.lastName, 100)
@@ -145,18 +129,18 @@ export async function POST(req: NextRequest) {
 
     if (notifyResult.status === 'rejected') {
       logger.error({ err: notifyResult.reason }, '[legacy-checkup] admin notification failed')
-      response.notification = { ok: false, error: errorMessage(notifyResult.reason) }
+      response.notification = { ok: false }
     }
     if (thankYouResult.status === 'rejected') {
       logger.error({ err: thankYouResult.reason }, '[legacy-checkup] thank-you email failed')
-      response.thankYou = { ok: false, error: errorMessage(thankYouResult.reason) }
+      response.thankYou = { ok: false }
     }
 
     return NextResponse.json(response, { status: 200 })
   } catch (error) {
     logger.error({ err: errorMessage(error) }, '[legacy-checkup] submission error')
     return NextResponse.json(
-      { ok: false, error: 'Legacy Checkup request failed', detail: errorMessage(error) },
+      { ok: false, error: 'Legacy Checkup request failed' },
       { status: 500 },
     )
   }

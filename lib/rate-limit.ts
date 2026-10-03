@@ -41,6 +41,13 @@ function getUpstashConfig(): { url: string; token: string } | null {
 }
 
 let warnedUpstashFailure = false
+let warnedMemoryFallback = false
+
+function warnMemoryFallback(reason: string) {
+  if (warnedMemoryFallback) return
+  warnedMemoryFallback = true
+  console.warn(`[rate-limit] Using in-memory rate limiting (${reason}); limits are per-instance only.`)
+}
 
 function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
   const config = getUpstashConfig()
@@ -69,12 +76,16 @@ function getUpstashLimiter(limit: number, windowSec: number): Ratelimit | null {
 
 async function upstashLimit(key: string, limit: number, windowSec: number): Promise<boolean | null> {
   const limiter = getUpstashLimiter(limit, windowSec)
-  if (!limiter) return null
+  if (!limiter) {
+    warnMemoryFallback('Upstash not configured or failed to initialize')
+    return null
+  }
 
   try {
     const { success } = await limiter.limit(key)
     return !success
   } catch {
+    warnMemoryFallback('Upstash request failed')
     // Backend hiccup — let the in-memory fallback keep some protection
     // instead of hard-failing or blanket-blocking every request.
     return null
@@ -85,12 +96,13 @@ async function upstashLimit(key: string, limit: number, windowSec: number): Prom
 const store = new Map<string, { count: number; reset: number }>()
 
 // Periodically evict expired entries to prevent unbounded memory growth.
-setInterval(() => {
+const evictionTimer = setInterval(() => {
   const now = Date.now()
   for (const [k, rec] of store) {
     if (now > rec.reset) store.delete(k)
   }
 }, 60_000)
+evictionTimer.unref?.()
 
 function memoryLimit(key: string, limit: number, windowMs: number): boolean {
   const now = Date.now()
@@ -114,10 +126,13 @@ function sanitizeIdentifierPart(value?: string | null) {
 }
 
 export function getClientIp(req: Pick<NextRequest, 'headers'>) {
+  // Vercel sets x-vercel-forwarded-for / x-real-ip itself and overwrites
+  // x-forwarded-for, so the first entry is platform-controlled. cf-connecting-ip
+  // is client-spoofable when not behind Cloudflare, so it is not trusted.
   return (
-    req.headers.get('cf-connecting-ip') ??
-    req.headers.get('x-real-ip') ??
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+    req.headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip')?.trim() ||
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
     'unknown'
   )
 }
@@ -129,7 +144,7 @@ export function getClientFingerprint(req: Pick<NextRequest, 'headers'>) {
 }
 
 function buildRateLimitKey(req: NextRequest, type: string, identifier?: string) {
-  return `rl:${type}:${sanitizeIdentifierPart(identifier) || sanitizeIdentifierPart(getClientIp(req))}`
+  return `rl:${type}:${sanitizeIdentifierPart(identifier || getClientIp(req))}`
 }
 
 export function createRateLimitResponse(

@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(
-      { ok: true, contactId: contact.id, inquiryId: inquiry.id, score: inquiry.leadScore, conversionEventId },
+      { ok: true, contactId: contact.id, inquiryId: inquiry.id, conversionEventId },
       { status: 201 },
     )
   } catch (error) {

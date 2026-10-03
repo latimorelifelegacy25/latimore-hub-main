@@ -61,8 +61,9 @@ export const POST = withCors(async (req: NextRequest) => {
       eventType: input.eventType,
       occurredAt: input.occurredAt,
       leadSessionId: input.leadSessionId ?? null,
-      contactId: input.contactId ?? null,
-      inquiryId: input.inquiryId ?? null,
+      // Public endpoint: never trust client-supplied CRM identifiers.
+      contactId: null,
+      inquiryId: null,
       pageUrl: attr.landingPage,
       referrer: attr.referrer,
       source: attr.source,

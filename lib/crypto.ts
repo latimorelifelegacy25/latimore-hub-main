@@ -19,6 +19,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypt
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_BYTES = 12  // 96-bit IV recommended for GCM
+const AUTH_TAG_BYTES = 16
 
 /** Derive a 32-byte Buffer from TOKEN_ENCRYPTION_KEY, or null if unset. */
 function getKey(): Buffer | null {
@@ -48,7 +49,7 @@ export function encryptToken(plain: string): string {
   }
 
   const iv = randomBytes(IV_BYTES)
-  const cipher = createCipheriv(ALGORITHM, key, iv)
+  const cipher = createCipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_BYTES })
   const ciphertext = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()])
   const tag = cipher.getAuthTag()
 
@@ -84,8 +85,11 @@ export function decryptToken(stored: string | null | undefined): string | null {
     const iv = Buffer.from(parts[1], 'hex')
     const tag = Buffer.from(parts[2], 'hex')
     const ciphertext = Buffer.from(parts[3], 'hex')
+    if (tag.length !== AUTH_TAG_BYTES) {
+      throw new Error('Invalid auth tag length')
+    }
 
-    const decipher = createDecipheriv(ALGORITHM, key, iv)
+    const decipher = createDecipheriv(ALGORITHM, key, iv, { authTagLength: AUTH_TAG_BYTES })
     decipher.setAuthTag(tag)
     return decipher.update(ciphertext).toString('utf8') + decipher.final('utf8')
   } catch (err) {

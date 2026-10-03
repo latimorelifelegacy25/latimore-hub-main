@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSign } from "crypto";
+import { requireAdminSession } from "@/lib/ai/shared";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,9 @@ async function getServiceAccountToken(): Promise<string> {
 }
 
 export async function GET() {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
   try {
     const propertyId = process.env.GA4_PROPERTY_ID;
     if (!propertyId) {
@@ -90,10 +94,8 @@ export async function GET() {
     };
 
     if (!gaRes.ok) {
-      return NextResponse.json(
-        { error: "GA4 report failed", details: data },
-        { status: gaRes.status }
-      );
+      console.error("[analytics/report] GA4 report failed", data);
+      return NextResponse.json({ error: "GA4 report failed" }, { status: gaRes.status });
     }
 
     const rows =
@@ -107,7 +109,7 @@ export async function GET() {
 
     return NextResponse.json({ rows });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: "GA4 report failed", details: message }, { status: 500 });
+    console.error("[analytics/report] error", error);
+    return NextResponse.json({ error: "GA4 report failed" }, { status: 500 });
   }
 }

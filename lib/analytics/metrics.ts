@@ -185,7 +185,7 @@ export async function calculateStaleLeadCount(): Promise<number> {
 export async function calculateOverdueTaskCount(): Promise<number> {
   return prisma.task.count({
     where: {
-      status: { not: 'Done' },
+      status: { notIn: ['Done', 'Completed'] },
       dueAt: { lt: new Date() },
     },
   })
