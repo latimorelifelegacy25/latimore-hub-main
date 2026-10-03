@@ -40,7 +40,7 @@ export default function MasterDashboardPage() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { href: '/admin/advisor', label: 'Advisor Workspace', detail: 'PFR · Appointment Guide · Knowledge · Coaching', icon: BriefcaseBusiness },
-          { href: '/analytics', label: 'Tracking Command Center', detail: 'Visitors · Tools · Leads · Appointments · Conversion', icon: BarChart3 },
+          { href: '/admin/tracking', label: 'Tracking Command Center', detail: 'Visitors · Tools · Leads · Appointments · Conversion', icon: BarChart3 },
           { href: '/admin/workflow-runs', label: 'Workflow Operations', detail: 'Runs · Compliance · Cost · Audit · Failures', icon: Workflow },
           { href: '/admin/nexus-agent', label: 'Latimore Automation', detail: 'Agent runtime · Tools · Workflow execution', icon: Bot },
         ].map(card => {
