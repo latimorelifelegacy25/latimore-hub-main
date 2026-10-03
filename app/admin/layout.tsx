@@ -38,7 +38,7 @@ const navItems = [
   { href: '/admin/settings', label: 'Settings', icon: 'fa-gear' },
   { href: '/admin/messages', label: 'Messages', icon: 'fa-message' },
   { href: '/admin/tasks', label: 'Tasks', icon: 'fa-check-square' },
-  { href: '/analytics', label: 'Tracking Command Center', icon: 'fa-chart-line' },
+  { href: '/admin/tracking', label: 'Tracking Command Center', icon: 'fa-chart-line' },
 ]
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

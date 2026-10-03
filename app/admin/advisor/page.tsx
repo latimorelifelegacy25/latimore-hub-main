@@ -32,7 +32,7 @@ const tools = [
     label: 'Coaching',
   },
   {
-    href: '/analytics',
+    href: '/admin/tracking',
     title: 'Tracking Command Center',
     description: 'See first-party traffic, tool starts, completions, CTA activity, booking clicks, leads, appointments, and recent events.',
     icon: BarChart3,

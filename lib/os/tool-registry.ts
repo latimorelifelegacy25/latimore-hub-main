@@ -106,7 +106,7 @@ export const LATIMORE_TOOL_REGISTRY: readonly LatimoreToolDefinition[] = [
     id: 'tracking-command-center',
     name: 'Tracking Command Center',
     description: 'First-party acquisition, funnel, tool-performance, and conversion analytics.',
-    href: '/analytics',
+    href: '/admin/tracking',
     audience: 'operations',
     area: 'analytics',
     trackingTool: 'tracking_command_center',
