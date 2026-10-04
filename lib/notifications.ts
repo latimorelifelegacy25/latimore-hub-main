@@ -4,6 +4,8 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { randomUUID } from 'crypto'
+import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 
 export interface Notification {
@@ -31,9 +33,9 @@ export interface NotificationPreferences {
   conversionMilestones: boolean
 }
 
-// In-memory notification store (in production, use Redis/database)
-let notifications: Notification[] = []
-let preferences: NotificationPreferences = {
+// Notification preferences are static defaults. Nothing in the app edits them
+// at runtime; keeping them out of module state avoids per-instance drift on serverless.
+const preferences: NotificationPreferences = {
   email: true,
   inApp: true,
   sms: false,
@@ -44,80 +46,135 @@ let preferences: NotificationPreferences = {
   conversionMilestones: true,
 }
 
-/**
- * Create a new notification
- */
-export async function createNotification(notification: Omit<Notification, 'id' | 'read' | 'createdAt'>): Promise<Notification> {
-  const newNotification: Notification = {
-    ...notification,
-    id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    read: false,
-    createdAt: new Date(),
+const MAX_BATCH = 200
+const TERMINAL_TASK_STATUSES = ['Completed', 'Done', 'Cancelled', 'completed', 'done', 'cancelled', 'COMPLETED', 'DONE', 'CANCELLED']
+const ACTIVE_APPOINTMENT_STATUSES = ['Booked', 'Confirmed', 'scheduled', 'Scheduled', 'booked', 'confirmed']
+
+type NotificationInput = Omit<Notification, 'id' | 'read' | 'createdAt'> & { dedupeKey?: string }
+
+type NotificationRow = {
+  id: string
+  type: string
+  priority: string
+  title: string
+  message: string
+  data: unknown
+  contactId: string | null
+  taskId: string | null
+  appointmentId: string | null
+  readAt: Date | null
+  createdAt: Date
+}
+
+function toNotification(row: NotificationRow): Notification {
+  return {
+    id: row.id,
+    type: row.type as Notification['type'],
+    priority: row.priority as Notification['priority'],
+    title: row.title,
+    message: row.message,
+    data: row.data ?? undefined,
+    read: row.readAt !== null,
+    createdAt: row.createdAt,
+    contactId: row.contactId ?? undefined,
+    taskId: row.taskId ?? undefined,
+    appointmentId: row.appointmentId ?? undefined,
   }
+}
 
-  notifications.unshift(newNotification) // Add to beginning for latest first
-
-  // Keep only last 1000 notifications
-  if (notifications.length > 1000) {
-    notifications = notifications.slice(0, 1000)
-  }
-
-  // Log high-priority notifications
-  if (notification.priority === 'high' || notification.priority === 'urgent') {
-    logger.warn({ notification }, 'High-priority notification created')
-  }
-
-  // Trigger real-time updates (would integrate with WebSocket/SSE in production)
-  await triggerRealTimeUpdate(newNotification)
-
-  return newNotification
+function dayKey(date = new Date()): string {
+  return date.toISOString().slice(0, 10)
 }
 
 /**
- * Get all notifications with optional filtering
+ * Create a notification. If a notification with the same dedupeKey already exists
+ * (unique constraint), the existing row is returned and nothing new is written.
  */
-export function getNotifications(options: {
+export async function createNotification(notification: NotificationInput): Promise<Notification> {
+  const { dedupeKey, data, ...rest } = notification
+  const key = dedupeKey ?? `${rest.type}:${randomUUID()}`
+
+  try {
+    const row = await prisma.notification.create({
+      data: {
+        ...rest,
+        dedupeKey: key,
+        data: data === undefined ? undefined : (data as Prisma.InputJsonValue),
+      },
+    })
+    if (rest.priority === 'high' || rest.priority === 'urgent') {
+      logger.warn(
+        { notificationId: row.id, type: row.type, priority: row.priority, contactId: row.contactId },
+        'High-priority notification created',
+      )
+    }
+    return toNotification(row)
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      const existing = await prisma.notification.findUnique({ where: { dedupeKey: key } })
+      if (existing) return toNotification(existing)
+    }
+    throw error
+  }
+}
+
+/**
+ * Create many notifications, skipping any whose dedupeKey already exists.
+ * Returns the number of newly created rows.
+ */
+async function createManyDeduped(items: Array<NotificationInput & { dedupeKey: string }>): Promise<number> {
+  if (items.length === 0) return 0
+  const result = await prisma.notification.createMany({
+    data: items.map(({ data, ...rest }) => ({
+      ...rest,
+      data: data === undefined ? undefined : (data as Prisma.InputJsonValue),
+    })),
+    skipDuplicates: true,
+  })
+  return result.count
+}
+
+/**
+ * Get notifications (newest first) with optional filtering
+ */
+export async function getNotifications(options: {
   unreadOnly?: boolean
   type?: string
   priority?: string
   limit?: number
-} = {}): Notification[] {
-  let filtered = notifications
-
-  if (options.unreadOnly) {
-    filtered = filtered.filter(n => !n.read)
-  }
-
-  if (options.type) {
-    filtered = filtered.filter(n => n.type === options.type)
-  }
-
-  if (options.priority) {
-    filtered = filtered.filter(n => n.priority === options.priority)
-  }
-
-  return filtered.slice(0, options.limit || 50)
+} = {}): Promise<Notification[]> {
+  const rows = await prisma.notification.findMany({
+    where: {
+      ...(options.unreadOnly ? { readAt: null } : {}),
+      ...(options.type ? { type: options.type } : {}),
+      ...(options.priority ? { priority: options.priority } : {}),
+    },
+    orderBy: { createdAt: 'desc' },
+    take: Math.min(Math.max(options.limit || 50, 1), 100),
+  })
+  return rows.map(toNotification)
 }
 
 /**
  * Mark notification as read
  */
-export function markAsRead(notificationId: string): boolean {
-  const notification = notifications.find(n => n.id === notificationId)
-  if (notification) {
-    notification.read = true
-    return true
-  }
-  return false
+export async function markAsRead(notificationId: string): Promise<boolean> {
+  const result = await prisma.notification.updateMany({
+    where: { id: notificationId, readAt: null },
+    data: { readAt: new Date() },
+  })
+  return result.count > 0
 }
 
 /**
  * Mark all notifications as read
  */
-export function markAllAsRead(): number {
-  const unreadCount = notifications.filter(n => !n.read).length
-  notifications.forEach(n => n.read = true)
-  return unreadCount
+export async function markAllAsRead(): Promise<number> {
+  const result = await prisma.notification.updateMany({
+    where: { readAt: null },
+    data: { readAt: new Date() },
+  })
+  return result.count
 }
 
 /**
@@ -128,18 +185,10 @@ export function getNotificationPreferences(): NotificationPreferences {
 }
 
 /**
- * Update notification preferences
- */
-export function updateNotificationPreferences(newPreferences: Partial<NotificationPreferences>): NotificationPreferences {
-  preferences = { ...preferences, ...newPreferences }
-  return preferences
-}
-
-/**
  * Automated notification triggers
  */
 
-// High-lead-score alerts
+// High-lead-score alerts (at most one per contact per UTC day)
 export async function checkHighLeadScoreAlerts() {
   if (!preferences.leadAlerts) return
 
@@ -149,34 +198,27 @@ export async function checkHighLeadScoreAlerts() {
         leadScore: { gte: 80 },
         status: { notIn: ['CLOSED_WON', 'CLOSED_LOST'] }
       },
-      select: { id: true, firstName: true, lastName: true, leadScore: true, email: true }
+      select: { id: true, firstName: true, lastName: true, leadScore: true, email: true },
+      orderBy: { leadScore: 'desc' },
+      take: MAX_BATCH,
     })
 
-    for (const contact of highScoreContacts) {
-      // Check if we already alerted about this contact recently
-      const recentAlert = notifications.find(n =>
-        n.type === 'lead' &&
-        n.contactId === contact.id &&
-        n.createdAt > new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
-      )
-
-      if (!recentAlert) {
-        await createNotification({
-          type: 'lead',
-          priority: 'high',
-          title: `High-Value Lead: ${contact.firstName} ${contact.lastName}`,
-          message: `${contact.firstName} has a lead score of ${contact.leadScore}/100. Immediate follow-up recommended.`,
-          data: { leadScore: contact.leadScore, email: contact.email },
-          contactId: contact.id,
-        })
-      }
-    }
+    const day = dayKey()
+    await createManyDeduped(highScoreContacts.map(contact => ({
+      type: 'lead' as const,
+      priority: 'high' as const,
+      title: `High-Value Lead: ${contact.firstName} ${contact.lastName}`,
+      message: `${contact.firstName} has a lead score of ${contact.leadScore}/100. Immediate follow-up recommended.`,
+      data: { leadScore: contact.leadScore, email: contact.email },
+      contactId: contact.id,
+      dedupeKey: `lead:${contact.id}:${day}`,
+    })))
   } catch (error) {
     logger.error({ error }, 'Failed to check high lead score alerts')
   }
 }
 
-// Overdue task alerts
+// Overdue task alerts (at most one per task per UTC day)
 export async function checkOverdueTaskAlerts() {
   if (!preferences.taskReminders) return
 
@@ -184,131 +226,129 @@ export async function checkOverdueTaskAlerts() {
     const overdueTasks = await prisma.task.findMany({
       where: {
         dueAt: { lt: new Date() },
-        status: { not: 'COMPLETED' }
+        status: { notIn: TERMINAL_TASK_STATUSES },
       },
-      include: { contact: { select: { firstName: true, lastName: true } } }
+      include: { contact: { select: { firstName: true, lastName: true } } },
+      orderBy: { dueAt: 'asc' },
+      take: MAX_BATCH,
     })
 
-    for (const task of overdueTasks) {
-      // Check if we already alerted about this task recently
-      const recentAlert = notifications.find(n =>
-        n.type === 'task' &&
-        n.taskId === task.id &&
-        n.createdAt > new Date(Date.now() - 60 * 60 * 1000) // Last hour
-      )
-
-      if (!recentAlert) {
-        await createNotification({
-          type: 'task',
-          priority: 'urgent',
-          title: `Overdue Task: ${task.title}`,
-          message: `Task "${task.title}" for ${task.contact?.firstName} ${task.contact?.lastName} is overdue.`,
-          data: { dueDate: task.dueAt, status: task.status },
-          contactId: task.contactId || undefined,
-          taskId: task.id,
-        })
-      }
-    }
+    const day = dayKey()
+    await createManyDeduped(overdueTasks.map(task => ({
+      type: 'task' as const,
+      priority: 'urgent' as const,
+      title: `Overdue Task: ${task.title}`,
+      message: `Task "${task.title}" for ${task.contact?.firstName ?? 'unknown'} ${task.contact?.lastName ?? 'contact'} is overdue.`,
+      data: { dueDate: task.dueAt, status: task.status },
+      contactId: task.contactId || undefined,
+      taskId: task.id,
+      dedupeKey: `task:${task.id}:${day}`,
+    })))
   } catch (error) {
     logger.error({ error }, 'Failed to check overdue task alerts')
   }
 }
 
-// Upcoming appointment alerts
+// Upcoming appointment alerts. Windows are wide enough to be caught by a
+// 15-minute cron; each (appointment, window) fires at most once.
+const APPOINTMENT_WINDOWS = [
+  { key: '4h', minHours: 3.5, maxHours: 4.5, priority: 'medium' as const },
+  { key: '1h', minHours: 0.5, maxHours: 1.5, priority: 'high' as const },
+  { key: '15m', minHours: 0, maxHours: 0.5, priority: 'high' as const },
+]
+
 export async function checkUpcomingAppointmentAlerts() {
   if (!preferences.appointmentReminders) return
 
   try {
+    const now = Date.now()
     const upcomingAppointments = await prisma.appointment.findMany({
       where: {
         scheduledFor: {
-          gte: new Date(),
-          lte: new Date(Date.now() + 24 * 60 * 60 * 1000) // Next 24 hours
+          gte: new Date(now),
+          lte: new Date(now + 4.5 * 60 * 60 * 1000),
         },
-        status: 'SCHEDULED'
+        status: { in: ACTIVE_APPOINTMENT_STATUSES },
       },
-      include: { contact: { select: { firstName: true, lastName: true, phone: true, email: true } } }
+      include: { contact: { select: { firstName: true, lastName: true, phone: true, email: true } } },
+      orderBy: { scheduledFor: 'asc' },
+      take: MAX_BATCH,
     })
 
+    const items: Array<NotificationInput & { dedupeKey: string }> = []
     for (const appointment of upcomingAppointments) {
       if (!appointment.scheduledFor) continue
 
-      const hoursUntil = Math.round((appointment.scheduledFor.getTime() - Date.now()) / (1000 * 60 * 60))
+      const hoursUntil = (appointment.scheduledFor.getTime() - now) / (1000 * 60 * 60)
+      const window = APPOINTMENT_WINDOWS.find(w => hoursUntil >= w.minHours && hoursUntil < w.maxHours)
+      if (!window) continue
 
-      // Alert 4 hours before, 1 hour before, and 15 minutes before
-      if (hoursUntil === 4 || hoursUntil === 1 || hoursUntil <= 0.25) {
-        const recentAlert = notifications.find(n =>
-          n.type === 'appointment' &&
-          n.appointmentId === appointment.id &&
-          n.createdAt > new Date(Date.now() - 30 * 60 * 1000) // Last 30 minutes
-        )
-
-        if (!recentAlert) {
-          await createNotification({
-            type: 'appointment',
-            priority: hoursUntil <= 1 ? 'high' : 'medium',
-            title: `Upcoming Appointment: ${appointment.contact?.firstName} ${appointment.contact?.lastName}`,
-            message: `Appointment in ${hoursUntil > 1 ? `${hoursUntil} hours` : `${Math.round(hoursUntil * 60)} minutes`} at ${appointment.scheduledFor.toLocaleTimeString()}.`,
-            data: {
-              startTime: appointment.scheduledFor,
-              contactPhone: appointment.contact?.phone,
-              contactEmail: appointment.contact?.email
-            },
-            contactId: appointment.contactId,
-            appointmentId: appointment.id,
-          })
-        }
-      }
+      const minutes = Math.max(0, Math.round(hoursUntil * 60))
+      const timeLabel = minutes >= 90 ? `${Math.round(hoursUntil)} hours` : `${minutes} minutes`
+      items.push({
+        type: 'appointment',
+        priority: window.priority,
+        title: `Upcoming Appointment: ${appointment.contact?.firstName ?? ''} ${appointment.contact?.lastName ?? ''}`.trim(),
+        message: `Appointment in ${timeLabel} at ${appointment.scheduledFor.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET.`,
+        data: {
+          startTime: appointment.scheduledFor,
+          contactPhone: appointment.contact?.phone,
+          contactEmail: appointment.contact?.email,
+        },
+        contactId: appointment.contactId,
+        appointmentId: appointment.id,
+        dedupeKey: `appointment:${appointment.id}:${window.key}`,
+      })
     }
+    await createManyDeduped(items)
   } catch (error) {
     logger.error({ error }, 'Failed to check upcoming appointment alerts')
   }
 }
 
-// Conversion milestone alerts
+// Conversion milestone alerts (each conversion / milestone fires once, ever)
 export async function checkConversionMilestoneAlerts() {
   if (!preferences.conversionMilestones) return
 
   try {
-    // Check for recent conversions
-    const recentConversions = await prisma.contact.findMany({
-      where: {
-        status: 'CLOSED_WON',
-        updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } // Last 24 hours
-      },
-      select: { id: true, firstName: true, lastName: true, leadScore: true }
-    })
+    const [recentConversions, totalConversions] = await Promise.all([
+      prisma.contact.findMany({
+        where: {
+          status: 'CLOSED_WON',
+          updatedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+        select: { id: true, firstName: true, lastName: true, leadScore: true },
+        orderBy: { updatedAt: 'desc' },
+        take: MAX_BATCH,
+      }),
+      prisma.contact.count({ where: { status: 'CLOSED_WON' } }),
+    ])
 
-    for (const contact of recentConversions) {
-      await createNotification({
-        type: 'conversion',
-        priority: 'medium',
-        title: ` New Conversion: ${contact.firstName} ${contact.lastName}`,
-        message: `Congratulations! ${contact.firstName} ${contact.lastName} has converted with a lead score of ${contact.leadScore || 0}/100.`,
-        data: { leadScore: contact.leadScore },
-        contactId: contact.id,
-      })
-    }
-
-    // Check for milestone achievements
-    const totalConversions = await prisma.contact.count({
-      where: { status: 'CLOSED_WON' }
-    })
+    const items: Array<NotificationInput & { dedupeKey: string }> = recentConversions.map(contact => ({
+      type: 'conversion' as const,
+      priority: 'medium' as const,
+      title: `New Conversion: ${contact.firstName} ${contact.lastName}`,
+      message: `Congratulations! ${contact.firstName} ${contact.lastName} has converted with a lead score of ${contact.leadScore || 0}/100.`,
+      data: { leadScore: contact.leadScore },
+      contactId: contact.id,
+      dedupeKey: `conversion:${contact.id}`,
+    }))
 
     // Alert on milestone conversions (10, 25, 50, 100, etc.)
     const milestones = [10, 25, 50, 100, 250, 500, 1000]
-    const recentMilestone = milestones.find(m => totalConversions >= m &&
-      totalConversions - recentConversions.length < m)
-
-    if (recentMilestone) {
-      await createNotification({
+    const reached = milestones.filter(m => totalConversions >= m).pop()
+    if (reached) {
+      items.push({
         type: 'conversion',
         priority: 'high',
-        title: ` Milestone Achieved: ${recentMilestone} Conversions!`,
-        message: `Congratulations! You've reached ${recentMilestone} total conversions. Keep up the excellent work!`,
-        data: { totalConversions: recentMilestone },
+        title: `Milestone Achieved: ${reached} Conversions!`,
+        message: `Congratulations! You've reached ${reached} total conversions. Keep up the excellent work!`,
+        data: { totalConversions: reached },
+        dedupeKey: `milestone:${reached}`,
       })
     }
+
+    await createManyDeduped(items)
   } catch (error) {
     logger.error({ error }, 'Failed to check conversion milestone alerts')
   }
@@ -356,27 +396,17 @@ export async function runAutomatedNotificationChecks() {
 }
 
 /**
- * Real-time update trigger (placeholder for WebSocket/SSE integration)
- */
-async function triggerRealTimeUpdate(notification: Notification) {
-  // In production, this would emit to WebSocket clients or send SSE
-  logger.debug({ title: notification.title }, 'Real-time notification')
-}
-
-/**
  * Get notification statistics
  */
-export function getNotificationStats() {
-  const total = notifications.length
-  const unread = notifications.filter(n => !n.read).length
-  const byType = notifications.reduce((acc, n) => {
-    acc[n.type] = (acc[n.type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-  const byPriority = notifications.reduce((acc, n) => {
-    acc[n.priority] = (acc[n.priority] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+export async function getNotificationStats() {
+  const [unread, byTypeRows, byPriorityRows] = await Promise.all([
+    prisma.notification.count({ where: { readAt: null } }),
+    prisma.notification.groupBy({ by: ['type'], _count: { _all: true } }),
+    prisma.notification.groupBy({ by: ['priority'], _count: { _all: true } }),
+  ])
+  const byType = Object.fromEntries(byTypeRows.map(r => [r.type, r._count._all])) as Record<string, number>
+  const byPriority = Object.fromEntries(byPriorityRows.map(r => [r.priority, r._count._all])) as Record<string, number>
+  const total = Object.values(byType).reduce((a, b) => a + b, 0)
 
   return { total, unread, byType, byPriority }
 }

@@ -15,11 +15,11 @@ export async function GET(req: NextRequest) {
     const filter = (req.nextUrl.searchParams.get('filter') ?? 'all') as NotificationFilter
     const limit = Math.min(100, Math.max(1, Number(req.nextUrl.searchParams.get('limit') ?? 50) || 50))
 
-    const notifications = getNotifications({
+    const [notifications, stats] = await Promise.all([getNotifications({
       unreadOnly: filter === 'unread',
       priority: filter === 'urgent' ? 'urgent' : undefined,
       limit,
-    })
+    }), getNotificationStats()])
 
     return NextResponse.json({
       ok: true,
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         ...notification,
         createdAt: notification.createdAt.toISOString(),
       })),
-      stats: getNotificationStats(),
+      stats,
     })
   } catch (error) {
     logger.error({ error }, 'admin notifications GET failed')
@@ -44,11 +44,11 @@ export async function POST(req: NextRequest) {
     const action = body?.action
 
     if (action === 'mark_read' && typeof body?.id === 'string') {
-      return NextResponse.json({ ok: true, changed: markAsRead(body.id) })
+      return NextResponse.json({ ok: true, changed: await markAsRead(body.id) })
     }
 
     if (action === 'mark_all_read') {
-      return NextResponse.json({ ok: true, changed: markAllAsRead() })
+      return NextResponse.json({ ok: true, changed: await markAllAsRead() })
     }
 
     return NextResponse.json({ ok: false, error: 'Invalid notification action.' }, { status: 400 })

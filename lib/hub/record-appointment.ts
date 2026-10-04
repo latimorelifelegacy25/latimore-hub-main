@@ -4,6 +4,7 @@ import { cleanString, normalizePhone, normalizeProductInterest, normalizeStage }
 import { captureException } from '@/lib/error-tracking'
 import { logger } from '@/lib/logger'
 import { upsertLead } from './upsert-lead'
+import { acquireIdentityLocks } from './webhook-idempotency'
 import type { CalendarEventStatus, CalendarProvider, Prisma } from '@prisma/client'
 
 type RecordAppointmentInput = {
@@ -95,22 +96,48 @@ async function resolveInquiryForAppointment(input: RecordAppointmentInput) {
   if (phone) contactFilters.push({ phone })
 
   if (contactFilters.length) {
-    const contact = await prisma.contact.findFirst({
-      where: { OR: contactFilters },
-      orderBy: { updatedAt: 'desc' },
+    // Same identity locks as upsertLead so a concurrent lead submission can't interleave.
+    const contact = await prisma.$transaction(async (tx) => {
+      await acquireIdentityLocks(tx, [email ? `lead:email:${email}` : null, phone ? `lead:phone:${phone}` : null])
+
+      const matches = await tx.contact.findMany({
+        where: { OR: contactFilters },
+        orderBy: { updatedAt: 'desc' },
+      })
+      const match = matches[0]
+      if (!match) return null
+
+      // Email and phone can belong to two different contacts. Only write an identifier that no
+      // OTHER contact owns, otherwise the update raises P2002 on the unique index.
+      const emailOwner = email ? matches.find((c) => c.email === email) : undefined
+      const phoneOwner = phone ? matches.find((c) => c.phone === phone) : undefined
+      const canSetEmail = Boolean(email) && (!emailOwner || emailOwner.id === match.id)
+      const canSetPhone = Boolean(phone) && (!phoneOwner || phoneOwner.id === match.id)
+      if ((email && !canSetEmail) || (phone && !canSetPhone)) {
+        logger.warn(
+          {
+            keptContactId: match.id,
+            emailContactId: emailOwner?.id ?? null,
+            phoneContactId: phoneOwner?.id ?? null,
+          },
+          'Appointment booking: email and phone match different contacts; skipping conflicting identifier update',
+        )
+      }
+
+      await tx.contact.update({
+        where: { id: match.id },
+        data: {
+          firstName: firstName ?? match.firstName ?? undefined,
+          lastName: lastName ?? match.lastName ?? undefined,
+          email: (canSetEmail ? email : null) ?? match.email ?? undefined,
+          phone: (canSetPhone ? phone : null) ?? match.phone ?? undefined,
+          county: county ?? match.county ?? undefined,
+        },
+      })
+      return match
     })
 
     if (contact) {
-      await prisma.contact.update({
-        where: { id: contact.id },
-        data: {
-          firstName: firstName ?? contact.firstName ?? undefined,
-          lastName: lastName ?? contact.lastName ?? undefined,
-          email: email ?? contact.email ?? undefined,
-          phone: phone ?? contact.phone ?? undefined,
-          county: county ?? contact.county ?? undefined,
-        },
-      })
 
       const existingInquiry = await prisma.inquiry.findFirst({
         where: { contactId: contact.id },
@@ -211,6 +238,10 @@ export async function recordAppointment(input: RecordAppointmentInput) {
 
   try {
     const result = await prisma.$transaction(async (tx) => {
+      // Serialize concurrent deliveries for the same external event id so the find-then-create
+      // below can't double-insert; the second delivery blocks here, then sees the first's row.
+      if (gcalId) await acquireIdentityLocks(tx, [`appointment:gcal:${gcalId}`])
+
       const existingAppointment = gcalId
         ? await tx.appointment.findFirst({ where: { calendlyEventId: gcalId } })
         : scheduledFor

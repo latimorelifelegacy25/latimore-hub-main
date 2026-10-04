@@ -5,7 +5,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { BookingNotifySchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { recordAppointment } from '@/lib/hub/record-appointment'
-import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
+import { claimWebhookEvent, releaseWebhookClaim } from '@/lib/hub/webhook-idempotency'
 import { captureException } from '@/lib/error-tracking'
 
 function verifyWebhookSecret(req: NextRequest): boolean {
@@ -94,6 +94,8 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     await captureException(err, { source: 'booking', provider: 'booking-webhook' })
     const status = /No matching inquiry or contact/i.test(err.message) ? 404 : 500
+    // Both outcomes can succeed on retry (the lead may not be recorded yet), so don't treat the retry as a duplicate.
+    await releaseWebhookClaim('booking', eventId)
     return NextResponse.json({ ok: false, error: status === 404 ? 'no matching inquiry or contact' : 'server error' }, { status })
   }
 }
