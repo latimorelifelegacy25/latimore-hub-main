@@ -181,7 +181,7 @@ export default function PahsV2Page() {
               <div className="v2-sn">04</div>
               <div>
                 <div className="v2-st">Fixed Index Annuities (FIA)</div>
-                <p className="v2-sv">Guaranteed income through F&amp;G, American Equity, and Corebridge Financial. Sleep well knowing you won&rsquo;t outlive your money.</p>
+                <p className="v2-sv">Lifetime income options available through F&amp;G, American Equity, and Corebridge Financial, backed by each carrier&rsquo;s claims-paying ability. Ask about strategies designed to help your income last.</p>
               </div>
             </div>
           </div>

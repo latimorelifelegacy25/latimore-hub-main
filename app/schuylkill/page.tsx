@@ -60,7 +60,7 @@ A key feature is downside protection from direct index losses. When the credited
     subtitle: 'Peace of Mind for Your Loved Ones',
     color: '#fdf4ff',
     border: '#e9d5ff',
-    body: `Final Expense insurance is a permanent whole life policy specifically designed to cover funeral costs, burial fees, and outstanding medical bills. No medical exam required. Guaranteed acceptance options available.`,
+    body: `Final Expense insurance is a permanent whole life policy specifically designed to cover funeral costs, burial fees, and outstanding medical bills. No medical exam required for simplified-issue plans, and guaranteed-issue options are available for applicants who may not qualify medically.`,
     local:
       "The average funeral today can easily cost $8,000–$10,000+. A Final Expense policy ensures your family can focus on celebrating your legacy at a local funeral home rather than stressing over how to pay for it. Because we are a tight-knit community, the last thing anyone wants is to leave a financial burden behind.",
   },
