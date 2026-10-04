@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 
 export const PAHS_TRACKING_URL = 'https://card.latimorelifelegacy.com/pahs?utm_source=pahs_qr&utm_medium=qr&utm_campaign=pahs_protect&utm_content=football_sponsorship'
@@ -138,9 +139,9 @@ export function PahsSponsorGraphic({ className, compact = false }: GraphicProps)
             marginTop: compact ? '.2rem' : '.4rem',
           }}
         >
-          <img src={tideLogoUrl} alt="Pottsville Area Crimson Tide" style={{ width: compact ? 94 : '28%', maxWidth: 190, height: 'auto', filter: 'drop-shadow(0 10px 14px rgba(0,0,0,.6))' }} />
+          <Image src={tideLogoUrl} width={512} height={430} sizes="190px" priority alt="Pottsville Area Crimson Tide" style={{ width: compact ? 94 : '28%', maxWidth: 190, height: 'auto', filter: 'drop-shadow(0 10px 14px rgba(0,0,0,.6))' }} />
           <div style={{ flex: 1 }} />
-          <img src={logoUrl} alt="Latimore Life & Legacy LLC" style={{ width: compact ? 150 : '34%', maxWidth: 250, height: 'auto', filter: 'drop-shadow(0 0 16px rgba(255,255,255,.45))' }} />
+          <Image src={logoUrl} width={850} height={960} sizes="250px" priority alt="Latimore Life & Legacy LLC" style={{ width: compact ? 150 : '34%', maxWidth: 250, height: 'auto', filter: 'drop-shadow(0 0 16px rgba(255,255,255,.45))' }} />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'center' }}>
@@ -190,7 +191,7 @@ export function PahsFreeReviewGraphic({ className }: GraphicProps) {
       </div>
       <div style={{ padding: 'clamp(1.25rem, 4vw, 2.25rem)', display: 'grid', placeItems: 'center', textAlign: 'center' as const }}>
         <QrBox size={180} />
-        <img src={logoUrl} alt="Latimore Life & Legacy LLC" style={{ width: 'min(88%, 300px)', marginTop: 18, height: 'auto' }} />
+        <Image src={logoUrl} width={850} height={960} sizes="300px" alt="Latimore Life & Legacy LLC" style={{ width: 'min(88%, 300px)', marginTop: 18, height: 'auto' }} />
         <div style={{ marginTop: 12, color: '#14304a', fontWeight: 900, fontSize: '1.25rem' }}>#TheBeatGoesOn</div>
         <div style={{ marginTop: 6, color: '#7b1d2d', fontWeight: 900 }}>card.latimorelifelegacy.com/pahs</div>
         <div style={{ marginTop: 10, color: '#555', fontFamily: 'Lato, system-ui, sans-serif', fontSize: '.85rem' }}>Powered by Campus Box Media</div>
@@ -207,7 +208,7 @@ export function PahsThrowbackGraphic({ className }: GraphicProps) {
         <div style={{ marginTop: 6, color: '#222', fontSize: 'clamp(1.1rem, 3.6vw, 2rem)', fontWeight: 900, letterSpacing: '.12em', textTransform: 'uppercase' as const }}>2005 Coal Region All-Area Football</div>
         <div style={{ marginTop: 4, color: '#111', fontSize: 'clamp(2rem, 7vw, 4rem)', lineHeight: .92, fontWeight: 900, textTransform: 'uppercase' as const }}>Where The Journey Began</div>
       </div>
-      <img src={throwbackImageUrl} alt="2005 Coal Region All-Area Football — Where the Journey Began" style={{ display: 'block', width: '100%', height: 'auto' }} />
+      <Image src={throwbackImageUrl} width={1024} height={1023} sizes="(max-width: 768px) 100vw, 800px" alt="2005 Coal Region All-Area Football — Where the Journey Began" style={{ display: 'block', width: '100%', height: 'auto' }} />
       <div style={{ padding: '.65rem 1rem 1rem', fontFamily: 'Georgia, serif', fontSize: 'clamp(.85rem, 2.4vw, 1.05rem)', fontWeight: 700, lineHeight: 1.25 }}>
         Pictured from left: Coach Kevin Keating, Dave DeMarkis, Jackson Latimore, and Andy Buziak. Latimore was named Offensive Player of the Year.
       </div>

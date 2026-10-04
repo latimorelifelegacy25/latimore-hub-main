@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { CardEventSchema } from '@/lib/schemas'
@@ -85,8 +84,8 @@ export async function GET(req: NextRequest) {
   const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   try {
     const [visitRows, clickRows, recent, visitsByDay] = await Promise.all([

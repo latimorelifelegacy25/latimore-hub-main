@@ -5,19 +5,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { logger } from '@/lib/logger'
 import { prisma } from '@/lib/prisma'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireReviewerRole } from '@/lib/rbac'
+import { rateLimit } from '@/lib/rate-limit'
+import { MessageSendSchema } from '@/lib/schemas'
 import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAdminSession()
+  const auth = await requireReviewerRole()
   if (!auth.ok) return auth.response
 
-  const body = await req.json().catch(() => null)
-  if (!body?.contactId || !body?.channel || !body?.message) {
-    return NextResponse.json({ ok: false, error: 'contactId, channel, and message are required' }, { status: 422 })
+  const limited = await rateLimit(req, 'adminSend', auth.email ?? undefined)
+  if (limited) return limited
+
+  const parsed = MessageSendSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
   }
+  const body = { ...parsed.data, inquiryId: parsed.data.inquiryId ?? undefined, subject: parsed.data.subject || undefined }
 
   const contact = await prisma.contact.findUnique({ where: { id: body.contactId } })
   if (!contact) return NextResponse.json({ ok: false, error: 'Contact not found' }, { status: 404 })
@@ -30,12 +36,18 @@ export async function POST(req: NextRequest) {
     if (!resend || !contact.email) {
       return NextResponse.json({ ok: false, error: 'Resend is not configured or contact email is missing' }, { status: 400 })
     }
-    const result = await resend.emails.send({
-      from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
-      to: contact.email,
-      subject: body.subject || 'Message',
-      text: body.message,
-    })
+    let result
+    try {
+      result = await resend.emails.send({
+        from: process.env.OUTBOUND_FROM_EMAIL || 'advisor@example.com',
+        to: contact.email,
+        subject: body.subject || 'Message',
+        text: body.message,
+      })
+    } catch (error) {
+      logger.error({ err: error instanceof Error ? error.message : String(error) }, '[resend] send failed')
+      return NextResponse.json({ ok: false, error: 'Message could not be sent' }, { status: 502 })
+    }
 
     logger.info({ result }, '[resend] send result')
 

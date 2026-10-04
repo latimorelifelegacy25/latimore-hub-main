@@ -7,6 +7,8 @@ export const dynamic = 'force-dynamic'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { NextRequest } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 const SNAPSHOT_SCHEMA = {
   type: 'object' as const,
@@ -43,9 +45,12 @@ const SNAPSHOT_SCHEMA = {
   required: ['whoTheyAre', 'familyContext', 'financialPicture', 'topGoals', 'riskThemes', 'summary'],
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   try {
     const body = await req.json()
@@ -111,7 +116,7 @@ Generate a quick client snapshot to prepare for this conversation.`
   } catch (error) {
     console.error('Client snapshot error:', error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate snapshot' },
+      { error: 'Failed to generate snapshot' },
       { status: 500 }
     )
   }

@@ -2,8 +2,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { rateLimit } from '@/lib/rate-limit'
 import { rebuildAnalyticsRange } from '@/lib/analytics/aggregation'
 import { assertAnalyticsOverviewCoverage } from '@/lib/analytics/mart-health'
@@ -34,8 +33,8 @@ export async function POST(req: NextRequest) {
   // Accept cron secret OR admin session
   const cronOk = isCronAuthed(req)
   if (!cronOk) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+    const auth = await requireAdminSession()
+    if (!auth.ok) return auth.response
   }
 
   const limited = await rateLimit(req, 'analytics')

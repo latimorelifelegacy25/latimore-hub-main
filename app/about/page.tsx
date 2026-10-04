@@ -7,8 +7,6 @@ import { SiteHeader, SiteFooter, DEFAULT_NAV_LINKS } from '@/app/_components/sit
 
 // Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
 const navy      = COLORS.navy
-const gold      = COLORS.gold
-const goldLight = COLORS.goldLight
 
 export const metadata: Metadata = {
   title: 'About Jackson Latimore | Coal Region Insurance Broker',
@@ -37,7 +35,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div style={{ textAlign: 'center' }}>
-            <img src="/jackson-founder-photo.jpg" alt="Jackson M. Latimore Sr." style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', objectFit: 'cover', objectPosition: 'center 15%', height: 480 }} />
+            <Image src="/jackson-founder-photo.jpg" width={1448} height={1086} sizes="(max-width: 768px) 100vw, 420px" priority alt="Jackson M. Latimore Sr." style={{ width: '100%', maxWidth: 420, borderRadius: 12, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', objectFit: 'cover', objectPosition: 'center 15%', height: 480 }} />
           </div>
         </div>
         <style>{`@media(max-width:768px){.about-grid{grid-template-columns:1fr !important;}}`}</style>

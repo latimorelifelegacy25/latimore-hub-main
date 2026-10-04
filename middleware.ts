@@ -72,7 +72,15 @@ function isPrivateHubHost(req: NextRequest) {
 // daily/weekly crons fan out to them via NEXTAUTH_URL (the private hub host),
 // so without this bypass every sub-task is rejected before its own auth runs.
 // Each of these routes still verifies the secret itself.
-const cronSecretPrefixes = ['/api/cron', '/api/analytics/v1/jobs/run']
+// /api/reports/weekly (POST) and /api/admin/marketing/publisher/cron authenticate
+// with the cron secret in their own handlers; the admin-session children under
+// /api/reports/weekly/* still call requireAdminSession() and reject a bare secret.
+const cronSecretPrefixes = [
+  '/api/cron',
+  '/api/analytics/v1/jobs/run',
+  '/api/reports/weekly',
+  '/api/admin/marketing/publisher/cron',
+]
 
 function isCronSecretPath(pathname: string) {
   return cronSecretPrefixes.some(prefix => pathname === prefix || pathname.startsWith(`${prefix}/`))

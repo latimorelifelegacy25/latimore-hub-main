@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Content generation error:', error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate content' },
+      { error: 'Failed to generate content' },
       { status: 500 }
     )
   }

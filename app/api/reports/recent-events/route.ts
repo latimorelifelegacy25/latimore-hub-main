@@ -1,22 +1,19 @@
 // app/api/reports/events/route.ts
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { rateLimit } from '@/lib/rate-limit'
 import { getCrmEvents } from '@/lib/reporting'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
-  const [limited, session] = await Promise.all([
+  const [limited, auth] = await Promise.all([
     rateLimit(req, 'reports'),
-    getServerSession(authOptions)
+    requireAdminSession(),
   ])
 
   if (limited) return limited
-  if (!session) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
+  if (!auth.ok) return auth.response
 
   try {
     const { items, count } = await getCrmEvents(100)

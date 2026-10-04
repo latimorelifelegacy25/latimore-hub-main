@@ -3,6 +3,7 @@ import { createTextCompletion } from '@/lib/ai/client'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { buildInstructionBoundaryBlock, sanitizeAiText } from '@/lib/ai/prompt-boundary'
 import { logger } from '@/lib/logger'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -10,6 +11,9 @@ export const runtime = 'nodejs'
 export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   const body = await req.json().catch(() => null)
   const prompt = body?.prompt

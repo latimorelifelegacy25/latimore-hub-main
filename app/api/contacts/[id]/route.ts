@@ -1,10 +1,8 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import { LeadStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
-
-const VALID_STATUSES = new Set(Object.values(LeadStatus))
+import { ContactPatchSchema } from '@/lib/schemas'
 
 export async function PATCH(
   req: NextRequest,
@@ -15,22 +13,11 @@ export async function PATCH(
     if (!auth.ok) return auth.response
 
     const { id } = await params
-    const body = await req.json()
-    const { status, notes } = body
-
-    if (!status && !notes) {
-      return NextResponse.json(
-        { error: 'At least one field (status or notes) must be provided' },
-        { status: 400 }
-      )
+    const parsed = ContactPatchSchema.safeParse(await req.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 422 })
     }
-
-    if (status && !VALID_STATUSES.has(status)) {
-      return NextResponse.json(
-        { error: `Invalid status: "${status}"` },
-        { status: 422 }
-      )
-    }
+    const { status, notes } = parsed.data
 
     const existing = status
       ? await prisma.contact.findUnique({ where: { id }, select: { status: true } })

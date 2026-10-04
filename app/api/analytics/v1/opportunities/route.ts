@@ -1,15 +1,14 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { rateLimit } from '@/lib/rate-limit'
 import { getAnalyticsOpportunities, isOperationalAnalyticsFallbackEnabled, OPERATIONAL_FALLBACK_DISABLED_WARNING } from '@/lib/analytics/queries'
 import { logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const limited = await rateLimit(req, 'analytics')
   if (limited) return limited

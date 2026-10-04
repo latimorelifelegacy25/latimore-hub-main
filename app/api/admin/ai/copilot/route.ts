@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('[/api/admin/ai/copilot] Error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Copilot inference failed' },
+      { error: 'Copilot inference failed' },
       { status: 500 }
     )
   }

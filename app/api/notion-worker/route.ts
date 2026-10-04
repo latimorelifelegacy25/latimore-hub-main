@@ -1,6 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { rateLimit } from '@/lib/rate-limit'
 import { callNotionWorker } from '@/lib/notion-worker'
+import { NotionWorkerSchema } from '@/lib/schemas'
+import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -17,19 +20,27 @@ export async function GET() {
   })
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
+  const limited = await rateLimit(req, 'adminSend', auth.email ?? undefined)
+  if (limited) return limited
+
   try {
-    const body = await req.json()
-    const data = await callNotionWorker(body)
-    const status = data?.ok === false && data?.status ? data.status : 200
-    return NextResponse.json(data, { status })
+    const parsed = NotionWorkerSchema.safeParse(await req.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
+    }
+    const data = await callNotionWorker(parsed.data)
+    if (data?.ok === false) {
+      // Do not relay the worker's raw error payload to the browser.
+      logger.error({ status: data.status, err: data.error }, 'Notion worker request failed')
+      return NextResponse.json({ ok: false, error: 'Notion worker request failed' }, { status: 502 })
+    }
+    return NextResponse.json(data)
   } catch (error) {
-    return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 },
-    )
+    logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Notion worker route error')
+    return NextResponse.json({ ok: false, error: 'Notion worker request failed' }, { status: 500 })
   }
 }
