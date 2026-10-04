@@ -154,6 +154,7 @@ export default function PAHSPage() {
           <div>
             <strong>Latimore Life &amp; Legacy LLC</strong>
             <span>Protecting Today. Securing Tomorrow.</span>
+            <span>PA Licensed DOI #1268820</span>
           </div>
           <div>
             <a href="tel:15709001977">570-900-1977</a>

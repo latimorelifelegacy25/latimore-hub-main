@@ -65,6 +65,15 @@ async function runTask(name: string, url: string, req: NextRequest, method: 'GET
   }
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 async function alertCronFailure(failed: TaskResult[], totalMs: number) {
   const summary = failed
     .map((item) => `${item.task} (${item.status ?? 'no status'}${item.error ? `: ${item.error}` : ''})`)
@@ -96,7 +105,7 @@ async function alertCronFailure(failed: TaskResult[], totalMs: number) {
       to,
       from,
       subject: 'Latimore OS alert: daily cron failure',
-      html: `<p><strong>Daily cron failure</strong></p><p>${message}</p>`,
+      html: `<p><strong>Daily cron failure</strong></p><p>${escapeHtml(message)}</p>`,
     }))
   }
 
