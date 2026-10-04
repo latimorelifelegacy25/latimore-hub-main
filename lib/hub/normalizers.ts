@@ -19,6 +19,7 @@ type EventType =
   | 'text_click'
   | 'email_click'
   | 'book_click'
+  | 'form_start'
   | 'form_submit'
   | 'lead_created'
   | 'appointment_booked'
@@ -106,6 +107,7 @@ const EVENT_MAP: Record<string, EventType> = {
   sms_click: 'text_click',
   email_click: 'email_click',
   book_click: 'book_click',
+  form_start: 'form_start',
   form_submit: 'form_submit',
   submit: 'form_submit',
   lead_created: 'lead_created',
