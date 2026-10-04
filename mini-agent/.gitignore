@@ -1,0 +1,5 @@
+shots/
+sessions/
+*.log
+.env
+__pycache__/
