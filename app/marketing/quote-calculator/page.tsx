@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react'
 
-const GOLD = '#C9A25F'
-const NAVY = '#0B0F17'
+const GOLD = '#E1B54B'
+const NAVY = '#000835'
 const SURFACE = '#131929'
 const SURFACE2 = '#1a2535'
 const INK = '#F7F7F5'
 const MUTED = '#A9B1BE'
 const PHONE = '(570) 900-1977'
-const FILLOUT_URL = 'https://globalfinancialimpact.fillout.com/t/tMz7ZcqpaZus'
+const BOOKING_URL = 'https://www.latimorelifelegacy.com/book'
 
 export default function QuoteCalculator() {
   const [activeTab, setActiveTab] = useState<'life' | 'annuity'>('life')
@@ -191,7 +191,7 @@ export default function QuoteCalculator() {
                     <span style={{ color: MUTED }}>{k}</span><span style={{ fontWeight: 700, color: INK }}>{v}</span>
                   </div>
                 ))}
-                <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', marginTop: 20, padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => window.open(BOOKING_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', marginTop: 20, padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
                    Get Official Quote
                 </button>
                 <p style={{ color: MUTED, fontSize: '0.75rem', textAlign: 'center', marginTop: 8 }}>Illustration only, using hypothetical assumptions; not a carrier quote. Final rates require underwriting.</p>
@@ -278,7 +278,7 @@ export default function QuoteCalculator() {
                 )}
                 <div style={{ color: MUTED, fontSize: '0.9rem', marginTop: 12 }}> <strong style={{ color: INK }}>Lifetime Income Options</strong> — payments depend on the contract, elected rider and eligibility</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 20 }}>
-                  <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
+                  <button onClick={() => window.open(BOOKING_URL, '_blank', 'noopener,noreferrer')} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, fontSize: '1rem', border: 'none', cursor: 'pointer' }}>
                      Speak with Retirement Specialist
                   </button>
                   <button onClick={() => window.print()} style={{ width: '100%', padding: '1rem', borderRadius: 10, background: 'transparent', color: GOLD, fontWeight: 700, fontSize: '1rem', border: `2px solid ${GOLD}`, cursor: 'pointer' }}>
@@ -298,7 +298,7 @@ export default function QuoteCalculator() {
             These are estimated quotes. Let's discuss your specific situation and build the right solution for your family.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button onClick={() => window.open(FILLOUT_URL, '_blank', 'noopener,noreferrer')} style={{ padding: '1rem 2rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
+            <button onClick={() => window.open(BOOKING_URL, '_blank', 'noopener,noreferrer')} style={{ padding: '1rem 2rem', borderRadius: 10, background: GOLD, color: NAVY, fontWeight: 800, border: 'none', cursor: 'pointer', fontSize: '1rem' }}>
                Request Official Quote
             </button>
             <a href={`tel:5709001977`} style={{ display: 'inline-block', padding: '1rem 2rem', borderRadius: 10, border: `2px solid ${GOLD}`, color: GOLD, fontWeight: 800, textDecoration: 'none', fontSize: '1rem' }}>

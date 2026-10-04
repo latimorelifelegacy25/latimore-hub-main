@@ -1,4 +1,4 @@
-import { SocialPublisherPanel } from './SocialPublisherPanel'
+import { SocialPublisherPanel } from '@/components/social-publisher/SocialPublisherPanel'
 
 export const dynamic = 'force-dynamic'
 
