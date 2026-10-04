@@ -9,7 +9,7 @@ export async function GET() {
   if (!auth.ok) return auth.response
 
   const redirect = encodeURIComponent(process.env.FACEBOOK_REDIRECT_URI!)
-  const clientId = process.env.FACEBOOK_CLIENT_ID!
+  const clientId = process.env.FB_APP_ID!
   const state = crypto.randomBytes(32).toString('hex')
 
   const response = NextResponse.redirect(
