@@ -17,6 +17,9 @@ const LIMITS: Record<string, { limit: number; windowSec: number }> = {
   join: { limit: 10, windowSec: 60 },
   ethos_redirect: { limit: 60, windowSec: 60 },
   metaCapi: { limit: 60, windowSec: 60 },
+  // Authenticated admin actions with outbound effects / LLM cost.
+  adminSend: { limit: 20, windowSec: 60 },
+  adminAi: { limit: 30, windowSec: 60 },
   default: { limit: 100, windowSec: 60 },
 }
 
@@ -137,10 +140,10 @@ export function getClientIp(req: Pick<NextRequest, 'headers'>) {
   )
 }
 
+// Keyed on IP only: the User-Agent header is client-controlled, so mixing it
+// into the key would let a caller mint unlimited buckets by rotating it.
 export function getClientFingerprint(req: Pick<NextRequest, 'headers'>) {
-  const ip = sanitizeIdentifierPart(getClientIp(req))
-  const ua = sanitizeIdentifierPart(req.headers.get('user-agent'))
-  return `${ip}:${ua}`
+  return sanitizeIdentifierPart(getClientIp(req))
 }
 
 function buildRateLimitKey(req: NextRequest, type: string, identifier?: string) {

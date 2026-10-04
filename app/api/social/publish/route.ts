@@ -1,5 +1,8 @@
-import { NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireReviewerRole } from '@/lib/rbac'
+import { rateLimit } from '@/lib/rate-limit'
+import { SocialPublishSchema } from '@/lib/schemas'
+import { logger } from '@/lib/logger'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
 
@@ -14,20 +17,19 @@ type PublishResult = {
   error?: string
 }
 
-export async function POST(req: Request) {
-  const auth = await requireAdminSession()
+export async function POST(req: NextRequest) {
+  const auth = await requireReviewerRole()
   if (!auth.ok) return auth.response
 
-  const { providers, content, imageUrl, linkUrl } = await req.json() as {
-    providers: ProviderKey[]
-    content: string
-    imageUrl?: string
-    linkUrl?: string
-  }
+  const limited = await rateLimit(req, 'adminSend', auth.email ?? undefined)
+  if (limited) return limited
 
-  if (!providers?.length || !content?.trim()) {
-    return NextResponse.json({ ok: false, error: 'providers and content are required' }, { status: 400 })
+  const parsed = SocialPublishSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
   }
+  const { content, imageUrl, linkUrl } = parsed.data
+  const providers = Array.from(new Set(parsed.data.providers)) as ProviderKey[]
 
   const results: PublishResult[] = await Promise.all(
     providers.map(async (provider): Promise<PublishResult> => {
@@ -123,7 +125,8 @@ export async function POST(req: Request) {
             return { provider, ok: false, error: `Unsupported provider: ${provider}` }
         }
       } catch (err) {
-        return { provider, ok: false, error: err instanceof Error ? err.message : 'Unknown error' }
+        logger.error({ provider, err: err instanceof Error ? err.message : String(err) }, 'Social publish failed')
+        return { provider, ok: false, error: `${provider} publish failed` }
       }
     })
   )

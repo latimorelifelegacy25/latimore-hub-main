@@ -1259,3 +1259,22 @@ model WorkflowStep {
 
   @@index([workflowId, order])
 }
+
+model Notification {
+  id         String    @id @default(cuid())
+  type       String
+  priority   String    @default("medium")
+  title      String
+  message    String
+  data       Json?
+  contactId  String?
+  taskId     String?
+  appointmentId String?
+  dedupeKey  String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@unique([dedupeKey])
+  @@index([readAt, createdAt])
+  @@index([priority, createdAt])
+}

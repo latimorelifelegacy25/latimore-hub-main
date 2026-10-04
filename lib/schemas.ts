@@ -177,11 +177,152 @@ export const ProductFitSchema = z.object({
 
 export const LeadIngestSchema = LeadSchema
 
+// `actor` is intentionally not accepted from the client: the route derives it
+// from the authenticated session. `force` is honoured only for ADMIN role.
 export const InquiryPatchSchema = z.object({
   stage: stageEnum,
   notes: z.string().max(2000).optional().nullable(),
-  actor: z.string().max(100).optional().nullable(),
   force: z.boolean().optional(),
+})
+
+const isoDateString = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine((value) => !Number.isNaN(new Date(value).getTime()), { message: 'Invalid date' })
+
+const optionalDateString = z.preprocess(
+  (value) => (value === '' ? null : value),
+  isoDateString.optional().nullable(),
+)
+
+const optionalId = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.string().trim().min(1).max(191).optional().nullable(),
+)
+
+export const EmailSendSchema = z
+  .object({
+    to: z.string().trim().email().max(254),
+    subject: z.string().trim().min(1).max(200),
+    body: z.string().trim().min(1).max(20000).optional(),
+    text: z.string().trim().min(1).max(20000).optional(),
+  })
+  .refine((value) => !!(value.body || value.text), { message: 'Body is required', path: ['body'] })
+
+export const MessageSendSchema = z.object({
+  contactId: z.string().trim().min(1).max(191),
+  inquiryId: optionalId,
+  channel: z.enum(['email', 'sms']),
+  subject: z.string().trim().max(200).optional().nullable(),
+  message: z.string().trim().min(1).max(10000),
+})
+
+const socialProviderEnum = z.enum(['linkedin', 'facebook', 'instagram', 'twitter'])
+
+export const SocialPublishSchema = z.object({
+  providers: z.array(socialProviderEnum).min(1).max(4),
+  content: z.string().trim().min(1).max(5000),
+  imageUrl: z.string().trim().url().max(2000).optional().nullable(),
+  linkUrl: z.string().trim().url().max(2000).optional().nullable(),
+})
+
+export const FacebookPublishSchema = z.object({
+  content: z.string().trim().min(1).max(5000),
+})
+
+export const CalendarBookSchema = z
+  .object({
+    contactId: z.string().trim().min(1).max(191),
+    inquiryId: optionalId,
+    title: z.string().trim().min(1).max(250),
+    startAt: isoDateString,
+    endAt: optionalDateString,
+    meetingUrl: z.string().trim().max(500).optional().nullable(),
+    timezone: z.string().trim().max(100).optional().nullable(),
+    location: z.string().trim().max(250).optional().nullable(),
+  })
+  .refine((value) => !value.endAt || new Date(value.endAt) >= new Date(value.startAt), {
+    message: 'endAt must not be before startAt',
+    path: ['endAt'],
+  })
+
+const taskStatusInput = z.preprocess(
+  (value) => (typeof value === 'string' ? value.trim().toLowerCase() : value),
+  z.enum(['open', 'completed']),
+)
+
+export const TaskCreateSchema = z.object({
+  title: z.string().trim().min(1).max(250),
+  description: z.string().trim().max(5000).optional().nullable(),
+  dueAt: optionalDateString,
+})
+
+export const TaskPatchSchema = z.object({
+  id: z.string().trim().min(1).max(191),
+  status: taskStatusInput.optional(),
+  title: z.string().trim().max(250).optional(),
+  description: z.string().max(5000).optional().nullable(),
+  dueAt: optionalDateString,
+})
+
+const leadStatusEnum = z.enum([
+  'NEW',
+  'ATTEMPTED_CONTACT',
+  'CONTACTED',
+  'QUALIFIED',
+  'BOOKED',
+  'IN_CONSULT',
+  'REFERRED_TO_ETHOS',
+  'ETHOS_APPLIED',
+  'ETHOS_APPROVED',
+  'JOIN_EXPLORING',
+  'JOIN_ONBOARDING',
+  'JOIN_ACTIVE',
+  'CLOSED_WON',
+  'CLOSED_LOST',
+  'NURTURE',
+  'ON_HOLD',
+  'DORMANT',
+])
+
+// Whitelist of fields the contact PATCH endpoint may change.
+export const ContactPatchSchema = z
+  .object({
+    status: leadStatusEnum.optional(),
+    notes: z.string().max(5000).optional(),
+  })
+  .refine((value) => !!(value.status || value.notes), {
+    message: 'At least one field (status or notes) must be provided',
+  })
+
+export const SocialConnectionUpsertSchema = z.object({
+  provider: socialProviderEnum,
+  accountName: z.string().max(200).optional().nullable(),
+  externalId: z.string().max(200).optional().nullable(),
+  accessToken: z.string().max(4000).optional().nullable(),
+  refreshToken: z.string().max(4000).optional().nullable(),
+  tokenExpiresAt: z.string().max(64).optional().nullable(),
+  metadata: z.record(z.any()).optional().nullable(),
+  status: z.string().max(50).optional().nullable(),
+})
+
+export const NotionWorkerSchema = z.object({
+  action: z.enum(['create_page', 'append_page']).optional(),
+  title: z.string().max(300).optional(),
+  pageId: z.string().max(100).optional(),
+  content: z.string().max(20000).optional(),
+  sections: z
+    .array(
+      z.object({
+        heading: z.string().max(300).optional(),
+        body: z.string().max(10000).optional(),
+        items: z.array(z.string().max(2000)).max(100).optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
 })
 
 export const BookingNotifySchema = z.object({

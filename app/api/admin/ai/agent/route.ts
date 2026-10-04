@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic'
 
 import { runAgentTurn, type AgentToolConfig } from '@/lib/ai/agent-runtime'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { NextRequest } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 function normalizeTools(tools: Record<string, unknown>): AgentToolConfig {
   return {
@@ -66,9 +68,12 @@ When asked to write a document, proposal, email, report, compliance note, client
   )
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   try {
     const body = await req.json()
@@ -91,7 +96,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('[/api/admin/ai/agent] Error:', error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Agent request failed' },
+      { error: 'Agent request failed' },
       { status: 500 }
     )
   }

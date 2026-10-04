@@ -8,6 +8,8 @@ export const dynamic = 'force-dynamic'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { NextRequest } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 const SCRIPT_SCHEMA = {
   type: 'object' as const,
@@ -34,9 +36,12 @@ const SCRIPT_SCHEMA = {
   additionalProperties: false,
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   try {
     const body = await req.json()
@@ -93,7 +98,7 @@ Script requirements:
   } catch (error) {
     console.error('[/api/admin/ai/review-script] Error:', error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Review script generation failed' },
+      { error: 'Review script generation failed' },
       { status: 500 }
     )
   }

@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import { prisma } from '@/lib/prisma'
+import { acquireIdentityLocks } from '@/lib/hub/webhook-idempotency'
 import { cleanString, normalizeCampaign, normalizePhone, normalizeProductInterest } from './normalizers'
 import { logger } from '@/lib/logger'
 import { updateLeadScores } from '@/lib/hub/lead-score'
@@ -55,7 +56,34 @@ export async function upsertLead(input: LeadUpsertInput) {
   }
 
   async function writeLead() {
+    // Ensure the LeadSession row exists BEFORE the transaction. createMany+skipDuplicates compiles to
+    // INSERT ... ON CONFLICT DO NOTHING, so a concurrent creator can never raise P2002 and abort
+    // (poison, SQLSTATE 25P02) the main transaction. The contact link is applied inside the tx.
+    if (leadSessionId) {
+      await prisma.leadSession.createMany({
+        data: [
+          {
+            id: leadSessionId,
+            landingPage: landingPage ?? undefined,
+            referrer: referrer ?? undefined,
+            source: source ?? undefined,
+            medium: medium ?? undefined,
+            campaign: campaign ?? undefined,
+            term: utmTerm ?? undefined,
+            content: utmContent ?? undefined,
+            county: county ?? undefined,
+            productInterest,
+          },
+        ],
+        skipDuplicates: true,
+      })
+    }
+
     return prisma.$transaction(async (tx) => {
+    // Serialize concurrent submissions for the same identity so lookup+create is race-free.
+    // Transaction-scoped locks release automatically on commit/rollback.
+    await acquireIdentityLocks(tx, [email ? `lead:email:${email}` : null, phone ? `lead:phone:${phone}` : null])
+
     const [emailContact, phoneContact] = await Promise.all([
       email ? tx.contact.findUnique({ where: { email } }) : Promise.resolve(null),
       phone ? tx.contact.findUnique({ where: { phone } }) : Promise.resolve(null),
@@ -114,26 +142,8 @@ export async function upsertLead(input: LeadUpsertInput) {
         county: county ?? undefined,
         productInterest,
       }
-      const create: Prisma.LeadSessionUncheckedCreateInput = {
-        id: leadSessionId,
-        contactId: contact.id,
-        landingPage: landingPage ?? undefined,
-        referrer: referrer ?? undefined,
-        source: source ?? undefined,
-        medium: medium ?? undefined,
-        campaign: campaign ?? undefined,
-        term: utmTerm ?? undefined,
-        content: utmContent ?? undefined,
-        county: county ?? undefined,
-        productInterest,
-      }
-
-      try {
-        await tx.leadSession.upsert({ where: { id: leadSessionId }, update, create })
-      } catch (err: any) {
-        if (err?.code !== 'P2002') throw err
-        await tx.leadSession.update({ where: { id: leadSessionId }, data: update })
-      }
+      // Row was ensured above; a plain update cannot raise P2002.
+      await tx.leadSession.update({ where: { id: leadSessionId }, data: update })
     }
 
     const inquiry = await tx.inquiry.create({

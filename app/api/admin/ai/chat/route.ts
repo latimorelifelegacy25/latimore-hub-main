@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { checkCompliance } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { NextRequest } from 'next/server'
+import { rateLimit } from '@/lib/rate-limit'
 
 const SYSTEM_PROMPT = withAdminAiGuardrails(`You are the Latimore Legacy Business Co-Pilot — a specialized AI assistant for Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC, an independent insurance brokerage based in Schuylkill County, Pennsylvania.
 
@@ -100,9 +102,12 @@ const TRENDS_SCHEMA = {
   },
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   try {
     const body = await req.json()
@@ -168,7 +173,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('[/api/admin/ai/chat] Error:', error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Chat inference failed' },
+      { error: 'Chat inference failed' },
       { status: 500 }
     )
   }

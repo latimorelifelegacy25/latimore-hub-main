@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { encryptToken } from '@/lib/crypto'
+import { SocialConnectionUpsertSchema } from '@/lib/schemas'
 
 // Never return accessToken/refreshToken to the client.
 const SAFE_CONNECTION_SELECT = {
@@ -55,7 +56,10 @@ export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
-  const body = await req.json()
+  const parsed = SocialConnectionUpsertSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ success: false, error: 'Invalid request' }, { status: 422 })
+  }
   const {
     provider,
     accountName,
@@ -65,11 +69,7 @@ export async function POST(req: NextRequest) {
     tokenExpiresAt,
     metadata,
     status,
-  } = body
-
-  if (!provider) {
-    return NextResponse.json({ success: false, error: 'provider is required' }, { status: 400 })
-  }
+  } = parsed.data
 
   if (accessToken && status !== 'disconnected') {
     const invalid = await validateToken(provider, accessToken)

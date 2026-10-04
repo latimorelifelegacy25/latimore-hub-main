@@ -11,7 +11,7 @@ import { ingestEvent } from '@/lib/hub/ingest-event'
 import { requiredEnv } from '@/lib/required-env'
 import { sendGoogleChatMessage } from '@/lib/google-chat'
 import { captureException } from '@/lib/error-tracking'
-import { claimWebhookEvent } from '@/lib/hub/webhook-idempotency'
+import { claimWebhookEvent, releaseWebhookClaim } from '@/lib/hub/webhook-idempotency'
 
 // Fillout can post either a flat key-value payload or its native
 // { questions: [{name, value}], urlParameters: [{id, value}] } format.
@@ -275,6 +275,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, leadId: inquiry.id, contactId: contact.id, inquiryId: inquiry.id }, { status: 200 })
   } catch (err: any) {
     await captureException(err, { source: 'webhook', provider: 'fillout' })
+    // Release the claim so the provider's retry is processed instead of dropped as a duplicate.
+    await releaseWebhookClaim('fillout', eventId)
     return NextResponse.json({ ok: false, error: 'Lead capture failed' }, { status: 500 })
   }
 }

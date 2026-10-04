@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
+
+const FlipbookViewer = dynamic(() => import('@/components/admin/FlipbookViewer'), { ssr: false })
 
 type DocCategory = 'All' | 'Brochure' | 'Product Guide' | 'Presentation' | 'Script' | 'Compliance' | 'Other'
 
@@ -50,6 +53,9 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 const LS_KEY = 'latimore_docs_v2'
 
+// Uploaded files are blob: URLs, so a PDF can't be detected by extension alone.
+const isPdfUrl = (url: string) => url.startsWith('blob:') || /\.pdf($|\?)/i.test(url)
+
 function loadDocs(): DocItem[] {
   if (typeof window === 'undefined') return DEFAULT_DOCS
   try {
@@ -66,6 +72,7 @@ export default function DocsPage() {
   const [editingDoc, setEditingDoc] = useState<DocItem | null>(null)
   const [newDoc, setNewDoc] = useState<Partial<DocItem>>({ category: 'Other', tags: [] })
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [flipbook, setFlipbook] = useState<DocItem | null>(null)
 
   useEffect(() => { try { localStorage.setItem(LS_KEY, JSON.stringify(docs)) } catch {} }, [docs])
 
@@ -220,6 +227,14 @@ export default function DocsPage() {
                       {doc.url.startsWith('blob:') ? 'View File' : 'Open Site →'}
                     </a>
                   )}
+                  {doc.url && isPdfUrl(doc.url) && (
+                    <button
+                      onClick={() => setFlipbook(doc)}
+                      className="bg-[#C9A25F] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all flex items-center gap-1.5"
+                    >
+                      <i className="fa-solid fa-book-open text-[9px]"></i> Flipbook
+                    </button>
+                  )}
                   <button
                     onClick={() => handleEdit(doc)}
                     className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-slate-400 transition-all"
@@ -245,6 +260,10 @@ export default function DocsPage() {
           </div>
         )}
       </div>
+
+      {flipbook?.url && (
+        <FlipbookViewer url={flipbook.url} title={flipbook.title} onClose={() => setFlipbook(null)} />
+      )}
 
       {/* Modal */}
       {showModal && (

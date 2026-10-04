@@ -1,16 +1,25 @@
-import { NextResponse } from 'next/server'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { NextRequest, NextResponse } from 'next/server'
+import { requireReviewerRole } from '@/lib/rbac'
+import { rateLimit } from '@/lib/rate-limit'
+import { FacebookPublishSchema } from '@/lib/schemas'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
-export async function POST(req: Request) {
-  const auth = await requireAdminSession()
+export async function POST(req: NextRequest) {
+  const auth = await requireReviewerRole()
   if (!auth.ok) return auth.response
 
-  const { content } = await req.json()
+  const limited = await rateLimit(req, 'adminSend', auth.email ?? undefined)
+  if (limited) return limited
+
+  const parsed = FacebookPublishSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
+  }
+  const { content } = parsed.data
 
   const conn = await getSocialConnection('facebook')
   const accessToken = decryptToken(conn?.accessToken)
@@ -39,7 +48,7 @@ export async function POST(req: Request) {
     logger.error({ status: res.status, body }, 'Facebook publish failed')
     return NextResponse.json(
       { ok: false, error: `Facebook publish failed (${res.status})` },
-      { status: res.status }
+      { status: 502 }
     )
   }
 

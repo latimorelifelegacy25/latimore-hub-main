@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
   createRateLimitResponse,
-  getClientFingerprint,
+  getClientIp,
   isRateLimited,
 } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
     return jsonReply('Please send a shorter message and try again.', { status: 413 })
   }
 
-  const clientKey = getClientFingerprint(req)
+  const clientKey = getClientIp(req)
   if (await isRateLimited(req, 'chat', clientKey)) {
     return createRateLimitResponse('chat', {
       reply: 'You’re sending messages too quickly. Please wait a minute and try again.',

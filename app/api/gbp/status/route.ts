@@ -1,17 +1,9 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { getGoogleCalendarConnection } from '@/lib/calendar/google'
 import { listGbpAccounts, listGbpLocations } from '@/lib/gbp/client'
-
-function parseAdminEmails(v?: string | null): string[] {
-  return (v ?? '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-}
 
 /**
  * Admin-only GBP connection status. Never exposes tokens.
@@ -19,13 +11,8 @@ function parseAdminEmails(v?: string | null): string[] {
  * to the right "accounts/{id}/locations/{id}" value.
  */
 export async function GET(_req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const email = (session?.user?.email ?? '').toLowerCase()
-  const allowed = parseAdminEmails(process.env.ADMIN_EMAILS)
-
-  if (!email || (allowed.length > 0 && !allowed.includes(email))) {
-    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
-  }
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const connection = await getGoogleCalendarConnection()
   if (!connection?.accessToken) {

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { buildInstructionBoundaryBlock, sanitizeAiText } from '@/lib/ai/prompt-boundary'
+import { rateLimit } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
 
   const body = await req.json().catch(() => null)
   const prompt = body?.prompt
