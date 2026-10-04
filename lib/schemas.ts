@@ -22,6 +22,7 @@ const eventEnum = z.enum([
   'text_click',
   'email_click',
   'book_click',
+  'form_start',
   'form_submit',
   'lead_created',
   'appointment_booked',
