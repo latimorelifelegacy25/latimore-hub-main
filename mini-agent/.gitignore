@@ -1,5 +1,5 @@
-shots/
-sessions/
-*.log
 .env
+.venv/
 __pycache__/
+shots/
+.browsers/

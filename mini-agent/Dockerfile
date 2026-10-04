@@ -1,11 +1,10 @@
-# Playwright's official Python image already ships Chromium + dependencies.
-FROM mcr.microsoft.com/playwright/python:v1.49.0-jammy
-
+FROM python:3.12-slim
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY agent.py tools.py bot.py providers.py memory.py sessions.py ./
-
-# Pass your key at run time:  docker run -e OPENAI_API_KEY=sk-... mini-agent "task"
-# For the Telegram bot:  docker run -e TELEGRAM_BOT_TOKEN=... -e TELEGRAM_ALLOWED_IDS=... mini-agent python bot.py
-CMD ["python", "agent.py"]
+RUN pip install --no-cache-dir -r requirements.txt && playwright install --with-deps chromium
+RUN useradd --create-home agent && mkdir /app/shots && chown -R agent:agent /app /root/.cache/ms-playwright
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/browsers
+RUN mv /root/.cache/ms-playwright /opt/browsers && chmod -R a+rX /opt/browsers
+COPY --chown=agent:agent . .
+USER agent
+CMD ["python", "agent.py", "--help"]
