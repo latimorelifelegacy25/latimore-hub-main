@@ -1,34 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { requireAdminSession } from '@/lib/ai/shared'
+import { requireReviewerRole } from '@/lib/rbac'
+import { rateLimit } from '@/lib/rate-limit'
+import { EmailSendSchema } from '@/lib/schemas'
 import { validateResendSandboxRoute } from '@/lib/resend-sandbox'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 export async function POST(req: NextRequest) {
-  const auth = await requireAdminSession()
+  const auth = await requireReviewerRole()
   if (!auth.ok) return auth.response
+
+  const limited = await rateLimit(req, 'adminSend', auth.email ?? undefined)
+  if (limited) return limited
 
   if (!process.env.RESEND_API_KEY) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY inside environment variables.' }, { status: 500 })
   }
 
-  const body = await req.json().catch(() => null)
-  const to = String(body?.to ?? '').trim()
-  const subject = String(body?.subject ?? '').trim()
-  const text = String(body?.body ?? body?.text ?? '').trim()
+  const parsed = EmailSendSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 422 })
+  }
+  const { to, subject } = parsed.data
+  const text = (parsed.data.body ?? parsed.data.text) as string
   const from = process.env.RESEND_FROM_EMAIL ?? process.env.OUTBOUND_FROM_EMAIL ?? 'Latimore Life & Legacy <onboarding@resend.dev>'
-
-  if (!EMAIL_RE.test(to)) {
-    return NextResponse.json({ error: 'A valid recipient email address is required.' }, { status: 400 })
-  }
-  if (!subject || !text) {
-    return NextResponse.json({ error: 'Subject line and email body content are required.' }, { status: 400 })
-  }
 
   const sandboxCheck = validateResendSandboxRoute({ from, to })
   if (sandboxCheck.ok === false) {

@@ -1,27 +1,16 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import {
   exchangeGoogleCalendarCode,
   fetchGoogleUserInfo,
   upsertGoogleCalendarConnection,
 } from '@/lib/calendar/google'
 
-function parseAdminEmails(v?: string | null): string[] {
-  return (v ?? '')
-    .split(',')
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean)
-}
-
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  const email = (session?.user?.email ?? '').toLowerCase()
-  const allowed = parseAdminEmails(process.env.ADMIN_EMAILS)
-
-  if (!email || (allowed.length > 0 && !allowed.includes(email))) {
+  const auth = await requireAdminSession()
+  if (!auth.ok) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 

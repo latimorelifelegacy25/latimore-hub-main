@@ -6,8 +6,7 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import {
@@ -19,8 +18,8 @@ import crypto from 'crypto'
 
 // ── GET — connection status ──────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const connection = await getGoogleCalendarConnection()
 
@@ -44,8 +43,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST — initiate OAuth reconnect ─────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   try {
     const state = crypto.randomBytes(16).toString('hex')
@@ -62,8 +61,8 @@ export async function POST(req: NextRequest) {
 
 // ── PUT — force token refresh ────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const connection = await getGoogleCalendarConnection()
   if (!connection) {

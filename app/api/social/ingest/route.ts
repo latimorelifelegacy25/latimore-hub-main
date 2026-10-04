@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -21,8 +20,8 @@ function normalizeMetrics(platform: string, raw: Record<string, unknown>) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   try {
     const body = await req.json()

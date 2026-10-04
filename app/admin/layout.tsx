@@ -1,3 +1,4 @@
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { notFound, redirect } from 'next/navigation'

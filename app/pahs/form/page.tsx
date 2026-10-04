@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import '@fortawesome/fontawesome-free/css/all.min.css'
 import './form.css'
 
 const COVERAGE_OPTIONS = [

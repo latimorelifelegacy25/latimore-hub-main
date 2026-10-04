@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { rateLimit } from '@/lib/rate-limit'
 import { analyzeSentiment } from '@/lib/ai/model-router'
 import { prisma } from '@/lib/prisma'
@@ -12,8 +11,8 @@ export async function POST(req: NextRequest) {
   const limited = await rateLimit(req, 'reports')
   if (limited) return limited
 
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   try {
     const { text, targetType, targetId } = await req.json()

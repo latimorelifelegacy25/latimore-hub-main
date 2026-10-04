@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import '@fortawesome/fontawesome-free/css/all.min.css'
 import { Suspense } from 'react'
 import Script from 'next/script'
 import PublicTracker from './_components/public-tracker'

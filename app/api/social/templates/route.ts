@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdminSession } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 
@@ -9,8 +8,8 @@ export const runtime = 'nodejs'
 
 // GET /api/social/templates?platform=facebook&category=educational&take=20
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const { searchParams } = new URL(req.url)
   const platform = searchParams.get('platform')
@@ -42,8 +41,8 @@ export async function GET(req: NextRequest) {
 
 // POST /api/social/templates — create a new template
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const body = await req.json()
   const { title, category, platform, audienceTrack, body: templateBody, cta, hashtags, suggestedDay, suggestedTime, campaign } = body
@@ -73,8 +72,8 @@ export async function POST(req: NextRequest) {
 
 // PATCH /api/social/templates — update or clone a template
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const body = await req.json()
   const { id, clone, ...updates } = body
@@ -109,8 +108,8 @@ export async function PATCH(req: NextRequest) {
 
 // DELETE /api/social/templates?id=xxx
 export async function DELETE(req: NextRequest) {
-  const session = await getServerSession(authOptions)
-  if (!session) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  const auth = await requireAdminSession()
+  if (!auth.ok) return auth.response
 
   const id = new URL(req.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })

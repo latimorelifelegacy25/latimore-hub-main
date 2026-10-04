@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/require-admin'
 import { logger } from '@/lib/logger'
+import { TaskCreateSchema, TaskPatchSchema } from '@/lib/schemas'
 
 type JsonRecord = Record<string, unknown>
 
@@ -121,13 +122,12 @@ export async function POST(req: NextRequest) {
   if (authError) return authError
 
   try {
-    const body = await req.json()
-    const title = typeof body.title === 'string' ? body.title.trim() : ''
-    const description = typeof body.description === 'string' ? body.description.trim() : ''
-
-    if (!title) {
-      return NextResponse.json({ ok: false, error: 'title is required' }, { status: 400 })
+    const parsed = TaskCreateSchema.safeParse(await req.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
     }
+    const { title, dueAt } = parsed.data
+    const description = parsed.data.description ?? ''
 
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
         task_type: 'manual',
         priority: 'normal',
         status: 'open',
-        due_at: body.dueAt ? new Date(body.dueAt).toISOString() : new Date().toISOString(),
+        due_at: dueAt ? new Date(dueAt).toISOString() : new Date().toISOString(),
         assigned_to: 'Jackson Latimore',
         payload: { source: 'admin_manual' },
       })
@@ -159,22 +159,22 @@ export async function PATCH(req: NextRequest) {
   if (authError) return authError
 
   try {
-    const body = await req.json()
-    const id = typeof body.id === 'string' ? body.id : ''
-
-    if (!id) {
-      return NextResponse.json({ ok: false, error: 'id is required' }, { status: 400 })
+    const parsed = TaskPatchSchema.safeParse(await req.json().catch(() => null))
+    if (!parsed.success) {
+      return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
     }
+    const body = parsed.data
+    const id = body.id
 
     const updates: TaskPatch = {}
 
-    if (typeof body.status === 'string') {
+    if (body.status) {
       const status = toDbStatus(body.status)
       updates.status = status
       updates.completed_at = status === 'completed' ? new Date().toISOString() : null
     }
 
-    if (typeof body.title === 'string' && body.title.trim()) updates.title = body.title.trim()
+    if (body.title) updates.title = body.title
     if (typeof body.description === 'string') updates.description = body.description.trim() || null
     if (body.dueAt !== undefined) updates.due_at = body.dueAt ? new Date(body.dueAt).toISOString() : null
 

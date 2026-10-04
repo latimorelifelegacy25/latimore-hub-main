@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
 import { checkCompliance, type ComplianceResult } from '@/lib/ai/compliance'
 import { requireAdminSession, withAdminAiGuardrails } from '@/lib/ai/shared'
+import { rateLimit } from '@/lib/rate-limit'
 
 // Actions whose output is publishable marketing copy — run the PA DOI compliance
 // checker against the text fields listed for each before returning to the client.
@@ -72,6 +73,9 @@ export async function POST(req: NextRequest) {
   const auth = await requireAdminSession()
   if (!auth.ok) return auth.response
 
+  const limited = await rateLimit(req, 'adminAi', auth.email ?? undefined)
+  if (limited) return limited
+
   try {
     const body = await req.json()
     const action = String(body?.action || '')
@@ -88,7 +92,8 @@ export async function POST(req: NextRequest) {
     const compliance: ComplianceResult | undefined = complianceText ? checkCompliance(complianceText) : undefined
 
     return NextResponse.json({ ok:true, data: result.output, model: result.model, compliance })
-  } catch (e:any) {
-    return NextResponse.json({ ok:false, error:e?.message || 'AI request failed' }, { status:500 })
+  } catch (e) {
+    console.error('[/api/admin/ai/social-os] Error:', e)
+    return NextResponse.json({ ok:false, error:'AI request failed' }, { status:500 })
   }
 }
