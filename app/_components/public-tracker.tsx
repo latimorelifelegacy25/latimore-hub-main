@@ -349,6 +349,33 @@ export default function PublicTracker() {
   }, [])
 
   useEffect(() => {
+    // One form_start per form element per page, on first field focus. Only the
+    // form's name and placement are sent, never field values.
+    const startedForms = new WeakSet<Element>()
+    const handleFocusIn = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null
+      if (!target || !/^(INPUT|SELECT|TEXTAREA)$/.test(target.tagName)) return
+      if ((target as HTMLInputElement).type === 'hidden') return
+      const form = target.closest('form')
+      if (!form || startedForms.has(form)) return
+      startedForms.add(form)
+
+      void sendEvent({
+        ...getEventContext({ pageUrl: getCurrentPageUrl() }),
+        eventType: 'form_start',
+        metadata: {
+          formId: form.id || null,
+          formName: form.getAttribute('name') || form.getAttribute('aria-label') || null,
+          placement: inferPlacement(form),
+        },
+      })
+    }
+
+    document.addEventListener('focusin', handleFocusIn)
+    return () => document.removeEventListener('focusin', handleFocusIn)
+  }, [])
+
+  useEffect(() => {
     let scrollFrame: number | null = null
     const updateScrollDepth = () => {
       scrollFrame = null

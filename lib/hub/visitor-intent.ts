@@ -55,6 +55,7 @@ const EVENT_SCORES: Record<string, number> = {
   text_click: 30,
   email_click: 30,
   book_click: 25,
+  form_start: 10,
   form_submit: 40,
   lead_created: 45,
   appointment_booked: 60,
