@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 
-const GOLD = '#C9A25F'
-const NAVY = '#0B0F17'
+const GOLD = '#E1B54B'
+const NAVY = '#000835'
 const SURFACE = '#131929'
 const SURFACE2 = '#1a2535'
 const INK = '#F7F7F5'
