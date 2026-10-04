@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
   try {
     // Exchange code for short-lived token
     const tokenRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${code}`
+      `https://graph.facebook.com/v19.0/oauth/access_token?client_id=${process.env.FB_APP_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&client_secret=${process.env.FB_APP_SECRET}&code=${code}`
     )
     const tokenData = await tokenRes.json()
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     // Exchange for long-lived token
     const longRes = await fetch(
-      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&fb_exchange_token=${tokenData.access_token}`
+      `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${process.env.FB_APP_ID}&client_secret=${process.env.FB_APP_SECRET}&fb_exchange_token=${tokenData.access_token}`
     )
     const longData = await longRes.json()
 
