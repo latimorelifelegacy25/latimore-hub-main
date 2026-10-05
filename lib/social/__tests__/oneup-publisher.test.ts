@@ -94,6 +94,24 @@ describe('formatOneUpDateTime', () => {
 })
 
 describe('publishViaOneUp', () => {
+  it('includes the article link with a GBP image post', async () => {
+    await publishViaOneUp('gbp', {
+      caption: 'Read our article',
+      linkUrl: 'https://hub.latimorelifelegacy.com/education/blog/example',
+      mediaUrls: ['https://hub.latimorelifelegacy.com/flyer.png'],
+    })
+    const args = captured[0].body.arguments as Record<string, unknown>
+    assert.equal(args.content, 'Read our article\n\nhttps://hub.latimorelifelegacy.com/education/blog/example')
+    assert.equal(captured[0].url.endsWith('ONEUP_CREATE_IMAGE_POST'), true)
+  })
+
+  it('does not repeat an article link already in the caption', async () => {
+    const linkUrl = 'https://hub.latimorelifelegacy.com/article'
+    await publishViaOneUp('gbp', { caption: `Read ${linkUrl}`, linkUrl })
+    const args = captured[0].body.arguments as Record<string, unknown>
+    assert.equal(args.content, `Read ${linkUrl}`)
+  })
+
   it('sends text posts to ONEUP_CREATE_TEXT_POST', async () => {
     const result = await publishViaOneUp('facebook', { caption: 'Hello world' })
 

@@ -223,7 +223,7 @@ export const MessageSendSchema = z.object({
 const socialProviderEnum = z.enum(['linkedin', 'facebook', 'instagram', 'twitter'])
 
 export const SocialPublishSchema = z.object({
-  providers: z.array(socialProviderEnum).min(1).max(4),
+  providers: z.array(z.union([socialProviderEnum, z.literal('gbp')])).min(1).max(5),
   content: z.string().trim().min(1).max(5000),
   imageUrl: z.string().trim().url().max(2000).optional().nullable(),
   linkUrl: z.string().trim().url().max(2000).optional().nullable(),

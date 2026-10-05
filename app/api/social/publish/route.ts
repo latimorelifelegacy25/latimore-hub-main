@@ -6,16 +6,19 @@ import { logger } from '@/lib/logger'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
 import { evaluatePublishGate, publishBlockedBody } from '@/lib/marketing/approval-gate'
+import { createGbpTrackingLink } from '@/lib/tracking/social-link'
+import { publishViaOneUp } from '@/lib/social/oneup-publisher'
 import { auditGate } from '@/lib/marketing/approval-gate-assets'
 
 export const dynamic = 'force-dynamic'
 
-type ProviderKey = 'linkedin' | 'facebook' | 'instagram' | 'twitter'
+type ProviderKey = 'linkedin' | 'facebook' | 'instagram' | 'twitter' | 'gbp'
 
 type PublishResult = {
   provider: ProviderKey
   ok: boolean
   postId?: string
+  status?: 'queued'
   error?: string
 }
 
@@ -42,6 +45,15 @@ export async function POST(req: NextRequest) {
   const results: PublishResult[] = await Promise.all(
     providers.map(async (provider): Promise<PublishResult> => {
       try {
+        if (provider === 'gbp') {
+          const trackedUrl = linkUrl ? await createGbpTrackingLink(linkUrl, { origin: req.nextUrl.origin, createdBy: auth.email }) : undefined
+          const result = await publishViaOneUp('gbp', {
+            caption: linkUrl && trackedUrl ? content.replaceAll(linkUrl, trackedUrl) : content,
+            linkUrl: trackedUrl,
+            mediaUrls: imageUrl ? [imageUrl] : [],
+          })
+          return { provider, ok: true, postId: result.externalPostId, status: 'queued' }
+        }
         const conn = await getSocialConnection(provider as any)
         const accessToken = decryptToken(conn?.accessToken)
 

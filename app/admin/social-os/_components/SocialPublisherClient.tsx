@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 
-type ProviderKey = 'facebook' | 'instagram' | 'linkedin'
+type ProviderKey = 'facebook' | 'instagram' | 'linkedin' | 'gbp'
 
 type SocialConnection = {
   id: string
@@ -17,24 +17,28 @@ type PublishResult = {
   ok: boolean
   error?: string
   postId?: string
+  status?: 'queued'
 }
 
 const providerLabels: Record<ProviderKey, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
   linkedin: 'LinkedIn',
+  gbp: 'Google Business Profile',
 }
 
-const providerOrder: ProviderKey[] = ['facebook', 'instagram', 'linkedin']
+const providerOrder: ProviderKey[] = ['facebook', 'instagram', 'linkedin', 'gbp']
 
 function isConnected(connection?: SocialConnection): connection is SocialConnection {
-  return Boolean(connection && connection.status === 'connected')
+  return Boolean(connection && ['connected', 'active', 'enabled'].includes(connection.status ?? ''))
 }
 
 export default function SocialPublisherClient({
   connections,
+  gbpConfigured = false,
 }: {
   connections: SocialConnection[]
+  gbpConfigured?: boolean
 }) {
   const [selectedProviders, setSelectedProviders] = useState<ProviderKey[]>([])
   const [content, setContent] = useState('')
@@ -49,8 +53,9 @@ export default function SocialPublisherClient({
       facebook: connections.find((c) => c.provider === 'facebook'),
       instagram: connections.find((c) => c.provider === 'instagram'),
       linkedin: connections.find((c) => c.provider === 'linkedin'),
+      gbp: gbpConfigured ? { id: 'gbp-oneup', provider: 'gbp', status: 'connected' } : undefined,
     }),
-    [connections],
+    [connections, gbpConfigured],
   )
 
   const toggleProvider = (provider: ProviderKey) => {
@@ -112,7 +117,7 @@ export default function SocialPublisherClient({
       <div>
         <h2 className="text-lg font-semibold text-white">Social Publisher</h2>
         <p className="text-sm text-slate-400">
-          Compose once, publish to Facebook, Instagram, and LinkedIn.
+          Compose once, publish to Facebook, Instagram, LinkedIn, and Google Business Profile.
         </p>
       </div>
 
@@ -132,7 +137,7 @@ export default function SocialPublisherClient({
                 type="button"
                 onClick={() => toggleProvider(provider)}
                 disabled={disabled}
-                title={disabled ? `${providerLabels[provider]} is not connected` : conn.accountName ?? providerLabels[provider]}
+                title={disabled ? `${providerLabels[provider]} is not connected` : conn?.accountName ?? providerLabels[provider]}
                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
                   disabled
                     ? 'cursor-not-allowed bg-slate-700/30 text-slate-500'
@@ -143,7 +148,7 @@ export default function SocialPublisherClient({
               >
                 {providerLabels[provider]}
                 <span className="text-[10px] uppercase tracking-wider opacity-70">
-                  {disabled ? 'Disconnected' : conn.accountName ?? 'Connected'}
+                  {disabled ? 'Disconnected' : conn?.accountName ?? 'Connected'}
                 </span>
               </button>
             )
@@ -170,7 +175,7 @@ export default function SocialPublisherClient({
         <input
           value={linkUrl}
           onChange={(e) => setLinkUrl(e.target.value)}
-          placeholder="Link URL optional — used for Facebook/LinkedIn posts"
+          placeholder="Link URL optional — included with your post"
           className="w-full rounded-xl border border-white/10 bg-slate-950/70 px-4 py-3 text-sm text-white outline-none focus:border-[#C9A25F]"
         />
 
@@ -195,7 +200,7 @@ export default function SocialPublisherClient({
                 <AlertCircle className="text-red-400" size={18} />
               )}
               <span className="font-semibold">{providerLabels[result.provider]}:</span>
-              <span>{result.ok ? `Posted${result.postId ? ` — ${result.postId}` : ''}` : result.error}</span>
+              <span>{result.ok ? `${result.status === 'queued' ? 'Queued for publication — not yet verified live' : 'Posted'}${result.postId ? ` — ${result.postId}` : ''}` : result.error}</span>
             </div>
           ))}
         </div>

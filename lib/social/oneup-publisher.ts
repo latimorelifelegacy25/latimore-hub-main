@@ -113,6 +113,7 @@ async function executeOneUpTool(toolSlug: string, args: Record<string, unknown>)
 
 export type OneUpPublishInput = {
   caption: string
+  linkUrl?: string | null
   mediaUrls?: string[]
   /** When true, saves as a OneUp draft instead of scheduling. Used for safe testing. */
   asDraft?: boolean
@@ -142,7 +143,9 @@ export async function publishViaOneUp(
   const images = mediaUrls.filter(u => !isVideoUrl(u))
 
   const baseArgs: Record<string, unknown> = {
-    content: input.caption,
+    content: input.linkUrl && !input.caption.includes(input.linkUrl)
+      ? `${input.caption}\n\n${input.linkUrl}`
+      : input.caption,
     category_id: getCategoryId(),
     social_account_ids: [socialAccountId],
     scheduled_date_time: formatOneUpDateTime(input.scheduledAt),

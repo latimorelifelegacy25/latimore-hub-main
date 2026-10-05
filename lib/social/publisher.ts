@@ -1,3 +1,4 @@
+import { createGbpTrackingLink } from '@/lib/tracking/social-link'
 import { prisma } from '@/lib/prisma'
 import { publishLinkedInPost } from './linkedin-publisher'
 import { publishFacebookPagePost, publishInstagramPost } from './meta-publisher'
@@ -95,6 +96,7 @@ async function dispatchPublish(
   if (isOneUpConfigured() && getOneUpSocialAccountId(platform)) {
     const result = await publishViaOneUp(platform, {
       caption: payload.caption,
+      linkUrl: payload.linkUrl,
       mediaUrls: payload.mediaUrls,
     })
     return { ...result, via: 'oneup' }
@@ -146,12 +148,16 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
   const target = await getConnection(platform)
   const metadata = getMetadataObject(post.metadata)
   const linkUrl = typeof metadata.linkUrl === 'string' ? metadata.linkUrl : null
-  const taggedUrl = appendUtmParams(linkUrl, {
+  let taggedUrl = appendUtmParams(linkUrl, {
     source: platform,
     medium: 'social',
     campaign: post.campaign ?? undefined,
     content: post.id,
   })
+
+  if (platform === 'gbp' && taggedUrl) {
+    taggedUrl = await createGbpTrackingLink(taggedUrl, { postId: post.id })
+  }
 
   await prisma.socialPost.update({
     where: { id: post.id },
@@ -167,7 +173,7 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
 
   try {
     const result = await dispatchPublish(platform, target, {
-      caption: post.caption,
+      caption: platform === 'gbp' && linkUrl && taggedUrl ? post.caption.replaceAll(linkUrl, taggedUrl) : post.caption,
       linkUrl: taggedUrl,
       mediaUrls: getMediaUrls(post.mediaUrls),
     })

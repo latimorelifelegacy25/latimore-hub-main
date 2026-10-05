@@ -1,3 +1,4 @@
+import { getOneUpSocialAccountId, isOneUpConfigured } from '@/lib/social/oneup-publisher'
 import { prisma } from '@/lib/prisma'
 import SocialPublisherClient from '../_components/SocialPublisherClient'
 
@@ -11,7 +12,7 @@ export default async function SocialPublisherPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <SocialPublisherClient connections={connections} />
+      <SocialPublisherClient connections={connections} gbpConfigured={isOneUpConfigured() && Boolean(getOneUpSocialAccountId('gbp'))} />
     </div>
   )
 }
