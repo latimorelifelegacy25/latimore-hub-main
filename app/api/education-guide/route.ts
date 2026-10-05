@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     // Honeypot tripped: pretend success so bots learn nothing.
     if (body.website) return NextResponse.json({ ok: true })
 
-    const from = process.env.THANKYOU_FROM || process.env.NOTIFY_TO
+    const from = process.env.THANKYOU_FROM || process.env.RESEND_FROM_EMAIL || process.env.OUTBOUND_FROM_EMAIL
     if (!from) {
       logger.error('[education-guide] sender address not configured')
       return NextResponse.json(GENERIC_ERROR, { status: 500 })

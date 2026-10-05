@@ -35,7 +35,7 @@ const SAFE_COPY: Record<string, string> = {
   "Ensure your family can stay in the home you've worked so hard to build. Term life structured to match your mortgage balance and payoff timeline.":
     'Coverage can be structured around a mortgage balance and payoff timeline to provide beneficiaries with funds that may help protect the household after a covered death.',
   'Life insurance proceeds pass to your beneficiaries 100% income-tax-free. No probate. No delays. Your family gets the money when they need it most.':
-    'Life-insurance death benefits are generally income-tax-free under current federal law. Proper beneficiary designations may allow proceeds to pass outside probate, but tax and estate treatment depend on ownership, beneficiary, and individual circumstances.',
+    "Life-insurance death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law. Proper beneficiary designations may allow proceeds to pass outside probate, but tax and estate treatment depend on ownership, beneficiary, and individual circumstances.",
   "We use the DIME method: Debt + Income × 10 + Mortgage + Education. In your free review, we'll calculate your exact number together.":
     "We may use the DIME method—Debt, Income, Mortgage, and Education—as one starting point for estimating a family's protection need. The appropriate amount depends on your circumstances and budget.",
   "Living Benefits allow you to access a portion of your death benefit while still alive if you're diagnosed with a qualifying critical, chronic, or terminal illness. Not all policies include them — we make sure yours does.":
@@ -69,7 +69,7 @@ const SAFE_COPY: Record<string, string> = {
   'Replace Your Paycheck With Income You Cannot Outlive':
     'Explore Contract-Based Lifetime Income Options',
   "The #1 fear of retirees is running out of money. With 20%+ of Schuylkill County's population over age 65 — and that number growing — guaranteed income planning has never been more critical for Central Pennsylvania families.":
-    'Running out of money is a significant retirement concern. A retirement-income review can help evaluate how guaranteed and non-guaranteed income sources may work together.',
+    "Running out of money is a significant retirement concern. A retirement-income review can help evaluate how contract-based and other income sources may work together.",
   'We help pre-retirees and retirees build a guaranteed income floor using Fixed Indexed Annuities, IUL distributions, and Social Security optimization — so you never have to worry about outliving your money.':
     'We help pre-retirees and retirees evaluate fixed and fixed indexed annuities, life-insurance cash-value strategies, and the role of Social Security in an overall income plan. Lifetime-income guarantees, when available, depend on contract provisions and insurer claims-paying ability.',
   'Fixed Indexed Annuities contractually guarantee your principal — you never lose to market downturns.':
@@ -162,13 +162,13 @@ const SAFE_COPY: Record<string, string> = {
     'How It Differs From a 529 — *Key Tradeoffs*',
 
   'Life insurance proceeds pass to beneficiaries 100% income-tax-free — bypassing probate entirely.':
-    'Life-insurance death benefits are generally income-tax-free under current federal law. Proper beneficiary designations may allow proceeds to pass outside probate; ownership, beneficiary, estate, and tax circumstances matter.',
+    "Life-insurance death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law. Proper beneficiary designations may allow proceeds to pass outside probate; ownership, beneficiary, estate, and tax circumstances matter.",
   'Life insurance and properly structured trusts bypass probate entirely — giving your family immediate access to funds without court delays.':
     'Proper beneficiary designations and attorney-drafted trust structures may allow certain assets to pass outside probate. Probate treatment and access timing depend on the asset, ownership, beneficiary designation, and applicable law.',
   'Strategic use of life insurance minimizes estate taxes and maximizes the after-tax value of what you pass on to the next generation.':
     'Life insurance may provide estate liquidity or support wealth-transfer goals. Estate-tax treatment depends on ownership, beneficiary structure, estate size, and applicable law; coordinate with qualified legal and tax professionals.',
   'Life insurance provides an immediate, tax-free death benefit that bypasses probate — giving your family liquidity to pay estate taxes, settle debts, and equalize inheritances without forcing a sale of assets.':
-    'Life insurance generally provides an income-tax-free death benefit under current federal law. Proper beneficiary designations may provide liquidity outside probate, but estate inclusion, tax treatment, timing, and ownership structure require individual legal and tax review.',
+    "Life insurance generally provides a death benefit whose tax treatment depends on federal requirements and individual circumstances. Proper beneficiary designations may provide liquidity outside probate, but estate inclusion, tax treatment, timing, and ownership structure require individual legal and tax review.",
   "Generational wealth planning goes beyond a will — it's a comprehensive strategy to protect, preserve, and pass on your assets to the next generation in the most tax-efficient way possible, using life insurance, trusts, and strategic beneficiary designations.":
     'Generational wealth planning coordinates protection, beneficiary designations, and attorney-prepared estate documents. Life insurance can support liquidity and transfer goals, while legal and tax professionals should address wills, trusts, estate taxes, and legal ownership structures.',
   'Latimore Life & Legacy LLC helps Central Pennsylvania families connect protection planning with wills, trusts, powers of attorney, and healthcare directives — ensuring your wishes are followed and your legacy is preserved.':
@@ -193,13 +193,13 @@ const SAFE_COPY: Record<string, string> = {
   'IUL accounts have averaged approximately 9% annually over the last 30 years — vs. 5–7% for most 401(k)s.':
     'IUL credited interest varies by policy, index strategy, caps, participation rates, spreads, crediting periods, charges, and funding. Illustrations are not guarantees of future performance.',
   'Grow tax-free. Access tax-free. Pass on tax-free. The IUL is a triple tax advantage no other product matches.':
-    'Cash value generally grows tax-deferred. Death benefits are generally income-tax-free under current federal law, and policy access may receive favorable tax treatment when requirements are met. Loans, withdrawals, MEC status, lapse, and surrender can change tax results.',
+    "Cash value generally grows tax-deferred. Death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law, and policy access may receive favorable tax treatment when requirements are met. Loans, withdrawals, MEC status, lapse, and surrender can change tax results.",
   'Unlike 401(k)s and IRAs, IULs have no IRS contribution limits and no required minimum distributions at age 73.':
     'IUL policies do not use the same annual contribution framework or RMD rules as qualified retirement accounts, but premium funding is limited by underwriting, policy design, and tax-law requirements.',
   'Five Reasons IUL *Outperforms* Traditional Retirement Accounts':
     'Five IUL Features and *Tradeoffs to Understand*',
   "The life insurance component protects your family with a tax-free death benefit — and Living Benefits if you're diagnosed with a qualifying illness.":
-    'The life-insurance component provides a death benefit while coverage remains in force. Death benefits are generally income-tax-free under current federal law; eligible living-benefit riders may be available subject to policy terms.',
+    "The life-insurance component provides a death benefit while coverage remains in force. Death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law; eligible living-benefit riders may be available subject to policy terms.",
   'Access your cash value at any age without the 10% early withdrawal penalty that applies to 401(k)s before age 59½.':
     'Policy cash value may be available through loans or withdrawals without the qualified-plan early-distribution framework. Access reduces policy values and may have tax consequences, particularly for MECs or policies that lapse or are surrendered.',
   'Take tax-free distributions in retirement — keeping you in the lowest possible tax bracket and maximizing your Social Security benefit.':
@@ -234,7 +234,7 @@ function safeStatValue(slug: string, label: string, value: string): string {
   if (slug === 'estate-planning' && label === 'Life Insurance Death Benefit') return 'Generally*'
   if (slug === 'iul-strategy' && label === 'Maximum Annual Market Loss') return '0%*'
   if (slug === 'iul-strategy' && label === 'Average Annual Growth (30 Years)') return 'Varies'
-  if (slug === 'iul-strategy' && label === 'Tax-Free Advantage') return '3'
+  if (slug === 'iul-strategy' && label === 'Tax Considerations') return '3'
   if (slug === 'iul-strategy' && label === 'Contribution Limits or RMDs') return 'Policy'
   return value
 }
@@ -250,7 +250,7 @@ function safeStatLabel(slug: string, label: string): string {
   if (slug === 'college-funding' && label === 'Growth & Withdrawals') return 'Policy Tax Treatment'
   if (slug === 'iul-strategy' && label === 'Maximum Annual Market Loss') return 'Index-Crediting Floor*'
   if (slug === 'iul-strategy' && label === 'Average Annual Growth (30 Years)') return 'Crediting Depends on Policy Terms'
-  if (slug === 'iul-strategy' && label === 'Tax-Free Advantage') return 'Tax Considerations'
+  if (slug === 'iul-strategy' && label === 'Tax Considerations') return 'Tax Considerations'
   if (slug === 'iul-strategy' && label === 'Contribution Limits or RMDs') return 'Different Rules Than Qualified Plans'
   return safeCopy(label)
 }

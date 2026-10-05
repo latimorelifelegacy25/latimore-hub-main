@@ -31,7 +31,7 @@ const COVERAGE_ROWS = [
   { type: 'Final Expense',         does: "Covers funeral costs, burial, and end-of-life bills so your family isn't left with an unexpected burden.",         best: 'Seniors, those without existing life coverage' },
   { type: 'Living Benefits',       does: 'Access a portion of your death benefit while still alive if diagnosed with a critical, chronic, or terminal illness.', best: 'Anyone wanting protection they can use during their lifetime' },
   { type: 'Whole Life / Permanent', does: 'Lifelong coverage that never expires, builds cash value, and serves as a savings and legacy vehicle.',             best: 'Long-term legacy planning, estate, juvenile policies' },
-  { type: 'Fixed Index Annuity',   does: 'Protects retirement savings from market loss while building a guaranteed income stream you cannot outlive.',        best: 'Pre-retirees and retirees seeking income certainty' },
+  { type: 'Fixed Index Annuity',   does: "Offers index-linked interest crediting and income options subject to contract terms, charges, withdrawal rules, and insurer claims-paying ability.",        best: 'Pre-retirees and retirees seeking income certainty' },
   { type: 'Key Person Insurance',  does: 'Protects a business from financial loss if a critical owner, partner, or key employee unexpectedly dies or is disabled.', best: 'Business owners, partnerships, school districts' },
   { type: 'Juvenile Coverage',     does: 'Locks in low rates while your child is young and healthy. Builds cash value and guarantees future insurability.',   best: 'Parents and grandparents planning ahead' },
 ]
@@ -50,7 +50,7 @@ const QUESTIONS = [
   { num: '02', q: 'What debts would your family inherit?', body: 'Mortgage, car loans, student debt, credit cards don\'t disappear when you do. Mortgage protection and term life ensure your family starts fresh, not in the red.' },
   { num: '03', q: 'How long do you need coverage?',        body: 'A 30-year-old with young children has different needs than a 60-year-old planning retirement. The right term depends on your life stage, not a formula.' },
   { num: '04', q: 'What is your budget?',                  body: 'Life insurance is more affordable than most people think. We work with multiple top-rated carriers to find the best rate for your health profile, age, and coverage goals — no single-carrier bias, ever.' },
-  { num: '05', q: 'What legacy do you want to leave?',     body: 'Beyond protection, life insurance can be a wealth-building tool. Annuities create guaranteed retirement income. Estate planning ensures assets transfer on your terms.' },
+  { num: '05', q: 'What legacy do you want to leave?',     body: "Beyond protection, life insurance can be a wealth-building tool. Annuities create contract-based income. Estate planning ensures assets transfer on your terms." },
 ]
 
 const GLOSSARY = [
@@ -60,7 +60,7 @@ const GLOSSARY = [
   { term: 'Whole Life Insurance',             def: 'Permanent coverage that never expires. Builds cash value over time. Premiums remain level for life.' },
   { term: 'Fixed Index Annuity (FIA)',        def: 'An insurance product that ties interest credits to a market index without directly investing in it. Principal is protected from market loss.' },
   { term: 'Lifetime Income Benefit Rider',    def: 'An optional rider on an annuity that guarantees a growing income account and converts it to lifetime income payments when you\'re ready.' },
-  { term: 'Income Account Value (IAV)',        def: 'A separate measuring tool within an annuity used solely to calculate guaranteed lifetime income. Not the same as your account balance; cannot be withdrawn as a lump sum.' },
+  { term: 'Income Account Value (IAV)',        def: "A separate measuring tool within an annuity used solely to calculate contract-based income. Not the same as your account balance; cannot be withdrawn as a lump sum." },
   { term: 'Surrender Charge',                 def: 'A fee on withdrawals exceeding the free withdrawal amount during early annuity years. Declines over time and eventually reaches zero.' },
   { term: 'Free Withdrawal',                  def: 'The amount you can withdraw from an annuity each year without a surrender charge — typically up to 10% of contract value annually.' },
   { term: 'Key Person Insurance',             def: 'Life insurance owned by a business on a critical employee or owner. The business is the beneficiary and uses proceeds to survive the loss.' },
@@ -220,11 +220,11 @@ export default function EducationHubPage() {
             <SectionTitle>The 3-Bucket Retirement Strategy</SectionTitle>
             <SectionSub>The most effective retirement plans organize savings into three distinct buckets — each with a specific job. Here&apos;s how it works and why it matters.</SectionSub>
 
-            <Pullquote text={`"The goal isn't to beat the market. It's to create certainty in an uncertain world — a guaranteed paycheck that comes every month, no matter how long you live." — Jackson M. Latimore Sr., MBA`} />
+            <Pullquote text="A retirement-income review can compare essential expenses, available income sources, contract terms, costs, and liquidity needs." />
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 18, marginTop: 32 }}>
               {[
-                { pct: '30–40%', name: 'Income Bucket',  accent: gold,      desc: 'Your protected floor. Generates guaranteed lifetime income no matter what the market does. Creates certainty for essential expenses.', examples: 'Fixed index annuities, guaranteed income products, structured income strategies' },
+                { pct: '30–40%', name: 'Income Bucket',  accent: gold,      desc: "Income options that may help with essential expenses. Lifetime payouts depend on contract conditions, rider costs, withdrawals, and insurer claims-paying ability.", examples: "Fixed index annuities, contract-based income products, structured income strategies" },
                 { pct: '40–50%', name: 'Growth Bucket',  accent: navy,      desc: 'Your long-term engine. Stays invested for growth and keeps pace with inflation over time. Accessed later in retirement.', examples: 'Stocks, mutual funds, index funds, tax-advantaged accumulation strategies' },
                 { pct: '10–20%', name: 'Safety Bucket',  accent: '#4a7c59', desc: 'Your emergency reserve. Liquid and accessible for unexpected needs without touching your income or growth buckets.', examples: 'Cash, CDs, money market accounts' },
               ].map(({ pct, name, accent, desc, examples }) => (
@@ -237,11 +237,11 @@ export default function EducationHubPage() {
               ))}
             </div>
 
-            {/* Why guaranteed income matters */}
+            {/* How contract-based income works */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 14, marginTop: 28 }}>
               {[
-                ['Longevity Protection',    'Once income begins, it\'s guaranteed for life — the check keeps coming regardless of how long you live.'],
-                ['Market Loss Protection',  'Principal is never decreased due to index volatility. Savings and credited interest are locked in.'],
+                ['Longevity Protection',    'Certain contracts or riders may provide lifetime payments when their conditions are met. Guarantees depend on the issuing insurer’s claims-paying ability.'],
+                ['Market Loss Protection',  'Index declines do not directly create negative index credits, but withdrawals, charges, and surrender terms may reduce contract value.'],
                 ['Tax-Deferred Growth',     'Earnings grow tax-deferred, meaning you don\'t pay taxes until you start drawing income.'],
                 ['Legacy at Death',         'Beneficiaries may receive the full contract value with no surrender charges at death.'],
               ].map(([title, body]) => (

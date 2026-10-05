@@ -168,7 +168,7 @@ const CampaignAutoPilot = ({ onBulkSchedule }: { onBulkSchedule?: (posts: Social
                 >
                   <option value="">Select Strategy...</option>
                   <option value="Mortgage Protection Awareness">Mortgage Protection</option>
-                  <option value="Tax-Free Retirement (IUL)">Tax-Free Retirement</option>
+                  <option value="Tax-Advantaged Retirement (IUL)">Tax Considerations Retirement</option>
                   <option value="Key Person for Schools">School District Outreach</option>
                   <option value="Velocity Term Life (Ethos)">Quick Protection</option>
                 </select>
