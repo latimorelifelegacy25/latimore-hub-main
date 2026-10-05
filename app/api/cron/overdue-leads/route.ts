@@ -40,7 +40,19 @@ export async function GET(req: NextRequest) {
     }
 
     const names = overdueTasks.map(task => `- ${contactLabel(task)}`)
-    await sendGoogleChatMessage(`Overdue Leads:\n${names.join('\n')}\n\nImmediate follow-up required.`)
+
+    // The chat alert is best-effort. A dead or misconfigured webhook must not turn
+    // the whole run into a 500 or skip recording the escalation.
+    const chatConfigured = Boolean(process.env.GOOGLE_CHAT_WEBHOOK_URL)
+    let chat: 'sent' | 'failed' | 'not_configured' = chatConfigured ? 'sent' : 'not_configured'
+    let chatError: string | null = null
+    try {
+      await sendGoogleChatMessage(`Overdue Leads:\n${names.join('\n')}\n\nImmediate follow-up required.`)
+    } catch (error) {
+      chat = 'failed'
+      chatError = error instanceof Error ? error.message : String(error)
+      logger.error({ err: chatError }, 'Overdue lead Google Chat alert failed')
+    }
 
     await prisma.systemEvent.create({
       data: {
@@ -49,12 +61,14 @@ export async function GET(req: NextRequest) {
           taskIds: overdueTasks.map(task => task.id),
           count: overdueTasks.length,
           channel: 'google_chat',
+          chat,
+          chatError,
           checkedAt: now.toISOString(),
         },
       },
     })
 
-    return NextResponse.json({ ok: true, overdue: overdueTasks.length })
+    return NextResponse.json({ ok: true, overdue: overdueTasks.length, chat })
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Overdue lead escalation failed')
     return NextResponse.json({ ok: false, error: 'overdue escalation failed' }, { status: 500 })

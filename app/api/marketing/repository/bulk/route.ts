@@ -8,6 +8,7 @@ import { rateLimit } from '@/lib/rate-limit'
 import { logger } from '@/lib/logger'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { triggerVercelDeploy } from '@/lib/marketing/deploy'
+import { MARKETING_MANUAL_STATUSES, gateMarketingContent } from '@/lib/marketing/approval-gate-assets'
 
 const BulkUtmSchema = z.object({
   action: z.literal('utm'),
@@ -79,7 +80,26 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, updated: result.count })
     }
 
-    const { ids } = parsed.data
+    const { ids: requestedIds } = parsed.data
+    const candidates = await prisma.marketingContent.findMany({ where: { id: { in: requestedIds } } })
+    const gated = await Promise.all(
+      candidates.map(async (item) => ({ item, gate: await gateMarketingContent(item, MARKETING_MANUAL_STATUSES) })),
+    )
+    const blockedItems = gated
+      .filter((r) => !r.gate.allowed)
+    if (blockedItems.length > 0) {
+      logger.warn({ blockedIds: blockedItems.map((r) => r.item.id) }, '[approval-gate] bulk marketing publish blocked')
+      return NextResponse.json(
+        {
+          ok: false,
+          error: 'Publish blocked',
+          blockers: Array.from(new Set(blockedItems.flatMap((r) => r.gate.blockers))),
+          blockedIds: blockedItems.map((r) => r.item.id),
+        },
+        { status: 422 },
+      )
+    }
+    const ids = requestedIds
     const now = new Date()
     await prisma.marketingContent.updateMany({
       where: { id: { in: ids } },

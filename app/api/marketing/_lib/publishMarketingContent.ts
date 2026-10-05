@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 import { triggerVercelDeploy } from '@/lib/marketing/deploy'
+import { publishBlockedBody } from '@/lib/marketing/approval-gate'
+import { MARKETING_MANUAL_STATUSES, gateMarketingContent } from '@/lib/marketing/approval-gate-assets'
 
 export async function publishMarketingContent(req: Request) {
   const auth = await requireAdminSession()
@@ -13,6 +15,15 @@ export async function publishMarketingContent(req: Request) {
 
     if (typeof id !== 'string' || !id.trim()) {
       return NextResponse.json({ error: 'Content id is required' }, { status: 422 })
+    }
+
+    const existing = await prisma.marketingContent.findUnique({ where: { id } })
+    if (existing) {
+      const gate = await gateMarketingContent(existing, MARKETING_MANUAL_STATUSES)
+      if (!gate.allowed) {
+        logger.warn({ contentId: id }, '[approval-gate] marketing publish blocked')
+        return NextResponse.json(publishBlockedBody(gate.blockers), { status: 422 })
+      }
     }
 
     const deploy = await triggerVercelDeploy()

@@ -1279,3 +1279,39 @@ model Notification {
   @@index([readAt, createdAt])
   @@index([priority, createdAt])
 }
+
+// Short-slug redirect (/t/[slug]) with consistent UTM attribution, used for QR
+// and print campaigns. Destinations are allowlisted in lib/tracking/links.ts.
+model TrackingLink {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  destination String
+  label       String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmContent  String?
+  utmTerm     String?
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+
+  clicks TrackingClick[]
+}
+
+model TrackingClick {
+  id         String   @id @default(cuid())
+  linkId     String
+  slug       String
+  occurredAt DateTime @default(now())
+  referrer   String?
+  userAgent  String?
+  ipHash     String?
+
+  link TrackingLink @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@index([linkId, occurredAt])
+  @@index([slug])
+}

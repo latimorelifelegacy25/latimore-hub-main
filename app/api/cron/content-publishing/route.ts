@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createSystemAiEvent, requireCronAuth } from '@/lib/ai/shared'
 import { prisma } from '@/lib/prisma'
 import { publishSocialPost } from '@/lib/social'
+import { gateContentAsset, holdBlockedAsset } from '@/lib/marketing/approval-gate-assets'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 120
@@ -34,6 +35,15 @@ export async function GET(req: NextRequest) {
     let publishedCount = 0
 
     for (const asset of dueContent) {
+      const gate = await gateContentAsset(asset)
+      if (!gate.allowed) {
+        await holdBlockedAsset(asset, gate)
+        await createSystemAiEvent({
+          type: 'content.publish_blocked',
+          payload: { assetId: asset.id, channel: asset.channel },
+        })
+        continue
+      }
       try {
         await publishSocialPost(asset)
         await prisma.contentAsset.update({

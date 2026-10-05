@@ -3,6 +3,13 @@ import { publishLinkedInPost } from './linkedin-publisher'
 import { publishFacebookPagePost, publishInstagramPost } from './meta-publisher'
 import { getOneUpSocialAccountId, isOneUpConfigured, publishViaOneUp } from './oneup-publisher'
 import { appendUtmParams } from './url'
+import { logger } from '@/lib/logger'
+import {
+  MANUAL_PUBLISHABLE_STATUSES,
+  PublishBlockedError,
+  evaluatePublishGate,
+} from '@/lib/marketing/approval-gate'
+import { auditGate, notifyHeld } from '@/lib/marketing/approval-gate-assets'
 import type { SocialProvider } from '@prisma/client'
 import type { PublishPayload, PublishResult, PublishTarget, SocialPlatform } from './types'
 
@@ -14,6 +21,7 @@ const NATIVE_PROVIDERS: SocialProvider[] = ['facebook', 'instagram', 'linkedin']
 type SocialPostRecord = {
   id: string
   platform: string
+  status?: string
   caption: string
   campaign: string | null
   mediaUrls: unknown
@@ -104,6 +112,33 @@ export async function publishSocialPostById(postId: string): Promise<PublishResu
 
   if (!post) {
     throw new Error(`Social post not found: ${postId}`)
+  }
+
+  const gate = evaluatePublishGate({
+    text: post.caption,
+    status: post.status,
+    allowedStatuses: MANUAL_PUBLISHABLE_STATUSES,
+    campaign: post.campaign,
+  })
+  await auditGate('social_post', post.id, gate)
+  if (!gate.allowed) {
+    // Mark (never delete) so scheduled runs do not re-select it; ids only in logs.
+    const blockedMeta = getMetadataObject(post.metadata)
+    if (post.status !== 'published' && post.status !== 'archived') {
+      await prisma.socialPost.update({
+        where: { id: post.id },
+        data: {
+          status: 'failed',
+          metadata: {
+            ...blockedMeta,
+            publishBlocked: { at: new Date().toISOString(), blockers: gate.blockers },
+          },
+        },
+      })
+    }
+    logger.warn({ postId: post.id }, '[approval-gate] social post blocked')
+    if (post.status === 'scheduled') await notifyHeld('social_post', post.id, gate)
+    throw new PublishBlockedError(gate.blockers)
   }
 
   const platform = post.platform as SocialPlatform

@@ -5,6 +5,8 @@ import { FacebookPublishSchema } from '@/lib/schemas'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
 import { logger } from '@/lib/logger'
+import { evaluatePublishGate, publishBlockedBody } from '@/lib/marketing/approval-gate'
+import { auditGate } from '@/lib/marketing/approval-gate-assets'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +22,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
   }
   const { content } = parsed.data
+
+  const gate = evaluatePublishGate({ text: content })
+  await auditGate('social_post', null, gate)
+  if (!gate.allowed) {
+    logger.warn({ route: 'social/facebook/publish' }, '[approval-gate] direct publish blocked')
+    return NextResponse.json(publishBlockedBody(gate.blockers), { status: 422 })
+  }
 
   const conn = await getSocialConnection('facebook')
   const accessToken = decryptToken(conn?.accessToken)

@@ -111,6 +111,19 @@ const guideTitles: Record<string, string> = {
   'Add Estate Planning': 'Estate Planning Checklist',
 }
 
+// Maps the funnel's priority selection to the education guide's content keys.
+const PRIORITY_GUIDE_MAP: Record<string, string> = {
+  'Protect My Family': 'family',
+  'Cover My Mortgage': 'mortgage',
+  'Plan Final Expenses': 'finalExpense',
+  'Build Retirement Income': 'retirement',
+  'Protect My Business': 'business',
+  'Plan for My Children': 'children',
+  'Add Estate Planning': 'estate',
+}
+
+const EDUCATION_GUIDE_ENABLED = process.env.NEXT_PUBLIC_EDUCATION_GUIDE_ENABLED === 'true'
+
 const dependentOptions = [
   'Spouse',
   'Children',
@@ -320,6 +333,7 @@ export default function EducationPage() {
   const [data, setData] = useState<FunnelData>(initialData)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [guideStatus, setGuideStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const viewedEventsRef = useRef<Set<string>>(new Set())
   const completedRef = useRef(false)
   const leadSessionIdRef = useRef<string>('')
@@ -519,6 +533,31 @@ export default function EducationPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep])
+
+  async function emailGuide() {
+    const key = PRIORITY_GUIDE_MAP[data.priorityPath]
+    if (!key || !data.contact.email.trim()) {
+      setGuideStatus('error')
+      return
+    }
+    setGuideStatus('sending')
+    try {
+      const response = await fetch('/api/education-guide', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: data.contact.email.trim(),
+          firstName: data.contact.firstName.trim() || undefined,
+          priorities: [key],
+          county: data.contact.county.trim() || undefined,
+        }),
+      })
+      const result = await response.json().catch(() => null)
+      setGuideStatus(response.ok && result?.ok ? 'sent' : 'error')
+    } catch {
+      setGuideStatus('error')
+    }
+  }
 
   useEffect(() => {
     if (currentStep !== 'results' || completedRef.current) return
@@ -857,6 +896,23 @@ export default function EducationPage() {
                       Send My Education Guide
                     </button>
                   </div>
+
+                  {EDUCATION_GUIDE_ENABLED && (
+                    <div className="mt-4">
+                      <button
+                        type="button"
+                        onClick={emailGuide}
+                        disabled={guideStatus === 'sending' || guideStatus === 'sent'}
+                        className="text-sm font-semibold underline disabled:opacity-60"
+                        style={{ color: navy }}
+                      >
+                        {guideStatus === 'sending' ? 'Sending...' : guideStatus === 'sent' ? 'Guide sent to your email' : 'Email me a guide'}
+                      </button>
+                      {guideStatus === 'error' && (
+                        <p className="mt-2 text-sm text-red-700">We could not send the guide. Please try again later.</p>
+                      )}
+                    </div>
+                  )}
 
                   <p className="mt-5 text-sm leading-6 text-slate-500">
                     This education experience is not tax, legal, investment, or insurance advice. Product availability, benefits, guarantees, and eligibility vary by state, carrier, underwriting, policy design, and client situation.
