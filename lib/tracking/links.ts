@@ -66,6 +66,8 @@ export function isAllowedDestination(destination: unknown): boolean {
   if (url.username || url.password) return false
 
   if (url.origin === siteOrigin()) return true
+  // The public site and hub share this business's tracking destinations.
+  if (url.protocol === 'https:' && ['latimorelifelegacy.com', 'www.latimorelifelegacy.com', 'hub.latimorelifelegacy.com'].includes(url.hostname.toLowerCase())) return true
   return allowedHosts().includes(url.hostname.toLowerCase())
 }
 

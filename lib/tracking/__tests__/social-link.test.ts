@@ -16,8 +16,10 @@ test('GBP links store attribution and reject unapproved destinations before writ
     assert.equal(writes[0].utmSource, 'gbp')
     assert.equal(writes[0].utmMedium, 'social')
     assert.equal(writes[0].utmContent, 'post-123')
+    await createGbpTrackingLink('https://hub.latimorelifelegacy.com/education/blog/example')
+    assert.equal(writes[1].destination, 'https://hub.latimorelifelegacy.com/education/blog/example')
     await assert.rejects(createGbpTrackingLink('https://unapproved.example/article'), /not an allowed/)
-    assert.equal(writes.length, 1)
+    assert.equal(writes.length, 2)
   } finally {
     prisma.trackingLink.create = original
   }
