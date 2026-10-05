@@ -18,11 +18,13 @@ export async function sendMail({
   from,
   subject,
   html,
+  attachments,
 }: {
   to: string | string[]
   from: string
   subject: string
   html: string
+  attachments?: { filename: string; content: Buffer | string }[]
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   if (!process.env.RESEND_API_KEY) {
     console.warn('RESEND_API_KEY not set — skipping email')
@@ -37,7 +39,7 @@ export async function sendMail({
 
   try {
     const resend = getResend(process.env.RESEND_API_KEY)
-    const r = await resend.emails.send({ to, from, subject, html })
+    const r = await resend.emails.send({ to, from, subject, html, ...(attachments?.length ? { attachments } : {}) })
     return { ok: true, id: r.data?.id }
   } catch (err: any) {
     await captureException(err, { source: 'notification', channel: 'email', to: Array.isArray(to) ? to.join(',') : to })
