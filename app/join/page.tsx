@@ -37,7 +37,7 @@ export default function JoinPage() {
             <p style={{ fontSize: '1.12rem', lineHeight: 1.7, maxWidth: '55ch', color: 'rgba(255,255,255,.86)' }}>Build a purpose-driven path helping families understand protection, prepare for tomorrow, and leave a legacy.</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 28 }}>
               <a href="#apply" style={{ background: gold, color: navy, padding: '14px 24px', borderRadius: 999, fontWeight: 900, textDecoration: 'none' }}>Submit My Interest</a>
-              <a href="/book?utm_source=join_hero&utm_medium=website&utm_campaign=join-team" style={{ border: '1px solid rgba(255,255,255,.35)', color: '#fff', padding: '14px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }}>Schedule Intro Call</a>
+              <a href="#apply" style={{ border: '1px solid rgba(255,255,255,.35)', color: '#fff', padding: '14px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }}>Schedule Intro Call</a>
             </div>
           </div>
           <aside style={{ maxWidth: 500, width: '100%', justifySelf: 'center', background: '#fff', borderRadius: 24, padding: 8, boxShadow: '0 26px 70px rgba(0,0,0,.34)', border: `3px solid ${gold}` }}>

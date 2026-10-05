@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import JoinBooking, { type JoinReceipt } from './JoinBooking'
+import { ensureLeadSessionId } from '@/lib/lead'
 
 type FormData = {
   fullName: string; phone: string; email: string; cityState: string; bestContactMethod: string; bestContactTime: string
@@ -28,28 +30,34 @@ export default function JoinFormSection() {
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  const [receipt, setReceipt] = useState<JoinReceipt | null>(null)
+  const started = useRef(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
-    const stored = window.localStorage.getItem('lead_session_id')
-    const leadSessionId = stored || window.crypto.randomUUID()
-    window.localStorage.setItem('lead_session_id', leadSessionId)
+    const leadSessionId = ensureLeadSessionId()
+    const context = { leadSessionId, pageUrl: window.location.href, referrer: document.referrer || '', source: params.get('utm_source') || (params.get('src') === 'poster' ? 'join_team_poster' : 'website'), medium: params.get('utm_medium') || (params.get('src') === 'poster' ? 'qr' : 'join'), campaign: params.get('utm_campaign') || 'join-team' }
+    void fetch('/api/join/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...context, eventType: 'join_form_viewed' }), keepalive: true }).catch(() => {})
     setForm((prev) => ({
       ...prev,
       pageUrl: window.location.href,
       referrer: document.referrer || '',
-      source: params.get('utm_source') || 'website',
-      medium: params.get('utm_medium') || 'join',
+      source: params.get('utm_source') || (params.get('src') === 'poster' ? 'join_team_poster' : 'website'),
+      medium: params.get('utm_medium') || (params.get('src') === 'poster' ? 'qr' : 'join'),
       campaign: params.get('utm_campaign') || 'join-team',
       leadSessionId,
     }))
   }, [])
 
   const progress = useMemo(() => Math.round(((step + 1) / steps.length) * 100), [step])
-  function update<K extends keyof FormData>(key: K, value: FormData[K]) { setForm((prev) => ({ ...prev, [key]: value })) }
+  function track(eventType: string, stepNumber?: number) {
+    void fetch('/api/join/events', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventType, leadSessionId: form.leadSessionId, pageUrl: form.pageUrl, referrer: form.referrer, source: form.source, medium: form.medium, campaign: form.campaign, step: stepNumber }), keepalive: true }).catch(() => {})
+  }
+  function markStarted() { if (!started.current) { started.current = true; track('join_form_started') } }
+  function update<K extends keyof FormData>(key: K, value: FormData[K]) { markStarted(); setForm((prev) => ({ ...prev, [key]: value })) }
   function toggle(key: 'lookingFor' | 'licensesHeld' | 'values', value: string) {
+    markStarted()
     setForm((prev) => ({ ...prev, [key]: prev[key].includes(value) ? prev[key].filter((item) => item !== value) : [...prev[key], value] }))
   }
 
@@ -65,6 +73,8 @@ export default function JoinFormSection() {
     for (const [key, label] of requiredByStep[step]) {
       if (!String(form[key] ?? '').trim()) return `Please complete ${label}.`
     }
+    if (step === 0 && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return 'Please enter a valid email address.'
+    if (step === 0 && form.phone.replace(/\D/g, '').length < 7) return 'Please enter a valid phone number.'
     if (step === 5 && !form.consentAccepted) return 'Please accept the consent checkbox before submitting.'
     return ''
   }
@@ -72,6 +82,7 @@ export default function JoinFormSection() {
   function nextStep() {
     const message = validateCurrentStep()
     if (message) { setError(message); return }
+    track('join_form_step_completed', step)
     setError(''); setStep((current) => Math.min(current + 1, steps.length - 1))
   }
 
@@ -84,11 +95,11 @@ export default function JoinFormSection() {
       const res = await fetch('/api/join', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       const data = await res.json()
       if (!res.ok || !data.ok) throw new Error(data.error || 'Submission failed')
-      setSuccess(true)
+      setReceipt({ applicationId: data.applicationId, bookingToken: data.bookingToken })
     } catch (err: any) { setError(err?.message || 'Something went wrong. Please try again.') } finally { setSubmitting(false) }
   }
 
-  if (success) return <ThankYou />
+  if (receipt) return <ThankYou receipt={receipt} />
 
   return (
     <section id="apply" style={{ padding: '4rem 0', background: '#f9fafb' }}>
@@ -116,7 +127,7 @@ export default function JoinFormSection() {
   )
 }
 
-function ThankYou() { return <section id="apply" style={{ padding: '4rem 0', background: '#f9fafb' }}><div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px' }}><div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 'clamp(1.5rem,5vw,3rem)', boxShadow: '0 14px 40px rgba(15,53,85,.10)', textAlign: 'center' }}><p style={{ color: gold, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em' }}>Thank You</p><h2 style={{ color: navy, fontSize: 'clamp(1.8rem,3vw,2.5rem)', margin: '0 0 16px' }}>Thank you for your interest in joining Latimore Life & Legacy LLC.</h2><p style={{ color: '#475467', lineHeight: 1.7, maxWidth: '68ch', margin: '0 auto 1rem' }}>Your information has been received. The next step is a short introductory conversation to learn more about your goals, answer your questions, and see whether this opportunity is a good fit.</p><p style={{ color: navy, fontWeight: 800 }}>Protect families. Secure futures. Build legacies.<br /><span style={{ color: gold }}>#TheBeatGoesOn</span></p><div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 24 }}><Link href="/book?utm_source=join_success&utm_medium=website&utm_campaign=join-team" style={primaryButton}>Schedule Intro Call</Link><a href="https://card.latimorelifelegacy.com" style={secondaryButton}>Visit My Digital Card</a><Link href="/" style={secondaryButton}>Return to Website</Link></div></div></div></section> }
+function ThankYou({ receipt }: { receipt: JoinReceipt }) { return <section id="apply" style={{ padding: '4rem 0', background: '#f9fafb' }}><div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px' }}><div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 20, padding: 'clamp(1.5rem,5vw,3rem)', boxShadow: '0 14px 40px rgba(15,53,85,.10)', textAlign: 'center' }}><p style={{ color: gold, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.14em' }}>Thank You</p><h2 style={{ color: navy, fontSize: 'clamp(1.8rem,3vw,2.5rem)', margin: '0 0 16px' }}>Thank you for your interest in joining Latimore Life & Legacy LLC.</h2><p style={{ color: '#475467', lineHeight: 1.7, maxWidth: '68ch', margin: '0 auto 1rem' }}>Your information has been received. The next step is a short introductory conversation to learn more about your goals, answer your questions, and see whether this opportunity is a good fit.</p><p style={{ color: navy, fontWeight: 800 }}>Protect families. Secure futures. Build legacies.<br /><span style={{ color: gold }}>#TheBeatGoesOn</span></p><JoinBooking receipt={receipt} /><div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 12, marginTop: 24 }}><a href="https://card.latimorelifelegacy.com" style={secondaryButton}>Visit My Digital Card</a><Link href="/" style={secondaryButton}>Return to Website</Link></div></div></div></section> }
 function Grid({ children }: { children: React.ReactNode }) { return <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>{children}</div> }
 function Stack({ children }: { children: React.ReactNode }) { return <div style={{ display: 'grid', gap: 18 }}>{children}</div> }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label style={{ display: 'block' }}><span style={{ display: 'block', marginBottom: 6, color: '#475467', fontWeight: 700, fontSize: '.9rem' }}>{label}</span>{children}</label> }

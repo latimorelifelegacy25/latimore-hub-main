@@ -3,6 +3,7 @@ export const maxDuration = 60
 
 import { after, NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { createJoinBookingToken } from '@/lib/join-booking-token'
 import { prisma } from '@/lib/prisma'
 import { rateLimit } from '@/lib/rate-limit'
 import { sendMail } from '@/lib/mailer'
@@ -15,9 +16,9 @@ import { triggerLeadScoring } from '@/lib/ai/lead-score-trigger'
 const CONSENT_TEXT = 'I consent to Latimore Life & Legacy LLC contacting me by phone, text, or email about joining the team. I understand this is an interest form and not an employment contract.'
 
 const JoinBodySchema = z.object({
-  fullName: z.string().min(2).max(200),
+  fullName: z.string().trim().min(2).max(200),
   phone: z.string().min(7).max(40),
-  email: z.string().email().max(200),
+  email: z.string().trim().email().max(200),
   cityState: z.string().max(150).optional().nullable(),
   bestContactMethod: z.string().min(1).max(50),
   bestContactTime: z.string().min(1).max(50),
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => null)
   const parsed = JoinBodySchema.safeParse(body)
-  if (!parsed.success) return NextResponse.json({ ok: false, error: parsed.error.flatten() }, { status: 422 })
+  if (!parsed.success) return NextResponse.json({ ok: false, error: 'Please review the required recruiting fields and enter a valid email address.', details: parsed.error.flatten() }, { status: 422 })
 
   const input = parsed.data
   const emailLower = input.email.trim().toLowerCase()
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
       await tx.task.create({ data: { title: `Follow up with join applicant - ${fullName}`, description: `New join application submitted. Preferred contact: ${input.bestContactMethod}. Preferred time: ${input.bestContactTime}.`, status: 'Open', dueAt: new Date(Date.now() + 24 * 60 * 60 * 1000), contactId: contact.id, inquiryId: inquiry.id } })
       await tx.joinFormEvent.create({ data: { applicationId: application.id, leadSessionId: clean(input.leadSessionId), eventType: 'join_form_submitted', pageUrl: clean(input.pageUrl), referrer: clean(input.referrer), source, medium, campaign, metadata: { comfortLevel: input.comfortLevel, incomeGoal: input.incomeGoal, hoursPerWeek: input.hoursPerWeek, licenseStatus: input.licenseStatus } } })
       await tx.systemEvent.create({ data: { type: 'join.application_submitted', contactId: contact.id, inquiryId: inquiry.id, leadSessionId: undefined, source, medium, campaign, payload: { applicationId: application.id, intent, status: 'New' }, metadata: { availableForCall: input.availableForCall, bestContactMethod: input.bestContactMethod } } })
-      return { contact, inquiry, application }
+      return { contact, inquiry, application, bookingToken: createJoinBookingToken(application.id) }
     })
 
     await triggerLeadScoring({ contactId: result.contact.id, inquiryId: result.inquiry.id, reason: 'new_join_application' }).catch((err) => logger.error({ err }, 'Failed to trigger join lead scoring'))
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
       await Promise.allSettled(emailJobs)
     })
 
-    return NextResponse.json({ ok: true, contactId: result.contact.id, inquiryId: result.inquiry.id, applicationId: result.application.id, message: 'Application submitted successfully' })
+    return NextResponse.json({ ok: true, contactId: result.contact.id, inquiryId: result.inquiry.id, applicationId: result.application.id, bookingToken: result.bookingToken, message: 'Application submitted successfully' })
   } catch (error: any) {
     logger.error({ err: error }, 'Join application error')
     return NextResponse.json({ ok: false, error: 'Server error' }, { status: 500 })
