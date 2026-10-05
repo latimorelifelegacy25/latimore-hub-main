@@ -32,6 +32,7 @@ const platforms = [
   { key: 'facebook', label: 'Facebook Page' },
   { key: 'instagram', label: 'Instagram' },
   { key: 'linkedin', label: 'LinkedIn' },
+  { key: 'gbp', label: 'Google Business Profile' },
 ]
 
 export function SocialPublisherPanel() {
@@ -131,7 +132,7 @@ export function SocialPublisherPanel() {
           <p className="text-sm uppercase tracking-[0.35em] text-amber-300">Latimore OS</p>
           <h1 className="mt-3 text-4xl font-bold">Social Publisher</h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Create once, customize by platform, track campaign URLs, and publish to Facebook, Instagram, and LinkedIn from the Latimore marketing command center.
+            Create once, customize by platform, track campaign URLs, and publish to Facebook, Instagram, LinkedIn, and Google Business Profile from the Latimore marketing command center.
           </p>
         </header>
 
