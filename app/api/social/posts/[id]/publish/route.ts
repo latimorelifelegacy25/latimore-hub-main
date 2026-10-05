@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { publishSocialPostById } from '@/lib/social/publisher'
 import { requireAdminSession } from '@/lib/ai/shared'
+import { PublishBlockedError, publishBlockedBody } from '@/lib/marketing/approval-gate'
 
 export async function POST(
   _request: NextRequest,
@@ -15,6 +16,9 @@ export async function POST(
     const result = await publishSocialPostById(id)
     return NextResponse.json({ ok: true, result })
   } catch (error) {
+    if (error instanceof PublishBlockedError) {
+      return NextResponse.json(publishBlockedBody(error.blockers), { status: 422 })
+    }
     return NextResponse.json(
       { ok: false, error: error instanceof Error ? error.message : 'Unable to publish social post.' },
       { status: 400 },

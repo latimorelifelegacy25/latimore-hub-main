@@ -54,6 +54,7 @@ const publicHubPrefixes = [
   '/_next/static',
   '/_next/image',
   '/pahs',
+  '/t',
   '/api/pahs-lead',
   '/api/lead',
   '/api/event',

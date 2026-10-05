@@ -9,6 +9,8 @@ import { logger } from '@/lib/logger'
 import { requireAdminSession } from '@/lib/ai/shared'
 import { DESTINATIONS, slugify } from '@/lib/marketing/repository'
 import { triggerVercelDeploy } from '@/lib/marketing/deploy'
+import { publishBlockedBody } from '@/lib/marketing/approval-gate'
+import { gateMarketingContent } from '@/lib/marketing/approval-gate-assets'
 
 export async function GET() {
   const auth = await requireAdminSession()
@@ -69,6 +71,27 @@ export async function POST(req: NextRequest) {
 
   const now = new Date()
   const publishNow = data.status === 'published'
+
+  if (publishNow) {
+    // Direct create-and-publish: the author's explicit publish action is the approval,
+    // but compliance must still pass.
+    const gate = await gateMarketingContent(
+      {
+        id: '',
+        title: data.title,
+        bodyHtml: data.bodyHtml ?? '',
+        status: 'draft',
+        campaign: data.campaign,
+        utmSource: data.utmSource ?? null,
+        sourceUrl,
+      },
+      ['draft'],
+    )
+    if (!gate.allowed) {
+      logger.warn({ route: 'marketing/repository' }, '[approval-gate] create-and-publish blocked')
+      return NextResponse.json(publishBlockedBody(gate.blockers), { status: 422 })
+    }
+  }
 
   try {
     const created = await prisma.marketingContent.create({

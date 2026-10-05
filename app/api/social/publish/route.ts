@@ -5,6 +5,8 @@ import { SocialPublishSchema } from '@/lib/schemas'
 import { logger } from '@/lib/logger'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
+import { evaluatePublishGate, publishBlockedBody } from '@/lib/marketing/approval-gate'
+import { auditGate } from '@/lib/marketing/approval-gate-assets'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +31,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'Invalid request' }, { status: 422 })
   }
   const { content, imageUrl, linkUrl } = parsed.data
+  const gate = evaluatePublishGate({ text: content })
+  await auditGate('social_post', null, gate)
+  if (!gate.allowed) {
+    logger.warn({ route: 'social/publish' }, '[approval-gate] direct publish blocked')
+    return NextResponse.json(publishBlockedBody(gate.blockers), { status: 422 })
+  }
   const providers = Array.from(new Set(parsed.data.providers)) as ProviderKey[]
 
   const results: PublishResult[] = await Promise.all(
