@@ -53,7 +53,7 @@ export const LANDING_PAGE_BLUEPRINTS = [
     id: 'lp2',
     name: 'The IUL Wealth Builder',
     category: 'Wealth Building',
-    sections: ['Tax-Free Growth Hook', 'Market Volatility Comparison', 'Living Benefits Grid', 'Apply Now'],
+    sections: ["Tax-Advantaged Growth Hook", 'Market Volatility Comparison', 'Living Benefits Grid', 'Apply Now'],
     description: 'Modern, data-driven layout for younger professionals interested in IUL.',
   },
   {

@@ -132,7 +132,7 @@ const services: Service[] = [
       'Term, whole life, and indexed universal life options',
       'Critical, chronic, and terminal illness riders may be available subject to policy terms',
       'Death benefits can support income replacement, mortgage needs, education, and final expenses',
-      'Life-insurance death benefits are generally income-tax-free under current federal law',
+      "Life-insurance death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law",
       'Underwriting, riders, exclusions, charges, and guarantees vary by policy and carrier',
     ],
     learnMoreHref: '/services/life-insurance',
@@ -145,7 +145,7 @@ const services: Service[] = [
     summary:
       'Coordinate life insurance and beneficiary planning with estate documents prepared by qualified attorneys so the insurance structure supports your broader legacy goals.',
     points: [
-      'Life-insurance death benefits are generally income-tax-free under current federal law, subject to individual circumstances',
+      "Life-insurance death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law, subject to individual circumstances",
       'Review insurance beneficiary designations and ownership structure',
       'Life insurance may provide estate liquidity; estate-tax treatment depends on legal and tax structure',
       'Insurance can help fund properly drafted buy-sell arrangements',

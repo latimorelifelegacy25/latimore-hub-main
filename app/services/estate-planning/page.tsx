@@ -34,7 +34,7 @@ const content: ServiceLandingContent = {
     {
       heading: 'Insurance & Legacy Coordination',
       items: [
-        'Life-insurance death benefits are generally income-tax-free under current federal law, subject to individual circumstances',
+        "Life-insurance death benefits are generally excluded from federal income tax when applicable requirements are met under current federal law, subject to individual circumstances",
         'Permanent life insurance may build tax-deferred cash value; indexed crediting, charges, and guarantees depend on policy terms',
         'Insurance can provide liquidity or help support estate-equalization goals when properly structured',
         'Coordination with your attorney and tax professional on ownership, beneficiary, probate, and tax questions',

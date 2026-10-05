@@ -74,14 +74,14 @@ const STRATEGIES: Strategy[] = [
     id: 's8', category: 'Annuities', subCategory: 'FIA',
     title: 'The Personal Pension Positioning',
     description: 'Position FIA as a self-directed pension for clients without traditional pensions.',
-    structure: 'Hook: "What if you could build your own pension?" Explain that traditional pensions are nearly extinct. Show how FIA creates guaranteed income floor. Emphasize the psychological safety of knowing income won\'t run out.',
+    structure: "Hook: \"What if you could build your own pension?\" Explain that traditional pensions are nearly extinct. Show how FIA creates contract-based income floor. Emphasize the psychological safety of knowing income won't run out.",
     hashtags: ['PersonalPension', 'RetirementSecurity', 'FIA']
   },
   {
     id: 's9', category: 'Life Insurance', subCategory: 'IUL',
     title: 'The 3-Bucket Money Strategy',
     description: 'Core educational framework for discovery calls and Facebook educational content.',
-    structure: 'Bucket 1: Taxable (savings, brokerage) — interest/dividends/gains may be taxable. Bucket 2: Tax-Deferred (401k, IRA) — withdrawals are generally taxed as ordinary income. Bucket 3: Tax-Advantaged (Roth and properly structured life insurance) — Roth qualified distributions and life insurance death benefits are generally income-tax-free; IUL policy loans are generally income-tax-free if structured and maintained properly. Reference IRC section 101(a) accurately.',
+    structure: "Bucket 1: Taxable (savings, brokerage) — interest/dividends/gains may be taxable. Bucket 2: Tax-Deferred (401k, IRA) — withdrawals are generally taxed as ordinary income. Bucket 3: Tax-Advantaged (Roth and properly structured life insurance) — Roth qualified distributions and life insurance death benefits are generally excluded from federal income tax when applicable requirements are met; IUL policy loans are generally excluded from federal income tax when applicable requirements are met if structured and maintained properly. Reference IRC section 101(a) accurately.",
     hashtags: ['3Buckets', 'TaxStrategy', 'WealthBuilding', 'FinancialEducation'], isFavorite: true
   },
 ]

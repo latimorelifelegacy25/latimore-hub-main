@@ -42,7 +42,7 @@ With Living Benefits, your term life policy lets you access your death benefit w
 
 A key feature is downside protection from direct index losses. When the credited index performs well, cash value may grow according to the policy formula; when the index declines, interest credits may be floored, but policy charges and product terms still matter.`,
     local:
-      "With the rising cost of living, relying solely on a traditional savings account or a volatile 401(k) can feel risky. An IUL can offer Schuylkill residents a way to build supplemental retirement income that may be accessed through generally income-tax-free policy loans when properly structured, with a built-in life insurance safety net.",
+      "With the rising cost of living, relying solely on a traditional savings account or a volatile 401(k) can feel risky. An IUL can offer Schuylkill residents a way to build supplemental retirement income that may be accessed through policy loans, subject to loan interest, policy terms, and applicable tax rules when properly structured, with a built-in life insurance safety net.",
   },
   {
     num: '03',
@@ -52,7 +52,7 @@ A key feature is downside protection from direct index losses. When the credited
     border: '#bbf7d0',
     body: `A Juvenile IUL is a policy taken out on a child or grandchild that pulls double duty — it secures incredibly low insurance rates for life while maximizing the time the cash value has to compound and grow.`,
     local:
-      "By the time your child graduates from Pottsville, North Schuylkill, or Schuylkill Haven, this policy can have accumulated significant cash value. They can borrow against it through generally income-tax-free policy loans to pay for college, buy their first home in the county, or start a local business — all while keeping their life insurance protection intact.",
+      "By the time your child graduates from Pottsville, North Schuylkill, or Schuylkill Haven, this policy can have accumulated significant cash value. They can borrow against it through policy loans, subject to loan interest, policy terms, and applicable tax rules to pay for college, buy their first home in the county, or start a local business — all while keeping their life insurance protection intact.",
   },
   {
     num: '04',

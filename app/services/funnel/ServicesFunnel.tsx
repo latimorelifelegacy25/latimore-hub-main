@@ -46,7 +46,7 @@ const SERVICES: Service[] = [
     bullets: [
       'Some indexed and fixed strategies may offer principal protection from market loss, subject to contract terms, caps, participation rates, surrender charges, and carrier rules.',
       'Tax-deferred accumulation inside annuities and permanent life policies',
-      'Tax-free distributions via policy loans for retirement income',
+      "Policy loans may supplement income; interest, charges, lapse risk, and tax requirements apply",
       'Reduces your taxable estate over time',
       'Complements — not replaces — your existing 401(k) or IRA',
     ],
@@ -59,7 +59,7 @@ const SERVICES: Service[] = [
     tag: 'Job changers & retirees',
     bestFor: 'Best for: Job changers, retirees, anyone with a 401(k), 403(b), or pension.',
     bullets: [
-      'Tax-free, penalty-free 401(k) and 403(b) rollover guidance',
+      "Review of 401(k) and 403(b) rollover tax rules, fees, and eligibility",
       'Pension lump-sum vs. annuity analysis',
       'Principal protection from market volatility',
       'Guaranteed growth options through fixed vehicles',
@@ -76,7 +76,7 @@ const SERVICES: Service[] = [
     bullets: [
       'Cash-value life insurance as a flexible education savings vehicle',
       'No restrictions on how funds are used — not just tuition',
-      'Tax-free access via policy loans when needed',
+      "Policy loans subject to available cash value, interest, policy terms, and tax requirements",
       'May not count against financial aid eligibility',
       'Funds remain available if the child does not attend college',
     ],
@@ -119,7 +119,7 @@ const SERVICES: Service[] = [
     tag: 'Business owners & property owners',
     bestFor: 'Best for: Business owners, property owners, families wanting to transfer wealth.',
     bullets: [
-      'Life insurance as a tax-free wealth transfer vehicle',
+      "Life insurance as a tax-advantaged wealth transfer vehicle",
       'Beneficiary designation review and optimization',
       'Strategies to minimize estate tax exposure',
       'Funding for buy-sell agreements between business partners',
@@ -165,7 +165,7 @@ const SERVICES: Service[] = [
     bestFor: 'Best for: Small business owners, partnerships, organizations dependent on key staff.',
     bullets: [
       'Policy owned by the business on a critical employee',
-      'Tax-free death benefit received directly by the business',
+      "Business-owned coverage subject to beneficiary, employer-owned policy, and tax requirements",
       'Funds buy-sell agreements between partners',
       'Covers revenue loss, loan obligations, and recruitment costs',
       'Can be used to attract and retain key talent as a benefit',

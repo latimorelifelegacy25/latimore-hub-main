@@ -72,7 +72,7 @@ const CONFIG: Record<Variant, VariantConfig> = {
     bookingTitle: 'Review your income gap with Latimore',
     campaign: 'retirement_income_snapshot',
     faqs: [
-      ['What counts as predictable income?', 'Examples can include Social Security, pensions, and other contractual or guaranteed income sources. The exact treatment depends on the source and its terms.'],
+      ['What counts as predictable income?', "Examples can include Social Security, pensions, and other contractual or contract-based income sources. The exact treatment depends on the source and its terms."],
       ['Does this tool tell me what to buy?', 'No. It identifies an income gap for education and planning. Any later recommendation requires a separate suitability and needs discussion.'],
       ['What if the gap is zero?', 'That is still useful. The next review is whether those income sources continue as expected for a surviving spouse and whether other obligations are covered.'],
     ],

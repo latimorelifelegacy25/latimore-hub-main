@@ -40,7 +40,10 @@ export async function sendMail({
   try {
     const resend = getResend(process.env.RESEND_API_KEY)
     const r = await resend.emails.send({ to, from, subject, html, ...(attachments?.length ? { attachments } : {}) })
-    return { ok: true, id: r.data?.id }
+    if (r.error || !r.data?.id) {
+      return { ok: false, error: r.error?.message ?? 'Email provider did not return a message id' }
+    }
+    return { ok: true, id: r.data.id }
   } catch (err: any) {
     await captureException(err, { source: 'notification', channel: 'email', to: Array.isArray(to) ? to.join(',') : to })
     return { ok: false, error: err?.message ?? 'unknown' }
