@@ -19,18 +19,12 @@ async function fetchAssetAnalysis(base64Data: string, mimeType: string, platform
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
-const MOCK_ASSETS: CarrierAsset[] = [
-  { id: '1', name: 'Builder Plus 4 IUL Brochure', carrier: 'North American', type: 'IUL', uploadDate: '2024-05-12' },
-  { id: '2', name: 'Safe Income Advantage Rider', carrier: 'F&G', type: 'Annuity', uploadDate: '2024-05-10' },
-  { id: '3', name: 'Ethos Term Life Spec Sheet', carrier: 'Ethos', type: 'Term', uploadDate: '2024-05-15' },
-];
-
 interface AssetVaultProps {
   onIdeasGenerated?: (ideas: ContentIdea[], fileName: string) => void;
 }
 
 const AssetVault: React.FC<AssetVaultProps> = ({ onIdeasGenerated }) => {
-  const [assets, setAssets] = useState<CarrierAsset[]>(MOCK_ASSETS);
+  const [assets, setAssets] = useState<CarrierAsset[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useMemo } from 'react';
-import { MOCK_CLIENTS, PIPELINE_STAGES } from '../constants';
+import React, { useState, useMemo, useEffect } from 'react';
+import { PIPELINE_STAGES } from '../constants';
 import { Client, PipelineStage, ProductType, County, LeadSource } from '../types';
 
 // ─── Secure server-side fetch helpers ─────────────────────────────────────────
@@ -35,8 +35,65 @@ async function fetchReviewScript(clientData: Partial<Client>): Promise<any> {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
+
+// ─── Live CRM data (Contact table via /api/admin/crm/contacts) ────────────────
+const STATUS_TO_STAGE: Record<string, PipelineStage> = {
+  NEW: 'New Lead',
+  ATTEMPTED_CONTACT: 'Contacted',
+  CONTACTED: 'Contacted',
+  QUALIFIED: 'Booked Call',
+  BOOKED: 'Booked Call',
+  IN_CONSULT: 'Discovery Complete',
+  REFERRED_TO_ETHOS: 'App Submitted',
+  ETHOS_APPLIED: 'App Submitted',
+  ETHOS_APPROVED: 'Issued / Delivered',
+  CLOSED_WON: 'Issued / Delivered',
+  JOIN_ACTIVE: 'In Force + Review',
+  CLOSED_LOST: 'Lost / Not Proceeding',
+};
+
+const COUNTIES: County[] = ['Schuylkill', 'Luzerne', 'Northumberland'];
+
+function contactToClient(c: any): Client {
+  const name = c.fullName || [c.firstName, c.lastName].filter(Boolean).join(' ') || c.email || c.phone || 'Unnamed contact';
+  const last = c.lastActivityAt || c.updatedAt || c.createdAt;
+  return {
+    id: c.id,
+    name,
+    email: c.email ?? '',
+    phone: c.phone ?? '',
+    status: STATUS_TO_STAGE[c.status] ?? 'Contacted',
+    county: (COUNTIES.find(x => x === c.county) ?? 'Other') as County,
+    leadSource: 'Social' as LeadSource,
+    productInterest: 'None' as ProductType,
+    household: '',
+    lastInteraction: last ? new Date(last).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+    goals: [],
+    notes: c.notesSummary ?? '',
+  };
+}
+
 const CRM: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>(MOCK_CLIENTS);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loadingClients, setLoadingClients] = useState(true);
+  const [clientsError, setClientsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/admin/crm/contacts', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Contacts request failed (${res.status})`);
+        const rows = await res.json();
+        if (!cancelled) setClients(Array.isArray(rows) ? rows.map(contactToClient) : []);
+      } catch (err) {
+        if (!cancelled) setClientsError(err instanceof Error ? err.message : 'Unable to load contacts');
+      } finally {
+        if (!cancelled) setLoadingClients(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [isGeneratingSnapshot, setIsGeneratingSnapshot] = useState(false);
   const [isGeneratingReview, setIsGeneratingReview] = useState(false);
@@ -84,7 +141,7 @@ const CRM: React.FC = () => {
     }
   };
 
-  const handleAddClient = () => {
+  const handleAddClient = async () => {
     if (!newClient.name || !newClient.email) {
       alert('Jackson, we need at least a name and email to establish a legacy file.');
       return;
@@ -104,6 +161,19 @@ const CRM: React.FC = () => {
       notes: newClient.notes || '',
       monthlyPremium: newClient.monthlyPremium
     };
+    try {
+      const res = await fetch('/api/admin/crm/contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: clientToAdd.name, email: clientToAdd.email, phone: clientToAdd.phone, status: 'NEW' }),
+      });
+      if (!res.ok) throw new Error('Failed to save contact');
+      const saved = await res.json();
+      clientToAdd.id = saved.id ?? clientToAdd.id;
+    } catch (err) {
+      setClientsError(err instanceof Error ? err.message : 'Failed to save contact');
+      return;
+    }
     setClients([clientToAdd, ...clients]);
     setIsAddingClient(false);
     setNewClient({ status: 'New Lead', county: 'Schuylkill', leadSource: 'Social', productInterest: 'None', household: '', notes: '', goals: [] });
@@ -148,6 +218,9 @@ const CRM: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {loadingClients && <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Loading contacts…</p>}
+      {clientsError && <p className="text-xs font-bold text-rose-500">{clientsError}</p>}
 
       {/* Metric Tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

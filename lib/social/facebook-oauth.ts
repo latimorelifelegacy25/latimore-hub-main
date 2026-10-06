@@ -147,21 +147,35 @@ export async function fetchPageInsights(
     access_token: pageAccessToken,
   })
 
-  const [insightsRes, pageRes] = await Promise.all([
-    fetch(`${GRAPH_BASE}/${pageId}/insights?${params}`),
-    fetch(`${GRAPH_BASE}/${pageId}?${new URLSearchParams({ fields: 'name', access_token: pageAccessToken })}`),
-  ])
+  const fetchMetrics = async (names: string[]) => {
+    const query = new URLSearchParams({ metric: names.join(','), period, access_token: pageAccessToken })
+    const res = await fetch(`${GRAPH_BASE}/${pageId}/insights?${query}`)
+    const body = await res.json()
+    return { ok: res.ok && !body.error, body, status: res.status }
+  }
 
-  const [insightsData, pageData] = await Promise.all([insightsRes.json(), pageRes.json()])
+  const pageRes = await fetch(`${GRAPH_BASE}/${pageId}?${new URLSearchParams({ fields: 'name', access_token: pageAccessToken })}`)
+  const pageData = await pageRes.json()
 
-  if (!insightsRes.ok || insightsData.error) {
-    throw new Error(`Page Insights fetch failed: ${insightsData.error?.message ?? insightsRes.status}`)
+  let batch = await fetchMetrics(metrics)
+  let collected: PageInsightsResult['metrics'] = batch.ok ? batch.body.data ?? [] : []
+
+  // Graph error #100 means at least one metric is invalid/deprecated. Retry one at a time so a
+  // single retired metric cannot take down the whole sync; fail only if nothing is available.
+  if (!batch.ok && batch.body?.error?.code === 100 && metrics.length > 1) {
+    const results = await Promise.all(metrics.map((m) => fetchMetrics([m])))
+    collected = results.flatMap((r) => (r.ok ? r.body.data ?? [] : []))
+    if (collected.length > 0) batch = { ...batch, ok: true }
+  }
+
+  if (!batch.ok) {
+    throw new Error(`Page Insights fetch failed: ${batch.body?.error?.message ?? batch.status}`)
   }
 
   return {
     pageId,
     pageName: pageData.name ?? pageId,
-    metrics: insightsData.data ?? [],
+    metrics: collected,
   }
 }
 

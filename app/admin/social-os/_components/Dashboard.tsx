@@ -3,40 +3,57 @@
 
 import React, { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { MOCK_ENGAGEMENT_DATA, BRAND_STORY } from '../constants';
+import { BRAND_STORY } from '../constants';
 
 import { SocialPost } from '../types';
 
-const StatCard = ({ title, value, trend, icon, color }: any) => (
+const StatCard = ({ title, value, hint, icon, color }: { title: string; value: number | null; hint?: string; icon: string; color: string }) => (
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 transition-all hover:shadow-md">
     <div className="flex justify-between items-start mb-4">
       <div className={`p-3 rounded-xl ${color} bg-opacity-10 text-${color.split('-')[1]}-600`}>
         <i className={`fa-solid ${icon} text-xl`}></i>
       </div>
-      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${trend >= 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-        {trend >= 0 ? '+' : ''}{trend}%
-      </span>
     </div>
     <h3 className="text-slate-500 text-sm font-medium">{title}</h3>
-    <p className="text-2xl font-bold text-slate-800 mt-1">{value.toLocaleString()}</p>
+    <p className="text-2xl font-bold text-slate-800 mt-1">{value === null ? '—' : value.toLocaleString()}</p>
+    {hint && <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-2">{hint}</p>}
   </div>
 );
+
+type Overview = {
+  days: number;
+  totals: { impressions: number | null; engagement: number; clicks: number; leads: number };
+  trend: { date: string; engagement: number; clicks: number; leads: number }[];
+  platforms: { provider: string; accountName: string | null; connected: boolean; followers: number | null }[];
+  posts: { total: number; byStatus: Record<string, number> };
+  counties: { county: string; contacts: number }[];
+  syncHealth: { lastFailureAt: string; error: string | null } | null;
+};
 
 interface DashboardProps {
   scheduledPosts?: SocialPost[];
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
-  const [data, setData] = useState(MOCK_ENGAGEMENT_DATA);
+  const [overview, setOverview] = useState<Overview | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [realTimeMetrics, setRealTimeMetrics] = useState<any[]>([]);
 
-  const [stats, setStats] = useState({
-    impressions: 142800,
-    engagement: 8450,
-    clicks: 1200,
-    shares: 540
-  });
+  const loadOverview = async () => {
+    try {
+      setLoadError(null);
+      const res = await fetch('/api/admin/social-os/overview?days=30', { cache: 'no-store' });
+      if (!res.ok) throw new Error(`Overview request failed (${res.status})`);
+      setOverview(await res.json());
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Unable to load live metrics');
+    }
+  };
+
+  useEffect(() => {
+    void loadOverview();
+  }, []);
 
   const fetchRealTimeMetrics = async () => {
     const published = scheduledPosts.filter(p => p.status === 'published');
@@ -65,16 +82,6 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleClearData = () => {
-    setData([]);
-    setStats({
-      impressions: 0,
-      engagement: 0,
-      clicks: 0,
-      shares: 0
-    });
-  };
-
   return (
     <div className="space-y-8 animate-fadeIn">
       <div className="flex justify-between items-end">
@@ -82,12 +89,12 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Legacy Pulse</h1>
           <p className="text-slate-500 font-medium">{BRAND_STORY.tagline} {BRAND_STORY.hashtag}</p>
         </header>
-        <button 
-          onClick={handleClearData}
-          className="text-xs font-bold text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-rose-50"
+        <button
+          onClick={() => void loadOverview()}
+          className="text-xs font-bold text-slate-400 hover:text-[#C49A6C] transition-colors flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50"
         >
-          <i className="fa-solid fa-trash-can"></i>
-          Reset Metrics
+          <i className="fa-solid fa-rotate"></i>
+          Refresh
         </button>
       </div>
 
@@ -102,14 +109,11 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
                </p>
             </div>
             <div className="pt-8 flex items-center gap-6">
-              <div className="flex -space-x-3">
-                 {[1,2,3].map(i => (
-                   <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 overflow-hidden">
-                      <img src={`https://picsum.photos/seed/legacy${i}/100`} alt="Legacy" />
-                   </div>
-                 ))}
-              </div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-[#C49A6C]">540,000 Lives Served in Central PA</p>
+              <p className="text-[11px] font-black uppercase tracking-widest text-[#C49A6C]">
+                {overview
+                  ? `${overview.platforms.filter(p => p.connected).length} of ${overview.platforms.length} platforms connected · ${overview.posts.total} posts logged`
+                  : 'Loading live platform status…'}
+              </p>
             </div>
           </div>
           <div className="absolute top-0 right-0 p-12 opacity-10">
@@ -120,28 +124,34 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col justify-center">
            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">Regional Focus</h3>
            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                 <span className="text-sm font-bold text-slate-700">Schuylkill</span>
-                 <span className="text-xs font-black text-[#C49A6C]">42% Growth</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                 <span className="text-sm font-bold text-slate-700">Luzerne</span>
-                 <span className="text-xs font-black text-[#C49A6C]">28% Reach</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                 <span className="text-sm font-bold text-slate-700">Northumberland</span>
-                 <span className="text-xs font-black text-[#C49A6C]">15% New leads</span>
-              </div>
+              {['Schuylkill', 'Luzerne', 'Northumberland'].map(name => {
+                const count = overview?.counties.find(c => c.county === name)?.contacts ?? 0;
+                return (
+                  <div key={name} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+                    <span className="text-sm font-bold text-slate-700">{name}</span>
+                    <span className="text-xs font-black text-[#C49A6C]">{overview ? `${count} contact${count === 1 ? '' : 's'}` : '—'}</span>
+                  </div>
+                );
+              })}
            </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard title="Impressions" value={stats.impressions} trend={12} icon="fa-eye" color="bg-blue-500" />
-        <StatCard title="Engagement" value={stats.engagement} trend={24} icon="fa-heart" color="bg-rose-500" />
-        <StatCard title="Clicks" value={stats.clicks} trend={-3} icon="fa-arrow-pointer" color="bg-amber-500" />
-        <StatCard title="Shares" value={stats.shares} trend={48} icon="fa-share-nodes" color="bg-indigo-500" />
+        <StatCard title="Impressions" value={overview?.totals.impressions ?? null} hint={overview?.totals.impressions == null ? 'Awaiting platform sync' : 'Last 30 days'} icon="fa-eye" color="bg-blue-500" />
+        <StatCard title="Engagement" value={overview ? overview.totals.engagement : null} hint="Last 30 days" icon="fa-heart" color="bg-rose-500" />
+        <StatCard title="Social Clicks" value={overview ? overview.totals.clicks : null} hint="Last 30 days" icon="fa-arrow-pointer" color="bg-amber-500" />
+        <StatCard title="Leads" value={overview ? overview.totals.leads : null} hint="Last 30 days" icon="fa-user-plus" color="bg-indigo-500" />
       </div>
+
+      {loadError && (
+        <p className="text-xs font-bold text-rose-500">Live metrics unavailable: {loadError}</p>
+      )}
+      {overview?.syncHealth && (
+        <p className="text-xs font-bold text-amber-600">
+          Platform metrics sync last failed {new Date(overview.syncHealth.lastFailureAt).toLocaleString()}: {overview.syncHealth.error}
+        </p>
+      )}
 
       {realTimeMetrics.length > 0 && (
         <div className="space-y-6">
@@ -191,7 +201,7 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
           <div className="flex gap-2">
              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg">
                 <div className="w-2 h-2 rounded-full bg-[#C49A6C]"></div>
-                <span className="text-[10px] font-bold text-slate-500">Likes</span>
+                <span className="text-[10px] font-bold text-slate-500">Engagement</span>
              </div>
              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg">
                 <div className="w-2 h-2 rounded-full bg-[#2C3E50]"></div>
@@ -200,9 +210,9 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
           </div>
         </div>
         <div className="h-80 w-full min-w-0" style={{ minHeight: '320px' }}>
-          {data.length > 0 && isMounted ? (
+          {overview && overview.trend.length > 0 && isMounted ? (
             <ResponsiveContainer width="100%" height="100%" debounce={50}>
-              <LineChart data={data}>
+              <LineChart data={overview?.trend ?? []}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis 
                   dataKey="date" 
@@ -217,7 +227,7 @@ const Dashboard: React.FC<DashboardProps> = ({ scheduledPosts = [] }) => {
                 <Tooltip 
                   contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}
                 />
-                <Line type="monotone" dataKey="likes" stroke="#C49A6C" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: '#C49A6C' }} />
+                <Line type="monotone" dataKey="engagement" stroke="#C49A6C" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: '#C49A6C' }} />
                 <Line type="monotone" dataKey="clicks" stroke="#2C3E50" strokeWidth={4} dot={false} activeDot={{ r: 6, fill: '#2C3E50' }} />
               </LineChart>
             </ResponsiveContainer>

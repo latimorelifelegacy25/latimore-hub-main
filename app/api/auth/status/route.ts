@@ -45,7 +45,9 @@ export async function GET() {
       for (const connection of connections) {
         const provider = String(connection.provider) as Provider
         if (provider in providers) {
-          providers[provider] = connection.status !== 'disconnected' && Boolean(connection.accessToken || connection.refreshToken)
+          providers[provider] =
+            providers[provider] ||
+            (connection.status !== 'disconnected' && Boolean(connection.accessToken || connection.refreshToken))
         }
       }
     }

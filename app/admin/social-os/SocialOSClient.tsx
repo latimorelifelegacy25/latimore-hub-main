@@ -28,6 +28,37 @@ export default function SocialOSClient() {
   const [assetIdeas, setAssetIdeas] = useState<ContentIdea[]>([])
   const [assetSource, setAssetSource] = useState<string>('')
 
+  // Hydrate calendar/dashboard from the real SocialPost table instead of starting empty.
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/social/posts', { cache: 'no-store' })
+        if (!res.ok) return
+        const { posts } = await res.json()
+        if (!Array.isArray(posts) || cancelled) return
+        const mapped: SocialPost[] = posts
+          .filter((p: any) => ['facebook', 'linkedin', 'instagram', 'twitter'].includes(p.platform) && ['draft', 'scheduled', 'approved', 'published'].includes(p.status))
+          .map((p: any) => ({
+            id: p.id,
+            content: p.caption,
+            platform: p.platform,
+            status: p.status === 'published' ? 'published' : p.status === 'draft' ? 'draft' : 'scheduled',
+            scheduledDate: p.scheduledAt ?? undefined,
+            publishedDate: p.publishedAt ?? undefined,
+            engagement: { likes: 0, shares: 0, comments: 0, clicks: 0 },
+          }))
+        setScheduledPosts(prev => {
+          const known = new Set(prev.map(x => x.id))
+          return [...prev, ...mapped.filter(x => !known.has(x.id))]
+        })
+      } catch {
+        // Non-fatal: the tabs still work for new posts.
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   useEffect(() => {
     const handleTabChange = (e: Event) => setActiveTab((e as CustomEvent<string>).detail)
     window.addEventListener('changeTab', handleTabChange)

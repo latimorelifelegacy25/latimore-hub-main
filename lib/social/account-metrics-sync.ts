@@ -30,13 +30,17 @@ export async function syncFacebookAccountMetrics(): Promise<AccountSyncResult> {
   }
 
   const [daily, lifetime] = await Promise.all([
-    fetchPageInsights(connection.externalId, accessToken, ['page_impressions', 'page_engaged_users'], 'day'),
+    fetchPageInsights(connection.externalId, accessToken, ['page_impressions', 'page_media_view', 'page_engaged_users', 'page_post_engagements'], 'day'),
     fetchPageInsights(connection.externalId, accessToken, ['page_fans'], 'lifetime'),
   ])
 
   const metricDate = startOfToday()
-  const impressions = latestValue(daily.metrics.find((m) => m.name === 'page_impressions')?.values)
-  const engagedUsers = latestValue(daily.metrics.find((m) => m.name === 'page_engaged_users')?.values)
+  const impressions =
+    latestValue(daily.metrics.find((m) => m.name === 'page_impressions')?.values) ||
+    latestValue(daily.metrics.find((m) => m.name === 'page_media_view')?.values)
+  const engagedUsers =
+    latestValue(daily.metrics.find((m) => m.name === 'page_engaged_users')?.values) ||
+    latestValue(daily.metrics.find((m) => m.name === 'page_post_engagements')?.values)
   const followers = latestValue(lifetime.metrics.find((m) => m.name === 'page_fans')?.values)
 
   await prisma.socialAccountMetric.upsert({
