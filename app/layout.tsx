@@ -3,6 +3,7 @@ import './globals.css'
 import { Suspense } from 'react'
 import Script from 'next/script'
 import PublicTracker from './_components/public-tracker'
+import PublicChrome from './_components/public-chrome'
 import AnnouncementTicker from './_components/announcement-ticker'
 import ChatbotLazy from '@/components/ChatbotLazy'
 import SitewideSocialLinks from './_components/sitewide-social-links'
@@ -208,7 +209,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             />
           </>
         ) : null}
-        <AnnouncementTicker />
+        <PublicChrome><AnnouncementTicker /></PublicChrome>
         {GTM_ID ? <GoogleTagManager gtmId={GTM_ID} /> : null}
         {META_PIXEL_ID ? (
           <noscript>
@@ -218,10 +219,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ) : null}
         <Suspense fallback={null}><PublicTracker /></Suspense>
         {children}
-        <SitewideSocialLinks />
-        <ChatbotLazy />
+        <PublicChrome><SitewideSocialLinks /></PublicChrome>
+        <PublicChrome><ChatbotLazy /></PublicChrome>
         <Analytics />
       </body>
     </html>
   )
 }
+
