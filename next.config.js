@@ -18,6 +18,17 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // Allow the public booking flow to be framed by the landing page.
+        // Browsers honor CSP frame-ancestors over X-Frame-Options, so the
+        // global DENY below does not block /book once this policy is present.
+        // Add the landing page's origin to frame-ancestors if it is hosted
+        // off latimorelifelegacy.com (space-separated, e.g. 'self' https://example.com).
+        source: '/book',
+        headers: [
+          { key: 'Content-Security-Policy', value: "frame-ancestors 'self'" },
+        ],
+      },
+      {
         source: '/(.*)',
         headers: [
           { key: 'X-Frame-Options', value: 'DENY' },
