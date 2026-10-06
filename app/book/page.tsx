@@ -1,21 +1,8 @@
 import type { Metadata } from 'next'
-import ConsultBookingFlow from '@/components/booking/ConsultBookingFlow'
-import DirectCalendarFallback from '@/components/booking/DirectCalendarFallback'
-
+import BookingDesign from './BookingDesign'
 export const metadata: Metadata = {
-  title: 'Book a Consultation | Latimore Life & Legacy',
-  description:
-    'Complete a secure Latimore Life & Legacy consultation intake and schedule a 30-minute conversation with Jackson.',
-  alternates: {
-    canonical: 'https://www.latimorelifelegacy.com/book',
-  },
+ title: 'Book a Consultation | Latimore Life & Legacy',
+ description: 'Schedule a free 30-minute consultation with Jackson M. Latimore Sr.',
+ alternates: { canonical: '/book' },
 }
-
-export default function BookPage() {
-  return (
-    <>
-      <DirectCalendarFallback />
-      <ConsultBookingFlow />
-    </>
-  )
-}
+export default function BookPage() { return <BookingDesign /> }
