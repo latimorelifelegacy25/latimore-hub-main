@@ -183,7 +183,7 @@ function buildQr() {
         text: payload,
         width: 150,
         height: 150,
-        colorDark: '#14543C',
+        colorDark: '#0E1A2B',
         colorLight: '#FFFFFF',
         correctLevel: window.QRCode.CorrectLevel.M
       });
