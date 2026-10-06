@@ -1,26 +1,306 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
+import Link from 'next/link'
+import Image from 'next/image'
+import { BRAND, COLORS } from '@/lib/brand'
+import { SiteHeader, SiteFooter, JOIN_NAV_LINKS } from '@/app/_components/site-shell'
+import EthosQuoteLink from '@/components/ethos/EthosQuoteLink'
 
-export const metadata: Metadata = {
-  title: 'Contact Jackson Latimore | Latimore Life & Legacy LLC',
-  description: 'Protecting Today. Securing Tomorrow. Free, no-obligation family protection reviews across Schuylkill, Luzerne, and Northumberland Counties, PA.',
-  alternates: { canonical: 'https://www.latimorelifelegacy.com/' },
-  openGraph: {
-    url: 'https://www.latimorelifelegacy.com/',
-    images: [{ url: '/landing/images/latimore-life-legacy-logo.jpg' }],
-  },
+// Design tokens — sourced from lib/brand.ts (COLORS) which mirrors globals.css :root vars.
+const navy     = COLORS.navy       // #0E1A2B  --color-navy-800
+const gold     = COLORS.gold       // #C9A25F  --color-gold-500
+const goldLight = COLORS.goldLight // #E5C882  --color-gold-300
+
+// Solid-color blur placeholder so a slow connection shows a clean color swap
+// instead of a partially-decoded/torn frame of the real photo mid-load.
+function solidBlurDataURL(hex: string) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${hex}"/></svg>`
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
 }
 
-const markup = "\n\n<a class=\"skip-link\" href=\"#main\">Skip to main content</a>\n\n<!-- ============ TOP ANNOUNCEMENT TICKER ============ -->\n<div class=\"ticker\" role=\"region\" aria-label=\"Announcements\">\n  <div class=\"ticker__track\">\n    <ul class=\"ticker__list\">\n      <li><span class=\"ticker__hash\">#TheBeatGoesOn</span></li>\n      <li>Proud PAHS All-Star Sponsor</li>\n      <li>Free Family Protection Reviews</li>\n      <li>Serving Schuylkill &bull; Luzerne &bull; Northumberland</li>\n      <li>Protecting Today. Securing Tomorrow.</li>\n    </ul>\n    <ul class=\"ticker__list\" aria-hidden=\"true\">\n      <li><span class=\"ticker__hash\">#TheBeatGoesOn</span></li>\n      <li>Proud PAHS All-Star Sponsor</li>\n      <li>Free Family Protection Reviews</li>\n      <li>Serving Schuylkill &bull; Luzerne &bull; Northumberland</li>\n      <li>Protecting Today. Securing Tomorrow.</li>\n    </ul>\n  </div>\n</div>\n\n<!-- ============ HEADER / NAV ============ -->\n<header class=\"site-header\" id=\"site-header\">\n  <div class=\"wrap header__inner\">\n    <a class=\"brand\" href=\"#top\" aria-label=\"Latimore Life &amp; Legacy LLC \u2014 back to top\">\n      <span class=\"brand__words\">\n        <span class=\"brand__name\">Latimore</span>\n        <span class=\"brand__sub\">Life &amp; Legacy LLC</span>\n      </span>\n    </a>\n\n    <button class=\"nav-toggle\" id=\"nav-toggle\" type=\"button\" aria-expanded=\"false\" aria-controls=\"primary-nav\" aria-label=\"Open navigation menu\">\n      <span class=\"nav-toggle__bars\" aria-hidden=\"true\"><i></i><i></i><i></i></span>\n    </button>\n\n    <nav class=\"primary-nav\" id=\"primary-nav\" aria-label=\"Primary\">\n      <ul>\n        <li><a href=\"#contact\">Contact</a></li>\n        <li><a href=\"#coverage\">What I Cover</a></li>\n        <li><a href=\"#process\">How It Works</a></li>\n        <li><a href=\"#faq\">FAQ</a></li>\n        <li><a class=\"btn btn--gold btn--sm\" href=\"#book\">Book a Free Review</a></li>\n      </ul>\n    </nav>\n  </div>\n</header>\n\n<main id=\"main\">\n\n  <!-- ============ HERO ============ -->\n  <section class=\"hero\" id=\"hero\" aria-labelledby=\"hero-title\">\n    <div class=\"wrap hero__inner\">\n      <p class=\"eyebrow\">Get In Touch</p>\n      <h1 id=\"hero-title\">Ready to Protect<br><span class=\"hl\">What Matters Most?</span></h1>\n      <p class=\"lede\">Reach out by phone, email, or book directly online. No pressure, no obligation \u2014 just a real conversation about your family&rsquo;s financial protection.</p>\n\n      <div class=\"hero__actions\">\n        <a class=\"btn btn--gold btn--lg\" href=\"#book\">Book Your Free Protection Review</a>\n        <a class=\"btn btn--ghost btn--lg\" href=\"tel:+15709001977\" data-config-href=\"phone\" data-config-text=\"phoneLabel\">\n          <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"ico\"><path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z\"/></svg>\n          Call or Text Now\n        </a>\n      </div>\n\n      <ul class=\"trust-chips\">\n        <li><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"ico\"><path d=\"M12 21s7-5.1 7-11a7 7 0 1 0-14 0c0 5.9 7 11 7 11Z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/></svg>Schuylkill &bull; Luzerne &bull; Northumberland</li>\n        <li><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"ico\"><path d=\"M12 2 4 6v6c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-4Z\"/><path d=\"m9 12 2 2 4-4\"/></svg>Multiple Top-Rated Carriers</li>\n        <li><svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"ico\"><path d=\"M20.8 5.6a5.2 5.2 0 0 0-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4L12 21.4l8.8-8.4a5.2 5.2 0 0 0 0-7.4Z\"/></svg>No Pressure. No Obligation.</li>\n      </ul>\n    </div>\n  </section>\n\n  <!-- ============ WAYS TO CONNECT (6 ACTION CARDS) ============ -->\n  <section class=\"section contact\" id=\"contact\" aria-labelledby=\"contact-title\">\n    <div class=\"wrap\">\n      <header class=\"section__head\" data-reveal>\n        <p class=\"eyebrow eyebrow--dark\">Let&rsquo;s Talk</p>\n        <h2 id=\"contact-title\">Choose How You&rsquo;d Like to Connect</h2>\n        <p class=\"section__sub\">Six easy ways to start. I answer calls and texts personally, and every question gets a straight answer.</p>\n      </header>\n\n      <ul class=\"cards\">\n        <!-- 1. Book -->\n        <li class=\"card\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/><path d=\"m9.5 15.5 1.8 1.8 3.4-3.6\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Book a Consultation</h3>\n          <p class=\"card__body\">Schedule a free, no-obligation consultation at a time that works for you. Jackson will review your situation and walk you through your options.</p>\n          <a class=\"btn btn--gold btn--block\" href=\"#book\">Schedule Now &rarr;</a>\n        </li>\n\n        <!-- 2. Call / text -->\n        <li class=\"card\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Call or Text</h3>\n          <p class=\"card__body\">Prefer to call? Reach Jackson directly. Calls and texts welcome during business hours across Schuylkill, Luzerne, and Northumberland Counties.</p>\n          <a class=\"btn btn--gold btn--block\" href=\"tel:+15709001977\" data-config-href=\"phone\" data-config-text=\"phone\">(570) 900-1977</a>\n        </li>\n\n        <!-- 3. Email -->\n        <li class=\"card\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"2.5\" y=\"4.5\" width=\"19\" height=\"15\" rx=\"2\"/><path d=\"m3 6.5 9 6 9-6\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Send an Email</h3>\n          <p class=\"card__body\">Have a question or want to share some background before your consultation? Send a message and expect a response within one business day.</p>\n          <a class=\"btn btn--gold btn--block btn--email\" href=\"mailto:jackson1989@latimorelegacy.com\" data-config-href=\"email\" data-config-text=\"email\">jackson1989@latimorelegacy.com</a>\n        </li>\n\n        <!-- 4. Instant quote -->\n        <li class=\"card\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><path d=\"M9 7h4.5a3 3 0 0 1 0 6H9zM9 13h5.2a3 3 0 0 1 0 6H9z\"/><path d=\"M6 3.5c-1.2 4-1.2 13 0 17M18 3.5c1.2 4 1.2 13 0 17\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Get an Instant Quote</h3>\n          <p class=\"card__body\">Want a quick term life insurance quote online? Apply in minutes. No medical exam required for many applicants. Fast approval decisions.</p>\n          <a class=\"btn btn--gold btn--block\" href=\"#book\" data-config-href=\"quote\">Get Quote Now &rarr;</a>\n        </li>\n\n        <!-- 5. Facebook -->\n        <li class=\"card\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><path class=\"ico__fill\" d=\"M14.5 8.5H17V5.6h-2.6c-2.2 0-3.6 1.5-3.6 3.7v1.4H8.5v2.9h2.3V21h3v-7.4h2.3l.4-2.9h-2.7V9.6c0-.7.3-1.1.7-1.1Z\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Follow on Facebook</h3>\n          <p class=\"card__body\">Follow the Latimore Life &amp; Legacy Facebook page for educational content, community updates, and financial protection tips.</p>\n          <a class=\"btn btn--gold btn--block\" href=\"#footer\" data-config-href=\"facebook\">Visit Facebook Page &rarr;</a>\n        </li>\n\n        <!-- 6. QR -->\n        <li class=\"card card--qr\" data-reveal>\n          <span class=\"card__icon\" aria-hidden=\"true\">\n            <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><path d=\"M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1\"/></svg>\n          </span>\n          <h3 class=\"card__title\">Scan to Book</h3>\n          <p class=\"card__body\">Scan the QR code to book your free protection review with Jackson.</p>\n          <div class=\"qr\">\n            <div id=\"qr-code\" class=\"qr__code\" role=\"img\" aria-label=\"QR code linking to appointment booking\"></div>\n            <p class=\"qr__fallback\" hidden id=\"qr-fallback\">QR code could not load. <a href=\"#book\" data-config-href=\"booking\">Tap here to open the booking link</a>.</p>\n            <a class=\"qr__link\" href=\"#book\" data-config-href=\"booking\">Or tap to open the link</a>\n          </div>\n        </li>\n      </ul>\n    </div>\n  </section>\n\n  <!-- ============ WHAT I COVER ============ -->\n  <section class=\"section coverage\" id=\"coverage\" aria-labelledby=\"coverage-title\">\n    <div class=\"wrap coverage__grid\">\n      <div class=\"coverage__copy\" data-reveal>\n        <p class=\"eyebrow eyebrow--dark\">Coverage &amp; Guidance</p>\n        <h2 id=\"coverage-title\">Protection Built Around Your Life \u2014 Not a Script</h2>\n        <p>As an independent consultant, I shop your situation across multiple carrier appointments instead of pushing one company&rsquo;s product. That means options, side-by-side comparisons, and plain-English explanations of what you&rsquo;re actually buying.</p>\n\n        <ul class=\"check-list\">\n          <li><strong>Term Life Insurance</strong> \u2014 income replacement while the mortgage, kids, and loans are still in play.</li>\n          <li><strong>Final Expense &amp; Burial Coverage</strong> \u2014 so your family never has to pass a hat at the worst possible time.</li>\n          <li><strong>Mortgage Protection</strong> \u2014 keep the house in the family, not in the bank&rsquo;s hands.</li>\n          <li><strong>Indexed Universal Life</strong> \u2014 permanent coverage with cash-value growth potential.</li>\n          <li><strong>Annuities &amp; Retirement Income</strong> \u2014 turn savings into a paycheck you can&rsquo;t outlive.</li>\n          <li><strong>Business &amp; Key Person Planning</strong> \u2014 protect the operation your family depends on.</li>\n        </ul>\n\n        <a class=\"btn btn--navy\" href=\"#book\">Get My Free Protection Review</a>\n      </div>\n\n      <aside class=\"coverage__panel\" data-reveal>\n        <div class=\"panel-card panel-card--community\">\n          <img class=\"panel-card__badge\" src=\"/landing/images/schuylkill-chamber-logo.jpg\" alt=\"Schuylkill Chamber of Commerce badge\" width=\"150\" height=\"150\">\n          <h3>Rooted in the Tri-County</h3>\n          <p>Proud PAHS All-Star Sponsor and community partner with the Schuylkill Chamber of Commerce. The 560,000+ residents of Schuylkill, Luzerne, and Northumberland Counties aren&rsquo;t a territory to me \u2014 they&rsquo;re neighbors.</p>\n          <p class=\"origin\">On December 7, 2010, an AED placed by the Gregory W. Moyer Defibrillator Fund restarted my heart at ESU&rsquo;s Koehler Fieldhouse. That saved life became a mission: <em>#TheBeatGoesOn</em>.</p>\n        </div>\n      </aside>\n    </div>\n  </section>\n\n  <!-- ============ HOW IT WORKS ============ -->\n  <section class=\"section process\" id=\"process\" aria-labelledby=\"process-title\">\n    <div class=\"wrap\">\n      <header class=\"section__head\" data-reveal>\n        <p class=\"eyebrow eyebrow--dark\">How It Works</p>\n        <h2 id=\"process-title\">Four Simple Steps, Zero Sales Pressure</h2>\n        <p class=\"section__sub\">Most reviews take 20&ndash;30 minutes. If what you already have is working, I&rsquo;ll tell you that and we&rsquo;ll stop there.</p>\n      </header>\n\n      <ol class=\"steps\">\n        <li class=\"step\" data-reveal>\n          <span class=\"step__num\" aria-hidden=\"true\">1</span>\n          <h3>Reach Out</h3>\n          <p>Call, text, email, or book online. Whichever is easiest for you \u2014 I answer personally during business hours.</p>\n        </li>\n        <li class=\"step\" data-reveal>\n          <span class=\"step__num\" aria-hidden=\"true\">2</span>\n          <h3>Free Protection Review</h3>\n          <p>A real conversation about your family, your mortgage, your income, and the outcome you want protected.</p>\n        </li>\n        <li class=\"step\" data-reveal>\n          <span class=\"step__num\" aria-hidden=\"true\">3</span>\n          <h3>Compare Your Options</h3>\n          <p>Side-by-side quotes from multiple carriers, explained in plain English \u2014 including what you don&rsquo;t need.</p>\n        </li>\n        <li class=\"step\" data-reveal>\n          <span class=\"step__num\" aria-hidden=\"true\">4</span>\n          <h3>You Decide</h3>\n          <p>Move forward only when it makes sense to you. Coverage is submitted, reviewed, and kept current year after year.</p>\n        </li>\n      </ol>\n    </div>\n  </section>\n\n  <!-- ============ FAQ ============ -->\n  <section class=\"section faq\" id=\"faq\" aria-labelledby=\"faq-title\">\n    <div class=\"wrap faq__wrap\">\n      <header class=\"section__head\" data-reveal>\n        <p class=\"eyebrow eyebrow--dark\">Straight Answers</p>\n        <h2 id=\"faq-title\">Questions I Get Every Week</h2>\n      </header>\n\n      <div class=\"faq__list\" data-reveal>\n        <details class=\"faq__item\">\n          <summary>Do we have to meet in person?</summary>\n          <p>No. Consultations happen by phone, video, text, or in person \u2014 whatever fits your schedule. Plenty of my clients I&rsquo;ve helped entirely from their kitchen table over the phone.</p>\n        </details>\n        <details class=\"faq__item\">\n          <summary>What does a protection review cost?</summary>\n          <p>Nothing. It&rsquo;s free and there&rsquo;s no obligation. If your current coverage is already doing its job, I&rsquo;ll say so and we&rsquo;ll leave it alone.</p>\n        </details>\n        <details class=\"faq__item\">\n          <summary>What if I&rsquo;ve been declined before?</summary>\n          <p>Ask &mdash; that&rsquo;s exactly the conversation to have. Several of the carriers I&rsquo;m appointed with specialize in hard-to-place and simplified-issue cases, and there&rsquo;s often an option that a single-carrier agent couldn&rsquo;t offer you.</p>\n        </details>\n        <details class=\"faq__item\">\n          <summary>How long does approval take?</summary>\n          <p>Many applicants qualify for no-medical-exam coverage with a decision in minutes. Fully underwritten policies can take a few weeks. I&rsquo;ll set the expectation up front and keep you posted.</p>\n        </details>\n        <details class=\"faq__item\">\n          <summary>Which areas do you serve?</summary>\n          <p>Schuylkill, Luzerne, and Northumberland Counties are home base. I also work with families and business owners across Pennsylvania by phone and video.</p>\n        </details>\n        <details class=\"faq__item\">\n          <summary>Do you help with retirement income too?</summary>\n          <p>Yes. Annuities and retirement income planning are a big part of what I do &mdash; turning accumulated savings into a reliable paycheck, with the guarantees explained clearly.</p>\n        </details>\n      </div>\n    </div>\n  </section>\n\n  <!-- ============ BOOK / CTA BAND ============ -->\n  <section class=\"book\" id=\"book\" aria-labelledby=\"book-title\">\n    <div class=\"wrap book__inner\">\n      <p class=\"eyebrow eyebrow--light\">Free Family Protection Review</p>\n      <h2 id=\"book-title\">Let&rsquo;s Make Sure Your Family Is Covered</h2>\n      <p class=\"book__lede\">Twenty minutes now can save your family years of uncertainty later. No cost, no pressure, no obligation &mdash; just clarity.</p>\n\n      <ul class=\"book__options\">\n        <li>\n          <a class=\"book-option\" href=\"tel:+15709001977\" data-config-href=\"phone\">\n            <span class=\"book-option__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><path d=\"M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z\"/></svg>\n            </span>\n            <span class=\"book-option__label\">Call or Text</span>\n            <span class=\"book-option__value\" data-config-text=\"phone\">(570) 900-1977</span>\n          </a>\n        </li>\n        <li>\n          <a class=\"book-option\" href=\"mailto:jackson1989@latimorelegacy.com\" data-config-href=\"email\">\n            <span class=\"book-option__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"2.5\" y=\"4.5\" width=\"19\" height=\"15\" rx=\"2\"/><path d=\"m3 6.5 9 6 9-6\"/></svg>\n            </span>\n            <span class=\"book-option__label\">Email Jackson</span>\n            <span class=\"book-option__value\" data-config-text=\"email\">jackson1989@latimorelegacy.com</span>\n          </a>\n        </li>\n        <li>\n          <a class=\"book-option book-option--gold\" href=\"#contact\" data-config-href=\"booking\">\n            <span class=\"book-option__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M3 10h18M8 3v4M16 3v4\"/><path d=\"m9.5 15.5 1.8 1.8 3.4-3.6\"/></svg>\n            </span>\n            <span class=\"book-option__label\">Book Online</span>\n            <span class=\"book-option__value\">Schedule Your Review &rarr;</span>\n          </a>\n        </li>\n      </ul>\n\n      <div class=\"book__calendar\" id=\"book-calendar\" hidden>\n        <h3 class=\"book__calendar-title\">Pick a time that works for you</h3>\n        <div class=\"calendar-embed\">\n          <iframe id=\"calendar-iframe\" title=\"Schedule a consultation with Jackson Latimore\"\n                  loading=\"lazy\" referrerpolicy=\"strict-origin-when-cross-origin\"></iframe>\n        </div>\n        <p class=\"book__calendar-note\">Trouble loading the calendar? <a href=\"#book\" data-config-href=\"booking\">Book directly here</a> or call/text <a href=\"tel:+15709001977\" data-config-href=\"phone\"><span data-config-text=\"phone\">(570) 900-1977</span></a>.</p>\n      </div>\n\n      <p class=\"book__hours\">Business hours: Monday&ndash;Friday, 9:00 AM &ndash; 6:00 PM ET &bull; Calls and texts welcome.</p>\n    </div>\n  </section>\n</main>\n\n<!-- ============ FOOTER ============ -->\n<footer class=\"site-footer\" id=\"footer\">\n  <div class=\"wrap footer__grid\">\n    <section class=\"footer__brand\" aria-label=\"About Latimore Life &amp; Legacy\">\n      <a class=\"brand brand--footer\" href=\"#top\" aria-label=\"Latimore Life &amp; Legacy LLC \u2014 back to top\">\n        <img class=\"footer__logo\" src=\"/landing/images/latimore-life-legacy-logo.jpg\" alt=\"Latimore Life &amp; Legacy LLC \u2014 Protecting Today. Securing Tomorrow. #TheBeatGoesOn\" width=\"320\" height=\"389\">\n      </a>\n    </section>\n\n    <section class=\"footer__connect\" aria-labelledby=\"footer-connect-title\">\n      <h2 id=\"footer-connect-title\">Stay Connected</h2>\n      <p>Follow along on social media for educational content on life insurance, annuities, and financial protection for Pennsylvania families.</p>\n\n      <ul class=\"socials\">\n        <li>\n          <a href=\"#\" data-config-href=\"facebook\" aria-label=\"Latimore Life &amp; Legacy on Facebook\">\n            <span class=\"socials__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><path class=\"ico__fill\" d=\"M14.5 8.5H17V5.6h-2.6c-2.2 0-3.6 1.5-3.6 3.7v1.4H8.5v2.9h2.3V21h3v-7.4h2.3l.4-2.9h-2.7V9.6c0-.7.3-1.1.7-1.1Z\"/></svg>\n            </span>\n            <span class=\"socials__label\">Facebook</span>\n          </a>\n        </li>\n        <li>\n          <a href=\"#\" data-config-href=\"instagram\" aria-label=\"Latimore Life &amp; Legacy on Instagram\">\n            <span class=\"socials__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17.2\" cy=\"6.8\" r=\"1.1\" class=\"ico__fill\"/></svg>\n            </span>\n            <span class=\"socials__label\">Instagram</span>\n          </a>\n        </li>\n        <li>\n          <a href=\"#\" data-config-href=\"linkedin\" aria-label=\"Jackson M. Latimore Sr. on LinkedIn\">\n            <span class=\"socials__icon\" aria-hidden=\"true\">\n              <svg viewBox=\"0 0 24 24\" class=\"ico\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><path d=\"M7.8 10.2V17M7.8 7.2v.1M11.6 17v-3.6a2 2 0 0 1 4 0V17\"/></svg>\n            </span>\n            <span class=\"socials__label\">LinkedIn</span>\n          </a>\n        </li>\n      </ul>\n    </section>\n\n    <section class=\"footer__service\" aria-labelledby=\"footer-service-title\">\n      <h2 id=\"footer-service-title\">Service Area</h2>\n      <ul class=\"footer__list\">\n        <li>Schuylkill County, PA</li>\n        <li>Luzerne County, PA</li>\n        <li>Northumberland County, PA</li>\n      </ul>\n      <address class=\"footer__contact\">\n        <a href=\"tel:+15709001977\" data-config-href=\"phone\" data-config-text=\"phone\">(570) 900-1977</a>\n        <a href=\"mailto:jackson1989@latimorelegacy.com\" data-config-href=\"email\" data-config-text=\"email\">jackson1989@latimorelegacy.com</a>\n      </address>\n    </section>\n  </div>\n\n  <div class=\"wrap footer__legal\">\n    <p class=\"footer__disclaimer\">Latimore Life &amp; Legacy LLC is an independent insurance agency, not connected with any government agency. Coverage, rates, and eligibility are subject to each carrier&rsquo;s underwriting, policy provisions, and state availability. Product availability and benefits vary by state. This website is for general information only and is not an offer of insurance or a guarantee of coverage.</p>\n    <p class=\"footer__copy\">&copy; <span id=\"year\">2026</span> Latimore Life &amp; Legacy LLC. All rights reserved.</p>\n  </div>\n</footer>\n\n<a class=\"chat-fab\" href=\"sms:+15709001977\" data-config-href=\"sms\" aria-label=\"Text Jackson Latimore directly\">\n  <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\" class=\"ico\"><path d=\"M21 12a8 8 0 0 1-8 8H4l2-3.2A8 8 0 1 1 21 12Z\"/></svg>\n  <span>Chat</span>\n</a>\n\n\n\n"
+export const metadata: Metadata = {
+  title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+  description:
+    'Local, education-first life insurance, annuity, mortgage protection and retirement-income guidance for Schuylkill, Luzerne and Northumberland County families.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+    description:
+      'Protect what you have built and prepare for what comes next with local insurance guidance from Latimore Life & Legacy.',
+    url: '/',
+    type: 'website',
+  },
+}
 
 export default function HomePage() {
   return (
     <>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
-      <link rel="stylesheet" href="/landing/css/style.css" />
-      <div id="top" className="contact-landing" dangerouslySetInnerHTML={{ __html: markup }} />
-      <Script src="/landing/js/main.js" strategy="afterInteractive" />
-      <Script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js" strategy="lazyOnload" />
+      <SiteHeader currentPath="/" navLinks={JOIN_NAV_LINKS} />
+
+      {/* Hero Section */}
+      <section style={{ background: `linear-gradient(135deg, ${navy} 0%, #1a2942 100%)`, color: '#fff', padding: '4rem 0 3rem' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1.15fr .85fr', gap: '3rem', alignItems: 'center' }} className="hero-grid">
+            <div>
+              <div style={{ color: goldLight, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', fontSize: '.82rem', marginBottom: 10 }}>Protecting Today. Securing Tomorrow.</div>
+              <h1 style={{ fontSize: 'clamp(2rem,4.5vw,3.6rem)', lineHeight: 1.1, margin: '0 0 1.5rem' }}>
+                Life Insurance & Financial Protection for Pennsylvania&apos;s Coal Region
+              </h1>
+              <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.9)', marginBottom: '1.5rem', lineHeight: 1.7, maxWidth: '65ch' }}>
+                Local, education-first guidance for <strong>Schuylkill, Luzerne & Northumberland Counties</strong> — built around the families, workers, retirees, and businesses that call the Coal Region home.
+              </p>
+
+              <div style={{ background: 'rgba(229,200,130,0.15)', borderLeft: `4px solid ${goldLight}`, padding: '16px 18px', borderRadius: 14, margin: '1.5rem 0', fontStyle: 'italic' }}>
+                "December 7, 2010 — an AED saved my life at ESU's Koehler Fieldhouse. That second chance became a mission: helping families protect what matters most."
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+                <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', transition: 'transform .18s ease' }} className="btn-hover">Book Free Consultation</a>
+                <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                {['PA Licensed DOI #1268820', 'MBA · MS', '560K+ Residents in Our Service Area'].map(badge => (
+                  <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Image src="/jackson-library.jpg" alt="Jackson M. Latimore Sr. — Independent Life, Health, Accident and Annuities Broker" width={900} height={600} priority sizes="(max-width: 960px) 100vw, 50vw" style={{ width: '100%', borderRadius: 18, boxShadow: '0 14px 40px rgba(0,0,0,0.3)', objectFit: 'cover', maxHeight: 500, height: 'auto' }} />
+              <div style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', padding: '1.5rem', borderRadius: 14, marginTop: '1rem', textAlign: 'center' }}>
+                <h3 style={{ color: goldLight, marginBottom: '0.5rem', fontSize: '1.3rem' }}>Jackson M. Latimore Sr.</h3>
+                <p style={{ color: 'rgba(255,255,255,0.8)', margin: '0.25rem 0', fontSize: '0.95rem' }}>Founder & CEO</p>
+                <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', margin: '0.25rem 0' }}>Independent Life, Health, Accident & Annuities Broker</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Statement */}
+      <section style={{ padding: '3rem 0', background: '#f9fafb' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem,2.5vw,2rem)', color: navy, margin: '0 0 1rem' }}>Our Mission</h2>
+          <p style={{ fontSize: '1.15rem', color: '#475467', maxWidth: '80ch', margin: '0 auto', lineHeight: 1.8 }}>
+            We don't just sell insurance — we educate, prepare, and protect. Every client conversation starts with understanding your goals, your family, and your future. Then we build insurance and protection strategies around those needs.
+          </p>
+        </div>
+      </section>
+
+      {/* Services Overview */}
+      <section style={{ padding: '4rem 0', background: '#fff' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 0.5rem', textAlign: 'center' }}>Comprehensive Protection Strategies</h2>
+          <p style={{ textAlign: 'center', color: '#667085', marginBottom: '2.5rem', fontSize: '1.05rem' }}>Three pillars of financial security for Pennsylvania families.</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }} className="grid-3">
+            {[
+              {
+                title: 'Protection & Risk',
+                image: '/black-family-park.jpg',
+                alt: 'Black family smiling together in a park',
+                color: '#fef9e7',
+                border: '#fde68a',
+                items: ['Life Insurance & Living Benefits', 'Mortgage Protection', 'Final Expense Planning', 'Critical Illness Coverage']
+              },
+              {
+                title: 'Wealth Accumulation',
+                image: '/whatif_family_walking.jpg',
+                alt: 'Family walking together outdoors representing long-term planning',
+                color: '#e8f4fd',
+                border: '#bee3f8',
+                items: ['Tax-Advantaged Growth Strategies', 'Indexed Universal Life (IUL)', 'Fixed & Fixed Indexed Annuities', 'College Education Funding']
+              },
+              {
+                title: 'Legacy & Planning',
+                image: '/closing_family_outdoors.jpg',
+                alt: 'Family outdoors representing legacy and long-term planning',
+                color: '#f0fdf4',
+                border: '#bbf7d0',
+                items: ['Estate & Wealth Transfer Coordination', 'Business Continuity Planning', 'Retirement Income Strategies', 'Debt Education']
+              }
+            ].map(({ title, image, alt, color, border, items }) => (
+              <article key={title} style={{ background: color, border: `1px solid ${border}`, borderRadius: 18, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+                <div style={{ position: 'relative', aspectRatio: '900 / 534', width: '100%', background: '#f8fafc' }}>
+                  <Image
+                    src={image}
+                    alt={alt}
+                    fill
+                    sizes="(max-width: 960px) 100vw, 33vw"
+                    style={{ objectFit: 'contain' }}
+                    placeholder="blur"
+                    blurDataURL={solidBlurDataURL(color)}
+                  />
+                </div>
+                <div style={{ padding: '1.75rem' }}>
+                  <h3 style={{ color: navy, fontSize: '1.25rem', margin: '0 0 1rem', textAlign: 'center' }}>{title}</h3>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {items.map(item => (
+                      <li key={item} style={{ margin: '0.6rem 0', paddingLeft: 22, position: 'relative', color: '#333', fontSize: '0.92rem' }}>
+                        <span style={{ position: 'absolute', left: 0, top: 0, color: '#0b7a55', fontWeight: 700 }}>✓</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+            <Link href="/services" style={{ display: 'inline-block', background: navy, color: '#fff', padding: '14px 28px', borderRadius: 999, fontWeight: 600, textDecoration: 'none', fontSize: '1rem' }} className="btn-hover">View All Services</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us */}
+      <section style={{ padding: '4rem 0', position: 'relative', overflow: 'hidden', isolation: 'isolate', background: '#f9fafb' }}>
+        <Image
+          src="/images/community/city-riverfront.jpg"
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
+          quality={85}
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
+        />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(255,255,255,0.76), rgba(255,255,255,0.52))' }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px', position: 'relative', zIndex: 1 }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 2.5rem', textAlign: 'center' }}>Why Families Choose {BRAND.name}</h2>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '2rem' }} className="grid-2">
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Education-First Approach</h3>
+              <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
+                We don't pressure. We educate. Every conversation starts with understanding your goals and helping you make informed decisions about protecting your family's future.
+              </p>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Local & Independent</h3>
+              <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
+                Born and raised in Pennsylvania. Serving the tri-county area with independent insurance guidance. No captive-company product quota — recommendations are based on your protection needs and available carrier options.
+              </p>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Carrier Diversity</h3>
+              <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
+                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can compare available options to find an appropriate fit for your family's needs and budget.
+              </p>
+            </div>
+
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+              <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Lifetime Support</h3>
+              <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
+                We don't disappear after the sale. Annual reviews, claims assistance, and policy adjustments remain part of the relationship as your protection needs change.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Service Area */}
+      <section style={{ padding: '4rem 0', background: '#fff' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 1rem' }}>Proudly Serving Central Pennsylvania</h2>
+          <p style={{ fontSize: '1.1rem', color: '#475467', marginBottom: '2rem' }}>
+            Serving a three-county Central Pennsylvania region of more than 560,000 residents.
+          </p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginTop: '2rem' }} className="stats-grid">
+            {[
+              { county: 'Schuylkill County', population: '140K', highlight: 'Pottsville, Tamaqua, Schuylkill Haven' },
+              { county: 'Luzerne County', population: '325K', highlight: 'Wilkes-Barre, Hazleton, Kingston' },
+              { county: 'Northumberland County', population: '91K', highlight: 'Sunbury, Shamokin, Milton' }
+            ].map(({ county, population, highlight }) => (
+              <div key={county} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '1.5rem' }}>
+                <h4 style={{ color: navy, fontSize: '1.15rem', marginBottom: '0.5rem' }}>{county}</h4>
+                <p style={{ color: goldLight, fontWeight: 700, fontSize: '1.8rem', margin: '0.25rem 0' }}>{population}</p>
+                <p style={{ color: '#667085', fontSize: '0.9rem', margin: 0 }}>{highlight}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section style={{ padding: '4rem 0', background: `linear-gradient(135deg, ${navy} 0%, #1a2942 100%)`, color: '#fff' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 'clamp(1.8rem,3vw,2.5rem)', margin: '0 0 1rem' }}>Ready to Protect Your Family's Future?</h2>
+          <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.85)', marginBottom: '2rem', lineHeight: 1.7 }}>
+            Book a free consultation or get an instant quote in minutes. No pressure, just insurance education and protection guidance.
+          </p>
+
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem' }} className="btn-hover">Book Free Consultation</a>
+            <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
+          </div>
+
+          <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.08)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)' }}>
+            <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.8)', margin: 0, lineHeight: 1.7 }}>
+              <strong>Office:</strong> 1544 Route 61 Hwy S, Ste 6104, Pottsville, PA 17901<br />
+              <strong>Phone:</strong> <a href={`tel:+1${BRAND.phoneRaw}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.phone}</a><br />
+              <strong>Email:</strong> <a href={`mailto:${BRAND.email}`} style={{ color: goldLight, textDecoration: 'none' }}>{BRAND.email}</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Tagline Banner */}
+      <section style={{ padding: '2rem 0', background: '#f9fafb', textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
+        <p style={{ color: '#667085', fontStyle: 'italic', margin: 0, fontSize: '1.05rem' }}>
+          {BRAND.tagline} · {BRAND.hashtag}
+        </p>
+        <p style={{ color: navy, fontWeight: 700, marginTop: '0.5rem', fontSize: '1.1rem' }}>
+          Building Wealth. Preserving Futures. Creating Legacies.
+        </p>
+      </section>
+
+      {/* Community Sponsorship */}
+      <section style={{ padding: '4rem 0', background: '#fff', borderTop: '1px solid #e2e8f0' }}>
+        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 20px' }}>
+          <div className="sponsor-feature" style={{ display: 'grid', gridTemplateColumns: '.9fr 1.1fr', overflow: 'hidden', borderRadius: 24, background: navy, boxShadow: '0 18px 50px rgba(14,26,43,0.18)' }}>
+            <div style={{ position: 'relative', minHeight: 430 }}>
+              <Image
+                src="/jackson-founder-photo.jpg"
+                alt="Jackson M. Latimore Sr., Founder and CEO of Latimore Life & Legacy LLC"
+                fill
+                sizes="(max-width: 960px) 100vw, 45vw"
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+              />
+            </div>
+            <div style={{ padding: 'clamp(2rem,4vw,3.5rem)', color: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <Image src="/pahs-tide-logo.png" alt="Pottsville Area Crimson Tide" width={72} height={72} style={{ objectFit: 'contain' }} />
+                <span style={{ color: goldLight, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontSize: '.82rem' }}>Proud All-Star Sponsor</span>
+              </div>
+              <Image src="/pahs-latimore-logo.png" alt="Latimore Life & Legacy LLC" width={520} height={210} sizes="(max-width: 960px) 90vw, 45vw" style={{ width: '100%', maxWidth: 520, height: 'auto', objectFit: 'contain', objectPosition: 'left center', marginBottom: '1.5rem' }} />
+              <h2 style={{ fontSize: 'clamp(1.8rem,3.5vw,2.8rem)', lineHeight: 1.12, margin: '0 0 1rem' }}>Protect What Matters Most.</h2>
+              <p style={{ color: 'rgba(255,255,255,0.82)', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 1.5rem' }}>
+                Supporting Pottsville Area football while giving Coal Region families a direct path to education-first insurance protection.
+              </p>
+              <p style={{ color: goldLight, fontWeight: 700, margin: '0 0 1.5rem' }}>{BRAND.phone} · {BRAND.tagline}</p>
+              <div>
+                <Link href="/pahs" style={{ display: 'inline-block', background: gold, color: navy, padding: '13px 24px', borderRadius: 999, fontWeight: 800, textDecoration: 'none' }} className="btn-hover">Explore the PAHS Campaign</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <SiteFooter />
+
+      <style>{`
+        .btn-hover:hover {
+          transform: translateY(-2px);
+          transition: transform .18s ease;
+        }
+        @media (max-width: 960px) {
+          .hero-grid, .grid-3, .grid-2, .sponsor-feature { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </>
   )
 }
