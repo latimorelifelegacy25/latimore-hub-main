@@ -18,19 +18,54 @@ const SAFE_CONNECTION_SELECT = {
   status: true,
 }
 
-async function validateToken(provider: string, token: string): Promise<string | null> {
+type TokenValidation = {
+  error: string | null
+  /** Raw profile payload from the provider's verification endpoint (when available). */
+  profile: Record<string, unknown> | null
+}
+
+async function validateToken(provider: string, token: string): Promise<TokenValidation> {
   const endpoints: Record<string, string> = {
     linkedin: 'https://api.linkedin.com/v2/userinfo',
     twitter: 'https://api.twitter.com/2/users/me',
   }
   const url = endpoints[provider]
-  if (!url) return null
+  if (!url) return { error: null, profile: null }
   try {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' })
-    return res.ok ? null : `${provider} rejected the token (HTTP ${res.status})`
+    if (!res.ok) {
+      return { error: `${provider} rejected the token (HTTP ${res.status})`, profile: null }
+    }
+    let profile: Record<string, unknown> | null = null
+    try {
+      profile = (await res.json()) as Record<string, unknown>
+    } catch {
+      profile = null
+    }
+    return { error: null, profile }
   } catch {
-    return `Could not reach ${provider} to verify the token`
+    return { error: `Could not reach ${provider} to verify the token`, profile: null }
   }
+}
+
+/**
+ * Derive the provider-specific external ID (author URN) from a verified token
+ * when the caller did not supply one. LinkedIn publishing requires the member
+ * URN (urn:li:person:{sub}); the userinfo `sub` claim carries the member ID.
+ */
+function deriveExternalId(
+  provider: string,
+  supplied: string | undefined,
+  profile: Record<string, unknown> | null,
+): string | undefined {
+  if (supplied) return supplied
+  if (provider === 'linkedin' && profile) {
+    const sub = profile.sub
+    if (typeof sub === 'string' && sub.length > 0) {
+      return `urn:li:person:${sub}`
+    }
+  }
+  return undefined
 }
 
 export async function GET() {
@@ -71,17 +106,19 @@ export async function POST(req: NextRequest) {
     status,
   } = parsed.data
 
+  let resolvedExternalId = externalId || undefined
   if (accessToken && status !== 'disconnected') {
-    const invalid = await validateToken(provider, accessToken)
-    if (invalid) {
-      return NextResponse.json({ success: false, error: invalid }, { status: 400 })
+    const validation = await validateToken(provider, accessToken)
+    if (validation.error) {
+      return NextResponse.json({ success: false, error: validation.error }, { status: 400 })
     }
+    resolvedExternalId = deriveExternalId(provider, resolvedExternalId, validation.profile)
   }
 
   const data: any = {
     provider,
     accountName: accountName || undefined,
-    externalId: externalId || undefined,
+    externalId: resolvedExternalId,
     accessToken: accessToken ? encryptToken(accessToken) : undefined,
     refreshToken: refreshToken ? encryptToken(refreshToken) : undefined,
     metadata: metadata || undefined,
@@ -106,7 +143,7 @@ export async function POST(req: NextRequest) {
   const existing = await socialConnectionModel.findFirst({
     where: {
       provider,
-      externalId: externalId || undefined,
+      externalId: resolvedExternalId,
     },
   })
 
