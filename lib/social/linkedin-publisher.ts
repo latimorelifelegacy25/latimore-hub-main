@@ -1,6 +1,6 @@
 import type { PublishPayload, PublishResult, PublishTarget } from './types'
 
-const LINKEDIN_VERSION = process.env.LINKEDIN_VERSION ?? '202506'
+const LINKEDIN_VERSION = process.env.LINKEDIN_VERSION ?? '202608'
 const LINKEDIN_API_BASE_URL = 'https://api.linkedin.com/rest'
 
 type LinkedInResponse = {
