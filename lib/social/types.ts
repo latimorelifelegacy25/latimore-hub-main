@@ -63,6 +63,9 @@ export type PublishTarget = {
   externalId?: string | null
   accountName?: string | null
   accessToken?: string | null
+  refreshToken?: string | null
+  tokenExpiresAt?: Date | null
+  connectionId?: string | null
   metadata?: unknown
 }
 
