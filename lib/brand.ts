@@ -83,11 +83,11 @@ export const BRAND = {
   // Social
   instagram: 'https://www.instagram.com/latimorelifelegacy25?stkn=MXg4M3NlOGRoMG1jbg==',
   linkedin: 'https://www.linkedin.com/in/latimore-life-legacy-llc-053a603a3',
-  facebook: 'https://www.facebook.com/share/1EVpBCEZuf/',
+  facebook: 'https://www.facebook.com/share/19foVd5euh/',
 
   instagramUrl: 'https://www.instagram.com/latimorelifelegacy25?stkn=MXg4M3NlOGRoMG1jbg==',
   linkedinUrl: 'https://www.linkedin.com/in/latimore-life-legacy-llc-053a603a3',
-  facebookUrl: 'https://www.facebook.com/share/1EVpBCEZuf/',
+  facebookUrl: 'https://www.facebook.com/share/19foVd5euh/',
 
   // Service region
   counties: ['Schuylkill', 'Luzerne', 'Northumberland'],
