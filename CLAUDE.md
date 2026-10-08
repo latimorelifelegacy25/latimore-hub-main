@@ -136,6 +136,17 @@ Key AI capabilities:
 - Contact context builder (`contact-context.ts`) — assembles full contact history for AI prompts
 - Daily brief generation, draft message creation, contact intelligence briefs
 
+### Content pipeline (`lib/ai/content-pipeline/`)
+
+Four-agent flow behind `/admin/content/pipeline` and `/api/content/pipeline`: Strategist (one shared brief per topic) -> Writer -> Editor -> Repurposer (LinkedIn, Facebook, Instagram, email). State lives in `ContentAsset.metadata.pipeline` on a parent asset (`channel: 'pipeline'`); variants are child `ContentAsset` drafts with `metadata.pipelineId`. Every agent call is an `AiRun` of type `content_generation`.
+
+Hard rules enforced in `pipeline.ts`, not just in prompts:
+- The Editor flags issues and never rewrites. An approval only counts if the LLM said APPROVED **and** there are no blocker/major issues, no unsupported claims, and `checkCompliance()` passes.
+- Repurposing runs only on a draft the Editor approved at its *current* revision (a hand edit clears approval).
+- Variants are always created as `draft`. Approve/reject needs the reviewer role and only sets `approved`/`archived`; scheduling and publishing stay separate manual steps, and nothing is auto-posted or sent.
+
+Optional env: `PIPELINE_REASONING_MODEL` (Strategist/Writer/Editor) and `PIPELINE_REPURPOSE_MODEL` (cheaper model for the Repurposer); model names must match `AI_PROVIDER`.
+
 ### Analytics stack
 
 - **GA4** — `lib/analytics/ga4.ts`, multi-ID support, OAuth connection stored via `CalendarConnection`
