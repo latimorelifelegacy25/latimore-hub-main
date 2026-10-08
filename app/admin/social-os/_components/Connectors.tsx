@@ -20,6 +20,7 @@ const INITIAL_CONNECTORS: Connector[] = [
   { id: 'facebook', name: 'Facebook Business', description: 'Community Legacy Storytelling', icon: 'fa-brands fa-facebook', category: 'Social', isConnected: false, color: 'bg-blue-600' },
   { id: 'instagram', name: 'Instagram', description: 'Visual Legacy Narrative', icon: 'fa-brands fa-instagram', category: 'Social', isConnected: false, color: 'bg-pink-600' },
   { id: 'twitter', name: 'X / Twitter', description: 'Real-time Industry Insights', icon: 'fa-brands fa-x-twitter', category: 'Social', isConnected: false, color: 'bg-black' },
+  { id: 'gbp', name: 'Google Business Profile', description: 'Local Search & Maps Visibility (via OneUp)', icon: 'fa-brands fa-google', category: 'Social', isConnected: false, color: 'bg-green-600' },
 ];
 
 const SOCIAL_PROVIDER_MAP: Record<string, 'facebook' | 'instagram' | 'linkedin' | 'twitter'> = {
@@ -75,6 +76,12 @@ const Connectors: React.FC = () => {
     if (connector.category === 'Social') {
       if (connector.id === 'facebook' || connector.id === 'instagram') {
         window.open('/api/social/facebook/connect', 'oauth_popup', 'width=600,height=700');
+        return;
+      }
+      if (connector.id === 'gbp') {
+        // GBP publishes via OneUp/Composio — no OAuth token to paste.
+        // Status is determined by the OneUp configuration check below.
+        setSaveError('Google Business Profile publishes through OneUp. If it shows disconnected, check COMPOSIO_API_KEY in Vercel env vars.');
         return;
       }
       // No first-party OAuth app registered for LinkedIn/Twitter — collect a
