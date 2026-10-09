@@ -53,8 +53,7 @@ export async function ingestEvent(input: EventIngestInput) {
       leadSessionId,
       {
         lastSeenAt: occurredAt,
-        landingPage: cleanString(input.pageUrl, 500) ?? undefined,
-        referrer: cleanString(input.referrer, 500) ?? undefined,
+        // landingPage/referrer are first-touch: set on create only, never overwritten by later page views.
         source: cleanString(input.source, 100) ?? undefined,
         medium: cleanString(input.medium, 100) ?? undefined,
         campaign: cleanString(input.campaign, 150) ?? undefined,

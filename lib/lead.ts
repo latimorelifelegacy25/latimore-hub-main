@@ -14,6 +14,7 @@ type StoredAttribution = Partial<{
   utm_term: string
   utm_content: string
   referrer: string
+  attribution_inferred: string
   entry_page: string
   last_page: string
 }>
@@ -56,6 +57,29 @@ function isExternalReferrer(referrer: string): boolean {
     return new URL(referrer).origin !== window.location.origin
   } catch {
     return false
+  }
+}
+
+const SEARCH_HOSTS = /(^|\.)(google|bing|duckduckgo|yahoo|ecosia|search\.brave)\./i
+const SOCIAL_HOSTS: Array<[RegExp, string]> = [
+  [/(^|\.)(facebook\.com|fb\.com|l\.facebook\.com|m\.facebook\.com)$/i, 'facebook'],
+  [/(^|\.)(instagram\.com|l\.instagram\.com)$/i, 'instagram'],
+  [/(^|\.)(linkedin\.com|lnkd\.in)$/i, 'linkedin'],
+  [/(^|\.)(t\.co|twitter\.com|x\.com)$/i, 'twitter'],
+]
+
+// Untagged traffic would otherwise leave source/medium empty. Infer a coarse
+// channel from the referrer so first-touch attribution is never blank.
+function inferChannel(referrer: string): { source: string; medium: string } {
+  if (!referrer) return { source: 'direct', medium: 'none' }
+  try {
+    const host = new URL(referrer).hostname
+    const social = SOCIAL_HOSTS.find(([pattern]) => pattern.test(host))
+    if (social) return { source: social[1], medium: 'social' }
+    if (SEARCH_HOSTS.test(host)) return { source: host.replace(/^www\./, '').split('.')[0], medium: 'organic' }
+    return { source: host.replace(/^www\./, ''), medium: 'referral' }
+  } catch {
+    return { source: 'direct', medium: 'none' }
   }
 }
 
@@ -114,12 +138,25 @@ export function captureUtms(): Record<string, string> {
   const pageUrl = getCurrentPageUrl()
   const next: StoredAttribution = { ...stored }
 
+  // An explicit UTM tag always beats an earlier inferred (referrer/direct) channel.
+  if (current.utm_source && next.attribution_inferred) {
+    for (const key of keys) delete next[key]
+    delete next.attribution_inferred
+  }
+
   for (const key of keys) {
     const value = current[key]
     if (value && !next[key]) next[key] = value
   }
 
   if (current.referrer && !next.referrer) next.referrer = current.referrer
+
+  if (!next.utm_source || next.attribution_inferred) {
+    const channel = inferChannel(next.referrer ?? '')
+    next.utm_source = channel.source
+    next.utm_medium = channel.medium
+    next.attribution_inferred = '1'
+  }
   if (!next.entry_page) next.entry_page = pageUrl
   next.last_page = pageUrl
 
