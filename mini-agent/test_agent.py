@@ -8,6 +8,33 @@ from tools import run_shell
 
 
 class AgentTests(unittest.TestCase):
+    @patch.dict(os.environ, {}, clear=True)
+    @patch("agent.OpenAI")
+    def test_default_provider_uses_openai(self, client_cls):
+        agent.make_client()
+        client_cls.assert_called_once_with(base_url=None)
+
+    @patch.dict(os.environ, {"PROVIDER": "openai", "OPENAI_BASE_URL": "https://example.com/v1"}, clear=True)
+    @patch("agent.OpenAI")
+    def test_openai_custom_endpoint(self, client_cls):
+        agent.make_client()
+        client_cls.assert_called_once_with(base_url="https://example.com/v1")
+
+    @patch.dict(os.environ, {"PROVIDER": "ANTHROPIC", "ANTHROPIC_API_KEY": "test-only", "OPENAI_BASE_URL": "https://example.com/v1"}, clear=True)
+    @patch("agent.OpenAI")
+    def test_anthropic_uses_its_own_key_and_endpoint(self, client_cls):
+        agent.make_client()
+        client_cls.assert_called_once_with(api_key="test-only", base_url="https://api.anthropic.com/v1/")
+
+    @patch.dict(os.environ, {"PROVIDER": "anthropic", "OPENAI_API_KEY": "test-only"}, clear=True)
+    @patch("agent.load_dotenv")
+    @patch("sys.argv", ["agent.py", "test task"])
+    def test_anthropic_requires_anthropic_key(self, _):
+        with patch("agent.run") as run, self.assertRaises(SystemExit) as stopped:
+            agent.main()
+        self.assertEqual(stopped.exception.code, 2)
+        run.assert_not_called()
+
     @patch.dict(os.environ, {"CONFIRM_SHELL": "0"})
     def test_shell_output_and_status(self):
         result = run_shell("printf hello; exit 3")

@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireAdmin } from '@/lib/require-admin'
+import { requireAdminRole } from '@/lib/rbac'
+import { createSystemAiEvent } from '@/lib/ai/shared'
 import { logger } from '@/lib/logger'
 import { TaskCreateSchema, TaskPatchSchema } from '@/lib/schemas'
 
@@ -41,6 +43,15 @@ function getSupabaseAdmin() {
 
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+/** Best-effort audit trail for task mutations (ids and field names only, no content). */
+async function auditTask(type: 'task.created' | 'task.updated', taskId: string, extra: JsonRecord) {
+  const auth = await requireAdminRole().catch(() => null)
+  await createSystemAiEvent({
+    type,
+    payload: { taskId, actor: auth && auth.ok ? auth.email : null, ...extra },
   })
 }
 
@@ -147,6 +158,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
+    await auditTask('task.created', (data as CrmTaskRow).id, { source: 'admin_manual' })
     return NextResponse.json({ ok: true, task: toTaskItem(data as CrmTaskRow) }, { status: 201 })
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Supabase task create error')
@@ -188,6 +200,7 @@ export async function PATCH(req: NextRequest) {
 
     if (error) throw error
 
+    await auditTask('task.updated', id, { fields: Object.keys(updates) })
     return NextResponse.json({ ok: true, task: toTaskItem(data as CrmTaskRow) })
   } catch (error) {
     logger.error({ err: error instanceof Error ? error.message : String(error) }, 'Supabase task update error')

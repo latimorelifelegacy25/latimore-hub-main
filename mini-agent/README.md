@@ -25,6 +25,17 @@ cp .env.example .env          # then put your OpenAI key in .env
 You need a model with vision + function calling (screenshots are how the agent
 *sees* the page). Set `MODEL` in `.env` to whatever is current.
 
+### Choose a provider
+
+The default is `PROVIDER=openai` with `OPENAI_API_KEY`. An optional
+`OPENAI_BASE_URL` selects an OpenAI-compatible endpoint.
+
+To use Anthropic, set `PROVIDER=anthropic`, supply `ANTHROPIC_API_KEY` in your
+local `.env`, and replace `MODEL=gpt-4.1-mini` with the Claude model you want
+to use. This uses Anthropic's OpenAI SDK compatibility endpoint; the tool loop,
+screenshots, shell confirmation, and opt-in memory stay the same. The mini-agent
+runs on your Linux host or in Docker; it is not a Vercel serverless worker.
+
 ## Run it
 
 ```bash

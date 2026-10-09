@@ -21,6 +21,14 @@ purchases, or sending messages. If you need an answer, stop and ask in your
 final response. Do not claim success without evidence from the tools."""
 
 
+def make_client():
+    """PROVIDER=openai (default) or anthropic. Anthropic is reached through its
+    OpenAI-compatible endpoint, so the tool loop is unchanged. MODEL must match the provider."""
+    if os.getenv("PROVIDER", "openai").lower() == "anthropic":
+        return OpenAI(api_key=os.environ["ANTHROPIC_API_KEY"], base_url="https://api.anthropic.com/v1/")
+    return OpenAI(base_url=os.getenv("OPENAI_BASE_URL") or None)
+
+
 def run(task, max_steps, memory_enabled=False):
     mem = memory.start_session(task) if memory_enabled else memory.NULL
     if mem.enabled:
@@ -31,7 +39,7 @@ def run(task, max_steps, memory_enabled=False):
                 "browser_snapshot": browser.snapshot, "browser_click": browser.click,
                 "browser_fill": browser.fill, "browser_press": browser.press,
                 "browser_scroll": browser.scroll}
-    client = OpenAI()
+    client = make_client()
     # Recalled notes are untrusted DATA appended to the user message, never the system prompt.
     block = mem.recall_block(task)
     messages = [{"role": "system", "content": SYSTEM},
@@ -90,8 +98,9 @@ def main():
     args = parser.parse_args()
     if args.max_steps < 1:
         parser.error("--max-steps must be positive")
-    if not os.getenv("OPENAI_API_KEY"):
-        parser.error("Set OPENAI_API_KEY in .env or your environment")
+    anthropic = os.getenv("PROVIDER", "openai").lower() == "anthropic"
+    if not os.getenv("ANTHROPIC_API_KEY" if anthropic else "OPENAI_API_KEY"):
+        parser.error("Set ANTHROPIC_API_KEY (PROVIDER=anthropic) or OPENAI_API_KEY in .env or your environment")
     try:
         run(args.task, args.max_steps,
             memory_enabled=not args.no_memory and (args.memory or os.getenv("MEMORY", "0") == "1"))
