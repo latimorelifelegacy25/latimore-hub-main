@@ -4,7 +4,7 @@ import { useState } from 'react'
 
 type Status = 'idle' | 'submitting' | 'success' | 'error'
 
-export default function NewsletterSignup() {
+export default function NewsletterSignup({ source = 'Education Blog', campaign = 'blog_newsletter' }: { source?: string; campaign?: string } = {}) {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<Status>('idle')
 
@@ -20,12 +20,12 @@ export default function NewsletterSignup() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: trimmed,
-          source: 'Education Blog',
+          source,
           medium: 'newsletter',
-          campaign: 'blog_newsletter',
+          campaign,
           landingPage: window.location.pathname,
-          notes: 'Newsletter signup from education blog sidebar',
-          metadata: { form: 'blog-newsletter' },
+          notes: `Newsletter signup from ${source}`,
+          metadata: { form: campaign },
         }),
       })
       if (!res.ok) throw new Error(`Signup failed (${res.status})`)
@@ -58,6 +58,8 @@ export default function NewsletterSignup() {
           border: '1px solid #e5e7eb',
           borderRadius: 6,
           fontSize: '0.85rem',
+          color: '#0E1A2B',
+          background: '#fff',
           width: '100%',
           boxSizing: 'border-box',
         }}
@@ -66,8 +68,8 @@ export default function NewsletterSignup() {
         type="submit"
         disabled={status === 'submitting'}
         style={{
-          background: 'var(--gold)',
-          color: 'var(--navy)',
+          background: '#C9A25F',
+          color: '#0E1A2B',
           border: 'none',
           padding: '0.6rem',
           borderRadius: 6,

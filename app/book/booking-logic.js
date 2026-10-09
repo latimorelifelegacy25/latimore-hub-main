@@ -5,7 +5,7 @@ const INTERESTS=['General protection review','Mortgage protection','Final expens
 const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const INTAKE=[['marital','Marital status',['Single','Married','Separated','Widowed']],['kids','Children',['0','1','2','3+']],['budget','Monthly budget',['Under $50','$50–$100','$100–$200','$200+']],['existing','Have existing coverage?',['Yes','No']],['tobacco','Tobacco use?',['Yes','No']]];
 export default class BookingLogic extends ReactComponent{
-  state={view:'book',step:1,interest:null,format:'Phone',day:0,slot:null,f:{first:'',last:'',email:'',phone:''},notes:'',booked:null,cancelled:false,intake:{},blocked:{},statuses:{},selKey:null,save:'idle',availability:[],loading:true,error:'',response:null,preview:false};
+  state={view:'book',step:1,interest:null,format:'Phone',day:0,slot:null,f:{first:'',last:'',email:'',phone:''},notes:'',booked:null,cancelled:false,intake:{},blocked:{},statuses:{},selKey:null,save:'idle',availability:[],loading:true,error:'',response:null,preview:false,consent:false};
   componentDidMount() {
     this.active = true;
     this.setState({preview:new URLSearchParams(window.location.search).get('preview')==='phone'});
@@ -25,6 +25,7 @@ export default class BookingLogic extends ReactComponent{
   }
   async submit() {
     if(this.state.save==='saving') return;
+    if(!this.state.consent) {this.setState({error:'Please authorize contact about your consultation.'});return;}
     const s=this.state,i=s.intake,slotStart=s.availability[s.day]?.slots[s.slot];
     if(!slotStart) { this.setState({step:2,slot:null,error:'Please choose an available time.'}); return; }
     this.setState({save:'saving',error:''});
@@ -32,14 +33,14 @@ export default class BookingLogic extends ReactComponent{
     const context=getEventContext();
     try {
       const response=await fetch('/api/appointments/book',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-        ...context,firstName:s.f.first.trim(),lastName:s.f.last.trim(),email:s.f.email.trim(),phone:s.f.phone.trim(),slotStart,
+        ...context,firstName:s.f.first.trim(),lastName:s.f.last.trim(),email:s.f.email.trim(),phone:s.f.phone.trim(),slotStart,meetingFormat:s.format,consentToContact:s.consent,
         productInterest:productMap[s.interest],notes:[s.notes,`Requested meeting format: ${s.format}`].filter(Boolean).join('\n'),
         maritalStatus:i.marital||null,childrenCount:i.kids?parseInt(i.kids):null,monthlyBudget:i.budget||null,hasExistingInsurance:i.existing||null,tobaccoUse:i.tobacco||null,
         state:'PA',pageUrl:window.location.pathname+window.location.search,source:context.source||'website',medium:context.medium||'booking',campaign:context.campaign||'booking_design'
       })});
       const data=await response.json();
       if(!response.ok || !data.ok) {
-        if(response.status===409) { await this.loadAvailability(); this.setState({step:2}); }
+        if(response.status===409 && data.error?.includes('no longer available')) { await this.loadAvailability(); this.setState({step:2}); }
         throw new Error(data.error || 'Your booking could not be saved. Please try again or call (570) 900-1977.');
       }
       if(this.active) this.setState({step:4,save:'ok',response:data,booked:{start:slotStart,format:s.format,interest:s.interest,appointmentId:data.appointmentId}});
@@ -56,7 +57,7 @@ export default class BookingLogic extends ReactComponent{
     const DAYS=s.availability.map(day=>new Date(day.date+'T12:00:00Z'));
     const SLOTS=(s.availability[s.day]?.slots||[]).map(iso=>new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'America/New_York'}).format(new Date(iso)));
     const d=DAYS[s.day]||new Date(),dayStr=`${DOW[d.getDay()]}, ${MON[d.getMonth()]} ${d.getDate()}`;
-    const canNext=s.step===1?!!s.interest:s.step===2?s.slot!==null:(s.f.first.trim()&&s.f.last.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.f.email)&&s.f.phone.replace(/\D/g,'').length>=10);
+    const canNext=s.step===1?!!s.interest:s.step===2?s.slot!==null:(s.f.first.trim()&&s.f.last.trim()&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.f.email)&&s.f.phone.replace(/\D/g,'').length>=10&&s.consent);
     const b=s.booked;
     const week=[],selObj=null,mark=()=>()=>{};
     const fieldDefs=[['first','First name','text','Jane'],['last','Last name','text','Doe'],['email','Email','email','jane@email.com'],['phone','Mobile phone','tel','(570) 555-0100']];
@@ -66,6 +67,7 @@ export default class BookingLogic extends ReactComponent{
       shares:(()=>{const u=encodeURIComponent('https://www.latimorelifelegacy.com/book'),t=encodeURIComponent('Book a free consultation with Latimore Life & Legacy');return[{label:'Facebook',href:'https://www.facebook.com/sharer/sharer.php?u='+u},{label:'LinkedIn',href:'https://www.linkedin.com/sharing/share-offsite/?url='+u},{label:'X',href:'https://twitter.com/intent/tweet?url='+u+'&text='+t},{label:s.copied?'Link copied':'Copy link',href:'#',click:e=>{e.preventDefault();navigator.clipboard?.writeText('https://www.latimorelifelegacy.com/book').then(()=>set({copied:true})).catch(()=>set({error:'Copy the booking address from your browser to share it.'}));}}];})(),
       follows:[{label:'Instagram',href:'https://www.instagram.com/latimorelifelegacy25'},{label:'LinkedIn',href:'https://www.linkedin.com/in/startwithjacksongfi'},{label:'Facebook',href:'https://www.facebook.com/share/1EVpBCEZuf/'}],hasSel:!!selObj,sel:selObj||{facts:[]},markDone:mark('done'),markNoShow:mark('noshow'),markClear:mark(null),
       intake:INTAKE.map(([k,l,opts])=>({label:l,opts:opts.map(o=>{const on=s.intake[k]===o;return{label:o,pick:()=>this.setState(x=>({intake:{...x.intake,[k]:on?null:o}})),bg:on?navy:'#fff',fg:on?'#fff':navy,bd:on?navy:'#e5e7eb'};})})),
+      meetingUrl:s.response?.meetingUrl,zoomRequested:s.booked?.format==='Zoom',
       reminders:[{when:'24 hours before',text:`Reminder: your consultation with Jackson is tomorrow at ${s.slot!==null?SLOTS[s.slot]:''} ET. Reply C to confirm or R to reschedule.`},{when:'1 hour before',text:s.format==='Phone'?`Jackson will call you in 1 hour at ${s.f.phone||'your number'}.`:`Starting in 1 hour. Join on ${s.format} using the link in your invite.`},{when:'If missed',text:`Sorry we missed you today, ${s.f.first||'there'}. Reply R and we'll find a new time that works.`}],
       saveMsg:{idle:'',saving:'Saving to calendar…',ok:'Saved to Latimore calendar',err:s.error}[s.save],saveBg:s.save==='ok'?'#E6F2E9':s.save==='err'?'#fdf6ee':'#f9fafb',saveFg:s.save==='ok'?'#2F6B3F':s.save==='err'?'#a8854a':'#475467',
       s1:s.step===1,s2:s.step===2,s3:s.step===3,s4:s.step===4,notDone:s.step<4,
@@ -77,13 +79,14 @@ export default class BookingLogic extends ReactComponent{
       slots:SLOTS.map((t,i)=>{const tk=false,on=s.slot===i;return{label:t,taken:tk,pick:()=>set({slot:i}),bg:on?gold:tk?'#f9fafb':'#fff',fg:tk?'#A8ADB5':navy,bd:on?gold:tk?'#f9fafb':'#e5e7eb',td:tk?'line-through':'none'};}),
       fields:fieldDefs.map(([k,l,t,p])=>({label:l,type:t,ph:p,value:s.f[k],set:e=>{const v=e.target.value;this.setState(st=>({f:{...st.f,[k]:v}}));}})),
       notes:s.notes,setNotes:e=>set({notes:e.target.value}),
+      consent:s.consent,setConsent:e=>set({consent:e.target.checked}),saving:s.save==='saving',
       backVis:s.step>1?'visible':'hidden',back:()=>set({step:s.step-1}),
       notice:s.error||(s.loading?'Loading available times…':s.step===2&&!s.availability.length?'No consultation times are currently available. Call (570) 900-1977.':''),
       nextDisabled:!canNext||s.save==='saving',nextBg:canNext?gold:'#f3f4f6',nextLabel:s.save==='saving'?'Saving to calendar…':s.step===3?'Confirm booking':'Continue',
       next:()=>{if(!canNext||s.save==='saving')return;if(s.step===3){void this.submit();}else set({step:s.step+1,error:''});},
       firstName:s.f.first||'there',topicShown:s.interest||'—',joinLine:s.format==='Phone'?`Jackson will call you at ${s.f.phone||'your number'}.`:`Your ${s.format} link is in the attached calendar invite.`,emailShown:s.f.email||'your inbox',
       confirmLine:s.slot!==null?`${dayStr} at ${SLOTS[s.slot]} ET ${s.format==='Phone'?'by phone':'on '+s.format}.`:'',
-      toManage:()=>set({view:'manage'}),restart:()=>{set({step:1,interest:null,slot:null,save:'idle'});void this.loadAvailability();},
+      toManage:()=>set({view:'manage'}),restart:()=>{set({step:1,interest:null,slot:null,save:'idle',response:null,booked:null,error:''});void this.loadAvailability();},
       mWhen:b?this.when(b.start):'No booking in this session',
       mWhat:b?`30-min consultation · ${b.format} · ${b.interest}`:'Call Jackson if you booked previously.',
       mStatus:b?'Confirmed':'',mStatusColor:s.cancelled?'#9B2C2C':'#2F6B3F',
