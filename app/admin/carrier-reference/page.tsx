@@ -4,17 +4,15 @@ export const metadata = { title: 'Carrier Verification | Latimore Hub' }
 
 const carriers = [
  {name:'Ethos',source:'S7 S27',note:'Distributor, not necessarily policy issuer. Issuing carrier varies by quote.',products:['Level Term Life','Simplified Issue Term','Simplified Issue Whole Life','Guaranteed Acceptance Whole Life','Ethos IUL (reverify)']},
- {name:'North American',source:'S8',note:'Builder Plus IUL 4 supersedes Builder Plus IUL 2; post-freeze term rates excluded.',products:['ADDvantage Term','Builder Plus IUL 4','Smart Builder IUL 3 (reverify)','Custom Guarantee UL','IncomeChoice 10 / PrimePath Pro']},
+ {name:'North American',source:'S8 + supplied 295NMe (4-25), 500NM-1 (7-25)',note:'Builder Plus IUL 4 supersedes Builder Plus IUL 2; Protection Builder IUL 2 is a DIFFERENT product documented in uploaded carrier brochures. Verify PA/GFI authority.',products:['ADDvantage Term','Builder Plus IUL 4','Protection Builder IUL 2','Smart Builder IUL 3 (reverify)','Custom Guarantee UL','IncomeChoice 10 / PrimePath Pro']},
  {name:'American Equity',source:'S9',note:'FIA income and accumulation lanes. Bonuses, rider costs and indexed-crediting terms require dated approval.',products:['IncomeShield (incl. BONUS 10)','EstateShield','AssetShield']},
  {name:'Foresters',source:'S10 S26',note:'Live Well Plus is U.S. participating whole life, NOT term. Dividends not guaranteed.',products:['Strong Foundation Term','Your Term','Live Well Plus — participating whole life','Advantage Plus II','PlanRight','BrightFuture']},
- {name:'F&G',source:'S11',note:'Check the F&G Pennsylvania state-availability report and GFI contracting. Everlast/Dynamic Accumulator excluded.',products:['Pathsetter IUL','Safe Income Advantage','F&G 1-2-3','Flex Accumulator','Prosperity Elite 10','Guarantee-Platinum MYGA 3/5/7']},
+ {name:'F&G',source:'S11 + uploaded materials audit',note:'Retain Everlast and Dynamic Accumulator in the reference inventory pending current status/PA/GFI verification. Absence from a web listing or PDF text is not evidence of discontinuation.',products:['Pathsetter IUL','Everlast IUL (verify current brochure/status)','Dynamic Accumulator (verify current offer/status)','Safe Income Advantage','F&G 1-2-3','Flex Accumulator','Prosperity Elite 10','Guarantee-Platinum MYGA 3/5/7']},
  {name:'Corebridge',source:'S12 S28',note:'Select-a-Term (pure protection) and QoL Flex Term (living benefits) are distinct. Securities excluded.',products:['Select-a-Term','QoL Flex Term','Value+ Protector III / Max Accumulator+ III','Secure Lifetime GUL 3','Pathway Choice / Assured Edge Income Builder']},
 ]
 const fourTrainingProducts=['Level Term Life','ADDvantage Term','Strong Foundation Term','QoL Flex Term']
 const legacy=[
  ['North American','Builder Plus IUL 2','Superseded by version 4'],
- ['F&G','Everlast','Not current in September 2026 official product research'],
- ['F&G','Dynamic Accumulator','Older documentation, not verified current'],
  ['Corebridge','MarketLock RILA / Polaris / VUL','Securities licensing; historical VULs may no longer be sold'],
 ]
 const links=[
@@ -49,7 +47,7 @@ export default function CarrierReferencePage() {
     </tr></thead>
     <tbody>{group.products.map(product=><tr key={product} className="border-b border-slate-800">
      <td className="py-2 pr-3">{product}</td>
-     <td className="py-2 pr-3 text-amber-300">{product.includes('reverify')?'REVERIFY':fourTrainingProducts.includes(product)||product==='Select-a-Term'?'CONDITIONAL':'GATED'}</td>
+     <td className="py-2 pr-3 text-amber-300">{product.includes('reverify')||product.includes('(verify')?'VERIFY CURRENT STATUS':fourTrainingProducts.includes(product)||product==='Select-a-Term'?'CONDITIONAL':'GATED'}</td>
      <td className="py-2 pr-3">Current PA form not verified</td>
      <td className="py-2 pr-3">{fourTrainingProducts.includes(product)?'Term-training reference; appointment pending':'Product-level access not verified'}</td>
     </tr>)}</tbody>
@@ -58,7 +56,7 @@ export default function CarrierReferencePage() {
   <section className="rounded-xl border border-slate-700 bg-slate-900 p-5">
    <h2 className="text-xl font-bold">Excluded / archive only</h2>
    <ul className="mt-3 space-y-2 text-sm">{legacy.map(([carrier,name,reason])=><li key={name}><b>{carrier}: {name}</b> — {reason}</li>)}</ul>
-   <p className="mt-4 text-sm text-amber-300">Conflict: the manuscript calls the primary lane four term products while naming five distinct offerings. Corebridge Select-a-Term has a product page, but that does not verify GFI-specific access.</p>
+   <p className="mt-4 text-sm text-amber-300">The supplied North American brochures 295NMe (4-25) and 500NM-1 (7-25) name Protection Builder IUL 2 separately from Builder Plus IUL 4. The manuscript's classification of F&G Everlast/Dynamic Accumulator as discontinued is an inference, not verified proof. Retain them pending dated current carrier/PA/GFI confirmation. A separate term count conflict in the manuscript remains open.</p>
   </section>
   <section className="rounded-xl border border-slate-700 bg-slate-900 p-5">
    <h2 className="text-xl font-bold">Public source URLs</h2>
