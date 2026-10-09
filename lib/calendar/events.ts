@@ -9,19 +9,21 @@ export async function createGoogleCalendarEvent(input: {
   attendeeEmail?: string | null
   attendeeName?: string | null
   location?: string | null
+  createMeeting?: boolean
   timeoutMs?: number
 }) {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 8_000)
 
   const res = await fetchGoogleCalendarApi(
-    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BOOKING_CONFIG.calendarId)}/events`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(BOOKING_CONFIG.calendarId)}/events?sendUpdates=all${input.createMeeting ? "&conferenceDataVersion=1" : ""}`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        ...(input.createMeeting ? { conferenceData: { createRequest: { requestId: crypto.randomUUID(), conferenceSolutionKey: { type: 'hangoutsMeet' } } } } : {}),
         summary: input.summary,
         description: input.description ?? undefined,
         location: input.location ?? undefined,

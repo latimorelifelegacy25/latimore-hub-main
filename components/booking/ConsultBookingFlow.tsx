@@ -344,7 +344,7 @@ export default function ConsultBookingFlow() {
       const response = await fetch('/api/appointments/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...normalizedBody(), slotStart: selectedSlot }),
+        body: JSON.stringify({ ...normalizedBody(), slotStart: selectedSlot, consentToContact }),
       })
       const data: BookingResponse = await response.json().catch(() => ({ ok: false }))
 

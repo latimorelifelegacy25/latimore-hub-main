@@ -60,12 +60,16 @@ const BodySchema = z.object({
   term: z.string().max(100).optional().nullable(),
   content: z.string().max(100).optional().nullable(),
 
+  meetingFormat: z.enum(['Phone', 'Zoom', 'Google Meet']).default('Phone'),
+  consentToContact: z.boolean().optional(),
   slotStart: z.string().datetime(),
 })
 
 function buildIntakeSummary(input: z.infer<typeof BodySchema>) {
   const lines = [
     'Insurance Intake Submission',
+    `Meeting format: ${input.meetingFormat}`,
+    `Contact consent: ${input.consentToContact === true ? 'Yes' : 'Not recorded'}`,
     '',
     `Name: ${input.firstName} ${input.lastName}`,
     `Email: ${input.email}`,
@@ -162,6 +166,8 @@ export async function POST(req: NextRequest) {
 
     const intakeSummary = buildIntakeSummary(input)
     const intakeMetadata = {
+      meetingFormat: input.meetingFormat,
+      consentToContact: input.consentToContact ?? null,
       mailingAddress: input.mailingAddress ?? null,
       city: input.city ?? null,
       state: input.state ?? null,
@@ -210,6 +216,8 @@ export async function POST(req: NextRequest) {
       summary: `Consultation - ${displayName}`,
       description: [
         `Consultation scheduled via website.`,
+        `Meeting format: ${input.meetingFormat}`,
+        input.meetingFormat === 'Phone' ? `Jackson will call ${input.phone}.` : input.meetingFormat === 'Zoom' ? 'Zoom consultation requested. Jackson will provide the Zoom joining details.' : null,
         `Name: ${displayName}`,
         contact.email ? `Email: ${contact.email}` : null,
         contact.phone ? `Phone: ${contact.phone}` : null,
@@ -223,6 +231,8 @@ export async function POST(req: NextRequest) {
       end: slotEnd.toISOString(),
       attendeeEmail: contact.email ?? undefined,
       attendeeName: displayName,
+      createMeeting: input.meetingFormat === 'Google Meet',
+      location: input.meetingFormat === 'Phone' ? `Phone consultation: ${input.phone}` : input.meetingFormat === 'Zoom' ? 'Zoom — joining details will be provided by Jackson' : undefined,
     })
 
     const appointment = await prisma.appointment.create({
