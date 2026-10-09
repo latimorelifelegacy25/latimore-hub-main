@@ -19,6 +19,7 @@ const navItems = [
   { href: '/admin/social-os', label: 'Social OS', icon: 'fa-shield-heart' },
   { href: '/admin/links', label: 'Portals & Links', icon: 'fa-link' },
   { href: '/admin/docs', label: 'Brochures & Docs', icon: 'fa-folder-open' },
+  { href: '/admin/carrier-reference', label: 'Carrier Verification', icon: 'fa-clipboard-check' },
   { href: '/admin/documents', label: 'Document Builder', icon: 'fa-file-pen' },
   { href: '/admin/inbox', label: 'Inbox (Intake)', icon: 'fa-inbox' },
   { href: '/admin/recruiting', label: 'Recruiting Applicants', icon: 'fa-user-plus' },
