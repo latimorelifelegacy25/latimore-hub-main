@@ -98,13 +98,13 @@ export const SERVICE_PAGES: ServicePageContent[] = [
     stats: [
       { value: "Rider", label: 'Americans Face Critical Illness', desc: "Living-benefit eligibility depends on the policy, rider definitions, diagnosis, and carrier requirements." },
       { value: '$0', label: 'Cost for Your Free Review', desc: 'No obligation. No pressure. Just clarity on what your family needs and what it costs.' },
-      { value: '5+', label: 'Top-Rated Carrier Partners', desc: 'North American, Foresters, Mutual of Omaha, Transamerica, and more — we find the best fit for you.' },
+      { value: 'Options', label: 'Independent Carrier Comparison', desc: 'Review available coverage through appropriately appointed carriers. Product availability and eligibility vary by state and case.' },
       { value: '3', label: 'Counties Served', desc: 'Schuylkill, Luzerne, and Northumberland Counties — plus virtual consultations statewide.' },
     ],
     benefitsLabel: 'Why It Matters',
     benefitsHeading: 'Two Types of Coverage. *One Right Answer* for Your Family.',
     benefits: [
-      { icon: '', title: 'Term Life Insurance', desc: 'Maximum coverage at the lowest cost. Ideal for income replacement, mortgage protection, and young families. Coverage periods from 10–30 years. Fast approval — some carriers offer no medical exam options.' },
+      { icon: '', title: 'Term Life Insurance', desc: 'Term insurance is designed to protect income or mortgage obligations for a selected period. Available terms, premiums, and underwriting options vary by insurer, policy and applicant.' },
       { icon: '', title: 'Permanent Life Insurance', desc: "Permanent life insurance may provide lifelong coverage when required premiums and policy conditions are met. Guarantees, cash-value growth, charges, and access rules vary by product and carrier." },
       { icon: '', title: 'Living Benefits Riders', desc: "Eligible living-benefit riders may allow early access to a portion of the death benefit after a qualifying diagnosis. Rider availability, eligibility, benefit amounts, and charges vary by policy." },
       { icon: '', title: 'Mortgage Protection', desc: "Coverage can be structured around a mortgage balance and payoff timeline to provide beneficiaries with funds that may help protect the household after a covered death." },
@@ -220,7 +220,7 @@ export const SERVICE_PAGES: ServicePageContent[] = [
     pullQuote:
       '"The sequence of returns matters more than the average return. One bad year at the wrong time can permanently reduce your retirement income."',
     stats: [
-      { value: '20%+', label: 'Population 65+ in Service Area', desc: "Schuylkill County's senior population is growing rapidly — all needing contract-based income strategies." },
+      { value: 'Review', label: 'Existing Family Protection', desc: "Schuylkill County's senior population is growing rapidly — all needing contract-based income strategies." },
       { value: "0%*", label: 'Market Loss Guarantee', desc: "Fixed indexed annuities do not directly participate in the stock market. Contract value is not reduced solely because an external index declines, but surrender charges, withdrawals, rider charges, and other contract terms can affect value." },
       { value: 'Life', label: "Contract-Based Income Duration", desc: "Certain annuity contracts or optional riders can provide lifetime income when contract requirements are met. Terms, costs, payout factors, and guarantees vary by product and carrier." },
       { value: "Varies", label: 'Annual Income Potential', desc: "Income percentages are contract-specific and are not equivalent to investment returns. Payout rates, rider bases, age, product terms, and withdrawals all affect the amount available." },
@@ -325,16 +325,16 @@ export const SERVICE_PAGES: ServicePageContent[] = [
     problemHeading: 'The Average Funeral Costs *$9,000–$12,000* — Most Families Aren\'t Ready',
     problemParagraphs: [
       "When a loved one passes away, the last thing a grieving family should face is a financial crisis. But without a final expense plan, that's exactly what happens. Funeral costs, medical bills, and outstanding debts can quickly overwhelm a family that's already dealing with loss.",
-      "Final Expense Insurance provides a tax-advantaged benefit that gives your family the time and resources to grieve — without financial stress. With 20%+ of Schuylkill County's population over age 65, this is one of the most urgent and underserved needs in our community.",
-      "We offer simplified-issue final expense coverage for Pennsylvania seniors ages 50–85. No medical exam required. Affordable monthly premiums. Guaranteed-issue options may be available, subject to carrier eligibility and waiting periods.",
+      "Final Expense Insurance provides a tax-advantaged benefit that gives your family the time and resources to grieve — without financial stress. For Schuylkill County families, discussing final expenses in advance can help loved ones understand intended coverage, beneficiaries, and available resources.",
+      "Some carriers offer simplified-issue or guaranteed-issue final expense policies to eligible Pennsylvania applicants. Eligibility, premiums, graded benefits, waiting periods and underwriting requirements depend on the issuing contract.",
     ],
     pullQuote:
       '"The greatest gift you can give your family is a plan. Final expense insurance is one of the simplest, most affordable ways to do that."',
     stats: [
-      { value: '$9K+', label: 'Average Funeral Cost', desc: 'The average funeral in Pennsylvania costs $9,000–$12,000 — most families have no plan to cover it.' },
-      { value: '20%+', label: 'Population 65+ in Service Area', desc: "Schuylkill County's senior population is growing — and most have no final expense coverage in place." },
-      { value: 'No', label: 'Medical Exam Required', desc: "Simplified-issue and guaranteed-issue options available — eligibility and waiting periods vary by carrier and policy." },
-      { value: '50–85', label: 'Eligible Age Range', desc: 'Final expense coverage available for Pennsylvania residents ages 50–85 — regardless of health history.' },
+      { value: 'Varies', label: 'Funeral & Memorial Costs', desc: 'Funeral and memorial costs vary by provider, arrangements and location. Request local price lists when estimating how much coverage may be useful.' },
+      { value: '20%+', label: 'Population 65+ in Service Area', desc: "Review your existing life insurance, savings, and beneficiary designations before buying additional protection." },
+      { value: 'Varies', label: 'Underwriting Requirements', desc: "Simplified-issue and guaranteed-issue options available — eligibility and waiting periods vary by carrier and policy." },
+      { value: '50–85', label: 'Eligible Age Range', desc: 'Age limits and availability depend on the insurer and policy. Certain guaranteed-issue designs may have graded death benefits.' },
     ],
     benefitsLabel: "What's Covered",
     benefitsHeading: 'Everything Your Family *Needs to Move Forward*',
@@ -342,20 +342,20 @@ export const SERVICE_PAGES: ServicePageContent[] = [
       { icon: '', title: 'Funeral & Burial Costs', desc: "Cover funeral home fees, burial or cremation costs, casket, flowers, and service expenses — so your family isn't left with the bill." },
       { icon: '', title: 'Medical Bills', desc: 'End-of-life medical expenses can be significant. Final expense coverage helps your family settle outstanding medical debt.' },
       { icon: '', title: 'Outstanding Debts', desc: "Credit cards, personal loans, and other debts don't disappear when you do. Final expense coverage helps your family close these accounts." },
-      { icon: '', title: 'No Medical Exam', desc: 'Simplified-issue underwriting means most applicants are approved based on a few health questions — no doctor visit required.' },
-      { icon: '', title: 'Affordable Premiums', desc: 'Final expense policies are designed to be affordable on a fixed income. Coverage amounts from $5,000–$25,000 with premiums starting under $30/month.' },
+      { icon: '', title: 'No Medical Exam', desc: 'Some simplified-issue products require health questions but not a medical examination. Approval is not guaranteed; insurers may use prescription and other authorized records.' },
+      { icon: '', title: 'Affordable Premiums', desc: 'Final expense policies are designed to be affordable on a fixed income. Coverage limits and premiums depend on age, health, state, insurer and current filed rates. Obtain an individual carrier-approved quote.' },
       { icon: '', title: "Guaranteed Issue Options", desc: "For those who don't qualify for simplified-issue, guaranteed-issue options are available — no health questions asked." },
     ],
     faqLabel: 'Common Questions',
     faqHeading: 'Final Expense *FAQs*',
     faqs: [
       { q: 'How much final expense coverage do I need?', a: "Most families choose between $10,000–$25,000 in coverage. We'll help you calculate the right amount based on your funeral preferences, outstanding debts, and budget." },
-      { q: 'Can I get coverage if I have health issues?', a: "Yes. We offer simplified-issue policies that require only a few health questions, and guaranteed-issue policies with no health questions at all. Most applicants qualify for some level of coverage." },
-      { q: 'How quickly does the benefit pay out?', a: 'Most final expense policies pay the death benefit within 24–48 hours of a valid claim — giving your family immediate access to funds when they need them most.' },
+      { q: 'Can I get coverage if I have health issues?', a: "Yes. We offer simplified-issue policies that require only a few health questions, and guaranteed-issue policies with no health questions at all. Eligibility and waiting periods vary; some applications may be declined." },
+      { q: 'How quickly does the benefit pay out?', a: 'Payment timing depends on the carrier, claim documentation, policy terms, contestability review and any graded-benefit period. Do not assume a 24–48-hour payout.' },
     ],
     keywordTags: ['final expense insurance Pennsylvania', 'burial insurance Pottsville PA', 'no exam life insurance seniors PA', 'affordable burial insurance near me'],
     ctaHeading: 'Give Your Family Peace of Mind',
-    ctaSubtext: 'Free Final Expense Quote · No Medical Exam · No Obligation',
+    ctaSubtext: 'Request a Personal Final Expense Review · Terms and Eligibility Vary',
   },
 
   {
