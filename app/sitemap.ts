@@ -34,10 +34,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/services/debt-strategy`,       lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.75 },
     { url: `${BASE}/services/iul-strategy`,        lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.8 },
 
-    { url: `${BASE}/velocity`,                    lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.7 },
-    { url: `${BASE}/depth`,                       lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.7 },
-    { url: `${BASE}/group`,                       lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.7 },
-    { url: `${BASE}/retirement`,                  lastModified: new Date(), changeFrequency: 'monthly',  priority: 0.75 },
     { url: `${BASE}/consult`,                     lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.8 },
     { url: `${BASE}/book-now`,                    lastModified: new Date(), changeFrequency: 'yearly',   priority: 0.8 },
 
