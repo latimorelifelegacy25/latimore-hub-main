@@ -124,7 +124,13 @@ for(let i=0;i<queued.length && i<MAX;i++) {
    const a=attrs(tag[0]); const asset=a.src||a['data-src']||''
    if(!a.alt||!a.alt.trim())finding(url,'IMAGE_ALT_MISSING','LOW','Rendered image missing descriptive alt text.',asset)
    if(asset && !/^data:/.test(asset)){
-    const full=normalize(asset,url)
+    // Image endpoints often use Next.js /_next/image?url=..., which page normalization intentionally excludes.
+    // Audit the actual rendered endpoint and preserve its sizing query.
+    let full=null
+    try {
+      const u=new URL(asset.replace(/&amp;/g,'&'),url)
+      if(allowHost(u.hostname) && ['http:','https:'].includes(u.protocol))full=u.href
+    }catch{}
     if(full)imageUrls.set(full,{page:url,alt:a.alt||''})
    }
   }
