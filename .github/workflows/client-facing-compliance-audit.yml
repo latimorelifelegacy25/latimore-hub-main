@@ -1,0 +1,87 @@
+name: Hourly client-facing compliance audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '11 * * * *'
+permissions:
+  contents: read
+  actions: read
+  issues: write
+concurrency:
+  group: client-facing-compliance-audit
+  cancel-in-progress: false
+jobs:
+  live-content-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm one-year monitoring window
+        id: window
+        run: |
+          if [[ "$(date -u +%F)" > "2027-10-10" ]]; then echo "active=false" >> "$GITHUB_OUTPUT"; else echo "active=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Recover previous hourly evidence for change detection
+        if: steps.window.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p audit-previous
+          prior=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow client-facing-compliance-audit.yml --limit 10 --json databaseId,status --jq '[.[] | select(.status=="completed")][0].databaseId // empty' 2>/dev/null || true)
+          if [[ -n "$prior" ]]; then
+            gh run download "$prior" --repo "$GITHUB_REPOSITORY" --pattern 'live-compliance-evidence-*' --dir audit-previous || true
+            old=$(find audit-previous -type f -name current.json | head -1 || true)
+            if [[ -n "$old" ]]; then cp "$old" .audit_previous.json; fi
+          fi
+      - name: Inspect LIVE pages, linked PDFs, image assets and claims
+        if: steps.window.outputs.active == 'true'
+        id: audit
+        env:
+          AUDIT_BASE_URL: https://www.latimorelifelegacy.com
+          AUDIT_OUTPUT: audit-output/current.json
+          AUDIT_PREVIOUS: .audit_previous.json
+          AUDIT_MAX_PAGES: '700'
+        run: |
+          mkdir -p audit-output
+          set +e
+          node scripts/client-facing-compliance-audit.mjs > audit-output/runner.log 2>&1
+          code=$?
+          set -e
+          cat audit-output/runner.log
+          echo "audit_exit=$code" >> "$GITHUB_OUTPUT"
+          if [[ ! -s audit-output/current.json ]]; then
+            echo '{"at":"AUDIT_PROCESS_FAILURE","coverage":{"status":"INCOMPLETE","notCovered":["Runner failed"]},"observed":{"webPages":0,"pdfs":0,"images":0,"highFindings":1,"failedRequests":1,"changes":0},"findings":[{"url":"audit-runner","code":"AUDIT_PROCESS_FAILURE","severity":"HIGH","message":"No result file"}],"changes":[],"hashes":{}}' > audit-output/current.json
+          fi
+      - name: Retain full hourly evidence
+        if: steps.window.outputs.active == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-compliance-evidence-${{ github.run_id }}
+          path: audit-output/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Store permanent daily issue with actual hourly findings
+        if: steps.window.outputs.active == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/client-facing-audit-report.mjs audit-output/current.json audit-output/comment.md
+          day=$(date -u +%F)
+          title="Client-facing Compliance Audit | $day"
+          issue=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 100 --json number,title --jq ".[] | select(.title==\"$title\") | .number" | head -1 || true)
+          if [[ -z "$issue" ]]; then
+            printf 'Daily client-facing compliance ledger for %s. Every comment below is based on actual GET requests against published pages, PDFs and images; NOT on speculative/static-only checks. GitHub Actions full JSON evidence is retained for 90 days; the daily issue ledger persists. Unconnected social, GBP, emails, and print remain explicitly unverified.\n' "$day" > audit-output/issue.md
+            url=$(gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --body-file audit-output/issue.md)
+            issue=$(basename "$url")
+          fi
+          test -n "$issue"
+          gh issue comment "$issue" --repo "$GITHUB_REPOSITORY" --body-file audit-output/comment.md
+      - name: Fail the run instead of claiming compliant when material is flagged
+        if: steps.window.outputs.active == 'true'
+        run: |
+          if [[ "${{ steps.audit.outputs.audit_exit }}" != "0" ]]; then
+            echo 'Audit findings remain open. Inspect the dated GitHub issue and full evidence artifact.'
+            exit 1
+          fi
