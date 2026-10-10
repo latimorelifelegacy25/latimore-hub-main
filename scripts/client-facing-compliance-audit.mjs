@@ -100,12 +100,16 @@ for(let i=0;i<queued.length && i<MAX;i++) {
  try {
   const response=await fetchPublic(url);statuses[url]={status:response.status,contentType:response.type}
   if(response.status!==200){finding(url,'HTTP_ERROR','HIGH','Published page could not be loaded','HTTP '+response.status);continue}
-  const h=sha(response.body);hashes[url]=h
-  if(oldHashes[url]&&oldHashes[url]!==h)contentChanges.push({url,previous:oldHashes[url],current:h})
   if(/\.pdf$/i.test(new URL(url).pathname)||/application\/pdf/.test(response.type)){pdfUrls.add(url);continue}
   if(!/html/i.test(response.type)){finding(url,'UNEXPECTED_CONTENT_TYPE','MEDIUM','Page response not HTML or PDF',response.type);continue}
   contentPages++;const html=response.body.toString('utf8')
   const plain=textOnly(html)
+  // Fingerprint what a visitor reads and can click, not volatile Next.js
+  // hydration/build scripts and transient server-rendered attributes.
+  const hrefs=[...html.matchAll(/<a\\b[^>]*\\bhref\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1].replace(/&amp;/g,'&')).sort()
+  const h=sha(Buffer.from(plain+'\nLINKS:'+hrefs.join('|')))
+  hashes[url]=h
+  if(previous.fingerprintMode==='VISIBLE_TEXT_AND_LINKS_V2'&&oldHashes[url]&&oldHashes[url]!==h)contentChanges.push({url,previous:oldHashes[url],current:h})
   const hasSourceLink=/href\s*=\s*["'][^"']*(?:census\.gov|bls\.gov|fred\.stlouisfed\.org|pa\.gov|pacodeandbulletin\.gov|limra\.com|naic\.org|doi\.pa\.gov)[^"']*["']/i.test(html)
   const claims=(plain.match(/\b\d[\d,]*(?:\.\d+)?\s*(?:%|percent|residents|households|employees|per\s+100,000|million)\b/gi)||[]).slice(0,10)
   if(claims.length&&!hasSourceLink)finding(url,'NUMERIC_CLAIMS_UNSOURCED','HIGH','Numeric claims are displayed without an authoritative public source link on the page.',claims.join(' | '),ruleRefs.false_claim)
@@ -203,7 +207,7 @@ const high=findings.filter(f=>f.severity==='HIGH')
 const newHigh=high.filter(f=>!((previous.findings||[]).some(p=>p.url===f.url&&p.code===f.code&&p.evidence===f.evidence)))
 const resolved=(previous.findings||[]).filter(p=>p.severity==='HIGH'&&!high.some(f=>f.url===p.url&&f.code===p.code))
 const result={
- schema:1,at:now,base:BASE.href,sitemapDiscovered:sitemapCount,discoveryOk,
+ schema:2,fingerprintMode:'VISIBLE_TEXT_AND_LINKS_V2',at:now,base:BASE.href,sitemapDiscovered:sitemapCount,discoveryOk,
  observed:{webPages:contentPages,pdfs:pdfScanned,images:checkedImageAssets,sourceLinksChecked:checkedSources.length,urlsWithHash:Object.keys(hashes).length,failedRequests:failures.length,highFindings:high.length,newHighFindings:newHigh.length,changes:contentChanges.length},
  coverage:{covered,notCovered:missing,status: missing.length||!discoveryOk?'INCOMPLETE':'COMPLETE'},
  findings,failures,changes:contentChanges,newHigh,resolved,hashes,pages,pdfs:categories.pdf,sourceLinks:checkedSources,standards:ruleRefs
