@@ -53,9 +53,9 @@ export const PRODUCT_CATALOG: ProductCard[] = [
     name: 'Term Life Insurance',
     category: 'life',
     productInterest: 'Term_Life',
-    tagline: 'Maximum protection. Minimum cost.',
+    tagline: 'Protect your family's income for a set period.',
     description:
-      'Affordable coverage for 10-30 years — useful for income replacement, mortgage protection, and young families building a strong financial foundation.',
+      'Coverage for a selected term (often 10–30 years), commonly considered by Schuylkill County families to help protect income and mortgage obligations. Premiums depend on underwriting, age, and policy terms.',
     bestFor: ['Young families', 'Mortgage holders', 'Income earners'],
     ctaType: 'quote',
   },
@@ -64,9 +64,9 @@ export const PRODUCT_CATALOG: ProductCard[] = [
     name: 'Whole Life Insurance',
     category: 'life',
     productInterest: 'Whole_Life',
-    tagline: 'Coverage that never expires.',
+    tagline: 'Long-term coverage, subject to policy terms.',
     description:
-      'Permanent protection with cash value features. Many designs use premiums set at issue, and applying younger and healthier can improve pricing.',
+      'Whole life can provide lifelong protection if required premiums are paid and the policy remains in force. Cash values, loans, and other features depend on the contract; compare costs and suitability before choosing.',
     bestFor: ['Final expense planning', 'Legacy building', 'Lifelong protection'],
     ctaType: 'consult',
   },
