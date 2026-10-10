@@ -26,11 +26,15 @@ export function isInternalPath(pageUrl?: string | null) {
  * Why a tracking request should not be recorded as visitor analytics, or null
  * when it is real visitor traffic.
  */
-export function getExcludedTrafficReason(req: NextRequest, pageUrl?: string | null): string | null {
+export function getExcludedTrafficReason(
+  req: NextRequest,
+  pageUrl?: string | null,
+  options: { ignoreHubHost?: boolean } = {},
+): string | null {
   if (req.cookies.get(INTERNAL_TRAFFIC_COOKIE)?.value === '1') return 'internal_browser'
 
   const host = (req.headers.get('host') || '').split(':')[0].toLowerCase()
-  if (privateHubHosts().includes(host)) return 'hub_host'
+  if (!options.ignoreHubHost && privateHubHosts().includes(host)) return 'hub_host'
 
   if (isInternalPath(pageUrl)) return 'internal_page'
 

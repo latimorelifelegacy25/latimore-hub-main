@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     providers.map(async (provider): Promise<PublishResult> => {
       try {
         if (provider === 'gbp') {
-          const trackedUrl = linkUrl ? await createGbpTrackingLink(linkUrl, { origin: req.nextUrl.origin, createdBy: auth.email }) : undefined
+          const trackedUrl = linkUrl ? await createGbpTrackingLink(linkUrl, { createdBy: auth.email }) : undefined
           const result = await publishViaOneUp('gbp', {
             caption: linkUrl && trackedUrl ? content.replaceAll(linkUrl, trackedUrl) : content,
             linkUrl: trackedUrl,
