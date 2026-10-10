@@ -106,7 +106,7 @@ for(let i=0;i<queued.length && i<MAX;i++) {
   const plain=textOnly(html)
   // Fingerprint what a visitor reads and can click, not volatile Next.js
   // hydration/build scripts and transient server-rendered attributes.
-  const hrefs=[...html.matchAll(/<a\\b[^>]*\\bhref\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1].replace(/&amp;/g,'&')).sort()
+  const hrefs=[...html.matchAll(/<a\b[^>]*\bhref\s*=\s*["']([^"']+)["']/gi)].map(m=>m[1].replace(/&amp;/g,'&')).sort()
   const h=sha(Buffer.from(plain+'\nLINKS:'+hrefs.join('|')))
   hashes[url]=h
   if(previous.fingerprintMode==='VISIBLE_TEXT_AND_LINKS_V2'&&oldHashes[url]&&oldHashes[url]!==h)contentChanges.push({url,previous:oldHashes[url],current:h})
