@@ -12,11 +12,17 @@ interface ArticleAnalyticsProps {
 }
 
 
+// gtag.js (not GTM) only processes events sent through gtag(); a plain object
+// pushed onto dataLayer is ignored, so GA4 never saw these events before.
 function pushEvent(event: Record<string, unknown>) {
   try {
-    const analyticsWindow = window as Window & { dataLayer?: Record<string, unknown>[] }
-    analyticsWindow.dataLayer = analyticsWindow.dataLayer || []
-    analyticsWindow.dataLayer.push(event)
+    if (navigator.webdriver || /(?:^|;\s*)ll_internal=1(?:;|$)/.test(document.cookie)) return
+    const { event: name, ...params } = event
+    if (typeof name !== 'string') return
+    const analyticsWindow = window as Window & { gtag?: (...args: unknown[]) => void }
+    if (typeof analyticsWindow.gtag === 'function') {
+      analyticsWindow.gtag('event', name, params)
+    }
   } catch {
     // analytics failures are silently swallowed
   }

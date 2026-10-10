@@ -78,6 +78,7 @@ function readAllFiles(): { slug: string; data: Record<string, unknown>; content:
       const { data, content } = matter(raw)
       return { slug, data: data as Record<string, unknown>, content }
     })
+    .filter(({ data }) => data.draft !== true && typeof data.title === 'string' && data.title.trim() !== '')
 }
 
 export function getAllPosts(): BlogPost[] {

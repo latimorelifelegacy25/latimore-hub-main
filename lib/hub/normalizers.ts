@@ -187,7 +187,13 @@ export function normalizeProductInterest(value?: string | null): ProductInterest
 }
 
 export function normalizeEventType(value?: string | null): EventType {
-  return EVENT_MAP[normalizeKey(value)] ?? 'page_view'
+  const key = normalizeKey(value)
+  const mapped = EVENT_MAP[key]
+  if (!mapped && key) {
+    // Unmapped names still fall back to page_view for compatibility, but are now visible.
+    console.warn(`[normalizeEventType] Unmapped event type "${value}" recorded as page_view`)
+  }
+  return mapped ?? 'page_view'
 }
 
 const CAMPAIGN_MAP: Record<string, string> = {

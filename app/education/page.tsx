@@ -331,7 +331,7 @@ export default function EducationHubPage() {
           <p style={{ color: muted, fontSize: '0.94rem', marginBottom: 24, maxWidth: 480, margin: '0 auto 24px' }}>
             28 articles covering life insurance basics, retirement strategies, living benefits, estate planning, and more.
           </p>
-          <Link href="/education/blog" style={{ display: 'inline-block', background: navy, color: '#fff', padding: '12px 28px', borderRadius: 8, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>
+          <Link href="/blog" style={{ display: 'inline-block', background: navy, color: '#fff', padding: '12px 28px', borderRadius: 8, fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none' }}>
             Browse All Articles →
           </Link>
         </div>

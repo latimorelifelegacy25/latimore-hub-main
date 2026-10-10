@@ -26,7 +26,7 @@ export default function BlogSidebar({ categories, currentCategory, currentTag }:
         <ul className="sidebar-category-list">
           <li>
             <Link
-              href="/education/blog"
+              href="/blog"
               className={!currentCategory && !currentTag ? 'active' : ''}
             >
               <span>All Articles</span>
@@ -36,7 +36,7 @@ export default function BlogSidebar({ categories, currentCategory, currentTag }:
           {categories.map((cat) => (
             <li key={cat}>
               <Link
-                href={`/education/blog?category=${encodeURIComponent(cat)}`}
+                href={`/blog?category=${encodeURIComponent(cat)}`}
                 className={currentCategory === cat ? 'active' : ''}
               >
                 <span>{cat}</span>

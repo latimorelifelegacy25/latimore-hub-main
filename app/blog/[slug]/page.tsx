@@ -5,7 +5,7 @@ import { marked } from 'marked'
 import { getAllPosts, getPostBySlug, getPostSlugs } from '@/lib/mdx'
 import ArticleAnalytics from '@/app/_components/article-analytics'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com'
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com'
 
 const TRACK_COLOR: Record<string, string> = {
   'Young Families': '#2d5f8a',
@@ -16,6 +16,14 @@ const TRACK_BG: Record<string, string> = {
   'Young Families': '#e8f1f8',
   'Pre-Retirees': '#e8f2ec',
   'School Districts': '#f2ebe5',
+}
+
+// Search engines truncate around 160 characters; cut at a word boundary.
+function metaDescription(value: string | undefined, max = 158): string {
+  const text = (value ?? '').replace(/\s+/g, ' ').trim()
+  if (text.length <= max) return text
+  const cut = text.slice(0, max - 1)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:.\-—]+$/, '')}…`
 }
 
 function escapeHtml(value: string) {
@@ -131,12 +139,12 @@ export async function generateMetadata({
     const post = getPostBySlug(slug)
     return {
       title: post.title,
-      description: post.excerpt,
+      description: metaDescription(post.description ?? post.excerpt),
       authors: [{ name: post.author }],
       alternates: { canonical: `/blog/${slug}` },
       openGraph: {
         title: post.title,
-        description: post.excerpt,
+        description: metaDescription(post.description ?? post.excerpt),
         url: `${BASE_URL}/blog/${slug}`,
         type: 'article',
         publishedTime: post.date,
@@ -146,7 +154,7 @@ export async function generateMetadata({
       twitter: {
         card: 'summary_large_image',
         title: post.title,
-        description: post.excerpt,
+        description: metaDescription(post.description ?? post.excerpt),
       },
     }
   } catch {
@@ -182,7 +190,7 @@ export default async function ArticlePage({
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: post.title,
-    description: post.excerpt,
+    description: metaDescription(post.description ?? post.excerpt),
     author: {
       '@type': 'Person',
       name: post.author,
@@ -302,6 +310,23 @@ export default async function ArticlePage({
           {...(post.county ? { 'data-county': post.county } : {})}
         >
           <article className="prose-article" dangerouslySetInnerHTML={{ __html: htmlContent }} />
+
+          {/* Product disclosure shown on every article */}
+          <aside
+            aria-label="Important disclosures"
+            className="mt-10 border-t border-[#e2dcd4] pt-6 text-[12px] leading-relaxed text-[#6b6460]"
+          >
+            <strong className="text-[#2C3E50]">Important disclosures.</strong> This article is for
+            educational purposes only and is not personalized financial, tax, legal, or insurance
+            advice. Product features, benefits, and availability vary by carrier, state, age, and
+            health, and are subject to underwriting approval. Guarantees are backed by the
+            claims-paying ability of the issuing insurance company. Indexed products are not
+            investments in the market, and illustrated values are not guaranteed. Policy loans and
+            withdrawals reduce cash value and death benefit and may have tax consequences if the
+            policy lapses or is a modified endowment contract. Living benefit riders have
+            conditions and may reduce the death benefit. Consult a qualified tax or legal
+            professional about your situation.
+          </aside>
 
           {/* CTA box */}
           {post.cta && (
