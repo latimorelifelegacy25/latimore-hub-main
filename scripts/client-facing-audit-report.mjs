@@ -23,4 +23,10 @@ if(existsSync('audit-output/corrections.json')){
  if(existsSync('audit-output/correction-pr-url.txt')) s+='Prepared code change / PR: '+readFileSync('audit-output/correction-pr-url.txt','utf8')+'\n'
  s+='**Closure rule:** Count FIXED only when a subsequent live crawl proves the flagged published text is gone and the replacement is reachable. PR creation alone is NOT a completed correction.\n'
 }
+
+s+='\n### Permanent hourly inspected-asset register\n'
+s+='The entries below are ACTUALLY FETCHED PUBLIC URLs with visitor-visible text/link hashes for HTML, asset-byte hashes for images/PDFs. This issue preserves inspection evidence beyond the shorter Actions artifact retention window.\n'
+for(const [url,hash] of Object.entries(r.hashes||{}).sort(([a],[b])=>a.localeCompare(b)))s+='- '+url+' | SHA-256 '+hash+'\n'
+s+='\n### Unreachable and failed inspections\n'
+for(const failure of (r.failures||[]))s+='- '+failure.url+' | '+failure.error+'\n'
 writeFileSync(process.argv[3]||'audit-output/comment.md',s)
