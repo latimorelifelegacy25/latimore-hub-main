@@ -93,7 +93,7 @@ for (let i=0;i<sitemapUrls.length && i<12;i++) {
 if(!discoveryOk)finding(BASE.href,'SITEMAP_UNAVAILABLE','HIGH','Website sitemap could not be verified; audit coverage is incomplete.','Sitemap discovery failed.')
 queue(BASE.href);for(const route of ['/products','/services','/about','/contact','/book','/pahs','/blog','/education','/schuylkill','/faq','/legacy-checkup'])queue(route,BASE.href)
 const pages=[]
-const pdfUrls=new Set(), imageUrls=new Map()
+const pdfUrls=new Set(), imageUrls=new Map(), sourceLinks=new Set()
 for(let i=0;i<queued.length && i<MAX;i++) {
  const url=queued[i];if(visited.has(url))continue
  visited.add(url)
@@ -141,12 +141,25 @@ for(let i=0;i<queued.length && i<MAX;i++) {
    try{
     const target=new URL(raw,url);if(/\.pdf(?:$|\?)/i.test(target.pathname)){if(allowHost(target.hostname))pdfUrls.add(target.href)}
     else if(allowHost(target.hostname)&&target.origin===BASE.origin)queue(target.href)
-    else if(/(?:gov|edu)$/.test(target.hostname.split('.').slice(-1)[0])||/(fred.stlouisfed.org|limra.com|naic.org)/.test(target.hostname))outboundPublicSourceLinks++
+    else if(/(?:gov|edu)$/.test(target.hostname.split('.').slice(-1)[0])||/(fred.stlouisfed.org|limra.com|naic.org)/.test(target.hostname)){outboundPublicSourceLinks++;sourceLinks.add(target.href)}
    }catch{}
   }
   pages.push({url,hash:h,bytes:response.body.length,title:(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)||[])[1]?.replace(/\s+/g,' ').trim()||'',textLength:plain.length,numericClaims:claims,publicSourceLinks:outboundPublicSourceLinks,images:imgTags.length})
  }catch(e){const err=String(e).slice(0,230);failures.push({url,error:err});finding(url,'FETCH_FAILED','HIGH','Cannot establish published content from live website.',err)}
 }
+// Check public evidence LINKS themselves, not just the presence of something that looks like a citation.
+const checkedSources=[]
+for(const u of [...sourceLinks].slice(0,120)){
+ const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),12000)
+ try {
+  const response=await fetch(u,{method:'HEAD',redirect:'follow',signal:ctrl.signal,headers:{'user-agent':'LatimoreOwnerContentComplianceAudit/1.0'}})
+  checkedSources.push({url:u,status:response.status})
+  if(response.status===404||response.status===410)finding(u,'SOURCE_LINK_BROKEN','HIGH','Authoritative public source link returns a missing-page status.','HTTP '+response.status)
+  else if(response.status>=400)finding(u,'SOURCE_LINK_UNVERIFIED','MEDIUM','Source did not respond successfully to HEAD; may require manual browser validation.','HTTP '+response.status)
+ }catch(e){checkedSources.push({url:u,status:'unverified'});finding(u,'SOURCE_LINK_UNVERIFIED','MEDIUM','Could not independently confirm the public source URL.',String(e).slice(0,130))}
+ finally {clearTimeout(t)}
+}
+if(sourceLinks.size>120)finding(BASE.href,'SOURCE_LINK_CHECK_LIMIT','MEDIUM','Public source URLs exceeded the per-run check limit.',String(sourceLinks.size))
 for(const url of [...pdfUrls].slice(0,200)){
  if(hashes[url])continue
  try{
@@ -191,9 +204,9 @@ const newHigh=high.filter(f=>!((previous.findings||[]).some(p=>p.url===f.url&&p.
 const resolved=(previous.findings||[]).filter(p=>p.severity==='HIGH'&&!high.some(f=>f.url===p.url&&f.code===p.code))
 const result={
  schema:1,at:now,base:BASE.href,sitemapDiscovered:sitemapCount,discoveryOk,
- observed:{webPages:contentPages,pdfs:pdfScanned,images:checkedImageAssets,urlsWithHash:Object.keys(hashes).length,failedRequests:failures.length,highFindings:high.length,newHighFindings:newHigh.length,changes:contentChanges.length},
+ observed:{webPages:contentPages,pdfs:pdfScanned,images:checkedImageAssets,sourceLinksChecked:checkedSources.length,urlsWithHash:Object.keys(hashes).length,failedRequests:failures.length,highFindings:high.length,newHighFindings:newHigh.length,changes:contentChanges.length},
  coverage:{covered,notCovered:missing,status: missing.length||!discoveryOk?'INCOMPLETE':'COMPLETE'},
- findings,failures,changes:contentChanges,newHigh,resolved,hashes,pages,pdfs:categories.pdf,standards:ruleRefs
+ findings,failures,changes:contentChanges,newHigh,resolved,hashes,pages,pdfs:categories.pdf,sourceLinks:checkedSources,standards:ruleRefs
 }
 await mkdir(new URL('.', 'file://'+process.cwd()+'/'+outFile).pathname,{recursive:true}).catch(()=>{})
 await writeFile(outFile,JSON.stringify(result,null,2))
