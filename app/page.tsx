@@ -59,7 +59,7 @@ export default function HomePage() {
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA · MS', '560K+ Residents in Our Service Area'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA · MPA', 'Serving Schuylkill, Luzerne & Northumberland Counties'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -205,14 +205,14 @@ export default function HomePage() {
         <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.6rem,2.5vw,2.2rem)', color: navy, margin: '0 0 1rem' }}>Proudly Serving Central Pennsylvania</h2>
           <p style={{ fontSize: '1.1rem', color: '#475467', marginBottom: '2rem' }}>
-            Serving a three-county Central Pennsylvania region of more than 560,000 residents.
+            Serving Schuylkill, Luzerne, and Northumberland Counties with local, education-first protection reviews.
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginTop: '2rem' }} className="stats-grid">
             {[
-              { county: 'Schuylkill County', population: '140K', highlight: 'Pottsville, Tamaqua, Schuylkill Haven' },
-              { county: 'Luzerne County', population: '325K', highlight: 'Wilkes-Barre, Hazleton, Kingston' },
-              { county: 'Northumberland County', population: '91K', highlight: 'Sunbury, Shamokin, Milton' }
+              { county: 'Schuylkill County', population: 'Coal Region', highlight: 'Pottsville, Tamaqua, Schuylkill Haven' },
+              { county: 'Luzerne County', population: 'Northeast PA', highlight: 'Wilkes-Barre, Hazleton, Kingston' },
+              { county: 'Northumberland County', population: 'Central PA', highlight: 'Sunbury, Shamokin, Milton' }
             ].map(({ county, population, highlight }) => (
               <div key={county} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '1.5rem' }}>
                 <h4 style={{ color: navy, fontSize: '1.15rem', marginBottom: '0.5rem' }}>{county}</h4>
