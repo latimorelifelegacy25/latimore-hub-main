@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import {readFileSync,writeFileSync} from 'node:fs'
+import {readFileSync,writeFileSync,existsSync} from 'node:fs'
 const r=JSON.parse(readFileSync(process.argv[2]||'audit-output/current.json','utf8'))
 const m=r.observed||{}
 let s='# Hourly client-facing audit — '+(r.at||new Date().toISOString())+'\n\n'
@@ -12,4 +12,15 @@ s+='\n### Changed published asset fingerprints (top 40)\n'
 for(const c of (r.changes||[]).slice(0,40))s+='- '+c.url+' SHA256 '+c.current+'\n'
 s+='\n### Channels NOT audited\n'
 for(const x of (r.coverage?.notCovered||[]))s+='- '+x+'\n'
+writeFileSync(process.argv[3]||'audit-output/comment.md',s)
+
+if(existsSync('audit-output/corrections.json')){
+ const m=JSON.parse(readFileSync('audit-output/corrections.json','utf8'))
+ s+='\n### CORRECTIVE ACTIONS (not merely flags)\n'
+ s+='Source files actually patched: '+(m.sourceFilesChanged?.length||0)+'; exact safe text replacements: '+(m.patched||0)+'; claims with proposed replacement/review: '+(m.proposed?.length||0)+'; open live correction obligations: '+(m.liveFindingsNeedingAction?.length||0)+'\n'
+ for(const p of (m.patches||[]).slice(0,25))s+='- PATCHED SOURCE — '+p.path+' — before: "'+p.before+'" → after: "'+p.after+'" — **NOT LIVE-VERIFIED**\n'
+ for(const q of (m.proposed||[]).slice(0,20))s+='- REVIEW REQUIRED — '+q.path+':'+q.line+' — '+q.rule+' — '+q.correction+'\n'
+ if(existsSync('audit-output/correction-pr-url.txt')) s+='Prepared code change / PR: '+readFileSync('audit-output/correction-pr-url.txt','utf8')+'\n'
+ s+='**Closure rule:** Count FIXED only when a subsequent live crawl proves the flagged published text is gone and the replacement is reachable. PR creation alone is NOT a completed correction.\n'
+}
 writeFileSync(process.argv[3]||'audit-output/comment.md',s)

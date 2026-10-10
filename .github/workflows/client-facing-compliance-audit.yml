@@ -4,9 +4,10 @@ on:
   schedule:
     - cron: '11 * * * *'
 permissions:
-  contents: read
+  contents: write
   actions: read
   issues: write
+  pull-requests: write
 concurrency:
   group: client-facing-compliance-audit
   cancel-in-progress: false
@@ -53,6 +54,58 @@ jobs:
           echo "audit_exit=$code" >> "$GITHUB_OUTPUT"
           if [[ ! -s audit-output/current.json ]]; then
             echo '{"at":"AUDIT_PROCESS_FAILURE","coverage":{"status":"INCOMPLETE","notCovered":["Runner failed"]},"observed":{"webPages":0,"pdfs":0,"images":0,"highFindings":1,"failedRequests":1,"changes":0},"findings":[{"url":"audit-runner","code":"AUDIT_PROCESS_FAILURE","severity":"HIGH","message":"No result file"}],"changes":[],"hashes":{}}' > audit-output/current.json
+          fi
+      - name: Generate source corrections and maintain a reviewable patch
+        if: steps.window.outputs.active == 'true'
+        id: corrections
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          # Reuse a single review branch while one exists, rather than creating
+          # hourly duplicates of the same finding.
+          head=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json headRefName,title --jq '[.[] | select(.title | startswith("Client-facing auto-corrections"))][0].headRefName // empty' || true)
+          if [[ -n "$head" ]]; then
+            git fetch origin "$head" || true
+            if git show-ref --verify --quiet "refs/remotes/origin/$head"; then
+              git checkout -b "$head" --track "origin/$head"
+            else
+              head=""
+            fi
+          fi
+          node scripts/client-facing-audit-remediate.mjs audit-output/current.json audit-output/corrections.json
+          if [[ -z "$head" ]]; then head="compliance/client-copy-$(date -u +%Y%m%d)-${GITHUB_RUN_ID}"; git switch -c "$head"; fi
+          git config user.name "latimore-compliance-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- app lib/products
+          if git diff --cached --quiet; then
+            echo "changes=0" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "Correct evidence-independent client-facing copy"
+            if git push -u origin "$head"; then
+              url=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --head "$head" --json url --jq '.[0].url // empty')
+              if [[ -z "$url" ]]; then
+                cat > audit-output/pr-body.md <<'PRBODY'
+          Automated client-facing correction proposal generated from real published-page audit.
+          - Only exact, allowlisted, conservative copy edits are applied to code.
+          - Insurance terms, suitability, tax, carrier-specific benefit claims, and rates **require human/carrier review**.
+          - Run typecheck/build, review source evidence, merge, and verify the revised page is live before counting anything as FIXED.
+          - Attached audit artifact contains actual URL-by-URL findings and before/after patch manifest.
+          PRBODY
+                url=$(gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$head" --title "Client-facing auto-corrections — published audit" --body-file audit-output/pr-body.md 2>audit-output/pr-error.log || true)
+              fi
+              echo "changes=1" >> "$GITHUB_OUTPUT"
+              if [[ -n "$url" ]]; then
+                echo "pr_url=$url" >> "$GITHUB_OUTPUT"
+                printf '%s\n' "$url" > audit-output/correction-pr-url.txt
+              else
+                printf 'Prepared correction branch %s but PR creation needs GitHub Actions setting Allow GitHub Actions to create pull requests. See audit-output/pr-error.log.\n' "$head" | tee audit-output/correction-pr-url.txt
+              fi
+            else
+              echo 'Correction patch committed locally but cannot push. Inspect Actions permissions.' > audit-output/correction-pr-url.txt
+              echo "changes=1" >> "$GITHUB_OUTPUT"
+            fi
           fi
       - name: Retain full hourly evidence
         if: steps.window.outputs.active == 'true'
