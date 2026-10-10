@@ -53,7 +53,7 @@ export const PRODUCT_CATALOG: ProductCard[] = [
     name: 'Term Life Insurance',
     category: 'life',
     productInterest: 'Term_Life',
-    tagline: 'Protect your family's income for a set period.',
+    tagline: "Protect your family's income for a set period.",
     description:
       'Coverage for a selected term (often 10–30 years), commonly considered by Schuylkill County families to help protect income and mortgage obligations. Premiums depend on underwriting, age, and policy terms.',
     bestFor: ['Young families', 'Mortgage holders', 'Income earners'],
