@@ -222,7 +222,7 @@ export default function PahsLeadForm() {
                 <input
                   value={lead.promo}
                   onChange={(e) => updateLead('promo', e.target.value)}
-                  placeholder="ID#2777749"
+                  placeholder="Only if you received a code"
                 />
               </label>
 
