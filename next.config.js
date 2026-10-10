@@ -50,6 +50,22 @@ const nextConfig = {
         permanent: true,
       },
       { source: '/home', destination: '/', permanent: true },
+      // Duplicate articles merged into a single canonical post.
+      ...[
+        ['term-whole-life-iul-plain-english', 'term-vs-whole-life-vs-iul'],
+        ['gregory-moyer-story-preparedness', 'gregory-w-moyer-story'],
+        ['key-person-insurance-pennsylvania-schools', 'key-person-insurance-school-districts'],
+        ['fixed-annuities-vs-iul-retirement', 'fixed-annuities-vs-iuls-after-55'],
+        ['hospital-stay-wiped-out-savings-living-benefits', 'one-hospital-stay-wiped-out-savings'],
+        ['what-happens-family-dies-mortgage', 'what-happens-family-mortgage'],
+        ['financial-moves-parents-putting-off', 'five-financial-moves-putting-off'],
+      ].flatMap(([from, to]) => [
+        { source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true },
+        { source: `/education/blog/${from}`, destination: `/blog/${to}`, permanent: true },
+      ]),
+      // /blog is the single canonical article URL space (the RSS feed stays put).
+      { source: '/education/blog', destination: '/blog', permanent: true },
+      { source: '/education/blog/:slug((?!rss\\.xml$)[^/]+)', destination: '/blog/:slug', permanent: true },
       // The Marketing Command Center is an internal tool; it lives behind admin auth now.
       { source: '/marketing', destination: '/admin/marketing/command-center', permanent: false },
       { source: '/pahs/index.html', destination: '/pahs', permanent: true },

@@ -37,7 +37,7 @@ export function NewBlogCard({ post }: { post: BlogPost }) {
       : post.description
 
   return (
-    <Link href={`/education/blog/${post.slug}`} className="blog-card">
+    <Link href={`/blog/${post.slug}`} className="blog-card">
       {post.image ? (
         <Image
           src={post.image}

@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
 
-const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://latimorelifelegacy.com'
+const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com'
 
 function escape(str: string): string {
   return str
@@ -18,7 +18,7 @@ export async function GET() {
 
   const items = posts
     .map((post) => {
-      const link = `${BASE}/education/blog/${post.slug}`
+      const link = `${BASE}/blog/${post.slug}`
       return `
     <item>
       <title>${escape(post.title)}</title>
@@ -36,7 +36,7 @@ export async function GET() {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Latimore Life &amp; Legacy — Financial Education Blog</title>
-    <link>${BASE}/education/blog</link>
+    <link>${BASE}/blog</link>
     <description>Plain-language financial guidance on life insurance, annuities, estate planning, and more.</description>
     <language>en-us</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>

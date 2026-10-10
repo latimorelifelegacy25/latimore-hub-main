@@ -55,7 +55,7 @@ export const NAV_MENU: readonly NavMenuItem[] = [
     label: 'Education',
     children: [
       { href: '/education', label: 'Education Center' },
-      { href: '/education/blog', label: 'Articles' },
+      { href: '/blog', label: 'Articles' },
       { href: '/blog', label: 'Blog' },
       { href: '/faq', label: 'FAQ' },
       { href: '/schuylkill', label: 'Schuylkill County' },

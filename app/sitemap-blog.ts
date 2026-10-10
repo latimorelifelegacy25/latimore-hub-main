@@ -1,4 +1,4 @@
-import { getAllPosts } from '@/lib/blog'
+import { getAllPosts } from '@/lib/mdx'
 import type { MetadataRoute } from 'next'
 
 const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy.com'
@@ -6,8 +6,8 @@ const BASE = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://www.latimorelifelegacy
 export function getBlogSitemapEntries(): MetadataRoute.Sitemap {
   const posts = getAllPosts()
   return posts.map((post) => ({
-    url: `${BASE}/education/blog/${post.slug}`,
-    lastModified: new Date(post.updated ?? post.date),
+    url: `${BASE}/blog/${post.slug}`,
+    lastModified: new Date(post.date),
     changeFrequency: 'monthly' as const,
     priority: post.featured ? 0.9 : 0.7,
   }))
