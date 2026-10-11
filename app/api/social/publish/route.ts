@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger'
 import { getSocialConnection } from '@/lib/social'
 import { decryptToken } from '@/lib/crypto'
 import { evaluatePublishGate, publishBlockedBody } from '@/lib/marketing/approval-gate'
-import { createGbpTrackingLink } from '@/lib/tracking/social-link'
+import { createSocialTrackingLink } from '@/lib/tracking/social-link'
 import { publishViaOneUp } from '@/lib/social/oneup-publisher'
 import { auditGate } from '@/lib/marketing/approval-gate-assets'
 
@@ -45,10 +45,16 @@ export async function POST(req: NextRequest) {
   const results: PublishResult[] = await Promise.all(
     providers.map(async (provider): Promise<PublishResult> => {
       try {
+        const trackedUrl = linkUrl && provider !== 'twitter'
+          ? await createSocialTrackingLink(provider, linkUrl, { createdBy: auth.email })
+          : linkUrl
+        const linkedContent = linkUrl && trackedUrl ? content.replaceAll(linkUrl, trackedUrl) : content
+        const caption = trackedUrl && !linkedContent.includes(trackedUrl)
+          ? `${linkedContent}\n\n${trackedUrl}`
+          : linkedContent
         if (provider === 'gbp') {
-          const trackedUrl = linkUrl ? await createGbpTrackingLink(linkUrl, { createdBy: auth.email }) : undefined
           const result = await publishViaOneUp('gbp', {
-            caption: linkUrl && trackedUrl ? content.replaceAll(linkUrl, trackedUrl) : content,
+            caption,
             linkUrl: trackedUrl,
             mediaUrls: imageUrl ? [imageUrl] : [],
           })
@@ -67,14 +73,14 @@ export async function POST(req: NextRequest) {
               const res = await fetch(`https://graph.facebook.com/v19.0/${conn.externalId}/photos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: imageUrl, caption: content, access_token: accessToken }),
+                body: JSON.stringify({ url: imageUrl, caption, access_token: accessToken }),
               })
               if (!res.ok) return { provider, ok: false, error: `Facebook photo publish failed: ${res.status}` }
               const data = await res.json()
               return { provider, ok: true, postId: data.post_id ?? data.id }
             }
-            const payload: Record<string, string> = { message: content, access_token: accessToken }
-            if (linkUrl) payload.link = linkUrl
+            const payload: Record<string, string> = { message: linkedContent, access_token: accessToken }
+            if (trackedUrl) payload.link = trackedUrl
             const res = await fetch(`https://graph.facebook.com/v19.0/${conn.externalId}/feed`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -90,7 +96,7 @@ export async function POST(req: NextRequest) {
             const createRes = await fetch(`https://graph.facebook.com/v19.0/${conn.externalId}/media`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ image_url: imageUrl, caption: content, access_token: accessToken }),
+              body: JSON.stringify({ image_url: imageUrl, caption, access_token: accessToken }),
             })
             if (!createRes.ok) return { provider, ok: false, error: `Instagram media creation failed: ${createRes.status}` }
             const { id: creationId } = await createRes.json()
@@ -110,7 +116,7 @@ export async function POST(req: NextRequest) {
               lifecycleState: 'PUBLISHED',
               specificContent: {
                 'com.linkedin.ugc.ShareContent': {
-                  shareCommentary: { text: content },
+                  shareCommentary: { text: caption },
                   shareMediaCategory: 'NONE',
                 },
               },

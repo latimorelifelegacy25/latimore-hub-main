@@ -1,0 +1,1325 @@
+[
+  {
+    "file": "401k-retirement-risk-asset-protection.mdx",
+    "line": 46,
+    "text": "Social Security was never designed to be a family's only retirement income. The Social Security Administration estimated the average monthly retired-worker benefit for January 2026 at about $2,071 — roughly $24,852 per year. For a household accustomed to $60,000–$80,000 in annual income, that is a significant shortfall.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "annuities-game-changer-schuylkill-retirees.mdx",
+    "line": 39,
+    "text": "  <Stat value=\"$464B\" label=\"in annuity sales across the U.S. in 2025 alone\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "annuities-game-changer-schuylkill-retirees.mdx",
+    "line": 40,
+    "text": "  <Stat value=\"4.8%\" label=\"of U.S. households actually own an annuity\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "annuities-game-changer-schuylkill-retirees.mdx",
+    "line": 43,
+    "text": "<p className=\"text-sm text-gray-500 mt-2\">Sources: [LIMRA U.S. Individual Annuity Sales Survey](https://www.limra.com/en/newsroom/news-releases/2026/limra-final-u.s.-retail-annuity-sales-set-new-sales-high-totaling-%24464.1-billion-in-2025/) ($464.1B); [Annuity Industry Statistics 2026](https://coinlaw.io/annuity-industry-statistics/) (4.8% ownership).</p>",
+    "links": [
+      "https://www.limra.com/en/newsroom/news-releases/2026/limra-final-u.s.-retail-annuity-sales-set-new-sales-high-totaling-%24464.1-billion-in-2025/",
+      "https://coinlaw.io/annuity-industry-statistics/"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "annuities-game-changer-schuylkill-retirees.mdx",
+    "line": 71,
+    "text": "1. LIMRA, [U.S. Individual Annuity Sales Survey — Total Annuity Sales in 2025 Rose to a Record $464B](https://www.limra.com/en/newsroom/news-releases/2026/limra-final-u.s.-retail-annuity-sales-set-new-sales-high-totaling-%24464.1-billion-in-2025/) — U.S. retail annuity sales totaled $464.1 billion in 2025, up 7% from 2024, marking the fourth consecutive year of record sales.",
+    "links": [
+      "https://www.limra.com/en/newsroom/news-releases/2026/limra-final-u.s.-retail-annuity-sales-set-new-sales-high-totaling-%24464.1-billion-in-2025/"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "annuities-game-changer-schuylkill-retirees.mdx",
+    "line": 73,
+    "text": "2. [Annuity Industry Statistics 2026](https://coinlaw.io/annuity-industry-statistics/) (citing LIMRA and ACLI data) — approximately 6.3 million U.S. households own at least one annuity, roughly 4.8% of all 131.3 million U.S. households.",
+    "links": [
+      "https://coinlaw.io/annuity-industry-statistics/"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 18,
+    "text": "The hesitation isn't usually born from a lack of care, but from a profound disconnect between perception and reality. Data reveals that 72% of people overestimate the true cost of coverage, and a staggering 54% of consumers admit they are essentially \"guessing\" at the price. When we rely on gut instinct rather than financial literacy, we leave our families—and our local communities—vulnerable.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 22,
+    "text": "  <Stat value=\"72%\" label=\"Overestimate the true cost of coverage\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 23,
+    "text": "  <Stat value=\"54%\" label=\"Admit they are essentially guessing at the price\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 24,
+    "text": "  <Stat value=\"9%\" label=\"Schuylkill County adults told they have diabetes\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 43,
+    "text": "While 76% of Americans currently lack a will, policyholders can use LawAssure to bridge that gap. This online service allows you to create customized wills, powers of attorney, and even living trusts and pet trusts—critical documents that ensure your wishes are respected.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 47,
+    "text": "- **Competitive Scholarships:** Education is a cornerstone of any legacy. Member families can apply for hundreds of tuition scholarships worth up to $2,500 annually, with the ability to reapply for up to three additional years. This is a game-changer for local students looking to attend Penn State Schuylkill, Alvernia University, or other regional programs.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 48,
+    "text": "- **Community Grants:** For those driven by a \"human-first\" mission, Foresters provides up to $3,400 annually to support local volunteerism and immediate needs. This includes grants for organizing community clean-ups or supporting local youth initiatives like Schuylkill Community Action's Summer BLAST program.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 50,
+    "text": "## 3. A New Lifeline for the 9% of Schuylkill County Living with Diabetes",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 52,
+    "text": "For decades, a diagnosis of Type 1 or Type 2 diabetes was often a \"hard no\" from insurance carriers. Today, the landscape has shifted. In Schuylkill County, where an estimated 9% of adults have been told they have diabetes, this is a critical issue. The county currently ranks among the least healthy in Pennsylvania for overall health outcomes, making accessible coverage even more essential.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 54,
+    "text": "Through products like Strong Foundation and Live Well Plus, Foresters has introduced groundbreaking updates that remove the traditional \"fear of the needle\" or rejection. In a move that challenges old industry norms, individuals with HbA1c readings as high as 10.9% may now qualify for coverage. This applies to both Type 1 and Type 2 diabetes, providing a vital lifeline to a demographic that has been historically underserved.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 59,
+    "text": "Living with diabetes no longer means an automatic \"no\" from life insurance. Individuals with HbA1c readings as high as 10.9%—Type 1 or Type 2—may now qualify, often through a streamlined path with no blood tests or invasive exams.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 66,
+    "text": "When a claim is paid, Foresters pays an additional 1% of the face amount (up to a maximum of $100,000) to a designated 501(c)(3) organization of the owner's choice. This is not a redistribution of funds; it is an additional gift from the insurer that does not reduce the beneficiary's payout.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 76,
+    "text": "- **Ambulance Transportation:** $50",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 77,
+    "text": "- **Emergency Room Examination:** $100",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 78,
+    "text": "- **Hospital Stay:** $100 per day (for up to 5 days)",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "beyond-death-benefit-modern-life-insurance-schuylkill.mdx",
+    "line": 80,
+    "text": "With a $5,000 lifetime family limit, this feature acts as a vital buffer during the first 72 hours of recovery, helping families navigate the immediate costs of a disaster.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 11,
+    "text": "seoDescription: \"Learn how a Juvenile Indexed Universal Life (IUL) strategy provides permanent market-linked growth with a 0% floor for local children.\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 28,
+    "text": "### Market-Linked Acceleration with a Contractual 0% Floor",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 32,
+    "text": "But if the stock market experiences a major correction or enters a prolonged bear market, your policy automatically triggers a strict **0% contractual floor**. The floor may prevent negative index interest for a crediting period. Policy expenses, loan costs, and surrender charges can still reduce cash value.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 42,
+    "text": "According to verified data from the **U.S. Census Bureau**, the median household income across Schuylkill County scales at **$68,313**, while per-capita income sit at **$34,954**. Because local earnings sit slightly lower than the state benchmarks, our community's families must make every single dollar pull double-duty.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 45,
+    "text": "  <Stat label=\"Schuylkill County median household income\" value=\"$68,313\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 46,
+    "text": "  <Stat label=\"Per-capita income in Schuylkill County\" value=\"$34,954\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "building-generational-bridges-juvenile-iul-schuylkill.mdx",
+    "line": 89,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 29,
+    "text": "Unlike complex corporate policies or long-term investments, Final Expense is simple, permanent whole life insurance. It features smaller, budget-friendly face amounts (typically **$5,000 to $35,000**) designed specifically to cover immediate end-of-life obligations like burial services, cremations, lingering medical deductibles, and local utility bills.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 35,
+    "text": "Additionally, we have a large senior population, with over **20% of our neighbors aged 65 or older**. While we love our retirement years in the Coal Region, local statistics show that economic margins are growing tighter. According to recent data from **USAFacts**, the poverty rate for adults aged 65 and older in Schuylkill County has climbed to **9.8%**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 47,
+    "text": "The [NFDA reported](https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral) 2023 national medians of **$8,300** for a funeral with viewing and burial and **$6,280** with cremation. Ask local funeral homes for itemized prices; cemetery charges may be additional.",
+    "links": [
+      "https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 50,
+    "text": "  <Stat value=\"$6,280\" label=\"average cost of a full-service cremation in Pennsylvania\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 51,
+    "text": "  <Stat value=\"$34,954\" label=\"median individual earnings in Schuylkill County\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 54,
+    "text": "When compared to Schuylkill County's median individual earning level of **$34,954**, an unexpected $9,000 funeral bill represents a major household emergency.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "caring-for-coal-region-final-expense-plans.mdx",
+    "line": 66,
+    "text": "    [\"Cash Value Growth\", \"Minimal, with a fixed guaranteed floor\", \"None\", \"Strong (linked to market indexes with a 0% floor)\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "college-funding-iul-million-dollar-baby.mdx",
+    "line": 20,
+    "text": "College costs vary by institution and aid. College Board reports average published 2025–26 annual tuition and fees of **$11,950** at public four-year in-state schools and **$45,000** at private nonprofit four-year schools; room, board, and aid change the total. [Source: College Board](https://research.collegeboard.org/trends/college-pricing/highlights). And many families are underprepared.",
+    "links": [
+      "https://research.collegeboard.org/trends/college-pricing/highlights"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "college-funding-iul-million-dollar-baby.mdx",
+    "line": 33,
+    "text": "| **Restricted use** | Nonqualified withdrawals generally make the earnings portion subject to income tax and a 10% federal penalty, with exceptions |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "college-funding-iul-million-dollar-baby.mdx",
+    "line": 81,
+    "text": "| **Savings account (2%)** | depends on interest rates and taxes | Taxable interest, counts in FAFSA, no protection |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "does-your-family-have-protection.mdx",
+    "line": 32,
+    "text": "In communities like Hazleton, where more than 63 percent of the population is of Hispanic origin, many families work hard, build their lives, pay their bills, and still have no life insurance protection. Not because they don't care. But because no one has explained how it works — in their language, without pressure.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "does-your-family-have-protection.mdx",
+    "line": 40,
+    "text": "**¿Es caro? / Is it expensive?** Una persona de 35 años en buena salud puede obtener $500,000 dólares en cobertura a una prima que depende de la edad, la salud, el plazo y la aseguradora. Eso es menos que el plan de su celular.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "does-your-family-have-protection.mdx",
+    "line": 42,
+    "text": "A 35-year-old in good health can get $500,000 in coverage for at a premium that depends on age, health, term, and insurer. Less than a cell phone plan. The biggest mistake families make is not buying too much — it's waiting too long.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 22,
+    "text": "The [NFDA reports](https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral) a 2023 national median of **$8,300** for a funeral with viewing and burial, and **$6,280** with cremation. Local funeral home prices and cemetery costs vary.",
+    "links": [
+      "https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 30,
+    "text": "Final Expense Insurance is a **small whole life insurance policy** — typically $5,000 to $50,000 in coverage — designed specifically to cover end-of-life costs.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 35,
+    "text": "  <Stat value=\"$8,300\" label=\"National median funeral cost with burial (NFDA, 2023)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 36,
+    "text": "  <Stat value=\"$6,280\" label=\"National median cost of funeral with cremation (NFDA, 2023)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 56,
+    "text": "**Families who cannot afford a large traditional life insurance policy.** A $10,000–$25,000 final expense policy costs a fraction of a large term or whole life policy. Affordability and eligibility depend on underwriting and premiums.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "final-expense-insurance-senior-planning.mdx",
+    "line": 87,
+    "text": "For many seniors on fixed incomes, a $10,000–$15,000 final expense policy provides meaningful coverage at a manageable monthly cost.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "financial-home-makeover.mdx",
+    "line": 77,
+    "text": "The [NFDA reports](https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral) a 2023 national median of $8,300 for a funeral with viewing and burial; cemetery and other expenses can be additional. That does not include outstanding medical bills, estate administration costs, or the practical expenses that accumulate in the weeks after a death.",
+    "links": [
+      "https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "financial-home-makeover.mdx",
+    "line": 81,
+    "text": "Final expense insurance is a simple, affordable solution. A small whole life policy — typically $10,000 to $25,000 — can cover funeral costs, final bills, and give the family breathing room with underwriting requirements that vary by insurer.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "financial-literacy-101-foundation.mdx",
+    "line": 61,
+    "text": "  <Stat value=\"41%\" label=\"of Americans say they lack enough life insurance\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "five-financial-moves-putting-off.mdx",
+    "line": 29,
+    "text": "**The cost of waiting:** Every year you age, premiums increase. A 35-year-old and a 42-year-old applying for the same $500,000 term policy can see a difference of hundreds of dollars per year. The window of low-cost, easy qualification closes faster than most people expect.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "five-financial-moves-putting-off.mdx",
+    "line": 43,
+    "text": "**The cost of waiting:** Compound interest is ruthless in both directions. $200/month started at 35 grows to a fundamentally different number than $200/month started at 45. Delaying five years of retirement saving in your 30s can cost six figures by the time you reach 65.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "gregory-w-moyer-story.mdx",
+    "line": 35,
+    "text": "Consider what an AED does: it sits unused for years, maybe decades. Most institutions that have one will never need it. And yet the logic of having it is airtight — because when the moment comes, the cost of not having it is unrecoverable. Key person insurance sits in the same category. A district that carries a $500,000 policy on its superintendent for 15 years and never files a claim has not wasted its money. It has purchased 15 years of institutional security.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "how-to-leave-something-behind.mdx",
+    "line": 39,
+    "text": "- **Final expense coverage:** A smaller whole life policy ($10,000–$25,000) that covers funeral costs and gives your family a buffer. Accessible to most people even with health challenges.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "infinite-banking-concept-whole-life.mdx",
+    "line": 51,
+    "text": "Let's say you need to purchase a $30,000 vehicle.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "infinite-banking-concept-whole-life.mdx",
+    "line": 55,
+    "text": "- You pay $3,000–$6,000 in interest over a 5-year loan",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "infinite-banking-concept-whole-life.mdx",
+    "line": 59,
+    "text": "- You take a $30,000 policy loan against your cash value",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 3,
+    "text": "description: \"Learn how IUL index crediting works and why a 0% crediting floor does not prevent cash value losses from policy charges, withdrawals, or loans.\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 4,
+    "text": "excerpt: \"With local homeownership at 76.1% and a median age of 43.7, discover how Indexed Universal Life protects your nest egg with market growth potential and a 0% floor.\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 31,
+    "text": "### The Power of the 0% Floor",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 33,
+    "text": "Some IUL contracts set a 0% floor on index-linked interest for a crediting period. Caps, participation rates, spreads, insurance charges, loan interest, and surrender charges affect actual cash value. A floor on credited interest is not a floor on account value.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 44,
+    "text": "A 0% index-crediting floor protects against negative index interest for that segment and period. It does not protect the policy cash value from insurance costs, loans, or surrender charges.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 51,
+    "text": "*   The **homeownership rate in Schuylkill County stands at 76.1%**, significantly above national averages (65.2%), demonstrating that local families prioritize building permanent tangible assets.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 53,
+    "text": "*   With a median household income of **$68,313**, working families must maximize every dollar saved by avoiding unnecessary tax hits and unexpected market losses.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 58,
+    "text": "  <Stat value=\"76.1%\" label=\"Schuylkill County Homeownership Rate (U.S. Census)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 76,
+    "text": "    [\"Early Withdrawal Penalty (<59½)\", \"10% IRS Penalty\", \"None\", \"Loan interest and surrender charges may apply\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-market-volatility-schuylkill-county.mdx",
+    "line": 86,
+    "text": "  text=\"Ready to discover how an IUL can provide upside market potential with a 0% index-crediting floor, subject to policy costs?\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 3,
+    "text": "description: \"With per-capita income at $34,954 and local health challenges ranking near the state bottom, learn how an IUL secures Schuylkill County business owners.\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 30,
+    "text": "### 1. Downside Protection via the 0% Floor",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 31,
+    "text": "For self-employed business owners, protecting liquid capital is critical. Unlike traditional stock portfolios that can drop 20% to 30% during economic downturns, an IUL contains a contractual **0% floor** on index-linked crediting (backed by the insurer's claims-paying ability): when the index falls, **your index credit for that period is 0% rather than negative**. When the index rises, your cash value is credited interest according to your policy's crediting formula — participation rate, cap, and/or spread, measured on specific dates — so the credit is formula-dependent and can be 0% even in a period when the index itself rose. The floor protects against negative index credits — it does not offset mortality charges, administrative fees, or rider costs, which continue to be deducted from the policy and can reduce cash value or cause a lapse if the policy is underfunded.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 51,
+    "text": "*   According to **Data Commons / U.S. Census Bureau** statistics, the per-capita income in Schuylkill County is **$34,954**, with median ages sitting at **43.7 years**—meaning local business owners must maximize every dollar saved during their prime working decades.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 53,
+    "text": "*   The **under-65 disability rate in Schuylkill County is 18%** (compared to 14% statewide), and coronary heart disease mortality rates stand at **177.8 per 100,000 residents** (vs. 96.2 statewide).",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 73,
+    "text": "    [\"Protection Against Market Loss\", \"Yes (low interest yields)\", \"Depends on allocation; equity-heavy holdings are exposed to market drops\", \"Yes (0% floor on index credits; policy charges still apply)\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "iul-schuylkill-county-business-owners.mdx",
+    "line": 109,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "key-person-insurance-school-districts.mdx",
+    "line": 36,
+    "text": "A reasonable starting point is the estimated cost of a two-year transition. That estimate typically includes emergency administrative search fees ($25,000–$60,000+ for superintendent searches), interim administrator costs, consulting and knowledge reconstruction, and a reserve buffer. For most small to mid-sized Pennsylvania districts, a policy of $250,000–$750,000 per key position provides meaningful protection.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "key-person-insurance-school-districts.mdx",
+    "line": 40,
+    "text": "For a district insuring a 50-year-old superintendent with $500,000 in coverage, annual premiums are typically in the range of $3,000–$8,000. Against a district operating budget of several million dollars, that's a small line item for meaningful protection.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 24,
+    "text": "County health measures vary by year and metric. Review current [Pennsylvania Department of Health county profiles](https://www.health.pa.gov/topics/HealthStatistics/VitalStatistics/CountyHealthProfiles/Pages/default.aspx) for local comparisons. Health conditions can create unexpected costs and lost income. Furthermore, local families operate on tighter margins, with a median household income hovering around $68,313—roughly 12.4% lower than the state average.",
+    "links": [
+      "https://www.health.pa.gov/topics/HealthStatistics/VitalStatistics/CountyHealthProfiles/Pages/default.aspx"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 37,
+    "text": "  <Stat value=\"30%\" label=\"Local Medicare beneficiaries managing heart disease\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 38,
+    "text": "  <Stat value=\"62%\" label=\"Local Medicare beneficiaries managing high blood pressure\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 39,
+    "text": "  <Stat value=\"$68,313\" label=\"Median household income in Schuylkill County\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 40,
+    "text": "  <Stat value=\"12.4%\" label=\"How far local income trails the Pennsylvania state median\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 56,
+    "text": "    [\"Cash Value Growth\", \"None\", \"Tied to market index performance with a 0% floor\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 91,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "living-benefits-insurance-schuylkill-county.mdx",
+    "line": 93,
+    "text": "[U.S. Census Bureau QuickFacts: Pennsylvania](https://www.census.gov/quickfacts/fact/table/PA/SBO001223) reports 2020–2024 median household income of $77,971 (2024 dollars). The county figure of $68,313 is approximately 12.4% lower: (77,971 − 68,313) ÷ 77,971. This comparison uses medians, not average income.",
+    "links": [
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-living-benefits-schuylkill.mdx",
+    "line": 29,
+    "text": "  <Stat value=\"247.1\" label=\"Age-adjusted heart disease deaths per 100,000 residents in Schuylkill County\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-living-benefits-schuylkill.mdx",
+    "line": 30,
+    "text": "  <Stat value=\"174.3\" label=\"Pennsylvania statewide average heart disease deaths per 100,000 residents\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-living-benefits-schuylkill.mdx",
+    "line": 75,
+    "text": "For comprehensive protection, homeowners often pair their living benefits strategy with an **Indexed Universal Life (IUL)** policy to grow a secondary, market-protected retirement asset featuring a 0% floor. For the next generation, establishing a **Juvenile IUL** for children or grandchildren locks in permanent insurance rates at childhood minimums, creating a compound-growth fund they can later use to buy their own first homes right here in the county. Finally, a **Final Expense** plan ensures that seniors never pass final burial costs onto their adult children.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 16,
+    "text": "In Schuylkill County, homeownership runs at **76.1%** according to 2020–2024 Census estimates.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 48,
+    "text": "For a healthy 40-year-old with a **$200,000 mortgage balance**, premiums depend on age, health, policy design, and insurer; request an actual quote.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 51,
+    "text": "  <Stat value=\"76.1%\" label=\"Homeownership rate in Schuylkill County (U.S. Census Bureau, 2020–2024)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 52,
+    "text": "  <Stat value=\"$153,000\" label=\"Median home value in Schuylkill County (U.S. Census Bureau, 2020–2024)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 72,
+    "text": "Consider a Tamaqua couple in their late 30s with two kids in elementary school. They purchased their home six years ago and owe approximately $170,000 on a 30-year mortgage.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "mortgage-protection-home-security.mdx",
+    "line": 74,
+    "text": "Their household income is $72,000 per year — above the county median, but not by enough to weather a sudden income loss without serious consequences.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "multigenerational-blueprint-early-head-starts-schuylkill.mdx",
+    "line": 28,
+    "text": "According to the latest **U.S. Census Bureau** data profiles, the median household income in Schuylkill County stands at **$68,313**. This sits roughly 12.4% lower than the state average for Pennsylvania. Because local household dollars have to work harder to yield identical results, local families cannot afford to let their savings sit stagnant in traditional banking infrastructures that underperform core inflation.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "multigenerational-blueprint-early-head-starts-schuylkill.mdx",
+    "line": 30,
+    "text": "Furthermore, Census data notes that only **19.9% of county residents** age 25 or older hold a bachelor's degree or higher. This often stems from a localized reluctance to take on predatory, high-interest student loans that compromise a graduate's early career decisions.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "multigenerational-blueprint-early-head-starts-schuylkill.mdx",
+    "line": 53,
+    "text": "  <Stat label=\"Schuylkill County median household income vs state average\" value=\"$68,313\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "multigenerational-blueprint-early-head-starts-schuylkill.mdx",
+    "line": 54,
+    "text": "  <Stat label=\"Portion of local residents holding a bachelor's degree or higher\" value=\"19.9%\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "multigenerational-blueprint-early-head-starts-schuylkill.mdx",
+    "line": 103,
+    "text": "[U.S. Census Bureau QuickFacts: Pennsylvania](https://www.census.gov/quickfacts/fact/table/PA/SBO001223) reports 2020–2024 median household income of $77,971 (2024 dollars). The county figure of $68,313 is approximately 12.4% lower: (77,971 − 68,313) ÷ 77,971. This comparison uses medians, not average income.",
+    "links": [
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "one-hospital-stay-wiped-out-savings.mdx",
+    "line": 25,
+    "text": "Imagine a couple, Robert and Linda, who had done everything right. Thirty-two years of work between them, a paid-off car, a mortgage with eight years left, and $280,000 in a 401(k) that had taken decades to build. Then Robert had a stroke at 61. He spent 11 days in the hospital, followed by six weeks of inpatient rehabilitation. Out-of-pocket costs, lost wages, and in-home care totaled more than $140,000 over 18 months. The retirement they'd spent 30 years building was cut in half before either of them had collected a single Social Security check.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-coal-region-workers-living-benefits.mdx",
+    "line": 61,
+    "text": "The Pennsylvania Department of Health’s 2023 County Health Profile reports the following age-adjusted mortality rates per 100,000 residents:",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-coal-region-workers-living-benefits.mdx",
+    "line": 71,
+    "text": "- Median household income of **$68,313**, expressed in 2024 inflation-adjusted dollars.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-coal-region-workers-living-benefits.mdx",
+    "line": 72,
+    "text": "- Per-capita income of **$34,954**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-coal-region-workers-living-benefits.mdx",
+    "line": 73,
+    "text": "- A reported disability among **13.1% of the civilian noninstitutionalized population under age 65**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-coal-region-workers-living-benefits.mdx",
+    "line": 146,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 30,
+    "text": "### Market-Linked Growth with a Contractual 0% Floor",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 34,
+    "text": "But if the stock market crashes, the policy's built-in contractual **0% floor** activates. This means the floor applies to index interest crediting, while policy charges and loans can still reduce cash value.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 50,
+    "text": "According to the **U.S. Census Bureau**, the median household income in Schuylkill County is **$68,313**, which is **12.4% lower** than the Pennsylvania state median. Meanwhile, per-capita income in the county hover around **$34,954**. With local wages trailing the state average, local families must ensure their savings vehicles are highly efficient and protected from market drops.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 55,
+    "text": "  <Stat value=\"$68,313\" label=\"Schuylkill County Median Household Income (12.4% below PA average)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 56,
+    "text": "  <Stat value=\"0%\" label=\"Contractual Market Loss Floor inside a Juvenile IUL\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 70,
+    "text": "    [\"Downside Market Protection\", \"Yes (but loses value to inflation)\", \"No (depends on investment allocation)\", \"Yes (contractual 0% floor)\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 95,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "protecting-the-skook-juvenile-iul-financial-fortress.mdx",
+    "line": 97,
+    "text": "[U.S. Census Bureau QuickFacts: Pennsylvania](https://www.census.gov/quickfacts/fact/table/PA/SBO001223) reports 2020–2024 median household income of $77,971 (2024 dollars). The county figure of $68,313 is approximately 12.4% lower: (77,971 − 68,313) ÷ 77,971. This comparison uses medians, not average income.",
+    "links": [
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-county-final-expense-burden.mdx",
+    "line": 26,
+    "text": "Many people assume that a small savings account or a standard savings buffer is enough to handle end-of-life needs. However, the rising costs of services across Pennsylvania reveal a different reality. The [NFDA reported](https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral) a **2023 national median of $8,300** for a funeral with viewing and burial. Cemetery charges and local prices may differ.",
+    "links": [
+      "https://content.nfda.org/news/media-center/nfda-news-releases/id/8134/2023-nfda-general-price-list-study-shows-inflation-increasing-faster-than-the-cost-of-a-funeral"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-county-final-expense-burden.mdx",
+    "line": 28,
+    "text": "When you add up the basic service fees, transportation, a casket, and a cemetery plot, the total easily surpasses **$11,500**. Because these costs are usually required upfront, grieving families are frequently forced to use high-interest credit cards, deplete emergency savings, or set up online fundraisers just to cover basic arrangements.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-county-final-expense-burden.mdx",
+    "line": 32,
+    "text": "Final expense insurance is a specialized form of whole life insurance tailored precisely to address these immediate needs. Unlike large-scale term policies designed to replace decades of income, final expense coverage offers smaller, highly affordable face amounts (typically ranging from $2,000 to $5,000 up to $50,000) that lock in for life.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-county-final-expense-burden.mdx",
+    "line": 39,
+    "text": "  <Stat value=\"$11,500+\" label=\"typical total once transportation, casket, and plot are combined\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-county-final-expense-burden.mdx",
+    "line": 43,
+    "text": "Final expenses in Pennsylvania routinely top $11,500 and are due upfront — without a dedicated plan in place, that bill lands directly on grieving family members.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 31,
+    "text": "* **The Senior Dynamic:** **23.0% of our local residents** are age 65 or older. This means nearly a quarter of our county is actively navigating or entering their retirement window, shifting end-of-life planning from a abstract future thought into an immediate local priority.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 33,
+    "text": "When a resident passes away without a dedicated, liquid plan in place, the immediate out-of-pocket costs land squarely on their grieving descendants. Because the per-capita income inside the county tracks at **$34,954**, absorbing a sudden $10,000 bill can throw a local working child's household into severe financial distress.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 51,
+    "text": "  <Stat value=\"23.0%\" label=\"of county residents are already age 65 or older\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 52,
+    "text": "  <Stat value=\"$34,954\" label=\"per-capita income across Schuylkill County\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 109,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-final-expense-planning.mdx",
+    "line": 111,
+    "text": "[Schuylkill County QuickFacts](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) and [Pennsylvania QuickFacts](https://www.census.gov/quickfacts/fact/table/PA/SBO001223), accessed October 10, 2026, report shares aged 65 and over of 23.0% and 21.4%, respectively.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania",
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "schuylkill-health-living-benefits-estate-planning.mdx",
+    "line": 36,
+    "text": "- **Terminal illness** — A diagnosis indicating a short life expectancy (commonly 12 to 24 months or less). For example, a cancer patient with a prognosis under 18 months might accelerate 50% or more of a $500,000 policy — receiving $250,000 to cover treatment or hospice costs. Certain accelerated benefits for terminal illness may be excluded from income under [IRS guidance](https://www.irs.gov/publications/p525); other benefits require individual tax review.",
+    "links": [
+      "https://www.irs.gov/publications/p525"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 11,
+    "text": "seoDescription: \"Secure your financial future in Pottsville, Orwigsburg, or Tamaqua with Indexed Universal Life insurance. Learn how tax-advantaged cash value growth and a 0% index-crediting floor work.\"",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 24,
+    "text": "**Indexed Universal Life (IUL)** insurance provides an innovative, tax-advantaged alternative that links your accumulation potential to equity index performance subject to its contractual index-crediting floor. A 0% crediting floor does not protect total cash value from policy charges, withdrawals, or loans.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 30,
+    "text": "### 1. Contractual 0% Index-Crediting Floor",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 31,
+    "text": "Unlike traditional stock portfolios that suffer direct losses during market crashes, an IUL’s indexed account credits interest using an index formula rather than giving the policyholder direct ownership of stocks or an index fund. This does not eliminate policy charges, lapse risk, or insurer risk. When the market index rises, your policy earns credited interest up to a policy cap or participation rate. When the index drops into negative territory, **your cash value earns 0% interest—meaning no loss from index declines on previously credited earnings.** Policy charges, cap rates, and fees still apply and can reduce cash value, and guarantees are backed by the claims-paying ability of the issuing insurer.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 43,
+    "text": "An IUL acts as a financial ratchet: when market indexes grow, credited interest follows the contract’s crediting rules; total cash value can still decline because of charges, withdrawals, or loans. When market indexes drop, the contractual 0% floor means no index-driven loss in that period, although policy charges still apply.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 50,
+    "text": "*   According to **U.S. Census Bureau** data, the median household income in Schuylkill County sits at **$68,313** ($34,954 per-capita income), making tax efficiency and capital safety essential for stretching local retirement funds.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 52,
+    "text": "*   According to **U.S. Census Bureau QuickFacts**, **23.0% of Schuylkill County residents are aged 65 and older** (higher than the PA share of 21.4%), emphasizing the urgent local need for reliable, market-proof retirement cash flow.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 53,
+    "text": "*   The overall age-adjusted mortality rate in Schuylkill County stands at **977.4 per 100,000 residents** (vs. 820.6 statewide), reinforcing the need for permanent universal protection that lasts a lifetime.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 59,
+    "text": "  <Stat value=\"23.0%\" label=\"Share of Schuylkill County Aged 65+ (U.S. Census Bureau)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 63,
+    "text": "An Indexed Universal Life strategy offers Schuylkill County residents market-indexed accumulation potential, a contractual 0% index-crediting floor, and tax-advantaged retirement liquidity that differs from standard 401(k) plans. Policy charges, caps, and loan terms apply.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 73,
+    "text": "    [\"Protection Against Market Loss\", \"No (100% market risk)\", \"No (100% market risk)\", \"Index-crediting floor of 0% (contractual; charges still apply)\"],",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 94,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-retirements-iul-schuylkill.mdx",
+    "line": 100,
+    "text": "[Schuylkill County QuickFacts](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) and [Pennsylvania QuickFacts](https://www.census.gov/quickfacts/fact/table/PA/SBO001223), accessed October 10, 2026, report shares aged 65 and over of 23.0% and 21.4%, respectively.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania",
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-term-living-benefits-schuylkill.mdx",
+    "line": 27,
+    "text": "* **Household Budgets:** The U.S. Census Bureau reports the median household income in Schuylkill County sits at **$68,313**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-term-living-benefits-schuylkill.mdx",
+    "line": 28,
+    "text": "* **Fixed Obligations:** Data from *doxoInsights* shows that the average local household spends roughly **$1,453 per month** just on essential bills and housing.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-term-living-benefits-schuylkill.mdx",
+    "line": 35,
+    "text": "  <Stat value=\"$68,313\" label=\"Median household income in Schuylkill County (U.S. Census Bureau)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-term-living-benefits-schuylkill.mdx",
+    "line": 36,
+    "text": "  <Stat value=\"$1,453/mo\" label=\"Average local household spend on essential bills and housing (doxoInsights)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "securing-coal-region-term-living-benefits-schuylkill.mdx",
+    "line": 40,
+    "text": "On a Coal Region budget, six months out of work isn't an inconvenience — it's roughly $8,700 in essential bills with no paycheck coming in. Living benefits exist to fill exactly that gap.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 30,
+    "text": "If you experience a major, life-altering medical event — such as a heart attack, stroke, invasive cancer, kidney failure, or a major organ transplant — you can accelerate (access early) a portion of your policy's face value as a lump-sum benefit subject to rider eligibility and benefit limits; tax treatment requires individual review. For example, depending on your policy, you might be able to receive up to 50–90% of the death benefit in advance. You can use this money however it's needed most: to replace lost income, cover your mortgage or rent, pay medical bills and co-pays, or even fund experimental treatments.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 54,
+    "text": "  <Stat value=\"245.9\" label=\"Heart disease deaths per 100,000 in Schuylkill County vs. 171.9 statewide (PA Dept. of Health County Health Profile)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 55,
+    "text": "  <Stat value=\"17.3%\" label=\"Schuylkill County residents living with a disability vs. 14.0% statewide (2022 Community Health Needs Assessment)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 56,
+    "text": "  <Stat value=\"555.1\" label=\"Male cancer incidence per 100,000 in Schuylkill County vs. 462.8 statewide (PA Dept. of Health)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 59,
+    "text": "- **Heart health risks:** According to the [Pennsylvania Department of Health's County Health Profile for Schuylkill County](https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html), the county's age-adjusted heart disease mortality rate is **245.9 per 100,000 residents**, versus a state average of **171.9**. In other words, our county faces heart disease death rates about 43% higher than Pennsylvania's overall rate — a serious concern for local families. Heart attacks and related cardiac events can strike unexpectedly and leave survivors facing long recoveries with no income.",
+    "links": [
+      "https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 60,
+    "text": "- **High disability rates:** The [2022 Community Health Needs Assessment for Schuylkill County](https://lvhn.org/sites/default/files/2022-06/N17519_CHNA_Schuylkill_County_2022.pdf) (Lehigh Valley Health Network) found that **17.3% of Schuylkill County residents live with a disability**, compared to 14.0% statewide. That means nearly 1 in 6 people in our community are living with a significant health impairment — highlighting the importance of having a plan if you suddenly can't work due to injury or illness.",
+    "links": [
+      "https://lvhn.org/sites/default/files/2022-06/N17519_CHNA_Schuylkill_County_2022.pdf"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 61,
+    "text": "- **Elevated cancer incidence:** Rates of serious illnesses like cancer are also above state benchmarks. Per [Pennsylvania Department of Health cancer statistics](https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html) (2019–2023), the all-cancer incidence rate among males in Schuylkill County is **555.1 per 100,000**, compared to 462.8 per 100,000 for Pennsylvania overall. Higher incidence of cancer and other critical illnesses locally means higher odds that a working-age family member could face a health crisis.",
+    "links": [
+      "https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 100,
+    "text": "1. Pennsylvania Department of Health, [Schuylkill County — Pennsylvania County Health Profile](https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html) — age-adjusted heart disease death rate (245.9 per 100,000 Schuylkill vs. 171.9 PA) and male all-cancer incidence (555.1 per 100,000 Schuylkill vs. 462.8 PA, 2019–2023).",
+    "links": [
+      "https://www.pa.gov/content/dam/copapwp-pagov/en/health/documents/topics/healthstatistics/vitalstatistics/countyhealthprofiles/documents/current/schuylkill.html"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 101,
+    "text": "2. Lehigh Valley Health Network, [2022 Community Health Needs Assessment — Schuylkill County (PDF)](https://lvhn.org/sites/default/files/2022-06/N17519_CHNA_Schuylkill_County_2022.pdf) — 17.3% of Schuylkill County's population has a disability vs. 14.0% in Pennsylvania (U.S. Census ACS data).",
+    "links": [
+      "https://lvhn.org/sites/default/files/2022-06/N17519_CHNA_Schuylkill_County_2022.pdf"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "serious-health-issues-living-benefits-schuylkill-county.mdx",
+    "line": 102,
+    "text": "3. Himmelstein, Lawless, Thorne, Foohey & Woolhandler, [\"Medical Bankruptcy: Still Common Despite the Affordable Care Act,\"](https://ajph.aphapublications.org/doi/10.2105/AJPH.2018.304901) *American Journal of Public Health* (2019) — 66.5% of U.S. personal bankruptcies cite medical bills or illness-related loss of income as a contributor.",
+    "links": [
+      "https://ajph.aphapublications.org/doi/10.2105/AJPH.2018.304901"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "term-life-living-benefits-schuylkill.mdx",
+    "line": 37,
+    "text": "Imagine a primary breadwinner in Pottsville who suffers a severe stroke. They survive and are expected to make a strong recovery through physical therapy, but they cannot return to work for six months. A term policy with Living Benefits allows them to access $50,000 of their policy early, ensuring the mortgage is paid and the family budget stays intact during rehabilitation.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "term-life-living-benefits-schuylkill.mdx",
+    "line": 45,
+    "text": "  <Stat value=\"$68,313\" label=\"Median household income in Schuylkill County (U.S. Census Bureau / USAFacts, inflation-adjusted)\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "term-life-living-benefits-schuylkill.mdx",
+    "line": 46,
+    "text": "  <Stat value=\"-12.4%\" label=\"Schuylkill County's median income relative to the Pennsylvania state median\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "term-life-living-benefits-schuylkill.mdx",
+    "line": 94,
+    "text": "[U.S. Census Bureau QuickFacts: Schuylkill County](https://www.census.gov/quickfacts/schuylkillcountypennsylvania) reports 2020–2024 median household income of $68,313 and per-capita income of $34,954, in 2024 dollars. Per-capita income is not median individual earnings.",
+    "links": [
+      "https://www.census.gov/quickfacts/schuylkillcountypennsylvania"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "term-life-living-benefits-schuylkill.mdx",
+    "line": 96,
+    "text": "[U.S. Census Bureau QuickFacts: Pennsylvania](https://www.census.gov/quickfacts/fact/table/PA/SBO001223) reports 2020–2024 median household income of $77,971 (2024 dollars). The county figure of $68,313 is approximately 12.4% lower: (77,971 − 68,313) ÷ 77,971. This comparison uses medians, not average income.",
+    "links": [
+      "https://www.census.gov/quickfacts/fact/table/PA/SBO001223"
+    ],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "what-happens-family-mortgage.mdx",
+    "line": 29,
+    "text": "According to LIMRA's 2023 Insurance Barometer Study, 41 percent of Americans say they do not have enough life insurance, and 50 percent of households with children under 18 say they would face financial hardship within six months if a primary wage earner died. Six months. Not six years. Six months.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "what-happens-family-mortgage.mdx",
+    "line": 45,
+    "text": "A 35-year-old non-smoker in good health can typically secure $500,000 in coverage for at a premium that depends on age, health, term, and insurer. That is less than a tank of gas — and a coverage that may help your family keep up with the mortgage if you die.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-living-benefits-matter-schuylkill-county.mdx",
+    "line": 32,
+    "text": "The financial exposure for families in the Coal Region is real. With a median household income of approximately **$68,313** (according to recent U.S. Census Bureau data), a prolonged period without income can quickly deplete local household savings.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-living-benefits-matter-schuylkill-county.mdx",
+    "line": 35,
+    "text": "  <Stat value=\"62%\" label=\"of Schuylkill Medicare beneficiaries managing high blood pressure\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-living-benefits-matter-schuylkill-county.mdx",
+    "line": 36,
+    "text": "  <Stat value=\"$68,313\" label=\"Median household income in Schuylkill County\" />",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 52,
+    "text": "According to U.S. Census Bureau QuickFacts, Schuylkill County had an estimated **145,085 residents** as of July 1, 2025. The county's median household income for 2020-2024 was **$68,313**, and the median value of owner-occupied housing units was **$153,000**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 66,
+    "text": "The National Funeral Directors Association reports that the national median cost of a funeral with viewing and burial was **$8,300** in 2023, while the median cost of a funeral with cremation was **$6,280**. Those figures may not include every cemetery, monument, obituary, transportation, reception, or estate-related cost a family may face.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 68,
+    "text": "For many families, final expenses can quickly reach **$10,000 to $15,000 or more**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 78,
+    "text": "LIMRA and Life Happens reported in the 2024 Insurance Barometer Study that **42% of American adults say they need life insurance or need more of it**, representing a need gap of about **102 million adults**.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 127,
+    "text": "| $40,000 | $400,000 |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 128,
+    "text": "| $60,000 | $600,000 |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 129,
+    "text": "| $68,313 | $683,130 |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 130,
+    "text": "| $80,000 | $800,000 |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 145,
+    "text": "Consider a Schuylkill County household earning around the county median income of **$68,313** with a mortgage, two children, and limited emergency savings.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 151,
+    "text": "| Income replacement | $500,000–$700,000 | Helps the surviving family maintain stability over time. |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 152,
+    "text": "| Mortgage payoff or housing support | $120,000–$180,000 | Helps keep the family in the home. |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 153,
+    "text": "| Final expenses | $10,000–$15,000 | Helps cover funeral, burial, cremation, and related costs. |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 154,
+    "text": "| Children's education | $80,000–$160,000 | Supports future education or vocational training. |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 155,
+    "text": "| Emergency buffer | $40,000–$70,000 | Gives the family time to grieve and reorganize. |",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "why-schuylkill-county-families-need-life-insurance-now.mdx",
+    "line": 227,
+    "text": "A common starting point is 10 times annual income, then adjust for debts, mortgage balance, final expenses, children's education, and emergency needs. A family earning around $68,000 may reasonably explore coverage in the $500,000 to $800,000 range depending on age, health, debt, dependents, and budget.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "will-you-outlive-your-money.mdx",
+    "line": 24,
+    "text": "Consider a realistic Coal Region pre-retiree retiring at 63 with $320,000 in a 401(k), $1,400/month in estimated Social Security, no pension, a mortgage with 5 years remaining, and estimated monthly living expenses of $3,800. Monthly income gap: $2,400/month from savings. At that withdrawal rate — assuming 5% annual growth — that account runs out in approximately **14 years**. You'd be 77 years old with no savings. Add one health crisis costing $80,000–$140,000, and the math collapses years earlier.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  },
+  {
+    "file": "will-you-outlive-your-money.mdx",
+    "line": 31,
+    "text": "- **Health and long-term care risk:** About 70% of people turning 65 will need some form of long-term care. Medicaid covers nursing home care only after you've spent down your assets.",
+    "links": [],
+    "status": "REVIEW: numeric candidate; not independently verified by inventory"
+  }
+]
