@@ -43,7 +43,7 @@ Under **Settings → Secrets and variables → Actions**, add:
 | Variable | `GBP_LOCATION_IDS` | Comma-separated numeric IDs or `locations/ID` names |
 | Variable, optional | `REPORT_TIMEZONE` | IANA zone, default `America/New_York` |
 
-The supplied measurement ID is `G-S0Q3E4DEBJ`; it identifies the website data
+The supplied measurement ID is `G-WZWMX83WXQ`; it identifies the website data
 stream and cannot be used as `GA4_PROPERTY_ID`. Get the numeric GA4 property ID
 from Analytics Admin → Property details. Business Profile
 location IDs are API resource IDs, not Google Maps Place IDs. Obtain them using

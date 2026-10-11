@@ -153,7 +153,7 @@ export const MarketingDashboard: React.FC = () => {
   ]);
 
   const [uploadedDocs, setUploadedDocs] = useState<UploadedDoc[]>([
-    { id: 'doc1', name: 'Sponsorship-Guide-Pottsville-Athletics.pdf', size: '1.4 MB', type: 'PDF', date: '2026-05-18', extractedText: 'PAHS legacy initiative sponsors guidelines. Priority is community integration first. G-S0Q3E4DEBJ reference analytics target page views and organic signup CTA click parameters.', topics: ['pottsville', 'sponsorship', 'youth'] },
+    { id: 'doc1', name: 'Sponsorship-Guide-Pottsville-Athletics.pdf', size: '1.4 MB', type: 'PDF', date: '2026-05-18', extractedText: 'PAHS legacy initiative sponsors guidelines. Priority is community integration first. G-WZWMX83WXQ reference analytics target page views and organic signup CTA click parameters.', topics: ['pottsville', 'sponsorship', 'youth'] },
     { id: 'doc2', name: 'Schuylkill-Succession-Policy-Brief.docx', size: '840 KB', type: 'DOCX', date: '2026-05-15', extractedText: 'Succession audit guidelines outline for life & legacy. Compliance checklist metrics and capital gains frameworks rules.', topics: ['succession', 'compliance', 'Schuylkill'] }
   ]);
 
@@ -443,7 +443,7 @@ export const MarketingDashboard: React.FC = () => {
 
               <div className="text-xs bg-[#2C3E50]/5 border border-[#2C3E50]/10 px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <span className="font-semibold text-[11px] text-[#2C3E50]">Primary GA4 Source:</span>
-                <code className="text-[10px] font-bold text-[#8B6A45] bg-[#2C3E50]/10 px-1 rounded">G-S0Q3E4DEBJ</code>
+                <code className="text-[10px] font-bold text-[#8B6A45] bg-[#2C3E50]/10 px-1 rounded">G-WZWMX83WXQ</code>
               </div>
             </div>
 
@@ -1318,7 +1318,7 @@ export const MarketingDashboard: React.FC = () => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-[10px] border-t pt-4 text-slate-400 gap-4">
                 <div className="flex gap-4">
                   <span>Auditor Hash: <span className="font-mono text-slate-600">medxfhhx</span></span>
-                  <span>GA4 Tracking: <span className="font-mono text-[#8B6A45] font-bold">G-S0Q3E4DEBJ</span></span>
+                  <span>GA4 Tracking: <span className="font-mono text-[#8B6A45] font-bold">G-WZWMX83WXQ</span></span>
                 </div>
                 
                 <span className="text-slate-400 text-right italic font-semibold">
