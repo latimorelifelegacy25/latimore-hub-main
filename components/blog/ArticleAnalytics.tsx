@@ -21,7 +21,7 @@ export default function ArticleAnalytics({ slug, title, category }: ArticleAnaly
   const fired100 = useRef(false)
 
   function fire(depth: 'entry' | '50pct' | '95pct') {
-    const ctx = getEventContext({ pageUrl: `/education/blog/${slug}` })
+    const ctx = getEventContext({ pageUrl: `/blog/${slug}` })
     fetch('/api/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

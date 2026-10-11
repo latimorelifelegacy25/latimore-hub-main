@@ -60,12 +60,12 @@ const nextConfig = {
         ['what-happens-family-dies-mortgage', 'what-happens-family-mortgage'],
         ['financial-moves-parents-putting-off', 'five-financial-moves-putting-off'],
       ].flatMap(([from, to]) => [
-        { source: `/blog/${from}`, destination: `/blog/${to}`, permanent: true },
-        { source: `/education/blog/${from}`, destination: `/blog/${to}`, permanent: true },
+        { source: `/blog/${from}`, destination: `/blog/${to}`, statusCode: 301 },
+        { source: `/education/blog/${from}`, destination: `/blog/${to}`, statusCode: 301 },
       ]),
       // /blog is the single canonical article URL space (the RSS feed stays put).
-      { source: '/education/blog', destination: '/blog', permanent: true },
-      { source: '/education/blog/:slug((?!rss\\.xml$)[^/]+)', destination: '/blog/:slug', permanent: true },
+      { source: '/education/blog', destination: '/blog', statusCode: 301 },
+      { source: '/education/blog/:slug((?!rss\\.xml$)[^/]+)', destination: '/blog/:slug', statusCode: 301 },
       // The Marketing Command Center is an internal tool; it lives behind admin auth now.
       { source: '/marketing', destination: '/admin/marketing/command-center', permanent: false },
       { source: '/pahs/index.html', destination: '/pahs', permanent: true },

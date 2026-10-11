@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import type { ContentAsset, SocialProvider } from '@prisma/client'
 import { decryptToken } from '@/lib/crypto'
+import { createSocialTrackingLink } from '@/lib/tracking/social-link'
 
 type ProviderConnection = {
   id: string
@@ -125,6 +126,14 @@ async function publishFacebookPage(asset: ContentAsset, connection: ProviderConn
   const token = connection.accessToken as string
   const meta = connection.metadata as Record<string, unknown> | null
 
+  const linkUrl = (asset as any).linkUrl as string | undefined
+  const trackedUrl = linkUrl ? await createSocialTrackingLink('facebook', linkUrl) : undefined
+  const originalCaption = asset.bodyText ?? asset.title ?? ''
+  const linkedCaption = linkUrl && trackedUrl ? originalCaption.replaceAll(linkUrl, trackedUrl) : originalCaption
+  const caption = trackedUrl && !linkedCaption.includes(trackedUrl)
+    ? `${linkedCaption}\n\n${trackedUrl}`
+    : linkedCaption
+
   // Photo post: asset carries an imageUrl in metadata
   const imageUrl = (meta?.imageUrl as string | undefined) ?? (asset as any).imageUrl
   if (imageUrl) {
@@ -133,7 +142,7 @@ async function publishFacebookPage(asset: ContentAsset, connection: ProviderConn
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url: imageUrl,
-        caption: asset.bodyText ?? asset.title,
+        caption,
         access_token: token,
       }),
     })
@@ -145,14 +154,13 @@ async function publishFacebookPage(asset: ContentAsset, connection: ProviderConn
     return { success: true, providerId: result.post_id ?? result.id ?? null }
   }
 
-  // Link post: asset carries a linkUrl
-  const linkUrl = (asset as any).linkUrl as string | undefined
+  // Link post uses the same tracked destination as photo captions.
 
   const payload: Record<string, string> = {
-    message: asset.bodyText ?? asset.title ?? '',
+    message: linkedCaption,
     access_token: token,
   }
-  if (linkUrl) payload.link = linkUrl
+  if (trackedUrl) payload.link = trackedUrl
 
   // Scheduled publishing: asset.scheduledAt must be at least 10 min in the future
   const scheduledAt = (asset as any).scheduledAt as Date | string | undefined
