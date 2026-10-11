@@ -237,7 +237,7 @@ const CHECKLIST: Record<string, string[]> = {
   ],
   'UTM & Analytics': [
     'Unique UTM links generated for all 5 channels (FB, IG, LI, print, direct)',
-    'GA4 G-S0Q3E4DEBJ active on www.latimorelifelegacy.com',
+    'GA4 G-WZWMX83WXQ active on www.latimorelifelegacy.com',
     'GA4 G-91DT7W1KRP active on card.latimorelifelegacy.com',
     'Supabase Source field captures UTM value correctly',
     'Vercel live at hub.latimorelifelegacy.com with no build errors',
