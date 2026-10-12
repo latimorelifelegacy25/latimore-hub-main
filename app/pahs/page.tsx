@@ -8,7 +8,7 @@ import ScrollToReviewButton from './ScrollToReviewButton'
 import CampaignVideo from './CampaignVideo'
 
 export const metadata: Metadata = {
-  title: 'PAHS Family Protection Campaign | Latimore Life & Legacy',
+  title: 'PAHS Family Protection Campaign',
   description: 'Proud Pottsville Area football sponsor providing education-first family protection reviews for Pennsylvania Coal Region families.',
   alternates: { canonical: '/pahs' },
 }
