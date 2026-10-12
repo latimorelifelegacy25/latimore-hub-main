@@ -5,6 +5,7 @@ import { BRAND, COLORS } from '@/lib/brand'
 export const metadata = {
   title: 'Interactive Planning Tools | Latimore Life & Legacy',
   description: 'Carrier-neutral Latimore planning tools for family protection, retirement income, and legacy costs.',
+  alternates: { canonical: '/solutions' },
 }
 
 const tools = [
