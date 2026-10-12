@@ -4,6 +4,7 @@ import SolutionFunnel from '@/app/solutions/_components/SolutionFunnel'
 export const metadata = {
   title: 'Family Protection Snapshot | Latimore Life & Legacy',
   description: 'Estimate the household protection gap behind income, housing, debt, childcare, and current coverage.',
+  alternates: { canonical: '/solutions/family-protection' },
 }
 
 export default function FamilyProtectionPage() {
