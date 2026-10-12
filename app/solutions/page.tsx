@@ -3,7 +3,7 @@ import { SiteFooter, SiteHeader } from '@/app/_components/site-shell'
 import { BRAND, COLORS } from '@/lib/brand'
 
 export const metadata = {
-  title: 'Interactive Planning Tools | Latimore Life & Legacy',
+  title: 'Interactive Planning Tools',
   description: 'Carrier-neutral Latimore planning tools for family protection, retirement income, and legacy costs.',
   alternates: { canonical: '/solutions' },
 }
