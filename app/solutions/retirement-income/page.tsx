@@ -4,6 +4,7 @@ import SolutionFunnel from '@/app/solutions/_components/SolutionFunnel'
 export const metadata = {
   title: 'Retirement Income Snapshot | Latimore Life & Legacy',
   description: 'Compare your desired monthly retirement income with predictable income sources and identify the gap your plan must support.',
+  alternates: { canonical: '/solutions/retirement-income' },
 }
 
 export default function RetirementIncomePage() {
