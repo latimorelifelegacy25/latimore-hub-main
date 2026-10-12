@@ -46,16 +46,16 @@ export const metadata: Metadata = {
     siteName: 'Latimore Life & Legacy',
     title: "Life Insurance & Annuities in Pennsylvania's Coal Region | Latimore Life & Legacy",
     description: 'Local, education-first insurance guidance for families and businesses across Schuylkill, Luzerne, and Northumberland Counties.',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Latimore Life & Legacy' }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Latimore Life & Legacy' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Latimore Life & Legacy',
     description: "Local, education-first insurance guidance for Pennsylvania's Coal Region.",
-    images: ['/og-image.jpg'],
+    images: ['/opengraph-image'],
   },
-  alternates: { canonical: BASE_URL },
   manifest: '/manifest.json',
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } : undefined,
 }
 
 export const viewport: Viewport = {
@@ -93,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     "Independent, education-first insurance agency serving families, workers, retirees, and business owners across Pennsylvania's Coal Region.",
                   url: BASE_URL,
                   logo: `${BASE_URL}/logo.jpg`,
+                  address: { '@type': 'PostalAddress', streetAddress: '1544 Route 61 Hwy S, Ste 6104', addressLocality: 'Pottsville', addressRegion: 'PA', postalCode: '17901', addressCountry: 'US' },
                   telephone: BRAND.phoneHref.replace('tel:', ''),
                   email: BRAND.email,
                   slogan: BRAND.tagline,
