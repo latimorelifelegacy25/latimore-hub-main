@@ -2,7 +2,7 @@ import { SiteFooter, SiteHeader } from '@/app/_components/site-shell'
 import SolutionFunnel from '@/app/solutions/_components/SolutionFunnel'
 
 export const metadata = {
-  title: 'Legacy Cost Snapshot | Latimore Life & Legacy',
+  title: 'Legacy Cost Snapshot',
   description: 'Estimate immediate final-arrangement, debt, medical, estate, and family funding needs without naming a carrier or proprietary product.',
   alternates: { canonical: '/solutions/legacy-planning' },
 }
