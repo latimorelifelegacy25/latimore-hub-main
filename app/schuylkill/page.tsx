@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Protecting What Matters Most | Schuylkill County Life Insurance Guide',
   description:
     'A local guide to modern life insurance for Schuylkill County families — term life with living benefits, IUL, juvenile policies, and final expense planning. Serving Pottsville, Tamaqua, Schuylkill Haven, and the full Coal Region.',
+  alternates: { canonical: '/schuylkill' },
   openGraph: {
     title: 'Protecting What Matters Most | Schuylkill County Life Insurance Guide',
     description:

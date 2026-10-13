@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import './pahs.css'
 import './pahs-override.css'
@@ -5,6 +6,12 @@ import { PahsThrowbackGraphic } from './PahsCampaignGraphics'
 import PahsLeadForm from './PahsLeadForm'
 import ScrollToReviewButton from './ScrollToReviewButton'
 import CampaignVideo from './CampaignVideo'
+
+export const metadata: Metadata = {
+  title: 'PAHS Family Protection Campaign',
+  description: 'Proud Pottsville Area football sponsor providing education-first family protection reviews for Pennsylvania Coal Region families.',
+  alternates: { canonical: '/pahs' },
+}
 
 type ScheduleGame = {
   date: string

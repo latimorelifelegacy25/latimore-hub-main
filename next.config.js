@@ -63,8 +63,7 @@ const nextConfig = {
         { source: `/blog/${from}`, destination: `/blog/${to}`, statusCode: 301 },
         { source: `/education/blog/${from}`, destination: `/blog/${to}`, statusCode: 301 },
       ]),
-      // /blog is the single canonical article URL space (the RSS feed stays put).
-      { source: '/education/blog', destination: '/blog', statusCode: 301 },
+      // Individual posts use /blog; the image-based Articles index stays separate.
       { source: '/education/blog/:slug((?!rss\\.xml$)[^/]+)', destination: '/blog/:slug', statusCode: 301 },
       // The Marketing Command Center is an internal tool; it lives behind admin auth now.
       { source: '/marketing', destination: '/admin/marketing/command-center', permanent: false },
