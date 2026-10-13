@@ -1,7 +1,21 @@
+import type { Metadata } from 'next'
 import { BRAND, COLORS } from '@/lib/brand'
 import { SiteFooter, SiteHeader, DEFAULT_NAV_LINKS } from '@/app/_components/site-shell'
 import { getProductBySlug } from '@/lib/products/catalog'
 import ProductFitForm from './ProductFitForm'
+
+export const metadata: Metadata = {
+  title: 'Find My Fit | Latimore Life & Legacy',
+  description:
+    'Use the Latimore Life & Legacy product match quiz to identify a starting point for life insurance, protection, and retirement-income conversations.',
+  alternates: {
+    canonical: '/products/find-my-fit',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 type PageProps = {
   searchParams?: Promise<{ product?: string | string[] }>

@@ -11,6 +11,7 @@ const goldLight = '#E5C882'
 export const metadata = {
   title: 'Join Our Team | Latimore Life & Legacy',
   description: 'Build your future and leave a legacy with the Latimore Life & Legacy recruiting interest form.',
+  alternates: { canonical: '/join' },
 }
 
 const benefits = [

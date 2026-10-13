@@ -30,7 +30,7 @@ const COVERAGE_ROWS = [
   { type: 'Mortgage Protection',   does: 'Keeps your family in their home if you pass away, become disabled, or face a critical illness.',                    best: 'Homeowners, new buyers, families with young children' },
   { type: 'Final Expense',         does: "Covers funeral costs, burial, and end-of-life bills so your family isn't left with an unexpected burden.",         best: 'Seniors, those without existing life coverage' },
   { type: 'Living Benefits',       does: 'Access a portion of your death benefit while still alive if diagnosed with a critical, chronic, or terminal illness.', best: 'Anyone wanting protection they can use during their lifetime' },
-  { type: 'Whole Life / Permanent', does: 'Lifelong coverage that never expires, builds cash value, and serves as a savings and legacy vehicle.',             best: 'Long-term legacy planning, estate, juvenile policies' },
+  { type: 'Whole Life / Permanent', does: 'Permanent life insurance may provide lifelong coverage when required premiums are paid and the policy stays in force. Cash values and other benefits depend on the policy terms.',             best: 'Long-term legacy planning, estate, juvenile policies' },
   { type: 'Fixed Index Annuity',   does: "Offers index-linked interest crediting and income options subject to contract terms, charges, withdrawal rules, and insurer claims-paying ability.",        best: 'Pre-retirees and retirees seeking income certainty' },
   { type: 'Key Person Insurance',  does: 'Protects a business from financial loss if a critical owner, partner, or key employee unexpectedly dies or is disabled.', best: 'Business owners, partnerships, school districts' },
   { type: 'Juvenile Coverage',     does: 'Locks in low rates while your child is young and healthy. Builds cash value and guarantees future insurability.',   best: 'Parents and grandparents planning ahead' },
@@ -57,7 +57,7 @@ const GLOSSARY = [
   { term: 'Death Benefit',                   def: 'The amount paid to your beneficiaries when you pass away. This is the primary purpose of a life insurance policy.' },
   { term: 'Living Benefits',                  def: 'A rider allowing you to access a portion of your death benefit while still alive — triggered by critical, chronic, or terminal illness.' },
   { term: 'Term Life Insurance',              def: 'Coverage for a specific period (10, 20, or 30 years). No cash value. If you pass away during the term, your beneficiaries receive the death benefit.' },
-  { term: 'Whole Life Insurance',             def: 'Permanent coverage that never expires. Builds cash value over time. Premiums remain level for life.' },
+  { term: 'Whole Life Insurance',             def: 'Permanent coverage that may last for life when required premiums are paid and the policy stays in force. May build cash value over time. Premiums, guarantees, and benefits depend on the policy terms.' },
   { term: 'Fixed Index Annuity (FIA)',        def: 'An insurance product that ties interest credits to a market index without directly investing in it. Principal is protected from market loss.' },
   { term: 'Lifetime Income Benefit Rider',    def: 'An optional rider on an annuity that guarantees a growing income account and converts it to lifetime income payments when you\'re ready.' },
   { term: 'Income Account Value (IAV)',        def: "A separate measuring tool within an annuity used solely to calculate contract-based income. Not the same as your account balance; cannot be withdrawn as a lump sum." },
@@ -292,7 +292,7 @@ export default function EducationHubPage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  ['Small Business Owner', 'A family-run contracting company with 8 employees. The founder is the lead estimator, project manager, and primary client contact. Without key person coverage, the sudden loss could mean lost contracts, delayed projects, and potential closure — leaving employees without jobs.'],
+                  ['Small Business Owner', 'A family-run contracting company with a small team. The founder is the lead estimator, project manager, and primary client contact. Without key person coverage, the sudden loss could mean lost contracts, delayed projects, and potential closure — leaving employees without jobs.'],
                   ['Business Partnership', 'Two equal partners in a service business. Without a funded buy-sell agreement, the surviving partner may be forced to take on the deceased\'s spouse as an unplanned co-owner — or scramble to finance a buyout at the worst possible moment.'],
                   ['School District Leadership', 'The unexpected loss of a Superintendent or Business Manager can trigger operational chaos, financial disruption, and a community trust crisis. A proactive key person strategy funds continuity and demonstrates the district plans ahead — not reactively.'],
                 ].map(([label, text]) => (

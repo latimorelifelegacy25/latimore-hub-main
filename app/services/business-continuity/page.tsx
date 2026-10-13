@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Key Person & Business Continuity Planning | Latimore Life & Legacy',
   description:
     'Review key-person life insurance, buy-sell funding, and executive-benefit insurance strategies for Pennsylvania businesses, with legal and tax coordination where needed.',
+  alternates: { canonical: '/services/business-continuity' },
 }
 
 const content: ServiceLandingContent = {

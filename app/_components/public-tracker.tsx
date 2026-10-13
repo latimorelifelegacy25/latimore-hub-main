@@ -7,8 +7,11 @@ import { getEventContext, getCurrentPageUrl, hydrateLeadContext } from '@/lib/le
 declare global {
   interface Window {
     fbq?: (...args: unknown[]) => void
+    gtag?: (...args: unknown[]) => void
   }
 }
+
+const GA4_CTA_EVENTS = new Set(['call_click', 'email_click', 'book_consultation_clicked', 'instant_quote_clicked', 'lead_magnet_download', 'service_card_clicked'])
 
 type EventPayload = ReturnType<typeof getEventContext> & {
   eventType: string
@@ -304,6 +307,10 @@ export default function PublicTracker() {
 
       const classified = classifyEvent(clickable)
       if (!classified) return
+      // Send only event name and page/placement, never URLs with query parameters or user inputs.
+      if (GA4_CTA_EVENTS.has(classified.eventType)) {
+        window.gtag?.('event', classified.eventType, { page_path: window.location.pathname, placement: inferPlacement(clickable) })
+      }
 
       interactionCountRef.current += 1
 
