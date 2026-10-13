@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
   const results: PublishResult[] = await Promise.all(
     providers.map(async (provider): Promise<PublishResult> => {
       try {
-        const trackedUrl = linkUrl && provider !== 'twitter'
+        const trackedUrl = linkUrl
           ? await createSocialTrackingLink(provider, linkUrl, { createdBy: auth.email })
           : linkUrl
         const linkedContent = linkUrl && trackedUrl ? content.replaceAll(linkUrl, trackedUrl) : content
