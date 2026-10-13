@@ -339,25 +339,21 @@ function renderBody(text: string) {
   )
 }
 
-function serviceEducationUrl(serviceLabel: string) {
-  const params = new URLSearchParams({
-    utm_source: 'google_business_profile',
-    utm_medium: 'service_page',
-    utm_campaign: 'latimore_services',
-    source: 'GBP_SERVICE_PAGE',
-    service: serviceLabel,
-  })
-  return `/education/checkup?${params.toString()}`
+function serviceEducationUrl() {
+  // Internal links use the clean canonical URL. Tracking parameters belong on
+  // external campaign links only — on internal links they misattribute on-site
+  // clicks and create crawlable parameterized URL variants.
+  return '/education/checkup'
 }
 
-function CtaButtons({ centered = false, large = false, label, serviceLabel }: { centered?: boolean; large?: boolean; label: string; serviceLabel: string }) {
+function CtaButtons({ centered = false, large = false, label }: { centered?: boolean; large?: boolean; label: string; serviceLabel: string }) {
   const paddingClass = large ? 'px-8 py-3' : 'px-4 py-2'
   const textClass = large ? 'text-base' : 'text-sm'
 
   return (
     <div className={`flex flex-wrap gap-4 ${centered ? 'justify-center' : ''}`}>
       <Link
-        href={serviceEducationUrl(serviceLabel)}
+        href={serviceEducationUrl()}
         className={`rounded-md font-bold no-underline transition-all hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#C9A24D] focus-visible:ring-offset-[#0E1A2B] bg-[#C9A24D] text-[#0E1A2B] ${paddingClass} ${textClass}`}
       >
         {label}
