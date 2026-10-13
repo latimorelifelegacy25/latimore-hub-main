@@ -292,7 +292,7 @@ export default function EducationHubPage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {[
-                  ['Small Business Owner', 'A family-run contracting company with 8 employees. The founder is the lead estimator, project manager, and primary client contact. Without key person coverage, the sudden loss could mean lost contracts, delayed projects, and potential closure — leaving employees without jobs.'],
+                  ['Small Business Owner', 'A family-run contracting company with a small team. The founder is the lead estimator, project manager, and primary client contact. Without key person coverage, the sudden loss could mean lost contracts, delayed projects, and potential closure — leaving employees without jobs.'],
                   ['Business Partnership', 'Two equal partners in a service business. Without a funded buy-sell agreement, the surviving partner may be forced to take on the deceased\'s spouse as an unplanned co-owner — or scramble to finance a buyout at the worst possible moment.'],
                   ['School District Leadership', 'The unexpected loss of a Superintendent or Business Manager can trigger operational chaos, financial disruption, and a community trust crisis. A proactive key person strategy funds continuity and demonstrates the district plans ahead — not reactively.'],
                 ].map(([label, text]) => (

@@ -43,7 +43,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   }
 
   // Best-effort click log; never blocks or fails the redirect.
-  if (!getExcludedTrafficReason(req)) {
+  // The hub host is excluded for page analytics, but public tracked links were
+  // historically issued on it, so those clicks are real visitors. Staff and
+  // automation are still excluded by cookie and user agent.
+  if (!getExcludedTrafficReason(req, null, { ignoreHubHost: true })) {
     const linkId = link.id
     const linkSlug = link.slug
     const referrer = req.headers.get('referer')?.slice(0, 500) || null

@@ -29,7 +29,7 @@ const DEFAULT_LINKS: LinkItem[] = [
   { id: 'portal-supabase', name: 'Supabase Dashboard', url: 'https://supabase.com/dashboard', category: 'Portals', tags: ['supabase', 'database'], notes: 'Hub database admin.' },
   { id: 'portal-vercel', name: 'Vercel Dashboard', url: 'https://vercel.com/jackson-latimore-s-projects', category: 'Portals', tags: ['vercel', 'deploy'], notes: 'Deployment & domain management.' },
   { id: 'portal-resend', name: 'Resend Email', url: 'https://resend.com/dashboard', category: 'Portals', tags: ['email', 'resend'], notes: 'Email infrastructure dashboard.' },
-  { id: 'portal-ga4', name: 'Google Analytics', url: 'https://analytics.google.com/', category: 'Portals', tags: ['analytics', 'ga4'], notes: 'GA4: G-S0Q3E4DEBJ (main) / G-91DT7W1KRP (card).' },
+  { id: 'portal-ga4', name: 'Google Analytics', url: 'https://analytics.google.com/', category: 'Portals', tags: ['analytics', 'ga4'], notes: 'GA4: G-WZWMX83WXQ (main) / G-91DT7W1KRP (card).' },
   { id: 'social-fb', name: 'Facebook Business', url: 'https://business.facebook.com/', category: 'Social', tags: ['facebook', 'social'], isFavorite: true },
   { id: 'social-linkedin', name: 'LinkedIn', url: 'https://www.linkedin.com/', category: 'Social', tags: ['linkedin', 'b2b'] },
   { id: 'tools-canva', name: 'Canva', url: 'https://www.canva.com/', category: 'Tools', tags: ['design', 'canva'], notes: 'Brand graphics & marketing materials.' },

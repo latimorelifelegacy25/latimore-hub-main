@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = {
   title: 'Financial Education Blog | Latimore Life & Legacy',
+  alternates: { canonical: '/education/blog' },
   description: 'Plain-language guides on life insurance, annuities, estate planning, and financial literacy from a Pennsylvania licensed advisor.',
 }
 
