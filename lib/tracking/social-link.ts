@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { isAllowedDestination } from './links'
 
-export type SocialPlatform = 'gbp' | 'facebook' | 'instagram' | 'linkedin'
+export type SocialPlatform = 'gbp' | 'facebook' | 'instagram' | 'linkedin' | 'twitter'
 
 const PLATFORM_LABELS: Record<SocialPlatform, string> = {
   gbp: 'Google Business Profile',
   facebook: 'Facebook',
   instagram: 'Instagram',
   linkedin: 'LinkedIn',
+  twitter: 'X / Twitter',
 }
 
 const PUBLIC_ORIGIN = 'https://www.latimorelifelegacy.com'
