@@ -1,0 +1,276 @@
+{
+  "project_ref": "eoihgvahvfpgbromvzkd",
+  "project_name": "Latimore-hub",
+  "exported_at": "2026-10-11",
+  "entry_count": 35,
+  "serialization": "statements joined with one newline; final newline added only when absent",
+  "entries": [
+    {
+      "version": "20260526135426",
+      "name": "create_leads_table",
+      "file": "supabase/migrations/20260526135426_create_leads_table.sql",
+      "statement_count": 1,
+      "sha256": "c08c37cd7d5495aca2aee615d20f89878459fadbf6e675ffeb6f912d95ac135f"
+    },
+    {
+      "version": "20260526135429",
+      "name": "create_tracking_events_table",
+      "file": "supabase/migrations/20260526135429_create_tracking_events_table.sql",
+      "statement_count": 1,
+      "sha256": "81346f5b4c348289fd78f643b5000f01cd5cc24127f1380879e9094f61484ce3"
+    },
+    {
+      "version": "20260528180701",
+      "name": "social_analytics_engagement",
+      "file": "supabase/migrations/20260528180701_social_analytics_engagement.sql",
+      "statement_count": 1,
+      "sha256": "321315756095d3dd85bb2029f5198ee775a6c5fc33e7ec1bafbbccd0316014f6"
+    },
+    {
+      "version": "20260528180703",
+      "name": "create_analytics_events",
+      "file": "supabase/migrations/20260528180703_create_analytics_events.sql",
+      "statement_count": 1,
+      "sha256": "b795b36921420425d28ee1e6573b8828def8de9a6a649ca176cc6bd0475e4236"
+    },
+    {
+      "version": "20260528180802",
+      "name": "enable_rls_new_tables",
+      "file": "supabase/migrations/20260528180802_enable_rls_new_tables.sql",
+      "statement_count": 1,
+      "sha256": "efd9633ee321d14998d98d5007a2306a1fda4a2dabafe7329c766a54db2fb686"
+    },
+    {
+      "version": "20260612173837",
+      "name": "fix_policy_perf_and_fk_indexes",
+      "file": "supabase/migrations/20260612173837_fix_policy_perf_and_fk_indexes.sql",
+      "statement_count": 1,
+      "sha256": "4e2f704dec3e342474e69cf7e1e998f7e13b5d0bf26729fdcc1437f5e2ce291c"
+    },
+    {
+      "version": "20260612174213",
+      "name": "lock_down_public_table_policies",
+      "file": "supabase/migrations/20260612174213_lock_down_public_table_policies.sql",
+      "statement_count": 1,
+      "sha256": "41d9706ddb85de90816372810e0089ac0f91c6833258d4829919739cd7a50e45"
+    },
+    {
+      "version": "20260612174305",
+      "name": "secure_prisma_migrations_policy",
+      "file": "supabase/migrations/20260612174305_secure_prisma_migrations_policy.sql",
+      "statement_count": 1,
+      "sha256": "05b2e0f00de062b12b0d880241068dc2ad753f51bd3b195a4655f1df7b1772f5"
+    },
+    {
+      "version": "20260612202755",
+      "name": "next_sprint_admin_score_analytics",
+      "file": "supabase/migrations/20260612202755_next_sprint_admin_score_analytics.sql",
+      "statement_count": 1,
+      "sha256": "56388294b3cd37f63ee8769cf10d4edc74a5abdd4a747d07c3124de3ed9c43b1"
+    },
+    {
+      "version": "20260613145409",
+      "name": "latimore_automation_engine_v2",
+      "file": "supabase/migrations/20260613145409_latimore_automation_engine_v2.sql",
+      "statement_count": 1,
+      "sha256": "bb9f6207aec72b7811453d9d058986425fa30cca9fb1819c38f41ec6ba78e3dc"
+    },
+    {
+      "version": "20260613145513",
+      "name": "latimore_database_native_crm_cron",
+      "file": "supabase/migrations/20260613145513_latimore_database_native_crm_cron.sql",
+      "statement_count": 1,
+      "sha256": "0f62cb22139788e1cb51224739900c72a08a31e2d39f775e6de2ed61b2985ccd"
+    },
+    {
+      "version": "20260613193656",
+      "name": "latimore_virtual_intake_adapter",
+      "file": "supabase/migrations/20260613193656_latimore_virtual_intake_adapter.sql",
+      "statement_count": 1,
+      "sha256": "3c2af4f4cd257b5ead05ea76700286dc867a680ff25a5edb2f2e81f6298bd143"
+    },
+    {
+      "version": "20260616001539",
+      "name": "enable_rls_on_flagged_tables",
+      "file": "supabase/migrations/20260616001539_enable_rls_on_flagged_tables.sql",
+      "statement_count": 1,
+      "sha256": "c7dffc73f8da168642bf49f9921d11f975e292f3fc7440f9fa6ebfa8dc67ffa8"
+    },
+    {
+      "version": "20260617011046",
+      "name": "create_unified_spec_schema",
+      "file": "supabase/migrations/20260617011046_create_unified_spec_schema.sql",
+      "statement_count": 1,
+      "sha256": "a0d74cd88f51cd3f74f07fdbe722b68f1b82aed32761f05cb4e2670f9ca3be37"
+    },
+    {
+      "version": "20260617011144",
+      "name": "backfill_from_latimore_hub_main",
+      "file": "supabase/migrations/20260617011144_backfill_from_latimore_hub_main.sql",
+      "statement_count": 1,
+      "sha256": "bad70cf9c7d5de8668cb675034e46a06da89665ebc01c88f8ba401bae4d20e92"
+    },
+    {
+      "version": "20260624170510",
+      "name": "fix_crm_automations_full_name_column",
+      "file": "supabase/migrations/20260624170510_fix_crm_automations_full_name_column.sql",
+      "statement_count": 1,
+      "sha256": "19aef007077aaba20bb4133d11f91233f88ccf91fcb9c38f44ab7d20aa23c1d2"
+    },
+    {
+      "version": "20260624170640",
+      "name": "fix_crm_automations_correct_tables",
+      "file": "supabase/migrations/20260624170640_fix_crm_automations_correct_tables.sql",
+      "statement_count": 1,
+      "sha256": "d333e4130958aa76661f647e4794cef76685530f3f1191757260e52dad53d99e"
+    },
+    {
+      "version": "20260624170720",
+      "name": "fix_crm_automations_appointment_column",
+      "file": "supabase/migrations/20260624170720_fix_crm_automations_appointment_column.sql",
+      "statement_count": 1,
+      "sha256": "366c1981f13fc0918ee4bb81ab3709400337509cb4844b0ffa58b1f1f164f60b"
+    },
+    {
+      "version": "20260703175123",
+      "name": "add_calendly_event_id_unique_index",
+      "file": "supabase/migrations/20260703175123_add_calendly_event_id_unique_index.sql",
+      "statement_count": 1,
+      "sha256": "89eb276afbed0b3d2aee6efc00d0f6b5b270f1417b80db8e2e2bbb597d3b9d64"
+    },
+    {
+      "version": "20260704010034",
+      "name": "sync_missing_tables_and_enums_from_prisma_schema",
+      "file": "supabase/migrations/20260704010034_sync_missing_tables_and_enums_from_prisma_schema.sql",
+      "statement_count": 1,
+      "sha256": "19df65ece68decc0030d8b91bdb5c656fe5a39b8e5079936e341480b751fddad"
+    },
+    {
+      "version": "20260718170150",
+      "name": "add_pahs_qr_tracking_bridge",
+      "file": "supabase/migrations/20260718170150_add_pahs_qr_tracking_bridge.sql",
+      "statement_count": 1,
+      "sha256": "e516234958176746cb6a01f04d842c2402d1419e27dac013565193eb2f122a66"
+    },
+    {
+      "version": "20260718170527",
+      "name": "secure_pahs_qr_trigger_function",
+      "file": "supabase/migrations/20260718170527_secure_pahs_qr_trigger_function.sql",
+      "statement_count": 1,
+      "sha256": "dec9d6db0e3dd03e404de86bb4b650c4a3463af411c3b53845f14b607fcbfc6d"
+    },
+    {
+      "version": "20260901133820",
+      "name": "harden_crm_automation_security_definer",
+      "file": "supabase/migrations/20260901133820_harden_crm_automation_security_definer.sql",
+      "statement_count": 1,
+      "sha256": "b20dea32c4f0249c3caf89dda92e8ed06a5caac68b1e5e09c5e1c96ae942e4f3"
+    },
+    {
+      "version": "20260901133843",
+      "name": "harden_crm_automation_security_definer_v2",
+      "file": "supabase/migrations/20260901133843_harden_crm_automation_security_definer_v2.sql",
+      "statement_count": 1,
+      "sha256": "66f8f4469b5c327f3736755c26a437980cf7b4176cb493b47b6707af8fdb59f1"
+    },
+    {
+      "version": "20260910185026",
+      "name": "extend_marketing_content",
+      "file": "supabase/migrations/20260910185026_extend_marketing_content.sql",
+      "statement_count": 1,
+      "sha256": "3700078e757992cc7fd6cc68a36e87b9edf4c931de880157e4690dd990cdd3b1"
+    },
+    {
+      "version": "20260916150234",
+      "name": "add_agent_harness_telemetry",
+      "file": "supabase/migrations/20260916150234_add_agent_harness_telemetry.sql",
+      "statement_count": 1,
+      "sha256": "84f4134c5998f5a2cf2e7fdf985a1ec3eeccbe30eb931e866477396dbf345b58"
+    },
+    {
+      "version": "20260917211601",
+      "name": "add_visitor_identity_and_intent_scoring",
+      "file": "supabase/migrations/20260917211601_add_visitor_identity_and_intent_scoring.sql",
+      "statement_count": 1,
+      "sha256": "d5bde1f8f45a643d09d5950af1596ebc74be34bfee8406d9d03680b99a454e27"
+    },
+    {
+      "version": "20260917211807",
+      "name": "lead_intent_scoring_engine_v2",
+      "file": "supabase/migrations/20260917211807_lead_intent_scoring_engine_v2.sql",
+      "statement_count": 1,
+      "sha256": "065f6dbbaf95323b3d1cd4a5628a6ff0ec9f4a81c0b752598711659c6ecfd300"
+    },
+    {
+      "version": "20260917211929",
+      "name": "secure_visitor_intent_tables_rls",
+      "file": "supabase/migrations/20260917211929_secure_visitor_intent_tables_rls.sql",
+      "statement_count": 1,
+      "sha256": "c607497efd2fc0c91b2b8f95b7854be1faf64ee69b172b0e45e6319e6eb42251"
+    },
+    {
+      "version": "20260917214842",
+      "name": "harden_visitor_intent_recency_and_cap",
+      "file": "supabase/migrations/20260917214842_harden_visitor_intent_recency_and_cap.sql",
+      "statement_count": 1,
+      "sha256": "55d0e003d1a4e9b3f7292d3e2089782beee2edcb6e5a7c5a2d8253a44c5de405"
+    },
+    {
+      "version": "20260917220415",
+      "name": "harden_lead_intent_function_search_path",
+      "file": "supabase/migrations/20260917220415_harden_lead_intent_function_search_path.sql",
+      "statement_count": 1,
+      "sha256": "13ccb542882da9c6b202cb47d8f45b6963ce679ea5a8042110e845a5938f72c1"
+    },
+    {
+      "version": "20260920030456",
+      "name": "add_session_exit_event",
+      "file": "supabase/migrations/20260920030456_add_session_exit_event.sql",
+      "statement_count": 1,
+      "sha256": "bef9a71102fed164bc7988ebd399596ca1e83fb97f399bce4a497a9bea90a1ef"
+    },
+    {
+      "version": "20261005150925",
+      "name": "20261003120000_add_missing_indexes",
+      "file": "supabase/migrations/20261005150925_20261003120000_add_missing_indexes.sql",
+      "statement_count": 1,
+      "sha256": "7f9167492433a9f05f31c1a4a821a945a342bea1f3c124f35ae71b74fa4a1c5c"
+    },
+    {
+      "version": "20261005150927",
+      "name": "20261005120000_add_form_start_event",
+      "file": "supabase/migrations/20261005150927_20261005120000_add_form_start_event.sql",
+      "statement_count": 1,
+      "sha256": "04e9aa365d281b3c25664e4d3226b000691801c4690ea1b97878314b644673f0"
+    },
+    {
+      "version": "20261005150928",
+      "name": "20261006120000_add_tracking_links",
+      "file": "supabase/migrations/20261005150928_20261006120000_add_tracking_links.sql",
+      "statement_count": 1,
+      "sha256": "c1e28067eacfc445017766a347f0891453dab4d4d35e7499e7f17415b81b8e6b"
+    }
+  ],
+  "preserved_legacy_files": [
+    {
+      "file": "supabase/legacy-migrations/20260526135000_create_leads_table.sql",
+      "sha256": "262492bc67cf5e0609b0ebd48813dc3dad41f19d7ea75dd67c391f6793eafe56"
+    },
+    {
+      "file": "supabase/legacy-migrations/20260526135100_create_tracking_events_table.sql",
+      "sha256": "e89442c519d24efc9f2a35a1026fb7f5c22c9c2c6a351ce76af49fcb09664304"
+    },
+    {
+      "file": "supabase/legacy-migrations/20260613_latimore_automation_engine.sql",
+      "sha256": "1e58dc8baa822df395ecea3be6dcee6982f47eb70328b59a122701b9b598a263"
+    },
+    {
+      "file": "supabase/legacy-migrations/20260620000000_harden_leads_numeric_value.sql",
+      "sha256": "7cfaa3c93ff5430732926fad62a7ff0a261fb26b6002cf770217751125f93a3c"
+    },
+    {
+      "file": "supabase/legacy-migrations/20260901000000_harden_crm_automation_security_definer.sql",
+      "sha256": "9fae84ded4ff1a522d12c009e54c470b3ad06cf1bd059bce47cfa821f3b1be20"
+    }
+  ]
+}
