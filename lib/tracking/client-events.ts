@@ -2,6 +2,8 @@
 
 import { getCurrentPageUrl, getEventContext, hydrateLeadContext } from '@/lib/lead'
 
+declare global { interface Window { gtag?: (...args: unknown[]) => void } }
+
 export type LatimoreEventAction =
   | 'tool_opened'
   | 'tool_started'
@@ -50,6 +52,11 @@ function canonicalEventType(action: LatimoreEventAction): string {
   }
 }
 
+const GA4_TOOL_EVENTS: Partial<Record<LatimoreEventAction, string>> = {
+  tool_started: 'tool_start', tool_completed: 'tool_complete',
+  tool_result_viewed: 'tool_result_view', booking_clicked: 'book_consultation_clicked',
+}
+
 /**
  * Canonical first-party client tracker for Latimore public and advisor tools.
  *
@@ -62,6 +69,11 @@ export async function trackLatimoreEvent(input: LatimoreEventInput) {
   try {
     hydrateLeadContext()
     const context = getEventContext({ pageUrl: getCurrentPageUrl() })
+    const ga4Event = GA4_TOOL_EVENTS[input.action]
+    if (ga4Event && typeof window !== 'undefined') {
+      // Tool labels only: never transmit client answers, estimates, or PII.
+      window.gtag?.('event', ga4Event, { tool_name: input.tool, tool_category: input.category })
+    }
 
     await fetch('/api/event', {
       method: 'POST',

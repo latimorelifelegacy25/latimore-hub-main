@@ -47,6 +47,10 @@ export function trackLeadConversion(input: LeadConversionInput = {}) {
     event_id: eventId,
   })
 
+  // GA4 recommended lead event: never transmit names, contact details, or financial answers.
+  window.gtag?.('event', 'generate_lead', { form_name: formName, event_id: eventId })
+
+  // Retain legacy event for existing Ads/GTM mappings. Only generate_lead should be a GA4 key event.
   window.gtag?.('event', 'conversion', {
     event_category: 'lead',
     event_label: formName,

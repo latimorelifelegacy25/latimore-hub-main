@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BRAND, COLORS } from '@/lib/brand'
 import { getCurrentPageUrl, getEventContext, hydrateLeadContext } from '@/lib/lead'
 import { trackLatimoreEvent } from '@/lib/tracking/client-events'
+import { trackLeadConversion } from '@/lib/tracking/client-conversions'
 import CountyOptions from '@/components/forms/CountyOptions'
 
 type Variant = 'family' | 'retirement' | 'legacy'
@@ -157,7 +158,9 @@ function LeadCapture({ config }: { config: VariantConfig }) {
           },
         }),
       })
-      if (!response.ok) throw new Error('lead submission failed')
+      const result = (await response.json().catch(() => ({}))) as { ok?: boolean; conversionEventId?: string }
+      if (!response.ok || result.ok === false) throw new Error('lead submission failed')
+      trackLeadConversion({ eventId: result.conversionEventId, source: context.source, campaign: context.campaign || config.campaign, formName: config.tool })
       setStatus('done')
       void trackLatimoreEvent({ action: 'lead_submitted', tool: config.tool, category: config.category, metadata: { resource: config.magnetTitle } })
     } catch {
