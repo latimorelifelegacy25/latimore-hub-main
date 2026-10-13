@@ -57,7 +57,7 @@ const GLOSSARY = [
   { term: 'Death Benefit',                   def: 'The amount paid to your beneficiaries when you pass away. This is the primary purpose of a life insurance policy.' },
   { term: 'Living Benefits',                  def: 'A rider allowing you to access a portion of your death benefit while still alive — triggered by critical, chronic, or terminal illness.' },
   { term: 'Term Life Insurance',              def: 'Coverage for a specific period (10, 20, or 30 years). No cash value. If you pass away during the term, your beneficiaries receive the death benefit.' },
-  { term: 'Whole Life Insurance',             def: 'Permanent coverage that never expires. Builds cash value over time. Premiums remain level for life.' },
+  { term: 'Whole Life Insurance',             def: 'Permanent coverage that may last for life when required premiums are paid and the policy stays in force. May build cash value over time. Premiums, guarantees, and benefits depend on the policy terms.' },
   { term: 'Fixed Index Annuity (FIA)',        def: 'An insurance product that ties interest credits to a market index without directly investing in it. Principal is protected from market loss.' },
   { term: 'Lifetime Income Benefit Rider',    def: 'An optional rider on an annuity that guarantees a growing income account and converts it to lifetime income payments when you\'re ready.' },
   { term: 'Income Account Value (IAV)',        def: "A separate measuring tool within an annuity used solely to calculate contract-based income. Not the same as your account balance; cannot be withdrawn as a lump sum." },
