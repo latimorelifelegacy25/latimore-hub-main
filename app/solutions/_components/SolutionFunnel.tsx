@@ -177,7 +177,7 @@ function LeadCapture({ config }: { config: VariantConfig }) {
           Your request has been recorded. You can also schedule the review now if you want to put a time on the calendar.
         </p>
         <Link
-          href={`/book?utm_source=latimore_site&utm_medium=solution_funnel&utm_campaign=${config.campaign}&utm_content=post_lead_booking`}
+          href="/book"
           onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'post_lead' } })}
           className="mt-5 inline-flex rounded-xl px-5 py-3 text-sm font-black no-underline"
           style={{ background: COLORS.gold, color: COLORS.navyDeep }}
@@ -270,7 +270,7 @@ export default function SolutionFunnel({ variant }: Props) {
             <a href="#snapshot" className="rounded-xl px-6 py-3.5 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
               Calculate My Snapshot
             </a>
-            <Link href={`/book?utm_source=latimore_site&utm_medium=solution_funnel&utm_campaign=${config.campaign}&utm_content=hero_booking`} onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'hero' } })} className="rounded-xl border border-white/25 px-6 py-3.5 text-sm font-black text-white no-underline">
+            <Link href="/book" onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'hero' } })} className="rounded-xl border border-white/25 px-6 py-3.5 text-sm font-black text-white no-underline">
               Schedule Consultation
             </Link>
           </div>
