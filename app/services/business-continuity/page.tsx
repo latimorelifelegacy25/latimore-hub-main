@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { ServiceLandingPage, type ServiceLandingContent } from '../_components/landing-template'
 
 export const metadata: Metadata = {
-  title: 'Key Person & Business Continuity Planning | Latimore Life & Legacy',
+  title: 'Key Person & Business Continuity Planning',
   description:
     'Review key-person life insurance, buy-sell funding, and executive-benefit insurance strategies for Pennsylvania businesses, with legal and tax coordination where needed.',
   alternates: { canonical: '/services/business-continuity' },
