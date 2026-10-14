@@ -329,7 +329,7 @@ export default function SolutionFunnel({ variant }: Props) {
                 </p>
               </div>
             ) : null}
-            <Link href={`/book?utm_source=latimore_site&utm_medium=solution_funnel&utm_campaign=${config.campaign}&utm_content=result_booking`} onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, resultBand, metadata: { placement: 'result' } })} className="mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
+            <Link href="/book" onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, resultBand, metadata: { placement: 'result' } })} className="mt-6 inline-flex rounded-xl px-5 py-3 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
               {config.bookingTitle}
             </Link>
           </div>
@@ -374,7 +374,7 @@ export default function SolutionFunnel({ variant }: Props) {
           <h2 className="mt-3 text-3xl font-black text-white">Protecting Today. Securing Tomorrow.</h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-white/70">Proudly serving Schuylkill, Luzerne, and Northumberland Counties with education-first protection and retirement conversations.</p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link href={`/book?utm_source=latimore_site&utm_medium=solution_funnel&utm_campaign=${config.campaign}&utm_content=footer_booking`} onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'footer' } })} className="rounded-xl px-6 py-3.5 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>Schedule Complimentary Consultation</Link>
+            <Link href="/book" onClick={() => void trackLatimoreEvent({ action: 'booking_clicked', tool: config.tool, category: config.category, metadata: { placement: 'footer' } })} className="rounded-xl px-6 py-3.5 text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>Schedule Complimentary Consultation</Link>
             <a href={BRAND.phoneHref} onClick={() => void trackLatimoreEvent({ action: 'tool_cta_clicked', tool: config.tool, category: config.category, metadata: { placement: 'footer', channel: 'phone' } })} className="rounded-xl border border-white/20 px-6 py-3.5 text-sm font-black text-white no-underline">{BRAND.phone}</a>
           </div>
         </div>
