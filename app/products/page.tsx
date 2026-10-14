@@ -11,7 +11,7 @@ import { MobileStickyCta } from './_components/MobileStickyCta'
 const categoryOrder: ProductCategory[] = ['life', 'annuity', 'business']
 
 export const metadata: Metadata = {
-  title: 'Life Insurance & Annuity Options | Latimore Life & Legacy',
+  title: 'Life Insurance & Annuity Options',
   description:
     'Compare life insurance, living benefits, annuity and business-protection options with an independent Pennsylvania insurance broker serving the Coal Region.',
   alternates: { canonical: '/products' },

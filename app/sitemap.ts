@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/pahs`, changeFrequency: 'monthly', priority: 0.75 },
     { url: `${BASE}/about`,                       changeFrequency: 'yearly',   priority: 0.8 },
     { url: `${BASE}/contact`,                     changeFrequency: 'yearly',   priority: 0.85 },
+    { url: `${BASE}/join`,                        changeFrequency: 'monthly',  priority: 0.65 },
     { url: `${BASE}/book`,                        changeFrequency: 'yearly',   priority: 0.9 },
     { url: `${BASE}/products/find-my-fit`,         changeFrequency: 'monthly',  priority: 0.85 },
     { url: `${BASE}/schuylkill`,                   changeFrequency: 'monthly',  priority: 0.9 },

@@ -29,7 +29,7 @@ export default function EthosQuoteLink({
 
   return (
     <a
-      href="/solutions/family-protection?utm_source=latimore_site&utm_medium=internal_cta&utm_campaign=family_protection&utm_content=legacy_quote_cta"
+      href="/solutions/family-protection"
       onClick={handleClick}
       style={style}
       className={className}
