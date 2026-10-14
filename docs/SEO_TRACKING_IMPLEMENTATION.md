@@ -34,3 +34,19 @@ Weekly: Search Console clicks/impressions/CTR/average position/indexed URLs; GA4
 ## Campaign UTMs
 
 Use consistent lowercase utm_source, utm_medium, utm_campaign, utm_content values. Do not put names, emails, phone numbers, or financial inputs into URLs. Recommended mediums: organic_social, email, referral, qr, paid.
+
+## Measurement and metadata cleanup — 2026-10-14
+
+- Corrected redundant brand text in child-page titles for Contact, Find My Fit, Join, Book, Products, and Business Continuity. The root metadata template appends the business brand once.
+- Set Contact Open Graph title/description and standardized its preview image to the site's generated 1200×630 /opengraph-image asset.
+- Added the publicly indexable /join recruiting page to sitemap.xml, with its existing /join self-canonical retained.
+- Removed self-referral UTM parameters from the internal Family Protection and consultation links. Existing click/tool-event callbacks remain in place, preserving first-party attribution context without overwriting the visitor's external marketing source.
+- No change was made to the currently working /products/find-my-fit canonical or description, existing insurance disclosures, protected paths, or the main GA4 tag ownership.
+
+### Release QA
+
+1. Verify Vercel preview builds without TypeScript, lint, or routing errors; inspect /contact, /products/find-my-fit, /products, /book, /join, /services/business-continuity, and /solutions.
+2. Verify each page renders one brand suffix in its HTML title, a clean self-canonical, and a unique description. Contact should emit the sitewide 1200×630 social image.
+3. Check that /sitemap.xml contains /join and no query parameter URLs, and /robots.txt still advertises the same sitemap.
+4. Test the internal booking and snapshot links: URL must be clean, while the tracking click event must still fire. For an externally tagged landing visitor, first-party campaign attribution should persist across internal navigation.
+5. Verify live Search Console sitemap processing and GA4 DebugView/key-event configuration with the authenticated Google account before claiming those account-level tasks are complete.
