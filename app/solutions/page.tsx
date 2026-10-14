@@ -64,7 +64,7 @@ export default function SolutionsPage() {
                 <h2 className="mt-2 text-2xl font-black" style={{ color: COLORS.navy }}>Education-First. Community-Focused. Legacy-Driven.</h2>
                 <p className="mt-2 text-sm leading-6" style={{ color: COLORS.textMuted }}>If you already know what you want to review, skip the tool and schedule a complimentary consultation.</p>
               </div>
-              <Link href="/book?utm_source=latimore_site&utm_medium=solutions_hub&utm_campaign=interactive_tools" className="rounded-xl px-6 py-3.5 text-center text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>Schedule Consultation</Link>
+              <Link href="/book" className="rounded-xl px-6 py-3.5 text-center text-sm font-black no-underline" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>Schedule Consultation</Link>
             </div>
           </div>
         </section>
