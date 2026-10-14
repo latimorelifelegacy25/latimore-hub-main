@@ -5,7 +5,7 @@ import { getProductBySlug } from '@/lib/products/catalog'
 import ProductFitForm from './ProductFitForm'
 
 export const metadata: Metadata = {
-  title: 'Find My Fit | Latimore Life & Legacy',
+  title: 'Find My Fit | Insurance & Annuity Product Match',
   description:
     'Use the Latimore Life & Legacy product match quiz to identify a starting point for life insurance, protection, and retirement-income conversations.',
   alternates: {
