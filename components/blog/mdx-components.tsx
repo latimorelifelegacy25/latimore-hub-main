@@ -62,11 +62,14 @@ function StatsRow({ children }: { children: React.ReactNode }) {
   return <div className="stats-row">{children}</div>
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ value, label, sourceUrl, sourceLabel }: { value: string; label: string; sourceUrl?: string; sourceLabel?: string }) {
   return (
     <div className="stat">
       <span className="stat__value">{value}</span>
       <span className="stat__label">{label}</span>
+      {sourceUrl && sourceLabel && (
+        <a href={sourceUrl} className="text-sm underline">Source: {sourceLabel}</a>
+      )}
     </div>
   )
 }
