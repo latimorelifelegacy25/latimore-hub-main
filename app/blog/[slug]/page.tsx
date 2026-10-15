@@ -64,6 +64,8 @@ function renderStatsRow(body: string) {
     return {
       label: getAttribute(attrs, 'label') ?? '',
       value: getAttribute(attrs, 'value') ?? '',
+      sourceUrl: getAttribute(attrs, 'sourceUrl'),
+      sourceLabel: getAttribute(attrs, 'sourceLabel'),
     }
   }).filter((stat) => stat.label || stat.value)
 
@@ -71,8 +73,12 @@ function renderStatsRow(body: string) {
 
   return `<div class="blog-stats-row">${stats
     .map(
-      (stat) =>
-        `<div class="blog-stat"><div class="blog-stat-value">${escapeHtml(stat.value)}</div><div class="blog-stat-label">${escapeHtml(stat.label)}</div></div>`,
+      (stat) => {
+        const source = stat.sourceUrl && /^https?:\/\//i.test(stat.sourceUrl) && stat.sourceLabel
+          ? `<a class="blog-stat-source" href="${escapeAttribute(stat.sourceUrl)}">Source: ${escapeHtml(stat.sourceLabel)}</a>`
+          : ''
+        return `<div class="blog-stat"><div class="blog-stat-value">${escapeHtml(stat.value)}</div><div class="blog-stat-label">${escapeHtml(stat.label)}</div>${source}</div>`
+      },
     )
     .join('')}</div>`
 }
@@ -222,6 +228,7 @@ export default async function ArticlePage({
         .prose-article .blog-stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem; margin:1.75rem 0; }
         .prose-article .blog-stat { background:#ffffff; border:1px solid #e2dcd4; border-left:4px solid #C49A6C; padding:1.25rem; }
         .prose-article .blog-stat-value { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:#2C3E50; line-height:1.1; margin-bottom:0.35rem; }
+        .prose-article .blog-stat-source { display:block; margin-top:0.5rem; font-size:0.75rem; text-decoration:underline; }
         .prose-article .blog-stat-label { font-family:'DM Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:#6b6460; line-height:1.5; }
         .prose-article .blog-key-takeaway, .prose-article .blog-callout { background:#f2ebe5; border-left:4px solid #C49A6C; padding:1.25rem 1.5rem; margin:1.75rem 0; }
         .prose-article .blog-key-takeaway p, .prose-article .blog-callout p { margin:0; color:#2C3E50; font-weight:600; }
