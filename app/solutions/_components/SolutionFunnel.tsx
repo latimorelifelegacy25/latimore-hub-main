@@ -32,6 +32,7 @@ type VariantConfig = {
   magnetBody: string
   bookingTitle: string
   campaign: string
+  worksheetId: 'family' | 'retirement' | 'legacy'
   assumptions: string[]
   sources: Array<[string, string, string]>
   faqs: Array<[string, string]>
@@ -53,6 +54,7 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'A practical follow-up that helps you write down the income years, housing obligation, current protection, and immediate family priorities behind your number.',
     bookingTitle: 'Review the number with Latimore',
     campaign: 'family_protection_snapshot',
+    worksheetId: 'family',
     assumptions: [
       'Gap = (annual income x years to replace) + housing obligation + debt, childcare, education and other obligations - existing coverage.',
       'Years to replace is capped at 40. The result is never below zero.',
@@ -81,6 +83,7 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'Use it to list your desired monthly income, predictable sources, housing obligations, and the questions you want answered before retirement.',
     bookingTitle: 'Review your income gap with Latimore',
     campaign: 'retirement_income_snapshot',
+    worksheetId: 'retirement',
     assumptions: [
       'Gap = desired monthly income - Social Security - pension - other predictable monthly income. The result is never below zero.',
       'The 25-year figure shown with the result is the monthly gap x 12 x 25. It is an illustration only, before inflation, taxes, or investment returns.',
@@ -108,6 +111,7 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'A simple checklist for final arrangements, outstanding obligations, beneficiary information, important contacts, and the documents your family should be able to find.',
     bookingTitle: 'Review the gap with Latimore',
     campaign: 'legacy_cost_snapshot',
+    worksheetId: 'legacy',
     assumptions: [
       'Gap = final arrangements + outstanding debts + medical or estate costs + other immediate obligations - savings or coverage already earmarked. The result is never below zero.',
       'Starting values in the fields are placeholders, not price quotes. Local costs vary by provider and region.',
@@ -146,6 +150,7 @@ function NumberField({ label, value, onChange, prefix = '$' }: { label: string; 
 function LeadCapture({ config }: { config: VariantConfig }) {
   const [lead, setLead] = useState<LeadState>({ firstName: '', lastName: '', email: '', phone: '', county: '' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
+  const [emailed, setEmailed] = useState(false)
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
@@ -182,6 +187,21 @@ function LeadCapture({ config }: { config: VariantConfig }) {
       const result = (await response.json().catch(() => ({}))) as { ok?: boolean; conversionEventId?: string }
       if (!response.ok || result.ok === false) throw new Error('lead submission failed')
       trackLeadConversion({ eventId: result.conversionEventId, source: context.source, campaign: context.campaign || config.campaign, formName: config.tool })
+      let delivered = false
+      if (lead.email) {
+        try {
+          const worksheetResponse = await fetch('/api/worksheet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: lead.email.trim(), firstName: lead.firstName || null, worksheet: config.worksheetId }),
+          })
+          const worksheetResult = (await worksheetResponse.json().catch(() => ({}))) as { ok?: boolean }
+          delivered = worksheetResponse.ok && worksheetResult.ok === true
+        } catch {
+          delivered = false
+        }
+      }
+      setEmailed(delivered)
       setStatus('done')
       void trackLatimoreEvent({ action: 'lead_submitted', tool: config.tool, category: config.category, metadata: { resource: config.magnetTitle } })
     } catch {
@@ -193,9 +213,13 @@ function LeadCapture({ config }: { config: VariantConfig }) {
     return (
       <div className="rounded-2xl border p-6" style={{ borderColor: COLORS.goldBorder, background: COLORS.goldPale }}>
         <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: COLORS.gold }}>Request received</p>
-        <h3 className="mt-2 text-2xl font-black" style={{ color: COLORS.navy }}>You are on the follow-up list.</h3>
+        <h3 className="mt-2 text-2xl font-black" style={{ color: COLORS.navy }}>
+          {emailed ? 'Your worksheet is on its way.' : 'You are on the follow-up list.'}
+        </h3>
         <p className="mt-2 text-sm leading-6" style={{ color: COLORS.textMuted }}>
-          Your request has been recorded. You can also schedule the review now if you want to put a time on the calendar.
+          {emailed
+            ? `We emailed your ${config.magnetTitle} as a PDF. If you do not see it in a few minutes, check your spam folder. You can also schedule the review now if you want to put a time on the calendar.`
+            : 'Your request has been recorded and we will follow up with your worksheet. You can also schedule the review now if you want to put a time on the calendar.'}
         </p>
         <Link
           href="/book"
@@ -218,7 +242,7 @@ function LeadCapture({ config }: { config: VariantConfig }) {
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <input value={lead.firstName} onChange={(e) => setLead({ ...lead, firstName: e.target.value })} placeholder="First name" className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }} />
         <input value={lead.lastName} onChange={(e) => setLead({ ...lead, lastName: e.target.value })} placeholder="Last name" className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }} />
-        <input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} placeholder="Email" className="rounded-xl border px-4 py-3 outline-none sm:col-span-2" style={{ borderColor: COLORS.gray200 }} />
+        <input type="email" value={lead.email} onChange={(e) => setLead({ ...lead, email: e.target.value })} placeholder="Email (to receive your worksheet)" className="rounded-xl border px-4 py-3 outline-none sm:col-span-2" style={{ borderColor: COLORS.gray200 }} />
         <input value={lead.phone} onChange={(e) => setLead({ ...lead, phone: e.target.value })} placeholder="Phone (optional)" className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }} />
         <select value={lead.county} onChange={(e) => setLead({ ...lead, county: e.target.value })} className="rounded-xl border px-4 py-3 outline-none" style={{ borderColor: COLORS.gray200 }}>
           <option value="">County (optional)</option>
