@@ -18,12 +18,12 @@ function solidBlurDataURL(hex: string) {
 }
 
 export const metadata: Metadata = {
-  title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+  title: { absolute: 'Coal Region Life Insurance | Latimore Life & Legacy' },
   description:
     'Local, education-first life insurance, annuity, mortgage protection and retirement-income guidance for Schuylkill, Luzerne and Northumberland County families.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: "Life Insurance & Annuities in Pennsylvania's Coal Region",
+    title: 'Coal Region Life Insurance | Latimore Life & Legacy',
     description:
       'Protect what you have built and prepare for what comes next with local insurance guidance from Latimore Life & Legacy.',
     url: '/',
@@ -215,7 +215,7 @@ export default function HomePage() {
               { county: 'Northumberland County', population: 'Central PA', highlight: 'Sunbury, Shamokin, Milton' }
             ].map(({ county, population, highlight }) => (
               <div key={county} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 14, padding: '1.5rem' }}>
-                <h4 style={{ color: navy, fontSize: '1.15rem', marginBottom: '0.5rem' }}>{county}</h4>
+                <h3 style={{ color: navy, fontSize: '1.15rem', marginBottom: '0.5rem' }}>{county}</h3>
                 <p style={{ color: goldLight, fontWeight: 700, fontSize: '1.8rem', margin: '0.25rem 0' }}>{population}</p>
                 <p style={{ color: '#667085', fontSize: '0.9rem', margin: 0 }}>{highlight}</p>
               </div>

@@ -23,18 +23,6 @@ export const metadata: Metadata = {
   },
   description:
     "Independent life insurance, annuity, mortgage protection and retirement-income guidance for families and businesses across Pennsylvania's Coal Region.",
-  keywords: [
-    'life insurance Schuylkill County',
-    'life insurance Luzerne County',
-    'life insurance Northumberland County',
-    'living benefits Pennsylvania',
-    'IUL annuities PA',
-    'key person insurance PA',
-    'retirement planning coal region',
-    'Latimore Life Legacy',
-    'Jackson Latimore insurance',
-    'independent insurance advisor Pennsylvania',
-  ],
   authors: [{ name: 'Jackson M. Latimore Sr.' }],
   creator: 'Latimore Life & Legacy LLC',
   publisher: 'Latimore Life & Legacy LLC',
