@@ -55,11 +55,11 @@ export default function HomePage() {
 
               <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
                 <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', transition: 'transform .18s ease' }} className="btn-hover">Book Free Consultation</a>
-                <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
+                <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '14px 28px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.05rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get My Protection Number</EthosQuoteLink>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                {['PA Licensed DOI #1268820', 'MBA · MPA', 'Serving Schuylkill, Luzerne & Northumberland Counties'].map(badge => (
+                {['PA Licensed DOI #1268820', 'MBA', 'Serving Schuylkill, Luzerne & Northumberland Counties'].map(badge => (
                   <span key={badge} style={{ background: 'rgba(197,162,77,0.15)', padding: '8px 14px', borderRadius: 20, fontSize: '0.88rem', border: '1px solid rgba(197,162,77,0.4)', color: goldLight, fontWeight: 600 }}>{badge}</span>
                 ))}
               </div>
@@ -186,7 +186,7 @@ export default function HomePage() {
             <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 18, padding: '2rem', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
               <h3 style={{ color: navy, fontSize: '1.3rem', marginBottom: '1rem' }}>Carrier Diversity</h3>
               <p style={{ color: '#475467', lineHeight: 1.8, margin: 0 }}>
-                As an independent broker, I work with a carefully selected portfolio of highly-rated carriers — so I can compare available options to find an appropriate fit for your family's needs and budget.
+                As an independent broker, I work with a carefully selected portfolio of carriers — so I can compare available options to find an appropriate fit for your family's needs and budget.
               </p>
             </div>
 
@@ -229,12 +229,12 @@ export default function HomePage() {
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 20px', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.8rem,3vw,2.5rem)', margin: '0 0 1rem' }}>Ready to Protect Your Family's Future?</h2>
           <p style={{ fontSize: '1.15rem', color: 'rgba(255,255,255,0.85)', marginBottom: '2rem', lineHeight: 1.7 }}>
-            Book a free consultation or get an instant quote in minutes. No pressure, just insurance education and protection guidance.
+            Book a free consultation or calculate your protection number in minutes. No pressure, just insurance education and protection guidance.
           </p>
 
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a href={BRAND.bookingUrl} style={{ display: 'inline-block', background: gold, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem' }} className="btn-hover">Book Free Consultation</a>
-            <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get Instant Quote</EthosQuoteLink>
+            <EthosQuoteLink style={{ display: 'inline-block', background: goldLight, color: navy, padding: '16px 32px', borderRadius: 999, fontWeight: 700, textDecoration: 'none', fontSize: '1.1rem', boxShadow: '0 0 20px rgba(197,162,77,0.4)' }} className="btn-hover">Get My Protection Number</EthosQuoteLink>
           </div>
 
           <div style={{ marginTop: '2.5rem', padding: '1.5rem', background: 'rgba(255,255,255,0.08)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.15)' }}>

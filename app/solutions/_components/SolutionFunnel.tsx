@@ -32,6 +32,8 @@ type VariantConfig = {
   magnetBody: string
   bookingTitle: string
   campaign: string
+  assumptions: string[]
+  sources: Array<[string, string, string]>
   faqs: Array<[string, string]>
 }
 
@@ -51,6 +53,13 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'A practical follow-up that helps you write down the income years, housing obligation, current protection, and immediate family priorities behind your number.',
     bookingTitle: 'Review the number with Latimore',
     campaign: 'family_protection_snapshot',
+    assumptions: [
+      'Gap = (annual income x years to replace) + housing obligation + debt, childcare, education and other obligations - existing coverage.',
+      'Years to replace is capped at 40. The result is never below zero.',
+      'The estimate does not adjust for inflation, taxes, investment returns, or Social Security survivor benefits.',
+      'Starting values in the fields are placeholders. Replace them with your own numbers.',
+    ],
+    sources: [['NAIC Life Insurance Buyer\'s Guide', 'https://content.naic.org/sites/default/files/publication-lig-lp-consumer-life.pdf', 'Regulator-prepared guide on deciding how much coverage to consider: dependents, share of family income, final expenses, debts, and why employer coverage is often less than needed.']],
     faqs: [
       ['Is this an insurance quote?', 'No. It is an educational needs snapshot. Actual eligibility, cost, benefits, and availability depend on underwriting and the coverage selected.'],
       ['Should coverage through work count?', 'It can be included in the amount you already have, but it is worth separately confirming portability, benefit amount, and what happens if employment changes.'],
@@ -72,6 +81,12 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'Use it to list your desired monthly income, predictable sources, housing obligations, and the questions you want answered before retirement.',
     bookingTitle: 'Review your income gap with Latimore',
     campaign: 'retirement_income_snapshot',
+    assumptions: [
+      'Gap = desired monthly income - Social Security - pension - other predictable monthly income. The result is never below zero.',
+      'The 25-year figure shown with the result is the monthly gap x 12 x 25. It is an illustration only, before inflation, taxes, or investment returns.',
+      'Starting values in the fields are placeholders. Replace them with your own numbers, including your own Social Security estimate.',
+    ],
+    sources: [['Social Security Administration: my Social Security', 'https://www.ssa.gov/myaccount', 'Official source for a personal retirement benefit estimate based on your own earnings record.']],
     faqs: [
       ['What counts as predictable income?', "Examples can include Social Security, pensions, and other contractual or contract-based income sources. The exact treatment depends on the source and its terms."],
       ['Does this tool tell me what to buy?', 'No. It identifies an income gap for education and planning. Any later recommendation requires a separate suitability and needs discussion.'],
@@ -93,6 +108,12 @@ const CONFIG: Record<Variant, VariantConfig> = {
       'A simple checklist for final arrangements, outstanding obligations, beneficiary information, important contacts, and the documents your family should be able to find.',
     bookingTitle: 'Review the gap with Latimore',
     campaign: 'legacy_cost_snapshot',
+    assumptions: [
+      'Gap = final arrangements + outstanding debts + medical or estate costs + other immediate obligations - savings or coverage already earmarked. The result is never below zero.',
+      'Starting values in the fields are placeholders, not price quotes. Local costs vary by provider and region.',
+      'National median funeral figures do not include cemetery, monument, or cash-advance charges, so add those to the relevant fields if they apply.',
+    ],
+    sources: [['NFDA General Price List Study release', 'https://www.nfda.org/news/media-center/nfda-news-releases/id/4797', 'Explains how the national median funeral cost is built and that cemetery, monument, and cash-advance charges are not included.'], ['TIME: How Much Does the Average Funeral Cost?', 'https://time.com/personal-finance/article/how-much-does-the-average-funeral-cost', 'Reports the NFDA 2023 national medians for funeral with viewing and burial and with viewing and cremation.']],
     faqs: [
       ['Is this only about funeral costs?', 'No. The snapshot can include other immediate obligations such as remaining debt, medical costs, legal or estate expenses, and any amount you intentionally want available to family.'],
       ['Can I count savings I already set aside?', 'Yes. Enter the amount already earmarked for these obligations so the snapshot focuses on the remaining gap.'],
@@ -349,6 +370,25 @@ export default function SolutionFunnel({ variant }: Props) {
             </div>
           </div>
           <LeadCapture config={config} />
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-5xl px-5 pt-14 md:pt-20">
+        <div className="rounded-3xl border bg-white p-6 shadow-sm md:p-8" style={{ borderColor: COLORS.gray200 }}>
+          <p className="text-xs font-black uppercase tracking-[0.22em]" style={{ color: COLORS.gold }}>How this estimate works</p>
+          <h2 className="mt-2 text-2xl font-black" style={{ color: COLORS.navy }}>Sources and assumptions</h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6" style={{ color: COLORS.textMuted }}>
+            {config.assumptions.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          <p className="mt-6 text-xs font-black uppercase tracking-[0.22em]" style={{ color: COLORS.gold }}>Sources</p>
+          <ul className="mt-3 space-y-3 text-sm leading-6" style={{ color: COLORS.textMuted }}>
+            {config.sources.map(([title, url, note]) => (
+              <li key={url}>
+                <a href={url} target="_blank" rel="noopener noreferrer" className="font-bold underline" style={{ color: COLORS.navy }}>{title}</a>
+                <span>{' '}{note}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
