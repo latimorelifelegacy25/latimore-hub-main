@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { createOpenAIJsonCompletion } from '@/lib/ai/client'
+import { getPreviousCompletedWeek } from '@/lib/engagement/executive'
 
 export type WeeklyReportAnalysis = {
   summary: string
@@ -29,17 +30,16 @@ const REPORT_SCHEMA = {
 }
 
 export async function buildWeeklyReport() {
-  const now = new Date()
-  const weekEnd = new Date(now)
-  const weekStart = new Date(now)
-  weekStart.setDate(weekStart.getDate() - 7)
+  // Stable, completed Monday-Sunday reporting period in the business timezone.
+  // Repeated runs upsert the same report instead of creating a new moving-window row.
+  const { weekStart, weekEnd } = getPreviousCompletedWeek('America/New_York')
 
   const [metrics, insights, posts] = await Promise.all([
-    prisma.socialMetric.findMany({ where: { metricDate: { gte: weekStart } } }),
-    prisma.insight.findMany({ where: { createdAt: { gte: weekStart } }, take: 20 }),
+    prisma.socialMetric.findMany({ where: { metricDate: { gte: weekStart, lte: weekEnd } } }),
+    prisma.insight.findMany({ where: { createdAt: { gte: weekStart, lte: weekEnd } }, take: 20 }),
     prisma.socialPost.findMany({
-      where: { publishedAt: { gte: weekStart } },
-      include: { metrics: true },
+      where: { publishedAt: { gte: weekStart, lte: weekEnd } },
+      include: { metrics: { where: { metricDate: { gte: weekStart, lte: weekEnd } } } },
     }),
   ])
 
@@ -68,19 +68,21 @@ Weekly KPIs (${weekStart.toDateString()} – ${weekEnd.toDateString()}):
 - Reactions: ${totals.reactions}
 - Comments: ${totals.comments}
 - Shares: ${totals.shares}
-- New Leads: ${totals.leads}
+- Social-attributed Leads: ${totals.leads}
 - Engagement Rate: ${engRate}
 - Posts Published: ${posts.length}
 - Open Insights: ${insights.length}
 
+Data coverage: ${metrics.length} social metric snapshots. Missing channels are not zero-performance channels; do not claim platform parity without evidence.
+
 Top Insights:
-${insights.slice(0, 5).map(i => `- [${i.severity}] ${i.title}: ${i.summary}`).join('\n')}
+${insights.slice(0, 5)}.map(i => `- [${i.severity}] ${i.title}: ${i.summary}`).join('\n')}
 
 This is for Latimore Life & Legacy LLC, an independent insurance advisor in Central Pennsylvania.
 `.trim()
 
   const { output } = await createOpenAIJsonCompletion<WeeklyReportAnalysis>({
-    system: 'You are a marketing intelligence analyst for an insurance advisory firm. Generate a weekly performance report.',
+    system: 'You are a marketing intelligence analyst for an insurance advisory firm. Generate a weekly performance report grounded only in supplied KPIs. Never invent channel reach, campaign results, or conversion outcomes. Flag incomplete data explicitly.',
     user: context,
     schemaName: 'weekly_report',
     schema: REPORT_SCHEMA,
