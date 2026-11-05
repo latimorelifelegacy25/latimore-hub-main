@@ -42,15 +42,14 @@ async function main() {
     await prisma.analyticsTarget.findMany({ take: 0 })
   }))
 
-  // 2. Recent job runs
+  // 2. Recent job runs (missing data is a failure, not a green check)
   results.push(await check('AnalyticsJobRun has recent rows (within 7 days)', async () => {
     const cutoff = new Date(Date.now() - 7 * 86_400_000)
     const count = await prisma.analyticsJobRun.count({
       where: { startedAt: { gte: cutoff } },
     })
     if (count === 0) {
-      // Not a hard failure — mart may not have been built yet
-      console.log('    ⚠  No job runs in past 7 days (mart may not be built yet)')
+      throw new Error('No analytics job runs in the last 7 days; reporting freshness is not verified')
     }
   }))
 
@@ -67,8 +66,7 @@ async function main() {
   results.push(await check('Required metric keys present in mart (if mart has data)', async () => {
     const totalRows = await prisma.analyticsDailyMetric.count()
     if (totalRows === 0) {
-      console.log('    ⚠  Mart is empty — skipping metric key check')
-      return
+      throw new Error('AnalyticsDailyMetric is empty; cannot validate required KPI metrics')
     }
 
     const presentKeys = await prisma.analyticsDailyMetric.findMany({
@@ -88,8 +86,7 @@ async function main() {
   results.push(await check('Funnel stages present and ordered (if mart has data)', async () => {
     const totalRows = await prisma.analyticsFunnelDaily.count()
     if (totalRows === 0) {
-      console.log('    ⚠  Funnel mart is empty — skipping funnel check')
-      return
+      throw new Error('AnalyticsFunnelDaily is empty; cannot validate conversion funnel')
     }
 
     const stages = await prisma.analyticsFunnelDaily.findMany({
@@ -121,7 +118,7 @@ async function main() {
     // In a real test we'd import and inspect, but here we just verify the file exists
     const fs = await import('fs')
     const content = fs.readFileSync(
-      new URL('../lib/rate-limit.ts', import.meta.url).pathname.replace('scripts/', ''),
+      new URL('../lib/rate-limit.ts', import.meta.url),
       'utf-8',
     )
     if (!content.includes("analytics:")) {
