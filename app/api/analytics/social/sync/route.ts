@@ -21,8 +21,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid json' }, { status: 400 })
   }
 
-  const platform = typeof body.platform === 'string' ? body.platform : 'unknown'
-  const posts = Array.isArray(body.posts) ? body.posts : []
+  const platform = typeof body.platform === 'string' ? body.platform.trim().toLowerCase() : ''
+  if (!['facebook', 'instagram', 'linkedin', 'website', 'email'].includes(platform)) {
+    return NextResponse.json({ error: 'unsupported platform' }, { status: 400 })
+  }
+  if (!Array.isArray(body.posts) || body.posts.length > 500) {
+    return NextResponse.json({ error: 'posts must be an array of at most 500 items' }, { status: 400 })
+  }
+  const posts = body.posts
 
   let created = 0
   let updated = 0
@@ -58,7 +64,10 @@ export async function POST(req: NextRequest) {
         },
       })
 
-      const metricDate = p.metric_date ? new Date(String(p.metric_date)) : new Date()
+      const reportedDate = p.metric_date ? new Date(String(p.metric_date)) : new Date()
+      if (!Number.isFinite(reportedDate.getTime())) throw new Error('Invalid metric_date')
+      // Daily snapshots use a canonical UTC date so repeated syncs update rather than duplicate.
+      const metricDate = new Date(Date.UTC(reportedDate.getUTCFullYear(), reportedDate.getUTCMonth(), reportedDate.getUTCDate()))
       const metrics = {
         impressions: Number(p.impressions ?? 0),
         reach: Number(p.reach ?? 0),
@@ -72,6 +81,9 @@ export async function POST(req: NextRequest) {
         revenueCents: Number(p.revenue_cents ?? 0),
       }
 
+      if (Object.values(metrics).some(value => !Number.isFinite(value) || value < 0 || !Number.isSafeInteger(value))) {
+        throw new Error('Metrics must be finite nonnegative integers')
+      }
       pending.push({ postId: post.id, metricDate, metrics, raw: p as object })
     } catch (e) {
       errors.push(String(e instanceof Error ? e.message : e).slice(0, 200))
