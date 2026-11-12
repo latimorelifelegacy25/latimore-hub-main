@@ -1,7 +1,10 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+_here = os.path.dirname(__file__)
+# Project-root .env first (takes precedence), then config/.env
+load_dotenv(os.path.join(_here, '..', '.env'))
+load_dotenv(os.path.join(_here, '.env'))
 
 class Settings:
     # Gemini

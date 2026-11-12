@@ -196,33 +196,35 @@ Rules:
     # ------------------------------------------------------------------ #
 
     async def _agent_loop(self, task: AgentTask, browser: BrowserController):
-        # Gemini multi-turn: build history as list of Content dicts
-        history = []
+        # Past turns are kept as text only (screenshots are sent for the current
+        # step alone) and strictly alternate user/model, as Gemini requires.
+        history: List[Dict[str, Any]] = []
+        last_result: Optional[str] = None
 
-        max_steps = 50
-        step_num  = 0
-
-        # Seed the conversation with the task instruction
-        history.append({
-            "role": "user",
-            "parts": [{"text": f"Task: {task.instruction}"}],
-        })
+        max_steps          = 50
+        max_failures       = 5      # consecutive screenshot / model failures
+        model_timeout      = 60     # seconds per model call
+        step_num           = 0
+        failures           = 0
 
         while step_num < max_steps:
-            # ── Cancellation check ──────────────────────────────────────
+            # ── Cancellation / pause ────────────────────────────────────
+            while self._pause_flags.get(task.task_id) and not self._cancel_flags.get(task.task_id):
+                await asyncio.sleep(0.5)
+
             if self._cancel_flags.get(task.task_id):
                 task.status      = TaskStatus.CANCELLED
                 task.finished_at = time.time()
                 await self._emit_status(task.task_id, TaskStatus.CANCELLED)
                 return
 
-            # ── Pause check ─────────────────────────────────────────────
-            while self._pause_flags.get(task.task_id):
-                await asyncio.sleep(0.5)
-
             # ── Capture screenshot ───────────────────────────────────────
             b64 = await browser.screenshot()
             if not b64:
+                failures += 1
+                if failures >= max_failures:
+                    await self._fail(task, "Unable to capture browser screenshots.")
+                    return
                 await asyncio.sleep(1)
                 continue
 
@@ -230,44 +232,45 @@ Rules:
             task.current_url = await browser.get_current_url()
 
             # ── Build vision message ─────────────────────────────────────
-            img_bytes = base64.b64decode(b64)
-            history.append({
-                "role": "user",
-                "parts": [
-                    {
-                        "text": (
-                            f"Step {step_num + 1}. Current URL: {task.current_url}\n"
-                            "What is your next action?"
-                        )
-                    },
-                    {
-                        "inline_data": {
-                            "mime_type": "image/png",
-                            "data": b64,
-                        }
-                    },
-                ],
-            })
+            text = (
+                f"Task: {task.instruction}\n"
+                f"Step {step_num + 1}. Current URL: {task.current_url}\n"
+            )
+            if last_result is not None:
+                text += f"Result of your previous action: {last_result}\n"
+            text += "What is your next action?"
+
+            parts = [
+                text,
+                {"mime_type": "image/png", "data": base64.b64decode(b64)},
+            ]
 
             # ── Ask Gemini ───────────────────────────────────────────────
             try:
-                chat = self._model.start_chat(history=history[:-1])
-                response = await asyncio.get_event_loop().run_in_executor(
-                    None,
-                    lambda: chat.send_message(history[-1]["parts"]),
+                chat = self._model.start_chat(history=history)
+                response = await asyncio.wait_for(
+                    chat.send_message_async(parts), timeout=model_timeout
                 )
                 raw = response.text.strip()
                 action = json.loads(raw)
+                if not isinstance(action, dict) or "type" not in action:
+                    raise ValueError(f"Not a valid action object: {raw[:200]}")
             except Exception as e:
-                logger.error(f"[{task.task_id}] Model error: {e}")
+                failures += 1
+                logger.error(f"[{task.task_id}] Model error ({failures}/{max_failures}): {e}")
+                if failures >= max_failures:
+                    await self._fail(task, f"Model failed {max_failures} times in a row: {e}")
+                    return
                 await asyncio.sleep(2)
                 continue
 
-            # Add model response to history
-            history.append({
-                "role": "model",
-                "parts": [{"text": raw}],
-            })
+            failures = 0
+
+            # Record this exchange (text only) and keep the last 20 exchanges
+            history.append({"role": "user",  "parts": [{"text": text}]})
+            history.append({"role": "model", "parts": [{"text": raw}]})
+            if len(history) > 40:
+                history = history[-40:]
 
             # ── Log step ─────────────────────────────────────────────────
             step_dict = {
@@ -292,24 +295,12 @@ Rules:
                 return
 
             if action.get("type") == "error":
-                task.status      = TaskStatus.FAILED
-                task.error       = action.get("message", "Unknown error")
-                task.finished_at = time.time()
-                await self._emit_status(task.task_id, TaskStatus.FAILED)
+                await self._fail(task, action.get("message", "Unknown error"))
                 return
 
             # ── Execute action ───────────────────────────────────────────
             result = await browser.execute_action(action)
-
-            # Add action result to history
-            history.append({
-                "role": "user",
-                "parts": [{"text": f"Action result: {json.dumps(result)}"}],
-            })
-
-            # Keep history manageable (instruction + last 20 exchanges = ~42 entries)
-            if len(history) > 43:
-                history = history[:1] + history[-40:]
+            last_result = json.dumps(result, default=str)[:500]
 
             step_num += 1
             await asyncio.sleep(0.3)
@@ -317,6 +308,12 @@ Rules:
         # Max steps reached
         task.status      = TaskStatus.FAILED
         task.error       = f"Max steps ({max_steps}) reached without completion."
+        task.finished_at = time.time()
+        await self._emit_status(task.task_id, TaskStatus.FAILED)
+
+    async def _fail(self, task: AgentTask, message: str):
+        task.status      = TaskStatus.FAILED
+        task.error       = message
         task.finished_at = time.time()
         await self._emit_status(task.task_id, TaskStatus.FAILED)
 
